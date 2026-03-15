@@ -33,14 +33,23 @@ const LABEL = { color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', displa
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
-/** Check ingredient against org material stock. Returns 'OK' | 'LOW' | 'NONE' */
+/**
+ * Check ingredient against org material stock.
+ * Returns 'OK' | 'LOW' | 'NONE'
+ *
+ * OK   — org has stock AND quality >= min_quality AND qty >= required
+ * LOW  — org has stock but quality < min_quality OR qty < required (partial match)
+ * NONE — no org stock at all (qty = 0 or no record)
+ */
 function ingredientStatus(ingredient, materials) {
   const match = materials.find(
     m => (m.material_name || '').toLowerCase() === (ingredient.material_name || '').toLowerCase()
   );
   if (!match || (match.quantity_scu || 0) === 0) return 'NONE';
-  if ((match.quality_pct || 0) < (ingredient.min_quality || 0)) return 'LOW';
-  return 'OK';
+  const qualityOk = (match.quality_pct  || 0) >= (ingredient.min_quality   || 0);
+  const qtyOk     = (match.quantity_scu || 0) >= (ingredient.quantity_scu  || 0);
+  if (qualityOk && qtyOk) return 'OK';
+  return 'LOW';
 }
 
 /** Count recipe ingredients with zero org stock */

@@ -24,6 +24,7 @@ import EpicArchive from '@/pages/EpicArchive';
 import NexusSettings from '@/pages/NexusSettings';
 import KeyManagement from '@/app/KeyManagement';
 import NexusTodo from '@/pages/NexusTodo';
+import LiveOp from '@/app/modules/OpBoard/LiveOp';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
         <Route path="scout" element={<ScoutIntel />} />
         <Route path="ops" element={<OpBoard />} />
         <Route path="ops/new" element={<OpCreator />} />
+        <Route path="ops/:id" element={<LiveOp />} />
         <Route path="fleet" element={<FleetForge />} />
         <Route path="profit" element={<ProfitCalc />} />
         <Route path="coffer" element={<CofferLedger />} />
