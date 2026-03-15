@@ -10,7 +10,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import NexusShell from '@/components/shell/NexusShell';
 
 // Pages
-import AccessGate from '@/pages/AccessGate';
+import AccessGate from '@/app/AccessGate';
 import IndustryHub from '@/pages/IndustryHub';
 import ScoutIntel from '@/pages/ScoutIntel';
 import OpBoard from '@/pages/OpBoard';
