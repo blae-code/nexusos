@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+﻿import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
  * OCR Extract — Takes a screenshot URL (from UploadFile or Discord attachment),
@@ -44,7 +44,7 @@ Return null for any field you cannot read clearly.`,
       response_json_schema: {
         type: 'object',
         properties: {
-          screenshot_type: { type: 'string', enum: ['INVENTORY','MINING_SCAN','REFINERY_ORDER','TRANSACTION'] },
+          screenshot_type: { type: 'string', enum: ['INVENTORY','MINING_SCAN','REFINERY_ORDER','TRANSACTION','CRAFT_QUEUE','SHIP_STATUS'] },
           items: { type: 'array', items: { type: 'object' } },
           confidence: { type: 'number' },
           notes: { type: 'string' },
@@ -56,7 +56,7 @@ Return null for any field you cannot read clearly.`,
       return Response.json({ success: false, error: 'Could not determine screenshot type' });
     }
 
-    const resolvedCallsign = callsign || user.email;
+    const resolvedCallsign = callsign || user.callsign || 'unknown';
     const resolvedDiscordId = discord_id || '';
     const now = new Date().toISOString();
     const created = [];
@@ -141,6 +141,24 @@ Return null for any field you cannot read clearly.`,
         screenshot_type: 'MINING_SCAN',
         pending_confirmation: extracted.items?.[0] || {},
         message: 'Mining scan detected — confirm deposit details before logging',
+      });
+    }
+
+    if (extracted.screenshot_type === 'CRAFT_QUEUE') {
+      return Response.json({
+        success: true,
+        screenshot_type: 'CRAFT_QUEUE',
+        pending_confirmation: extracted.items || [],
+        message: 'Craft queue detected — confirm before updating queue',
+      });
+    }
+
+    if (extracted.screenshot_type === 'SHIP_STATUS') {
+      return Response.json({
+        success: true,
+        screenshot_type: 'SHIP_STATUS',
+        pending_confirmation: extracted.items?.[0] || {},
+        message: 'Ship component state detected — confirm before updating fleet build',
       });
     }
 

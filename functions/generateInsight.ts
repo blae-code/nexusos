@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+﻿import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 /**
  * Generates an org-state insight using Claude.
@@ -37,14 +37,18 @@ ${JSON.stringify(summary, null, 2)}
 Based on this data, generate ONE concise operational insight and recommendation.
 The insight should be actionable and specific to their current state.
 
-Keep the title under 8 words. Keep detail under 25 words. Make it feel like a tactical briefing.`,
+Keep the title under 8 words. Keep detail under 25 words. Make it feel like a tactical briefing.
+
+Return action_1_prompt and action_2_prompt as specific, detailed questions a user would ask to act on this insight — they will be sent directly to an assistant as follow-up queries.`,
       response_json_schema: {
         type: 'object',
         properties: {
           title: { type: 'string' },
           detail: { type: 'string' },
           action_1_label: { type: 'string' },
+          action_1_prompt:  { type: 'string' },
           action_2_label: { type: 'string' },
+          action_2_prompt:  { type: 'string' },
         },
       },
     });
