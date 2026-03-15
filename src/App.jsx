@@ -22,7 +22,7 @@ import RescueBoard from '@/pages/RescueBoard';
 import OrgRoster from '@/pages/OrgRoster';
 import EpicArchive from '@/pages/EpicArchive';
 import NexusSettings from '@/pages/NexusSettings';
-import KeyManagement from '@/pages/KeyManagement';
+import KeyManagement from '@/app/KeyManagement';
 import NexusTodo from '@/pages/NexusTodo';
 
 const AuthenticatedApp = () => {
