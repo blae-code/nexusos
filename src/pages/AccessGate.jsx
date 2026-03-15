@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Eye, EyeOff, AlertTriangle, Wifi, WifiOff, ExternalLink } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
