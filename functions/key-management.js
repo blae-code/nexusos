@@ -8,7 +8,7 @@
  *   - bcrypt cost 12, charset strips ambiguous chars (I, O, 0, 1)
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import * as bcrypt from 'npm:bcrypt@5.1.1';
+import * as bcryptjs from 'npm:bcryptjs@2.4.3';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -116,7 +116,7 @@ async function handleGenerate(base44, caller, body) {
 
   // Generate key — plaintext never persisted after this function returns
   const plaintext     = generateAuthKey();
-  const auth_key_hash = await bcrypt.hash(plaintext, BCRYPT_COST);
+  const auth_key_hash = await bcryptjs.hash(plaintext, BCRYPT_COST);
   const now           = new Date().toISOString();
 
   await base44.asServiceRole.entities.NexusUser.create({
@@ -185,7 +185,7 @@ async function handleReissue(base44, caller, body) {
   }
 
   const plaintext     = generateAuthKey();
-  const auth_key_hash = await bcrypt.hash(plaintext, BCRYPT_COST);
+  const auth_key_hash = await bcryptjs.hash(plaintext, BCRYPT_COST);
   const now           = new Date().toISOString();
 
   // Core key fields — always updated
