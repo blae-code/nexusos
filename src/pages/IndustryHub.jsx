@@ -6,6 +6,8 @@ import {
   Upload, TrendingUp, AlertCircle, ChevronRight,
   CheckCircle, Clock, Zap, RefreshCw
 } from 'lucide-react';
+import MaterialsModule from '@/app/modules/IndustryHub/Materials';
+import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
 
 const TABS = [
   { id: 'overview',   label: 'OVERVIEW' },
@@ -29,25 +31,29 @@ function qualityColor(pct) {
   return 'var(--t2)';
 }
 
-function StatCard({ icon: Icon, label, value, sub, trend }) {
+function StatCard({ label, value, barPct = 0, barWarn = false }) {
   return (
-    <div className="nexus-card" style={{ flex: 1, minWidth: 0 }}>
-      <div className="flex items-start justify-between">
-        <div>
-          <div style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', marginBottom: 6 }}>{label}</div>
-          <div style={{ color: 'var(--t0)', fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{value}</div>
-          {sub && <div style={{ color: 'var(--t1)', fontSize: 11, marginTop: 4 }}>{sub}</div>}
-        </div>
-        <div style={{ background: 'var(--bg3)', border: '0.5px solid var(--b2)', borderRadius: 7, padding: 8 }}>
-          <Icon size={16} style={{ color: 'var(--acc2)' }} />
-        </div>
+    <div style={{
+      background: 'var(--bg2)',
+      border: '0.5px solid var(--b1)',
+      borderRadius: 8,
+      padding: 12,
+      flex: 1,
+      minWidth: 0,
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
+      <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
+      <div style={{ color: 'var(--t0)', fontSize: 22, fontWeight: 500, lineHeight: 1, flex: 1 }}>{value}</div>
+      <div style={{ marginTop: 10, height: 2, background: 'var(--b1)', borderRadius: 1, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%',
+          width: `${Math.min(Math.max(barPct, 0), 100)}%`,
+          background: barWarn ? 'var(--warn)' : 'var(--acc)',
+          borderRadius: 1,
+          transition: 'width 0.4s ease',
+        }} />
       </div>
-      {trend !== undefined && (
-        <div className="flex items-center gap-1 mt-3" style={{ color: trend >= 0 ? 'var(--live)' : 'var(--danger)', fontSize: 11 }}>
-          <TrendingUp size={10}/>
-          <span>{trend >= 0 ? '+' : ''}{trend}% vs last week</span>
-        </div>
-      )}
     </div>
   );
 }
@@ -71,14 +77,135 @@ function StatusFlag({ material }) {
   return <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.08)' }}>BELOW T2</span>;
 }
 
-// ─── Overview Tab ────────────────────────────────────────
-function OverviewTab({ materials, blueprints, craftQueue, refineryOrders }) {
-  const totalSCU = materials.reduce((s, m) => s + (m.quantity_scu || 0), 0);
-  const avgQuality = materials.length ? materials.reduce((s, m) => s + (m.quality_pct || 0), 0) / materials.length : 0;
-  const priorityBPs = blueprints.filter(b => b.is_priority).length;
-  const craftedThisWeek = craftQueue.filter(c => c.status === 'COMPLETE').length;
+// ─── Overview helpers ─────────────────────────────────────
 
-  const readyOrders = refineryOrders.filter(r => r.status === 'READY');
+function relativeTime(isoStr) {
+  if (!isoStr) return '—';
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  return `${Math.floor(hr / 24)}d ago`;
+}
+
+function MaterialIcon({ type, size = 14 }) {
+  const s = String(size);
+  const c = 'var(--t2)';
+  if (type === 'RAW') return (
+    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
+      <polygon points="7,1 13,13 1,13" stroke={c} strokeWidth="0.8" fill="none" />
+    </svg>
+  );
+  if (type === 'REFINED') return (
+    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
+      <polygon points="7,1 12,4 12,10 7,13 2,10 2,4" stroke={c} strokeWidth="0.8" fill="none" />
+    </svg>
+  );
+  if (type === 'SALVAGE') return (
+    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
+      <polygon points="7,1 11,4 12,10 4,12 2,5" stroke={c} strokeWidth="0.8" fill="none" />
+    </svg>
+  );
+  if (type === 'CRAFTED') return (
+    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
+      <rect x="1" y="1" width="12" height="12" stroke={c} strokeWidth="0.8" fill="none" />
+    </svg>
+  );
+  return (
+    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="5" stroke={c} strokeWidth="0.8" fill="none" />
+    </svg>
+  );
+}
+
+function SectionHeader({ label }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+      <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', flexShrink: 0 }}>{label}</span>
+      <div style={{ flex: 1, height: '0.5px', background: 'var(--b0)' }} />
+    </div>
+  );
+}
+
+function BlueprintGroup({ label, items }) {
+  return (
+    <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b0)', borderRadius: 8, padding: '10px 12px' }}>
+      <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
+      {items.length === 0 && (
+        <div style={{ color: 'var(--t2)', fontSize: 11, textAlign: 'center', padding: '6px 0' }}>No entries</div>
+      )}
+      {items.map(bp => {
+        const owned = !!bp.owned_by_callsign;
+        const dotColor = bp.is_priority ? 'var(--warn)' : owned ? 'var(--acc2)' : 'var(--t3)';
+        return (
+          <div key={bp.id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '4px 0', borderBottom: '0.5px solid var(--b0)' }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+            <span style={{ flex: 1, color: owned ? 'var(--t0)' : 'var(--t2)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {bp.item_name}
+            </span>
+            {bp.is_priority ? (
+              <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.06)', fontSize: 9 }}>PRIORITY</span>
+            ) : owned ? (
+              <span style={{ color: 'var(--t2)', fontSize: 10, background: 'var(--bg3)', border: '0.5px solid var(--b1)', borderRadius: 4, padding: '1px 5px' }}>
+                {bp.owned_by_callsign}
+              </span>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ScoutDepositRow({ deposit }) {
+  const { material_name, location_detail, system_name, quality_pct, reported_by_callsign, ship_type, risk_level, reported_at } = deposit;
+  const qColor = quality_pct >= 80 ? 'var(--live)' : quality_pct >= 60 ? 'var(--t0)' : 'var(--warn)';
+  const isHighRisk = risk_level === 'HIGH' || risk_level === 'EXTREME';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '0.5px solid var(--b0)' }}>
+      <span style={{ color: 'var(--t2)', fontSize: 10, flexShrink: 0, minWidth: 44 }}>{relativeTime(reported_at)}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {material_name}{location_detail ? ` — ${location_detail}` : ''}
+        </div>
+        <div style={{ color: 'var(--t1)', fontSize: 11 }}>
+          {[reported_by_callsign, ship_type, risk_level && `${risk_level} RISK`].filter(Boolean).join(' · ')}
+        </div>
+      </div>
+      <div style={{ color: qColor, fontSize: 18, fontWeight: 500, flexShrink: 0 }}>
+        {(quality_pct || 0).toFixed(0)}%
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end', flexShrink: 0 }}>
+        {quality_pct >= 80 && (
+          <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.08)' }}>T2</span>
+        )}
+        {system_name && (
+          <span className="nexus-tag" style={{ color: 'var(--t1)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>{system_name}</span>
+        )}
+        {risk_level && (
+          <span className="nexus-tag" style={{ color: isHighRisk ? 'var(--danger)' : 'var(--warn)', borderColor: 'transparent', background: 'transparent' }}>{risk_level}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Overview Tab ────────────────────────────────────────
+function OverviewTab({ materials, blueprints, craftQueue, refineryOrders, scoutDeposits }) {
+  const totalSCU        = materials.reduce((s, m) => s + (m.quantity_scu || 0), 0);
+  const avgQuality      = materials.length
+    ? materials.reduce((s, m) => s + (m.quality_pct || 0), 0) / materials.length
+    : 0;
+  const craftedThisWeek = craftQueue.filter(c => c.status === 'COMPLETE').length;
+  const ownedBPs        = blueprints.filter(b => !!b.owned_by_callsign).length;
+
+  const topMaterials  = [...materials].sort((a, b) => (b.quality_pct || 0) - (a.quality_pct || 0)).slice(0, 5);
+  const weaponBPs     = blueprints.filter(b => b.category === 'WEAPON').slice(0, 5);
+  const armorBPs      = blueprints.filter(b => ['ARMOR', 'GEAR'].includes(b.category)).slice(0, 5);
+  const freshDeposits = (scoutDeposits || []).filter(d => !d.is_stale).slice(0, 2);
+
+  const readyOrders  = refineryOrders.filter(r => r.status === 'READY');
   const activeOrders = refineryOrders.filter(r => r.status === 'ACTIVE');
 
   function timeLeft(isoStr) {
@@ -91,61 +218,115 @@ function OverviewTab({ materials, blueprints, craftQueue, refineryOrders }) {
   }
 
   return (
-    <div className="flex gap-4 p-4" style={{ height: '100%' }}>
-      {/* Main content */}
-      <div className="flex flex-col gap-4 flex-1 min-w-0">
+    <div style={{ display: 'flex', gap: 16, padding: 16, height: '100%' }}>
+
+      {/* ── Main column ───────────────────────────────── */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
+
         {/* Stat cards */}
-        <div className="flex gap-3">
-          <StatCard icon={Package}    label="STOCKPILE" value={`${totalSCU.toFixed(0)} SCU`} sub={`${materials.length} materials`} trend={3} />
-          <StatCard icon={Zap}        label="AVG QUALITY" value={`${avgQuality.toFixed(0)}%`} sub="across all stock" />
-          <StatCard icon={Layers}     label="BLUEPRINTS" value={blueprints.length} sub={`${priorityBPs} priority`} />
-          <StatCard icon={Wrench}     label="CRAFT OUTPUT" value={craftedThisWeek} sub="items this week" trend={12} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <StatCard
+            label="ORG STOCKPILE"
+            value={`${totalSCU.toFixed(0)} SCU`}
+            barPct={Math.min((totalSCU / 500) * 100, 100)}
+          />
+          <StatCard
+            label="AVG QUALITY"
+            value={`${avgQuality.toFixed(0)}%`}
+            barPct={avgQuality}
+            barWarn={avgQuality < 80}
+          />
+          <StatCard
+            label="BLUEPRINTS"
+            value={blueprints.length}
+            barPct={blueprints.length > 0 ? (ownedBPs / blueprints.length) * 100 : 0}
+          />
+          <StatCard
+            label="CRAFT OUTPUT 7D"
+            value={craftedThisWeek}
+            barPct={Math.min(craftedThisWeek * 10, 100)}
+          />
         </div>
 
         {/* Insight strip */}
         <InsightStrip />
 
-        {/* Materials table */}
-        <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 16px', borderBottom: '0.5px solid var(--b1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--t1)', fontSize: 11, letterSpacing: '0.1em' }}>MATERIAL STOCKPILE</span>
-            <span style={{ color: 'var(--t2)', fontSize: 10 }}>{materials.length} entries</span>
-          </div>
-          <div style={{ overflow: 'auto', maxHeight: 280 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: 'var(--bg2)' }}>
-                  {['MATERIAL', 'TYPE', 'QUALITY', 'SCU', 'STATUS'].map(h => (
-                    <th key={h} style={{ padding: '7px 14px', textAlign: 'left', color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', fontWeight: 600, borderBottom: '0.5px solid var(--b1)' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {materials.slice(0, 20).map((m, i) => (
-                  <tr key={m.id} style={{ borderBottom: '0.5px solid var(--b0)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{m.material_name}</td>
-                    <td style={{ padding: '8px 14px' }}>
-                      <span className="nexus-tag" style={{ color: 'var(--t1)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>{m.material_type}</span>
-                    </td>
-                    <td style={{ padding: '8px 14px' }}><QualityBar pct={m.quality_pct || 0} /></td>
-                    <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{m.quantity_scu?.toFixed(1)}</td>
-                    <td style={{ padding: '8px 14px' }}><StatusFlag material={m} /></td>
-                  </tr>
-                ))}
-                {materials.length === 0 && (
-                  <tr><td colSpan={5} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>No materials logged. Upload a screenshot or log manually.</td></tr>
-                )}
-              </tbody>
-            </table>
+        {/* Material stockpile */}
+        <div>
+          <SectionHeader label="MATERIAL STOCKPILE" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Column header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 10px 4px', color: 'var(--t2)', fontSize: 9, letterSpacing: '0.1em' }}>
+              <div style={{ width: 18, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>MATERIAL</div>
+              <div style={{ width: 72, flexShrink: 0 }}>TYPE</div>
+              <div style={{ width: 130, flexShrink: 0 }}>QUALITY</div>
+              <div style={{ width: 52, flexShrink: 0, textAlign: 'right' }}>SCU</div>
+              <div style={{ width: 90, flexShrink: 0, textAlign: 'right' }}>STATUS</div>
+            </div>
+            {topMaterials.map(m => (
+              <div
+                key={m.id}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg1)', border: '0.5px solid var(--b0)', borderRadius: 6, padding: '6px 10px', transition: 'background 0.12s' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'var(--bg1)'}
+              >
+                <div style={{ width: 18, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                  <MaterialIcon type={m.material_type} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: 'var(--t0)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.material_name}</div>
+                  {m.source_type && <div style={{ color: 'var(--t2)', fontSize: 10 }}>{m.source_type.replace(/_/g, ' ')}</div>}
+                </div>
+                <div style={{ width: 72, flexShrink: 0 }}>
+                  <span className="nexus-tag" style={{ color: 'var(--t1)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>{m.material_type}</span>
+                </div>
+                <div style={{ width: 130, flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div className="nexus-bar" style={{ flex: 1 }}>
+                      <div className="nexus-bar-fill" style={{ width: `${m.quality_pct || 0}%`, background: 'var(--acc2)' }} />
+                    </div>
+                    <span style={{ color: 'var(--t1)', fontSize: 11, minWidth: 28, textAlign: 'right' }}>{(m.quality_pct || 0).toFixed(0)}%</span>
+                  </div>
+                </div>
+                <div style={{ width: 52, flexShrink: 0, textAlign: 'right', color: 'var(--t0)', fontSize: 12 }}>{(m.quantity_scu || 0).toFixed(1)}</div>
+                <div style={{ width: 90, flexShrink: 0, display: 'flex', justifyContent: 'flex-end' }}>
+                  <StatusFlag material={m} />
+                </div>
+              </div>
+            ))}
+            {topMaterials.length === 0 && (
+              <div style={{ color: 'var(--t2)', fontSize: 12, padding: '10px 10px' }}>No materials logged.</div>
+            )}
           </div>
         </div>
+
+        {/* Blueprint registry */}
+        <div>
+          <SectionHeader label="BLUEPRINT REGISTRY" />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <BlueprintGroup label="WEAPONS" items={weaponBPs} />
+            <BlueprintGroup label="ARMOR & GEAR" items={armorBPs} />
+          </div>
+        </div>
+
+        {/* Scout intel feed */}
+        <div>
+          <SectionHeader label="RECENT SCOUT INTEL" />
+          {freshDeposits.length === 0 ? (
+            <div style={{ color: 'var(--t2)', fontSize: 12, padding: '8px 0' }}>No recent scout intel.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {freshDeposits.map(dep => <ScoutDepositRow key={dep.id} deposit={dep} />)}
+            </div>
+          )}
+        </div>
+
       </div>
 
-      {/* Right rail */}
-      <div className="flex flex-col gap-3" style={{ width: 240, flexShrink: 0 }}>
+      {/* ── Right rail ────────────────────────────────── */}
+      <div style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+
         {/* Refinery timers */}
         <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--b1)' }}>
@@ -156,13 +337,13 @@ function OverviewTab({ materials, blueprints, craftQueue, refineryOrders }) {
               <div style={{ color: 'var(--t2)', fontSize: 11, padding: 8, textAlign: 'center' }}>No active orders</div>
             )}
             {readyOrders.map(o => (
-              <div key={o.id} className="flex items-center justify-between" style={{ padding: '6px 8px', borderRadius: 5, background: 'rgba(39,201,106,0.06)', border: '0.5px solid rgba(39,201,106,0.2)', marginBottom: 4 }}>
+              <div key={o.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderRadius: 5, background: 'rgba(39,201,106,0.06)', border: '0.5px solid rgba(39,201,106,0.2)', marginBottom: 4 }}>
                 <span style={{ color: 'var(--t0)', fontSize: 11 }}>{o.material_name}</span>
                 <span style={{ color: 'var(--live)', fontSize: 10, fontWeight: 700 }}>READY</span>
               </div>
             ))}
             {activeOrders.map(o => (
-              <div key={o.id} className="flex items-center justify-between" style={{ padding: '6px 8px', marginBottom: 4 }}>
+              <div key={o.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', marginBottom: 4 }}>
                 <span style={{ color: 'var(--t1)', fontSize: 11 }}>{o.material_name}</span>
                 <span style={{ color: 'var(--info)', fontSize: 11 }}>{timeLeft(o.completes_at)}</span>
               </div>
@@ -176,18 +357,19 @@ function OverviewTab({ materials, blueprints, craftQueue, refineryOrders }) {
             <span style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em' }}>CRAFT QUEUE</span>
           </div>
           <div style={{ padding: '8px' }}>
-            {craftQueue.filter(c => ['OPEN','CLAIMED','IN_PROGRESS'].includes(c.status)).slice(0, 6).map(c => (
-              <div key={c.id} className="flex items-center gap-2" style={{ padding: '5px 8px', borderBottom: '0.5px solid var(--b0)' }}>
+            {craftQueue.filter(c => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(c.status)).slice(0, 6).map(c => (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px', borderBottom: '0.5px solid var(--b0)' }}>
                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: c.priority_flag ? 'var(--warn)' : 'var(--b3)', flexShrink: 0 }} />
                 <span style={{ flex: 1, color: 'var(--t0)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.blueprint_name}</span>
                 <span style={{ color: 'var(--t2)', fontSize: 10 }}>{c.status}</span>
               </div>
             ))}
-            {craftQueue.filter(c => ['OPEN','CLAIMED','IN_PROGRESS'].includes(c.status)).length === 0 && (
+            {craftQueue.filter(c => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(c.status)).length === 0 && (
               <div style={{ color: 'var(--t2)', fontSize: 11, padding: 8, textAlign: 'center' }}>Queue empty</div>
             )}
           </div>
         </div>
+
       </div>
     </div>
   );
@@ -197,239 +379,84 @@ function InsightStrip() {
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const cached = localStorage.getItem('nexus_insight');
-    if (cached) {
-      try { setInsight(JSON.parse(cached)); } catch {}
-    }
-  }, []);
-
-  const refreshInsight = async () => {
+  const fetchInsight = async (prompt) => {
     setLoading(true);
+    setInsight(null);
     try {
-      const r = await base44.functions.invoke('generateInsight', {});
-      if (r.data?.insight) {
-        setInsight(r.data.insight);
-        localStorage.setItem('nexus_insight', JSON.stringify(r.data.insight));
-      }
-    } catch {}
+      const payload = prompt ? { prompt } : {};
+      const r = await base44.functions.invoke('generateInsight', payload);
+      const data = r?.data?.insight || r?.insight || null;
+      setInsight(data);
+    } catch (e) {
+      console.warn('[InsightStrip] generateInsight failed:', e?.message);
+    }
     setLoading(false);
   };
 
-  if (!insight) return (
-    <div
-      className="flex items-center justify-between"
-      style={{ background: 'rgba(74,143,208,0.06)', border: '0.5px solid rgba(74,143,208,0.2)', borderRadius: 8, padding: '10px 14px' }}
-    >
-      <div className="flex items-center gap-2">
-        <AlertCircle size={13} style={{ color: 'var(--info)' }} />
-        <span style={{ color: 'var(--t1)', fontSize: 12 }}>No system insight loaded — refresh to analyse org state</span>
-      </div>
-      <button onClick={refreshInsight} disabled={loading} className="nexus-btn" style={{ padding: '4px 10px', fontSize: 10 }}>
-        <RefreshCw size={11} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-        ANALYSE
-      </button>
-    </div>
-  );
+  // Auto-fetch on mount
+  useEffect(() => { fetchInsight(); }, []);
 
   return (
-    <div
-      style={{ background: 'rgba(74,143,208,0.06)', border: '0.5px solid rgba(74,143,208,0.2)', borderRadius: 8, padding: '12px 14px' }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div style={{ color: 'var(--info)', fontSize: 10, letterSpacing: '0.1em', marginBottom: 4 }}>SYSTEM INSIGHT</div>
-          <div style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600 }}>{insight.title}</div>
-          <div style={{ color: 'var(--t1)', fontSize: 11, marginTop: 4 }}>{insight.detail}</div>
-          <div className="flex gap-2 mt-3">
-            {insight.action_1_label && (
-              <button className="nexus-btn" style={{ padding: '4px 10px', fontSize: 10 }}>
-                {insight.action_1_label} →
-              </button>
-            )}
-            {insight.action_2_label && (
-              <button className="nexus-btn" style={{ padding: '4px 10px', fontSize: 10 }}>
-                {insight.action_2_label} →
-              </button>
-            )}
-          </div>
-        </div>
-        <button onClick={refreshInsight} disabled={loading} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: 4 }}>
-          <RefreshCw size={12} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-        </button>
-      </div>
-    </div>
-  );
-}
+    <div style={{
+      background: 'var(--bg2)',
+      border: '0.5px solid var(--b2)',
+      borderRadius: 7,
+      padding: '10px 14px',
+      display: 'flex',
+      alignItems: loading ? 'center' : 'flex-start',
+      gap: 10,
+      minHeight: 44,
+    }}>
+      {/* Icon */}
+      <AlertCircle size={14} style={{ color: 'var(--info)', flexShrink: 0, marginTop: loading ? 0 : 1 }} />
 
-// ─── Materials Tab ───────────────────────────────────────
-function MaterialsTab({ materials, onRefresh }) {
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const [qualityFilter, setQualityFilter] = useState(0);
-  const [typeFilter, setTypeFilter] = useState('ALL');
-
-  const filtered = materials.filter(m =>
-    (m.quality_pct || 0) >= qualityFilter &&
-    (typeFilter === 'ALL' || m.material_type === typeFilter)
-  );
-
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (!file) return;
-    await handleOCR(file);
-  };
-
-  const handleOCR = async (file) => {
-    setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      await base44.functions.invoke('ocrExtract', { file_url, source_type: 'OCR_UPLOAD' });
-      onRefresh();
-    } catch {}
-    setUploading(false);
-  };
-
-  return (
-    <div className="p-4 flex flex-col gap-4">
-      {/* Controls */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex gap-1">
-          {['ALL','RAW','REFINED','SALVAGE','CRAFTED'].map(t => (
-            <button key={t} onClick={() => setTypeFilter(t)} className="nexus-btn" style={{ padding: '4px 10px', fontSize: 10, background: typeFilter === t ? 'var(--bg4)' : 'var(--bg2)', borderColor: typeFilter === t ? 'var(--b3)' : 'var(--b1)' }}>{t}</button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2" style={{ color: 'var(--t1)', fontSize: 11 }}>
-          <span>MIN QUALITY</span>
-          <input type="range" min={0} max={100} value={qualityFilter} onChange={e => setQualityFilter(+e.target.value)} style={{ accentColor: 'var(--acc)', width: 100 }} />
-          <span style={{ color: 'var(--t0)', minWidth: 28 }}>{qualityFilter}%</span>
-        </div>
+      {/* Title + detail */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {!loading && <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>OP READINESS</div>}
+        {loading ? (
+          <span style={{ color: 'var(--t2)', fontSize: 12 }}>Analysing org state...</span>
+        ) : insight ? (
+          <>
+            <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{insight.title}</div>
+            <div style={{ color: 'var(--t1)', fontSize: 11, marginTop: 2 }}>{insight.detail}</div>
+          </>
+        ) : (
+          <span style={{ color: 'var(--t2)', fontSize: 12 }}>No readiness data</span>
+        )}
       </div>
 
-      {/* OCR Upload Zone */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onClick={() => { const i = document.createElement('input'); i.type='file'; i.accept='image/*'; i.onchange=e=>handleOCR(e.target.files[0]); i.click(); }}
-        style={{
-          border: `0.5px dashed ${dragOver ? 'var(--acc2)' : 'var(--b2)'}`,
-          borderRadius: 8,
-          padding: '20px',
-          textAlign: 'center',
-          cursor: 'pointer',
-          background: dragOver ? 'var(--bg2)' : 'transparent',
-          transition: 'all 0.15s',
-        }}
+      {/* Action buttons */}
+      {!loading && insight && (
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
+          {insight.action_1_label && (
+            <button
+              onClick={() => fetchInsight(insight.action_1_prompt)}
+              className="nexus-btn"
+              style={{ padding: '3px 9px', fontSize: 10 }}
+            >
+              {insight.action_1_label} →
+            </button>
+          )}
+          {insight.action_2_label && (
+            <button
+              onClick={() => fetchInsight(insight.action_2_prompt)}
+              className="nexus-btn"
+              style={{ padding: '3px 9px', fontSize: 10 }}
+            >
+              {insight.action_2_label} →
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Refresh */}
+      <button
+        onClick={() => fetchInsight()}
+        disabled={loading}
+        style={{ background: 'none', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', color: 'var(--t2)', padding: 2, flexShrink: 0 }}
       >
-        <Upload size={18} style={{ color: 'var(--t2)', margin: '0 auto 8px' }} />
-        <div style={{ color: 'var(--t1)', fontSize: 12 }}>
-          {uploading ? 'Extracting data...' : 'Drop screenshot to extract via OCR, or click to upload'}
-        </div>
-        <div style={{ color: 'var(--t2)', fontSize: 11, marginTop: 4 }}>
-          Supports inventory, mining scan, refinery order, transaction
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: 'var(--bg2)' }}>
-              {['MATERIAL', 'TYPE', 'QUALITY', 'SCU', 'LOCATION', 'LOGGED BY', 'SOURCE', 'STATUS'].map(h => (
-                <th key={h} style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', fontWeight: 600, borderBottom: '0.5px solid var(--b1)' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(m => (
-              <tr key={m.id} style={{ borderBottom: '0.5px solid var(--b0)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{m.material_name}</td>
-                <td style={{ padding: '8px 14px' }}><span className="nexus-tag" style={{ color: 'var(--t1)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>{m.material_type}</span></td>
-                <td style={{ padding: '8px 14px' }}><QualityBar pct={m.quality_pct || 0} /></td>
-                <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{m.quantity_scu?.toFixed(1)}</td>
-                <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{m.location || '—'}</td>
-                <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{m.logged_by_callsign || '—'}</td>
-                <td style={{ padding: '8px 14px' }}><span className="nexus-tag" style={{ color: 'var(--t2)', borderColor: 'var(--b1)', background: 'var(--bg2)', fontSize: 9 }}>{m.source_type || 'MANUAL'}</span></td>
-                <td style={{ padding: '8px 14px' }}><StatusFlag material={m} /></td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>No materials match current filters</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// ─── Blueprints Tab ──────────────────────────────────────
-function BlueprintsTab({ blueprints }) {
-  const weapons = blueprints.filter(b => b.category === 'WEAPON');
-  const armor = blueprints.filter(b => ['ARMOR','GEAR'].includes(b.category));
-  const components = blueprints.filter(b => b.category === 'COMPONENT');
-  const other = blueprints.filter(b => !['WEAPON','ARMOR','GEAR','COMPONENT'].includes(b.category));
-
-  return (
-    <div className="p-4 flex flex-col gap-4">
-      {[['WEAPONS', weapons], ['ARMOR & GEAR', armor], ['COMPONENTS', components], ['OTHER', other]].map(([label, items]) => (
-        items.length > 0 && (
-          <div key={label}>
-            <div style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.12em', marginBottom: 8 }}>{label}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
-              {items.map(bp => (
-                <BlueprintCard key={bp.id} blueprint={bp} />
-              ))}
-            </div>
-          </div>
-        )
-      ))}
-      {blueprints.length === 0 && (
-        <div style={{ color: 'var(--t2)', fontSize: 13, textAlign: 'center', padding: 40 }}>No blueprints registered yet</div>
-      )}
-    </div>
-  );
-}
-
-function BlueprintCard({ blueprint }) {
-  const { item_name, tier, is_priority, owned_by_callsign, category, priority_note } = blueprint;
-  const owned = !!owned_by_callsign;
-
-  return (
-    <div
-      className="nexus-card"
-      style={{
-        opacity: owned ? 1 : 0.45,
-        borderColor: is_priority ? 'rgba(232,160,32,0.4)' : 'var(--b1)',
-        position: 'relative',
-        padding: '10px 12px',
-      }}
-    >
-      {is_priority && (
-        <div
-          style={{
-            position: 'absolute',
-            top: -1, left: -1, right: -1,
-            height: 2,
-            background: 'var(--warn)',
-            borderRadius: '10px 10px 0 0',
-          }}
-        />
-      )}
-      <div className="flex items-center justify-between mb-1">
-        <span style={{ color: owned ? 'var(--t0)' : 'var(--t2)', fontSize: 12, fontWeight: 600 }}>{item_name}</span>
-        <span className="nexus-tag" style={{ color: tier === 'T2' ? 'var(--live)' : 'var(--info)', borderColor: tier === 'T2' ? 'rgba(39,201,106,0.3)' : 'rgba(74,143,208,0.3)', background: 'transparent' }}>{tier}</span>
-      </div>
-      <div className="flex items-center justify-between">
-        <span style={{ color: 'var(--t2)', fontSize: 10 }}>{owned_by_callsign || 'UNOWNED'}</span>
-        {is_priority && <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.06)', fontSize: 9 }}>PRIORITY</span>}
-      </div>
+        <RefreshCw size={11} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+      </button>
     </div>
   );
 }
@@ -569,18 +596,21 @@ export default function IndustryHub() {
   const [blueprints, setBlueprints] = useState([]);
   const [craftQueue, setCraftQueue] = useState([]);
   const [refineryOrders, setRefineryOrders] = useState([]);
+  const [scoutDeposits, setScoutDeposits] = useState([]);
 
   const load = async () => {
-    const [mats, bps, cq, ro] = await Promise.all([
+    const [mats, bps, cq, ro, sd] = await Promise.all([
       base44.entities.Material.list('-logged_at', 100),
       base44.entities.Blueprint.list('-created_date', 100),
       base44.entities.CraftQueue.list('-created_date', 50),
       base44.entities.RefineryOrder.list('-started_at', 50),
+      base44.entities.ScoutDeposit.list('-reported_at', 10),
     ]);
     setMaterials(mats || []);
     setBlueprints(bps || []);
     setCraftQueue(cq || []);
     setRefineryOrders(ro || []);
+    setScoutDeposits(sd || []);
   };
 
   useEffect(() => { load(); }, []);
@@ -616,9 +646,9 @@ export default function IndustryHub() {
 
       {/* Tab content */}
       <div className="flex-1 overflow-auto nexus-fade-in">
-        {tab === 'overview'   && <OverviewTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} refineryOrders={refineryOrders} />}
-        {tab === 'materials'  && <MaterialsTab materials={materials} onRefresh={load} />}
-        {tab === 'blueprints' && <BlueprintsTab blueprints={blueprints} />}
+        {tab === 'overview'   && <OverviewTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} refineryOrders={refineryOrders} scoutDeposits={scoutDeposits} />}
+        {tab === 'materials'  && <MaterialsModule materials={materials} onRefresh={load} />}
+        {tab === 'blueprints' && <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} onRefresh={load} />}
         {tab === 'craft'      && <CraftQueueTab craftQueue={craftQueue} callsign={callsign} />}
         {tab === 'refinery'   && <RefineryTab refineryOrders={refineryOrders} />}
       </div>
