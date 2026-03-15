@@ -82,6 +82,10 @@ async function discordPatch(path, body) {
 }
 
 async function discordDelete(path) {
+  if (!BOT_CONFIGURED) {
+    console.log(`[HERALD STUB] DELETE ${path}`);
+    return null;
+  }
   const res = await fetch(`${DISCORD_API}${path}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bot ${BOT_TOKEN}` },
