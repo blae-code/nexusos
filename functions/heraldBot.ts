@@ -47,8 +47,15 @@ const BOT_TOKEN = Deno.env.get('HERALD_BOT_TOKEN');
 const GUILD_ID  = Deno.env.get('REDSCAR_GUILD_ID');
 const DISCORD_API = 'https://discord.com/api/v10';
 
+// ─── Stub mode — gracefully no-op if bot token not yet configured ─────────────
+const BOT_CONFIGURED = !!BOT_TOKEN && !!GUILD_ID;
+
 // ─── Discord API helpers ──────────────────────────────────────────────────────
 async function discordPost(path, body) {
+  if (!BOT_CONFIGURED) {
+    console.log(`[HERALD STUB] POST ${path}`, JSON.stringify(body).slice(0, 120));
+    return { id: `stub_${Date.now()}` };
+  }
   const res = await fetch(`${DISCORD_API}${path}`, {
     method: 'POST',
     headers: { 'Authorization': `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' },
