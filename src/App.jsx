@@ -23,6 +23,7 @@ import OrgRoster from '@/pages/OrgRoster';
 import EpicArchive from '@/pages/EpicArchive';
 import NexusSettings from '@/pages/NexusSettings';
 import KeyManagement from '@/pages/KeyManagement';
+import NexusTodo from '@/pages/NexusTodo';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route path="archive" element={<EpicArchive />} />
         <Route path="settings" element={<NexusSettings />} />
         <Route path="admin/keys" element={<KeyManagement />} />
+        <Route path="admin/todo" element={<NexusTodo />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
