@@ -201,9 +201,62 @@ export default function LiveOp() {
     if (!window.confirm('End this op and generate wrap-up report?')) return;
     setEndLoading(true);
     try {
+      // Calculate duration
+      const startTime = op.started_at ? new Date(op.started_at) : new Date();
+      const endTime = new Date();
+      const durationMinutes = Math.round((endTime - startTime) / 60000);
+
+      // Collect crew data from RSVPs
+      const crewList = rsvps
+        .filter(r => r.status === 'CONFIRMED')
+        .map(r => ({
+          callsign: r.callsign,
+          role: r.role || 'crew',
+          ship: r.ship,
+        }));
+
+      // Collect logged materials from session
+      const materialsLogged = (op.session_log || [])
+        .filter(log => log.type === 'material_logged')
+        .map(log => ({
+          material_name: log.material_name,
+          quantity_scu: log.quantity_scu,
+          quality_pct: log.quality_pct,
+        }));
+
+      // Calculate total value estimate
+      const totalValue = materialsLogged.reduce((sum, m) => sum + (m.quantity_scu * 50), 0); // Rough estimate
+
+      // Mark op as complete and get debrief
       await base44.entities.Op.update(id, { status: 'COMPLETE', ended_at: new Date().toISOString() });
-      const res = await base44.functions.invoke('opWrapUp', { op_id: id });
-      if (res.data?.success) {
+
+      const res = await base44.functions.invoke('opWrapUp', {
+        op_id: id,
+        op_name: op.name,
+        op_type: op.type,
+        duration_minutes: durationMinutes,
+        crew_list: crewList,
+        session_log: op.session_log || [],
+        materials_logged: materialsLogged,
+        total_value_aUEC: totalValue,
+      });
+
+      if (res.data?.debrief_text) {
+        // Store debrief in op record
+        await base44.entities.Op.update(id, { wrap_up_report: res.data.debrief_text });
+
+        // Post to Discord via Herald Bot
+        if (res.data?.discord_embed) {
+          await base44.functions.invoke('heraldBot', {
+            action: 'opDebrief',
+            payload: {
+              op_id: id,
+              debrief: res.data.debrief_text,
+              embed: res.data.discord_embed,
+            },
+          });
+        }
+
         setTimeout(() => navigate('/app/ops'), 1500);
       } else {
         alert('Wrap-up generation failed. Op marked complete.');
