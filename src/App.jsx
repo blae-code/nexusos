@@ -20,6 +20,7 @@ import ProfitCalc from '@/pages/ProfitCalc';
 import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/pages/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
+import Armory from '@/pages/Armory';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
               <Route path="admin/todo" element={<NexusTodo />} />
               <Route path="ledger" element={<MaterialLedger />} />
               <Route path="handbook" element={<RedscarHandbook />} />
+              <Route path="armory" element={<Armory />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/gate" replace />} />

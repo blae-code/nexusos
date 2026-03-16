@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { icon: CofferIcon, label: 'Coffer', path: '/app/coffer' },
   { icon: RescueIcon, label: 'Rescue', path: '/app/rescue' },
   { icon: RosterIcon, label: 'Roster', path: '/app/roster' },
+  { icon: RosterIcon, label: 'Armory', path: '/app/armory' },
   null,
   { icon: BookOpen, label: 'Org Handbook', path: '/app/handbook' },
   { icon: SettingsIcon, label: 'Profile Settings', path: '/app/profile' },
