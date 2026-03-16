@@ -21,7 +21,6 @@ import EpicArchive from '@/pages/EpicArchive';
 import NexusSettings from '@/pages/NexusSettings';
 import KeyManagement from '@/pages/KeyManagement';
 import NexusTodo from '@/pages/NexusTodo';
-import FirstRun from '@/pages/FirstRun';
 import ProfileSettings from '@/pages/ProfileSettings';
 
 function App() {
