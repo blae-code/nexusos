@@ -253,6 +253,19 @@ export default function OpCreator() {
                 <input className="nexus-input" value={form.location} onChange={e => set('location', e.target.value)} placeholder="Keeger Belt · Sector 9" />
               </FormField>
 
+              {/* Mining mode — only shown for mining op types */}
+              {MINING_OP_TYPES.has(form.type) && (
+                <FormField label="MINING MODE">
+                  <div className="flex gap-2">
+                    {MINING_MODES.map(m => (
+                      <button key={m} type="button" onClick={() => set('mining_mode', m)} className="nexus-btn" style={{ flex: 1, justifyContent: 'center', fontSize: 10, background: form.mining_mode === m ? 'var(--bg4)' : 'var(--bg2)', borderColor: form.mining_mode === m ? 'var(--b3)' : 'var(--b1)', color: form.mining_mode === m ? 'var(--t0)' : 'var(--t2)' }}>
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </FormField>
+              )}
+
               <div className="flex gap-3">
                 <FormField label="SCHEDULED (UTC)">
                   <input className="nexus-input" type="datetime-local" value={form.scheduled_at} onChange={e => set('scheduled_at', e.target.value)} style={{ colorScheme: 'dark' }} />
@@ -261,6 +274,13 @@ export default function OpCreator() {
                   <input className="nexus-input" type="number" min={0} value={form.buy_in_cost} onChange={e => set('buy_in_cost', +e.target.value)} placeholder="0" />
                 </FormField>
               </div>
+
+              {/* Hauling capacity field — only shown for extraction/cargo ops */}
+              {HAULING_OP_TYPES.has(form.type) && (
+                <FormField label="HAULING CAPACITY NEEDED (SCU)">
+                  <input className="nexus-input" type="number" min={0} value={form.hauling_scu_required} onChange={e => set('hauling_scu_required', +e.target.value)} placeholder="Estimated SCU to transport during op" />
+                </FormField>
+              )}
 
               <div className="flex gap-3">
                 <FormField label="ACCESS TYPE">
