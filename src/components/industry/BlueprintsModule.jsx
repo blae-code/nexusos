@@ -4,7 +4,7 @@
  * Supports add/edit/delete for Voyager+ ranks.
  */
 import React, { useState, useMemo } from 'react';
-import { Plus, X, Star, Clock, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Clock, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const CATEGORIES = ['ALL', 'WEAPON', 'ARMOR', 'GEAR', 'COMPONENT', 'CONSUMABLE', 'FOCUSING_LENS', 'SHIP_COMPONENT', 'OTHER'];
@@ -15,7 +15,7 @@ const EDITOR_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
 
 const CAT_COLOR = {
   WEAPON: 'var(--danger)', ARMOR: 'var(--info)', GEAR: 'var(--acc2)',
-  COMPONENT: 'var(--warn)', CONSUMABLE: 'var(--live)', FOCUSING_LENS: 'var(--cyan)',
+  COMPONENT: 'var(--warn)', CONSUMABLE: 'var(--live)', FOCUSING_LENS: 'var(--info)',
   SHIP_COMPONENT: 'var(--info)', OTHER: 'var(--t2)',
 };
 
@@ -51,7 +51,7 @@ function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete }) {
   return (
     <div style={{
       background: 'var(--bg1)',
-      border: `0.5px solid ${bp.is_priority ? 'var(--warn-b, rgba(232,160,32,0.25))' : 'var(--b1)'}`,
+      border: `0.5px solid ${bp.is_priority ? 'var(--warn-b)' : 'var(--b1)'}`,
       borderRadius: 8,
       overflow: 'hidden',
       transition: 'border-color 0.1s',
@@ -72,7 +72,7 @@ function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete }) {
               {bp.item_name}
             </span>
             {bp.is_priority && (
-              <span style={{ color: 'var(--warn)', fontSize: 8, padding: '1px 5px', border: '0.5px solid rgba(232,160,32,0.3)', borderRadius: 3, background: 'rgba(232,160,32,0.06)', flexShrink: 0 }}>
+              <span style={{ color: 'var(--warn)', fontSize: 8, padding: '1px 5px', border: '0.5px solid var(--warn-b)', borderRadius: 3, background: 'var(--warn-bg)', flexShrink: 0 }}>
                 PRIORITY
               </span>
             )}
@@ -109,8 +109,8 @@ function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete }) {
           {recipeMaterials.length > 0 && (
             <div style={{
               padding: '2px 7px', borderRadius: 3, fontSize: 9,
-              background: allMet ? 'rgba(39,201,106,0.08)' : 'var(--bg3)',
-              border: `0.5px solid ${allMet ? 'rgba(39,201,106,0.25)' : 'var(--b2)'}`,
+              background: allMet ? 'var(--live-bg)' : 'var(--bg3)',
+              border: `0.5px solid ${allMet ? 'var(--live-b)' : 'var(--b2)'}`,
               color: allMet ? 'var(--live)' : 'var(--t2)',
             }}>
               {allMet ? '✓ READY' : `${materialStatus.filter(m => m.met).length}/${recipeMaterials.length}`}
@@ -149,8 +149,8 @@ function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete }) {
                   <div key={i} style={{
                     display: 'grid', gridTemplateColumns: '1fr 70px 70px 60px',
                     gap: 8, padding: '5px 8px', borderRadius: 5,
-                    background: req.met ? 'rgba(39,201,106,0.04)' : 'var(--bg2)',
-                    border: `0.5px solid ${req.met ? 'rgba(39,201,106,0.15)' : 'var(--b1)'}`,
+                    background: req.met ? 'var(--live-bg)' : 'var(--bg2)',
+                    border: `0.5px solid ${req.met ? 'var(--live-b)' : 'var(--b1)'}`,
                     alignItems: 'center',
                   }}>
                     <span style={{ color: req.met ? 'var(--t0)' : 'var(--t1)', fontSize: 11 }}>{req.material}</span>
@@ -199,7 +199,7 @@ function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete }) {
               <button onClick={() => onEdit(bp)} className="nexus-btn" style={{ padding: '4px 12px', fontSize: 9 }}>EDIT</button>
               <button onClick={() => onDelete(bp.id)} style={{
                 padding: '4px 12px', fontSize: 9, borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
-                background: 'rgba(224,72,72,0.07)', border: '0.5px solid rgba(224,72,72,0.2)', color: 'var(--danger)',
+                background: 'var(--danger-bg)', border: '0.5px solid var(--danger-b)', color: 'var(--danger)',
               }}>DELETE</button>
             </div>
           )}
@@ -274,7 +274,7 @@ function BlueprintModal({ bp, callsign, discordId, onSave, onClose }) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'absolute', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(7,8,11,0.85)',
     }}>
       <div className="nexus-fade-in" style={{
@@ -426,7 +426,7 @@ function BlueprintModal({ bp, callsign, discordId, onSave, onClose }) {
           <button onClick={onClose} className="nexus-btn" style={{ padding: '8px 16px' }}>CANCEL</button>
           <button onClick={handleSave} disabled={saving || !form.item_name.trim()} style={{
             flex: 1, padding: '8px 16px', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10,
-            background: 'rgba(39,201,106,0.08)', border: '0.5px solid rgba(39,201,106,0.3)', color: 'var(--live)',
+            background: 'var(--live-bg)', border: '0.5px solid var(--live-b)', color: 'var(--live)',
             opacity: saving || !form.item_name.trim() ? 0.5 : 1,
           }}>
             {saving ? 'SAVING...' : editing ? 'SAVE CHANGES' : 'REGISTER BLUEPRINT'}
@@ -476,7 +476,7 @@ export default function BlueprintsModule({ blueprints, materials, rank, callsign
   const handleSave = () => { setShowModal(false); setEditingBp(null); onRefresh(); };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', position: 'relative' }}>
 
       {/* Toolbar */}
       <div style={{ flexShrink: 0, padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)', display: 'flex', flexDirection: 'column', gap: 8 }}>
