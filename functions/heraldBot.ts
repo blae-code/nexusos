@@ -566,6 +566,40 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
+    // ── Org Health Briefing (daily agent report) ────────────────────────────
+    if (action === 'orgHealthBriefing') {
+      const { briefing, total_scu, avg_quality, t2_count, open_craft, refinery_ready, housekeeping, generated_at } = payload;
+      const targetChannel = CH.nexusLog || CH.nexusOps;
+      if (targetChannel) {
+        await discordPost(`/channels/${targetChannel}/messages`, {
+          embeds: [{
+            title: `📊 Daily Industry Readiness — ${new Date(generated_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })}`,
+            color: 0x5a6080,
+            description: briefing,
+            fields: [
+              { name: 'Stockpile', value: `${total_scu.toFixed(1)} SCU`, inline: true },
+              { name: 'Avg Quality', value: `${avg_quality.toFixed(0)}%`, inline: true },
+              { name: 'T2-Ready', value: String(t2_count), inline: true },
+              { name: 'Craft Queue', value: String(open_craft), inline: true },
+              { name: 'Refinery Ready', value: String(refinery_ready), inline: true },
+              ...(housekeeping?.archived_materials > 0 || housekeeping?.flagged_queue > 0 || housekeeping?.cleaned_refinery > 0 ? [{
+                name: 'Housekeeping',
+                value: [
+                  housekeeping.archived_materials > 0 ? `Archived ${housekeeping.archived_materials} materials` : null,
+                  housekeeping.flagged_queue > 0 ? `Flagged ${housekeeping.flagged_queue} stale queue items` : null,
+                  housekeeping.cleaned_refinery > 0 ? `Cleaned ${housekeeping.cleaned_refinery} refinery records` : null,
+                ].filter(Boolean).join(' · '),
+                inline: false,
+              }] : []),
+            ],
+            footer: { text: 'NEXUSOS · AUTONOMOUS AGENT · DAILY BRIEF' },
+            timestamp: generated_at,
+          }],
+        });
+      }
+      return Response.json({ success: true });
+    }
+
     return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
 
   } catch (error) {
