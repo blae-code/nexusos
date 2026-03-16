@@ -7,6 +7,7 @@ import { SessionProvider } from '@/lib/SessionContext';
 import NexusShell from '@/components/shell/NexusShell';
 import LiveOp from '@/pages/LiveOp';
 import AccessGate from '@/pages/AccessGate';
+import Onboarding from '@/pages/Onboarding';
 import CofferLedger from '@/pages/CofferLedger';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
