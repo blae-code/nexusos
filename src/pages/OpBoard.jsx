@@ -221,71 +221,101 @@ function LiveOpView({ op, rsvps, rank, callsign, onAdvancePhase, onEndOp, refine
         </div>
       </div>
 
-      <div className="flex gap-4">
-        {/* Left: crew + roles */}
-        <div className="flex flex-col gap-3" style={{ flex: 1 }}>
-          <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--b1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em' }}>CREW MANIFEST</span>
-              <span style={{ color: 'var(--t1)', fontSize: 11 }}>{rsvps.length} members</span>
-            </div>
-            <div style={{ padding: 8 }}>
-              {Object.entries(crewByRole).map(([role, members]) => (
-                <div key={role} style={{ marginBottom: 8 }}>
-                  <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', padding: '4px 6px', textTransform: 'uppercase' }}>{role}</div>
-                  {members.map(m => (
-                    <div key={m.id} className="flex items-center gap-3" style={{ padding: '5px 8px', borderRadius: 4 }}>
-                      <span style={{ color: 'var(--t0)', fontSize: 12, flex: 1 }}>{m.callsign}</span>
-                      {m.ship && <span style={{ color: 'var(--t2)', fontSize: 10 }}>{m.ship}</span>}
-                      {m.cargo_scu_available > 0 && (
-                        <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.2)', background: 'transparent', fontSize: 9 }}>{m.cargo_scu_available} SCU</span>
-                      )}
-                      {m.ship_class === 'MEDICAL' && (
-                        <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.07)', fontSize: 9 }}>MEDIC</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ))}
-              {rsvps.length === 0 && (
-                <div style={{ color: 'var(--t2)', fontSize: 11, padding: 12, textAlign: 'center' }}>No crew confirmed</div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: session log */}
-        <div className="flex flex-col gap-3" style={{ flex: 1 }}>
-          <div className="nexus-card" style={{ padding: 0, overflow: 'hidden', flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--b1)' }}>
-              <span style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em' }}>SESSION LOG</span>
-            </div>
-            <div style={{ flex: 1, overflow: 'auto', padding: 8, maxHeight: 240 }}>
-              {log.map((entry, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, padding: '4px 6px', borderBottom: '0.5px solid var(--b0)' }}>
-                  <span style={{ color: 'var(--t2)', fontSize: 10, flexShrink: 0 }}>{formatTime(entry.t)}</span>
-                  <span style={{ color: 'var(--acc2)', fontSize: 10, flexShrink: 0 }}>{entry.author}</span>
-                  <span style={{ color: 'var(--t1)', fontSize: 11, flex: 1 }}>{entry.text}</span>
-                </div>
-              ))}
-              {log.length === 0 && (
-                <div style={{ color: 'var(--t2)', fontSize: 11, padding: 12, textAlign: 'center' }}>No log entries yet</div>
-              )}
-            </div>
-            <div style={{ padding: '8px', borderTop: '0.5px solid var(--b1)', display: 'flex', gap: 6 }}>
-              <input
-                className="nexus-input"
-                style={{ fontSize: 11, padding: '5px 10px' }}
-                placeholder="Add log entry..."
-                value={logEntry}
-                onChange={e => setLogEntry(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') submitLog(); }}
-              />
-              <button onClick={submitLog} className="nexus-btn" style={{ padding: '5px 10px', fontSize: 10, flexShrink: 0 }}>ADD</button>
-            </div>
-          </div>
-        </div>
+      {/* Tab strip */}
+      <div style={{ display: 'flex', gap: 0, borderBottom: '0.5px solid var(--b1)', flexShrink: 0 }}>
+        {[
+          { id: 'crew', label: 'CREW' },
+          { id: 'supply', label: 'SUPPLY CHAIN' },
+          { id: 'log', label: 'SESSION LOG' },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setLiveTab(t.id)}
+            style={{
+              padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer',
+              borderBottom: liveTab === t.id ? '2px solid var(--acc2)' : '2px solid transparent',
+              color: liveTab === t.id ? 'var(--t0)' : 'var(--t2)',
+              fontSize: 10, letterSpacing: '0.1em', fontFamily: 'inherit',
+              transition: 'color 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
+
+      {/* CREW tab */}
+      {liveTab === 'crew' && (
+        <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--b1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em' }}>CREW MANIFEST</span>
+            <span style={{ color: 'var(--t1)', fontSize: 11 }}>{rsvps.length} members</span>
+          </div>
+          <div style={{ padding: 8 }}>
+            {Object.entries(crewByRole).map(([role, members]) => (
+              <div key={role} style={{ marginBottom: 8 }}>
+                <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', padding: '4px 6px', textTransform: 'uppercase' }}>{role}</div>
+                {members.map(m => (
+                  <div key={m.id} className="flex items-center gap-3" style={{ padding: '5px 8px', borderRadius: 4 }}>
+                    <span style={{ color: 'var(--t0)', fontSize: 12, flex: 1 }}>{m.callsign}</span>
+                    {m.ship && <span style={{ color: 'var(--t2)', fontSize: 10 }}>{m.ship}</span>}
+                    {m.cargo_scu_available > 0 && (
+                      <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.2)', background: 'transparent', fontSize: 9 }}>{m.cargo_scu_available} SCU</span>
+                    )}
+                    {m.ship_class === 'MEDICAL' && (
+                      <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.07)', fontSize: 9 }}>MEDIC</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+            {rsvps.length === 0 && (
+              <div style={{ color: 'var(--t2)', fontSize: 11, padding: 12, textAlign: 'center' }}>No crew confirmed</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SUPPLY CHAIN tab */}
+      {liveTab === 'supply' && (
+        <SupplyChainView
+          op={op}
+          rsvps={rsvps}
+          refineryOrders={refineryOrders || []}
+          craftQueue={craftQueue || []}
+          canEdit={canAdvance}
+          onUpdate={onOpUpdate}
+        />
+      )}
+
+      {/* SESSION LOG tab */}
+      {liveTab === 'log' && (
+        <div className="nexus-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, overflow: 'auto', padding: 8, maxHeight: 300 }}>
+            {log.filter(e => e.type !== 'supply_chain').map((entry, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, padding: '4px 6px', borderBottom: '0.5px solid var(--b0)' }}>
+                <span style={{ color: 'var(--t2)', fontSize: 10, flexShrink: 0 }}>{formatTime(entry.t)}</span>
+                <span style={{ color: 'var(--acc2)', fontSize: 10, flexShrink: 0 }}>{entry.author}</span>
+                <span style={{ color: 'var(--t1)', fontSize: 11, flex: 1 }}>{entry.text}</span>
+              </div>
+            ))}
+            {log.filter(e => e.type !== 'supply_chain').length === 0 && (
+              <div style={{ color: 'var(--t2)', fontSize: 11, padding: 12, textAlign: 'center' }}>No log entries yet</div>
+            )}
+          </div>
+          <div style={{ padding: '8px', borderTop: '0.5px solid var(--b1)', display: 'flex', gap: 6 }}>
+            <input
+              className="nexus-input"
+              style={{ fontSize: 11, padding: '5px 10px' }}
+              placeholder="Add log entry..."
+              value={logEntry}
+              onChange={e => setLogEntry(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') submitLog(); }}
+            />
+            <button onClick={submitLog} className="nexus-btn" style={{ padding: '5px 10px', fontSize: 10, flexShrink: 0 }}>ADD</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
