@@ -17,6 +17,7 @@ const RANK_COLOURS = {
   SCOUT: 'var(--live)',
   VAGRANT: 'var(--t1)',
   AFFILIATE: 'var(--t2)',
+  SYSTEM_ADMIN: 'var(--info)',
 };
 
 const EXTRA_LINKS = [
@@ -371,10 +372,12 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
             {userMenuOpen && (
               <DropdownContainer width={180}>
                 <div style={{ padding: '8px 14px' }}>
-                  <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 500 }}>{user?.callsign || 'UNKNOWN'}</div>
+                  <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 500 }}>
+                    {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
+                  </div>
                   <div style={{ marginTop: 5 }}>
                     <span className="nexus-pill nexus-pill-neu" style={{ color: rankColor, borderColor: 'var(--b2)' }}>
-                      {user?.rank || 'AFFILIATE'}
+                      {source === 'admin' ? 'SUDO' : (user?.rank || 'AFFILIATE')}
                     </span>
                   </div>
                 </div>
