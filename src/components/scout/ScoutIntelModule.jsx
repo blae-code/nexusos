@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import RoutePlannerPanel from '@/components/scout/RoutePlannerPanel';
 import RouteOverlay from '@/components/scout/RouteOverlay';
+import ScoutMap from '@/components/scout/ScoutMap';
 import { Compass } from 'lucide-react';
 
 export default function ScoutIntelModule() {
@@ -76,106 +77,21 @@ export default function ScoutIntelModule() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', position: 'relative' }}>
-        {/* Main deposit list */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {loading ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-              <div className="nexus-loading-dots"><span /><span /><span /></div>
-            </div>
-          ) : deposits.length === 0 ? (
-            <div style={{ color: 'var(--t2)', fontSize: 11, textAlign: 'center', marginTop: 40 }}>
-              No scout deposits logged yet
-            </div>
-          ) : (
-            deposits.map(dep => (
-              <div
-                key={dep.id}
-                style={{
-                  background: 'var(--bg1)',
-                  border: '0.5px solid var(--b1)',
-                  borderRadius: 6,
-                  padding: '10px 12px',
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'flex-start',
-                }}
-              >
-                {/* System badge */}
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 4,
-                    background: (systemColors[dep.system_name] || '#5a6080') + '20',
-                    border: `0.5px solid ${systemColors[dep.system_name] || 'var(--b2)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: systemColors[dep.system_name] || 'var(--t1)',
-                    fontSize: 9,
-                    fontWeight: 500,
-                    flexShrink: 0,
-                    letterSpacing: '0.1em',
-                  }}
-                >
-                  {(dep.system_name || 'STAN').substring(0, 3).toUpperCase()}
-                </div>
-
-                {/* Deposit info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      marginBottom: 4,
-                    }}
-                  >
-                    <span style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 500 }}>
-                      {dep.material_name}
-                    </span>
-                    <span
-                      style={{
-                        color: riskColor[dep.risk_level],
-                        fontSize: 8,
-                        letterSpacing: '0.08em',
-                        padding: '1px 5px',
-                        background: riskColor[dep.risk_level] + '15',
-                        border: `0.5px solid ${riskColor[dep.risk_level]}40`,
-                        borderRadius: 3,
-                      }}
-                    >
-                      {dep.risk_level}
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: 9, color: 'var(--t2)', marginBottom: 3 }}>
-                    {dep.location_detail || 'Unknown location'}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 12, fontSize: 9, color: 'var(--t1)' }}>
-                    <span>
-                      <span style={{ color: 'var(--t3)', marginRight: 3 }}>QUAL</span>
-                      {dep.quality_pct}%
-                    </span>
-                    <span>
-                      <span style={{ color: 'var(--t3)', marginRight: 3 }}>VOL</span>
-                      {dep.volume_estimate}
-                    </span>
-                    <span style={{ marginLeft: 'auto', color: 'var(--t3)', fontSize: 8 }}>
-                      {dep.reported_by_callsign || 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', position: 'relative', gap: 0 }}>
+        {/* SVG Map */}
+        <div style={{ flex: showPlanner ? '0 0 50%' : 1, display: 'flex', flexDirection: 'column', borderRight: showPlanner ? '0.5px solid var(--b1)' : 'none' }}>
+          <ScoutMap
+            deposits={deposits}
+            activeRoute={activeRoute}
+            onDepositSelect={dep => {
+              // Can add deposit selection behavior here
+            }}
+          />
         </div>
 
         {/* Route planner panel */}
         {showPlanner && (
-          <div style={{ width: 280, borderLeft: '0.5px solid var(--b1)', padding: '12px', overflow: 'auto', background: 'var(--bg0)', flexShrink: 0 }}>
+          <div style={{ flex: '0 0 50%', display: 'flex', flexDirection: 'column', padding: '12px', overflow: 'auto', background: 'var(--bg0)' }}>
             <RoutePlannerPanel
               materials={materials}
               onRouteGenerated={setActiveRoute}
@@ -184,8 +100,8 @@ export default function ScoutIntelModule() {
           </div>
         )}
 
-        {/* Route overlay */}
-        {activeRoute && <RouteOverlay route={activeRoute} onClose={() => setActiveRoute(null)} />}
+        {/* Route overlay (fullscreen) */}
+        {activeRoute && !showPlanner && <RouteOverlay route={activeRoute} onClose={() => setActiveRoute(null)} />}
       </div>
     </div>
   );
