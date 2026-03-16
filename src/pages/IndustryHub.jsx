@@ -331,8 +331,8 @@ function OverviewTab({ materials, blueprints, craftQueue, refineryOrders, scoutD
         <div>
           <SectionHeader label="BLUEPRINT REGISTRY" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <BlueprintGroup label="WEAPONS" items={weaponBPs} />
-            <BlueprintGroup label="ARMOR & GEAR" items={armorBPs} />
+            <BlueprintGroup label="WEAPONS" items={weaponBPs} materials={materials} />
+            <BlueprintGroup label="ARMOR & GEAR" items={armorBPs} materials={materials} />
           </div>
         </div>
 
