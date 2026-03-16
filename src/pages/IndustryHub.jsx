@@ -130,7 +130,22 @@ function SectionHeader({ label }) {
   );
 }
 
-function BlueprintGroup({ label, items }) {
+function bpAvailStatus(bp, materials) {
+  const recipe = bp.recipe_materials || [];
+  if (!recipe.length) return null;
+  const matMap = {};
+  materials.filter(m => !m.is_archived).forEach(m => {
+    const key = (m.material_name || '').toLowerCase();
+    if (!matMap[key]) matMap[key] = { scu: 0, best_quality: 0 };
+    matMap[key].scu         += (m.quantity_scu || 0);
+    matMap[key].best_quality = Math.max(matMap[key].best_quality, m.quality_pct || 0);
+  });
+  const allMet  = recipe.every(ing => { const s = matMap[(ing.material||'').toLowerCase()]; return s && s.scu >= (ing.quantity||0) && s.best_quality >= (ing.min_quality||0); });
+  const noneMet = recipe.every(ing => !matMap[(ing.material||'').toLowerCase()]);
+  return allMet ? 'READY' : noneMet ? 'BLOCKED' : 'PARTIAL';
+}
+
+function BlueprintGroup({ label, items, materials }) {
   return (
     <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b0)', borderRadius: 8, padding: '10px 12px' }}>
       <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
@@ -140,19 +155,28 @@ function BlueprintGroup({ label, items }) {
       {items.map(bp => {
         const owned = !!bp.owned_by_callsign;
         const dotColor = bp.is_priority ? 'var(--warn)' : owned ? 'var(--acc2)' : 'var(--t3)';
+        const avail = bpAvailStatus(bp, materials || []);
+        const availStyle = avail === 'READY'
+          ? { color: 'var(--live)',   borderColor: 'rgba(39,201,106,0.3)',  bg: 'rgba(39,201,106,0.07)'  }
+          : avail === 'PARTIAL'
+          ? { color: 'var(--warn)',   borderColor: 'rgba(232,160,32,0.3)', bg: 'rgba(232,160,32,0.07)' }
+          : avail === 'BLOCKED'
+          ? { color: 'var(--danger)', borderColor: 'rgba(224,72,72,0.3)',  bg: 'rgba(224,72,72,0.05)'  }
+          : null;
         return (
           <div key={bp.id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '4px 0', borderBottom: '0.5px solid var(--b0)' }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
             <span style={{ flex: 1, color: owned ? 'var(--t0)' : 'var(--t2)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {bp.item_name}
             </span>
-            {bp.is_priority ? (
-              <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.06)', fontSize: 9 }}>PRIORITY</span>
-            ) : owned ? (
-              <span style={{ color: 'var(--t2)', fontSize: 10, background: 'var(--bg3)', border: '0.5px solid var(--b1)', borderRadius: 4, padding: '1px 5px' }}>
-                {bp.owned_by_callsign}
+            {availStyle && (
+              <span className="nexus-tag" style={{ color: availStyle.color, borderColor: availStyle.borderColor, background: availStyle.bg, fontSize: 9 }}>
+                {avail}
               </span>
-            ) : null}
+            )}
+            {bp.is_priority && (
+              <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.06)', fontSize: 9 }}>PRIORITY</span>
+            )}
           </div>
         );
       })}
