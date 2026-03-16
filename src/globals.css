@@ -563,3 +563,52 @@ select.nexus-input option {
   background: linear-gradient(90deg, transparent 0%, rgba(0,200,232,0.2) 40%, rgba(0,200,232,0.2) 60%, transparent 100%);
   pointer-events: none;
 }
+
+/* ─── Responsive Grid Utilities ──────────────────────────────────────────── */
+.grid-compact { display: grid; gap: var(--section-gap); }
+
+@media (max-width: 1099px) {
+  .grid-stats { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-2 { grid-template-columns: 1fr; }
+  .grid-cols-3 { grid-template-columns: 1fr; }
+  .grid-ops-list { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1100px) and (max-width: 1599px) {
+  .grid-stats { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-ops-list { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .grid-stats { grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); }
+  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); }
+  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); }
+}
+
+@media (min-width: 1920px) {
+  .grid-stats { grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); }
+  .grid-stats-secondary { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); margin-top: var(--spacing-lg); }
+  .grid-dashboard { grid-template-columns: 50% 25% 25%; gap: var(--spacing-lg); }
+  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); }
+  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); }
+  .grid-ops-list { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); }
+}
+
+@media (max-width: 1099px) {
+  .nexus-sidebar { width: 100%; height: auto; border-right: none; border-bottom: 0.5px solid var(--b1); display: flex; flex-direction: row; overflow-x: auto; }
+}
+
+@media (min-width: 1600px) {
+  .nexus-sidebar { width: 200px; }
+}
+
+@media (max-width: 1099px) {
+  .nexus-table { font-size: 10px; }
+  .nexus-table thead th, .nexus-table tbody td { padding: 5px 10px; }
+}
+
+@media (min-width: 1920px) {
+  .nexus-table thead th, .nexus-table tbody td { padding: 10px 18px; }
+}
