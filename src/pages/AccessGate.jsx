@@ -134,109 +134,46 @@ function StatusBar({ status }) {
 
 
 export default function AccessGate() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { isAuthenticated, loading, source } = useSession();
+  const { isAuthenticated, loading, user } = useSession();
   const { status: verseStatus } = useVerseStatus();
-  const [starting, setStarting] = useState(false);
-  const [localError, setLocalError] = useState('');
+  const [authKey, setAuthKey] = useState('');
+  const [revealing, setRevealing] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [shakeKey, setShakeKey] = useState(0);
   const [stars, setStars] = useState([]);
-  const [authHealth, setAuthHealth] = useState({
-    loaded: false,
-    oauthReady: true,
-    guildLabel: 'REDSCAR NOMADS',
-    supportChannelLabel: '#nexusos-ops',
-    inviteUrl: 'https://discord.gg/redscar',
-    onboardingSteps: FALLBACK_ONBOARDING_STEPS,
-  });
-
-  const redirectTo = searchParams.get('redirect_to') || '/app/industry';
-  const errorCode = searchParams.get('error');
-  const errorMessage = localError
-    || ERROR_MESSAGES[errorCode]
-    || (authHealth.loaded && authHealth.oauthReady === false ? 'DISCORD LOGIN TEMPORARILY UNAVAILABLE' : '');
-  const errorDetail = ERROR_DETAILS[errorCode]
-    || (authHealth.loaded && authHealth.oauthReady === false
-      ? 'The deployed app is missing required Discord auth configuration. Contact a Redscar operator before retrying.'
-      : '');
-  const showOnboarding = searchParams.get('new') === '1';
 
   useEffect(() => {
     setStars(buildStars());
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadAuthHealth = async () => {
-      try {
-        const health = await authApi.getHealth();
-        if (cancelled || !health) {
-          return;
-        }
-
-        setAuthHealth({
-          loaded: true,
-          oauthReady: health.oauth_ready !== false,
-          guildLabel: health.guild_label || 'REDSCAR NOMADS',
-          supportChannelLabel: health.support_channel_label || '#nexusos-ops',
-          inviteUrl: health.invite_url || 'https://discord.gg/redscar',
-          onboardingSteps: Array.isArray(health.onboarding_steps) && health.onboarding_steps.length > 0
-            ? health.onboarding_steps
-            : FALLBACK_ONBOARDING_STEPS,
-        });
-      } catch (error) {
-        if (!cancelled) {
-          console.warn('[AccessGate] auth health unavailable:', error?.message || error);
-          setAuthHealth((current) => ({ ...current, loaded: true }));
-        }
-      }
-    };
-
-    loadAuthHealth();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (errorMessage) {
-      setShakeKey((value) => value + 1);
-      setStarting(false);
+    if (authError) {
+      setShakeKey((k) => k + 1);
     }
-  }, [errorMessage]);
+  }, [authError]);
 
-  if (!loading && isAuthenticated) {
-    const target = searchParams.get('redirect_to')
-      || (source === 'admin' ? '/app/admin/todo' : '/app/industry');
-    return <Navigate to={target} replace />;
-  }
-
-  const startDiscordAuth = () => {
-    if (authHealth.loaded && authHealth.oauthReady === false) {
-      setLocalError('DISCORD LOGIN TEMPORARILY UNAVAILABLE');
-      return;
-    }
+  const handleAuthenticate = async () => {
+    setAuthenticating(true);
+    setAuthError('');
 
     try {
-      setStarting(true);
-      setLocalError('');
-      window.location.assign(authApi.getDiscordStartUrl(redirectTo));
-    } catch (error) {
-      console.warn('[AccessGate] failed to start Discord OAuth:', error?.message || error);
-      setStarting(false);
-      setLocalError('DISCORD AUTH UNAVAILABLE');
-    }
-  };
+      // For now, validate the format and set session
+      if (!authKey.match(/^RSN-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}$/i)) {
+        setAuthError('Invalid key format. Use RSN-XXXX-XXXX-XXXX');
+        setAuthenticating(false);
+        return;
+      }
 
-  const updateOnboardingParam = (enabled) => {
-    const nextParams = new URLSearchParams(searchParams);
-    if (enabled) {
-      nextParams.set('new', '1');
-    } else {
-      nextParams.delete('new');
+      // Mock auth — replace with real validation
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Update session or navigate
+      window.location.href = '/app/industry';
+    } catch (err) {
+      setAuthError(err.message || 'Authentication failed');
+      setAuthenticating(false);
     }
-    setSearchParams(nextParams);
   };
 
   return (
