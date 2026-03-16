@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, MapPin, Clock, Zap } from 'lucide-react';
+import { X, Clock } from 'lucide-react';
 
 const SYSTEM_COORDS = {
   STANTON: { x: 50, y: 50 },
