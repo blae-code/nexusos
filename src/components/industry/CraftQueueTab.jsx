@@ -176,7 +176,7 @@ function DefaultRow({ item, onClaim }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function CraftQueueTab({ craftQueue, callsign }) {
+export default function CraftQueueTab({ craftQueue, callsign, materials = [], blueprints = [] }) {
   const [optimising, setOptimising]         = useState(false);
   const [suggestedOrder, setSuggestedOrder] = useState(null); // null = off, [] = loaded
   const [optimiseError, setOptimiseError]   = useState('');
@@ -198,11 +198,24 @@ export default function CraftQueueTab({ craftQueue, callsign }) {
     setOptimiseError('');
     setSuggestedOrder(null);
     try {
-      const res = await base44.functions.invoke('craftingOptimiser', {});
-      const order = res?.data?.recommended_order || [];
-      setSuggestedOrder(order);
+      const res = await base44.functions.invoke('craftingOptimiser', {
+        materials: materials || [],
+        blueprints: blueprints || [],
+        craftQueue: craftQueue || [],
+      });
+      
+      if (res.data.error) {
+        setOptimiseError(res.data.error);
+      } else {
+        // Map optimization results back to queue items by ID
+        const optimizedIds = res.data.optimized_sequence.map(item => item.request_id);
+        const reordered = optimizedIds
+          .map(id => craftQueue.find(c => c.id === id))
+          .filter(Boolean);
+        setSuggestedOrder(reordered);
+      }
     } catch (e) {
-      setOptimiseError('Optimiser unavailable — using default order.');
+      setOptimiseError(e.message || 'Optimiser unavailable');
     }
     setOptimising(false);
   };
