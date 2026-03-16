@@ -1,3 +1,6 @@
+## 0.3.0 — 2026-03-15
+- Scout Intel module — system map, deposit logging, gap analysis, scout leaderboard
+
 ## 0.2.0 — 2026-03-15
 - LiveOp full module — phase tracker, readiness gate, crew grid, session log, threat panel, loot tally, split calc
 
@@ -11,4 +14,5 @@
 - Op Board (/app/ops) — list view, OpCreator with phase editor and role slots
 - LiveOp (/app/ops/:id) — full live command center with PhaseTracker, ReadinessGate, CrewGrid, SessionLog, ThreatPanel, LootTally, SplitCalc
 - Herald Bot (src/bot/) — Discord bindings, heraldBot edge function stubs
+
 
