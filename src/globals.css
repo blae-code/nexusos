@@ -1,0 +1,502 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Rajdhani:wght@400;500;600&display=swap');
+
+/* ─── CSS Variables ─────────────────────────────────────────────────────────── */
+:root {
+  /* Deep space backgrounds */
+  --bg0: #07090e;
+  --bg1: #0c0f17;
+  --bg2: #111520;
+  --bg3: #171c2b;
+  --bg4: #1d2235;
+  --bg5: #232840;
+
+  /* Borders */
+  --b0: #141824;
+  --b1: #1c2133;
+  --b2: #252c42;
+  --b3: #2e3650;
+
+  /* Text */
+  --t0: #dde4f5;
+  --t1: #8a93b0;
+  --t2: #4a5270;
+  --t3: #2a2f48;
+
+  /* Accent neutrals */
+  --acc:  #5a6285;
+  --acc2: #7a84a8;
+
+  /* Status — semantic meaning only */
+  --live:     #00d4a8;
+  --live-b:   rgba(0, 212, 168, 0.25);
+  --live-bg:  rgba(0, 212, 168, 0.06);
+
+  --warn:     #e8a020;
+  --warn-b:   rgba(232, 160, 32, 0.25);
+  --warn-bg:  rgba(232, 160, 32, 0.06);
+
+  --danger:   #e04848;
+  --danger-b: rgba(224, 72, 72, 0.25);
+  --danger-bg:rgba(224, 72, 72, 0.06);
+
+  --info:     #4a9fd0;
+  --info-b:   rgba(74, 159, 208, 0.25);
+  --info-bg:  rgba(74, 159, 208, 0.06);
+
+  /* Cyan primary accent */
+  --cyan:     #00c8e8;
+  --cyan-dim: #007a9a;
+  --cyan-bg:  rgba(0, 200, 232, 0.07);
+  --cyan-b:   rgba(0, 200, 232, 0.22);
+  --cyan-glow:0 0 14px rgba(0, 200, 232, 0.2);
+
+  /* Amber secondary */
+  --amber:    #ff7b2b;
+  --amber-bg: rgba(255, 123, 43, 0.07);
+  --amber-b:  rgba(255, 123, 43, 0.22);
+
+  /* Shell */
+  --shell-radius: 10px;
+  --topbar-h:     44px;
+  --sidebar-w:    52px;
+}
+
+/* ─── Base reset ────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg0);
+}
+
+body {
+  font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--t0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Shell frame ────────────────────────────────────────────────────────────── */
+.nexus-shell-frame {
+  height: 100%;
+  background: var(--bg0);
+  border: 0.5px solid var(--b2);
+  border-radius: var(--shell-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.nexus-shell-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.nexus-shell-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg0);
+  position: relative;
+}
+
+/* Tactical grid overlay on main content */
+.nexus-shell-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 200, 232, 0.016) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 200, 232, 0.016) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nexus-shell-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Typography ────────────────────────────────────────────────────────────── */
+.nexus-heading {
+  font-family: 'Rajdhani', 'SF Mono', monospace;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nexus-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Section headers ────────────────────────────────────────────────────────── */
+.nexus-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--t3);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-left: 2px;
+}
+
+.nexus-section-header::before {
+  content: '';
+  width: 2px;
+  height: 10px;
+  background: var(--cyan);
+  border-radius: 1px;
+  flex-shrink: 0;
+  box-shadow: 0 0 5px rgba(0, 200, 232, 0.45);
+}
+
+.nexus-section-header::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--b0);
+}
+
+/* ─── Cards ──────────────────────────────────────────────────────────────────── */
+.nexus-card {
+  background: var(--bg1);
+  border: 0.5px solid var(--b1);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nexus-card-elevated {
+  background: var(--bg2);
+  border: 0.5px solid var(--b2);
+  border-radius: 8px;
+}
+
+/* Glass-morphism card */
+.nexus-glass {
+  background: rgba(11, 14, 22, 0.88);
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+/* ─── Inputs ─────────────────────────────────────────────────────────────────── */
+.nexus-input {
+  background: var(--bg2);
+  border: 0.5px solid var(--b2);
+  border-radius: 5px;
+  color: var(--t0);
+  font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 11px;
+  padding: 7px 10px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.nexus-input::placeholder { color: var(--t3); }
+
+.nexus-input:focus {
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 0 1.5px rgba(0, 200, 232, 0.1);
+}
+
+select.nexus-input option {
+  background: var(--bg3);
+  color: var(--t0);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────────── */
+.nexus-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--bg3);
+  border: 0.5px solid var(--b2);
+  border-radius: 5px;
+  color: var(--t1);
+  font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.nexus-btn:hover {
+  background: var(--bg4);
+  border-color: var(--b3);
+  color: var(--t0);
+  box-shadow: 0 0 8px rgba(0, 200, 232, 0.1);
+}
+
+.nexus-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Primary cyan CTA */
+.nexus-btn.primary {
+  background: rgba(0, 200, 232, 0.08);
+  border-color: var(--cyan-b);
+  color: var(--cyan);
+}
+
+.nexus-btn.primary:hover {
+  background: rgba(0, 200, 232, 0.15);
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0, 200, 232, 0.22);
+}
+
+/* Live/go */
+.live-btn {
+  background: var(--live-bg);
+  border-color: var(--live-b);
+  color: var(--live);
+}
+
+.live-btn:hover {
+  background: rgba(0, 212, 168, 0.12);
+  border-color: var(--live);
+  box-shadow: 0 0 12px rgba(0, 212, 168, 0.2);
+}
+
+/* Danger */
+.danger-btn {
+  background: var(--danger-bg);
+  border-color: var(--danger-b);
+  color: var(--danger);
+}
+
+.danger-btn:hover {
+  background: rgba(224, 72, 72, 0.12);
+  border-color: var(--danger);
+  box-shadow: 0 0 12px rgba(224, 72, 72, 0.2);
+}
+
+/* ─── Tags / pills ───────────────────────────────────────────────────────────── */
+.nexus-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 0.5px solid var(--b2);
+  background: var(--bg3);
+  color: var(--t2);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.nexus-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 0.5px solid var(--b2);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.nexus-pill-live    { background: var(--live-bg);   border-color: var(--live-b);   color: var(--live); }
+.nexus-pill-warn    { background: var(--warn-bg);   border-color: var(--warn-b);   color: var(--warn); }
+.nexus-pill-danger  { background: var(--danger-bg); border-color: var(--danger-b); color: var(--danger); }
+.nexus-pill-info    { background: var(--info-bg);   border-color: var(--info-b);   color: var(--info); }
+.nexus-pill-cyan    { background: var(--cyan-bg);   border-color: var(--cyan-b);   color: var(--cyan); }
+.nexus-pill-neu     { background: var(--bg3);       border-color: var(--b2);       color: var(--t1); }
+
+/* ─── Pulsing live dot ───────────────────────────────────────────────────────── */
+.pulse-live {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--live);
+  flex-shrink: 0;
+  box-shadow: 0 0 4px var(--live);
+  animation: pulse-live 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1;    box-shadow: 0 0 4px  var(--live); }
+  50%       { opacity: 0.4; box-shadow: 0 0 10px var(--live); }
+}
+
+/* ─── Tables ─────────────────────────────────────────────────────────────────── */
+.nexus-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.nexus-table thead tr { background: var(--bg2); }
+
+.nexus-table thead th {
+  padding: 8px 14px;
+  text-align: left;
+  color: var(--t2);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  font-weight: 400;
+  text-transform: uppercase;
+  border-bottom: 0.5px solid var(--b1);
+  white-space: nowrap;
+}
+
+.nexus-table tbody tr {
+  border-bottom: 0.5px solid var(--b0);
+  transition: background 0.1s;
+}
+
+.nexus-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.nexus-table tbody tr:hover {
+  background: var(--bg2);
+}
+
+.nexus-table tbody td {
+  padding: 7px 14px;
+  font-size: 11px;
+  color: var(--t1);
+}
+
+/* ─── Tooltip ────────────────────────────────────────────────────────────────── */
+.nexus-tooltip { position: relative; }
+
+.nexus-tooltip::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg4);
+  border: 0.5px solid var(--b3);
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: var(--t1);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 50;
+}
+
+.nexus-tooltip:hover::after { opacity: 1; }
+
+/* ─── Fade-in ────────────────────────────────────────────────────────────────── */
+.nexus-fade-in {
+  animation: fadeInUp 0.18s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: var(--bg1); }
+::-webkit-scrollbar-thumb    { background: var(--b3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--acc); }
+
+/* ─── Loading dots ───────────────────────────────────────────────────────────── */
+.nexus-loading-dots {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.nexus-loading-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: loading-dot 1.2s ease-in-out infinite;
+}
+
+.nexus-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.nexus-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loading-dot {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%            { opacity: 1;   transform: scale(1); box-shadow: 0 0 6px var(--cyan); }
+}
+
+/* ─── Op status stripes ──────────────────────────────────────────────────────── */
+.op-stripe-live      { border-left: 2px solid var(--live);  background: rgba(0, 212, 168, 0.03); }
+.op-stripe-published { border-left: 2px solid var(--cyan);  background: rgba(0, 200, 232, 0.03); }
+.op-stripe-draft     { border-left: 2px solid var(--warn);  background: rgba(232, 160, 32, 0.02); }
+.op-stripe-complete  { border-left: 2px solid var(--acc);   background: transparent; }
+.op-stripe-archived  { border-left: 2px solid var(--b2);    background: transparent; }
+
+/* ─── Stat card ──────────────────────────────────────────────────────────────── */
+.nexus-stat-card {
+  background: var(--bg1);
+  border: 0.5px solid var(--b1);
+  border-radius: 8px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.nexus-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan-bg), var(--cyan-b), transparent);
+}
+
+.nexus-stat-card:hover {
+  border-color: var(--b2);
+  box-shadow: 0 0 16px rgba(0, 200, 232, 0.06);
+}
+
+/* ─── Misc helpers ───────────────────────────────────────────────────────────── */
+.font-tabular   { font-variant-numeric: tabular-nums; }
+.nexus-divider  { height: 0.5px; background: var(--b0); }
+.text-cyan      { color: var(--cyan); }
+.text-live      { color: var(--live); }
+.text-warn      { color: var(--warn); }
+.text-danger    { color: var(--danger); }
+.text-info      { color: var(--info); }
+.glow-cyan      { text-shadow: 0 0 8px rgba(0, 200, 232, 0.5); }
+.glow-live      { text-shadow: 0 0 8px rgba(0, 212, 168, 0.5); }
+
+/* ─── Topbar accent line ─────────────────────────────────────────────────────── */
+.nexus-topbar-accent::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,200,232,0.2) 40%, rgba(0,200,232,0.2) 60%, transparent 100%);
+  pointer-events: none;
+}
