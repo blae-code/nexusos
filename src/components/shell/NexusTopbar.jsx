@@ -2,8 +2,40 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, ScrollText, User, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import changelogRaw from '../../../CHANGELOG.md?raw';
 import versionData from '../../../version.json';
+
+// Inline changelog — edit this to add new entries
+const changelogRaw = `# NexusOS Changelog
+
+## v0.9 — 4.7 Launch Prep
+- Blueprint Registry with material readiness tracking
+- T2 quality threshold enforcement across all modules
+- Supply chain visualizer in Live Op
+- Phase briefing generator (Claude-powered)
+- Op wrap-up debrief with auto Discord thread
+- Crafting optimiser in Craft Queue tab
+- Material Ledger with refinery efficiency tracking
+
+## v0.8 — Live Op Command
+- Live Op management screen with phase tracker
+- Crew roster with role-grouped display
+- Threat alert system with Discord broadcast
+- Session log with real-time entries
+- Supply chain pipeline view
+
+## v0.7 — Industry Hub
+- Materials module with OCR upload
+- Refinery order tracker with countdown timers
+- Craft queue with claim/complete workflow
+- Scout Intel deposits with T2 quality flags
+- Patch digest card for SC update notes
+
+## v0.6 — Foundation
+- Op Board with RSVP system
+- Discord Herald Bot integration
+- RSN auth key system
+- Rank sync from Discord roles
+`;
 import { useSession } from '@/lib/SessionContext';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
 import { AltTabIcon, CompassMark, MoreIcon, SecondMonitorIcon } from './NexusIcons';
