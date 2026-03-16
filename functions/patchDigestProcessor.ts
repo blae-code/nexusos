@@ -1,230 +1,136 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Patch Digest Processor — monitors RSI patch RSS feed for new patches
- * Extracts industry-relevant changes using Claude
- * Stores in PatchDigest table + posts to Discord via Herald Bot
- *
- * Scheduled to run every 2 hours
- * Safe to call multiple times — checks existing digests to avoid duplicates
- */
-
-const RSS_FEED_URL = 'https://leonick.se/feeds/rsi/atom';
-const INDUSTRY_CATEGORIES = ['mining', 'crafting', 'salvage', 'refinery', 'materials', 'blueprints', 'economy', 'components', 'pyro', 'nyx'];
-
-interface PatchEntry {
-  title: string;
-  link: string;
-  publishedDate: string;
-}
-
-interface Change {
-  category: string;
-  change_summary: string;
-  severity: 'high' | 'medium' | 'low';
-  affected_systems?: string[];
-}
-
-async function fetchRSSFeed(): Promise<PatchEntry[]> {
-  const res = await fetch(RSS_FEED_URL);
-  if (!res.ok) throw new Error(`RSS fetch failed: ${res.status}`);
-  const xml = await res.text();
-
-  // Simple XML parsing for patch entries
-  const entries: PatchEntry[] = [];
-  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
-  let match;
-
-  while ((match = entryRegex.exec(xml)) !== null) {
-    const entryXml = match[1];
-    const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/.exec(entryXml);
-    const linkMatch = /<link[^>]*href="([^"]+)"/.exec(entryXml);
-    const publishedMatch = /<published>([\s\S]*?)<\/published>/.exec(entryXml);
-
-    if (titleMatch && linkMatch && publishedMatch) {
-      entries.push({
-        title: titleMatch[1].trim(),
-        link: linkMatch[1],
-        publishedDate: publishedMatch[1],
-      });
-    }
+Deno.serve(async (req) => {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'POST only' }, { status: 405 });
   }
 
-  return entries;
-}
-
-async function fetchPatchContent(url: string): Promise<string> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return '';
-    const html = await res.text();
-    // Extract main content — look for paragraph tags or common content containers
-    const contentMatch = /<main[^>]*>([\s\S]*?)<\/main>/.exec(html) ||
-                         /<article[^>]*>([\s\S]*?)<\/article>/.exec(html) ||
-                         /<div[^>]*class="[^"]*content[^"]*"[^>]*>([\s\S]*?)<\/div>/.exec(html);
-    if (contentMatch) {
-      // Strip HTML tags
-      return contentMatch[1].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 5000);
-    }
-    return '';
-  } catch (e) {
-    console.warn('Patch content fetch failed:', (e as Error).message);
-    return '';
-  }
-}
-
-function extractPatchVersion(title: string): string | null {
-  // Match patterns like "3.23.0", "4.7.1", etc.
-  const match = /\b(\d+\.\d+(?:\.\d+)?)\b/.exec(title);
-  return match ? match[1] : null;
-}
-
-Deno.serve(async (req: Request) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Only admin can trigger this manually; scheduled job runs as service role
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      isAuthorized = user?.role === 'admin';
-    } catch {
-      // Service role invocation — always authorized
-      isAuthorized = true;
-    }
-
-    if (!isAuthorized) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     // Fetch RSS feed
-    const entries = await fetchRSSFeed();
-    if (entries.length === 0) {
-      return Response.json({ success: true, message: 'No patch entries found in RSS feed', processed: 0 });
+    const feedUrl = 'https://leonick.se/feeds/rsi/atom';
+    const feedResponse = await fetch(feedUrl);
+    const feedText = await feedResponse.text();
+
+    // Parse RSS entries (basic XML parsing)
+    const entries = [];
+    const entryMatches = feedText.matchAll(/<entry>([\s\S]*?)<\/entry>/g);
+
+    for (const match of entryMatches) {
+      const entry = match[1];
+      const titleMatch = entry.match(/<title[^>]*>([\s\S]*?)<\/title>/);
+      const linkMatch = entry.match(/<link[^>]*href="([^"]*)"[^>]*>/);
+      const publishedMatch = entry.match(/<published>([\s\S]*?)<\/published>/);
+      const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+
+      if (titleMatch) {
+        entries.push({
+          title: titleMatch[1].replace(/<[^>]*>/g, ''),
+          url: linkMatch ? linkMatch[1] : '',
+          published: publishedMatch ? publishedMatch[1] : new Date().toISOString(),
+          content: contentMatch ? contentMatch[1].replace(/<[^>]*>/g, '').substring(0, 5000) : '',
+        });
+      }
     }
 
-    // Check for new patches
-    const existingDigests = await base44.asServiceRole.entities.PatchDigest.list('-published_at', 50);
-    const existingVersions = new Set((existingDigests || []).map((d: any) => d.patch_version));
+    // Filter for patch notes (4.7)
+    const patchEntries = entries.filter(e => 
+      e.title.match(/patch|update/i) && 
+      (e.title.match(/4\.7|PTU/) || e.content.match(/4\.7|PTU/))
+    );
 
-    const newPatches = entries
-      .map(entry => ({
-        ...entry,
-        version: extractPatchVersion(entry.title),
-      }))
-      .filter((p): p is PatchEntry & { version: string } => p.version !== null && !existingVersions.has(p.version));
-
-    if (newPatches.length === 0) {
-      return Response.json({ success: true, message: 'No new patches detected', processed: 0 });
+    if (patchEntries.length === 0) {
+      return Response.json({ message: 'No new patches found' });
     }
 
-    const processed: any[] = [];
+    // Get the latest patch entry
+    const latestPatch = patchEntries[0];
 
-    for (const patch of newPatches.slice(0, 3)) { // Process max 3 new patches per run
-      console.log(`Processing patch ${patch.version}...`);
+    // Extract version from title
+    const versionMatch = latestPatch.title.match(/(\d+\.\d+\.\d+|\d+\.\d+)/);
+    const version = versionMatch ? versionMatch[1] : '4.7.0';
 
-      // Fetch patch content
-      const rawText = await fetchPatchContent(patch.link);
+    // Check if we already processed this patch
+    const existing = await base44.entities.PatchDigest.filter({ patch_version: version });
+    if (existing && existing.length > 0) {
+      return Response.json({ message: 'Patch already processed', version });
+    }
 
-      // Call Claude to extract industry changes
-      const claudeResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        model: 'claude_sonnet_4_6',
-        prompt: `You are a Star Citizen patch analyst for an industrial organization.
-Analyze this Star Citizen patch note and extract all changes relevant to:
-- Mining (prospecting, extraction, ore types)
-- Crafting (fabrication, blueprints, recipes, materials)
-- Salvage (salvaging mechanics, components)
-- Refinery (refinement, yields, methods, processing)
-- Materials (raw, refined, quality, properties)
-- Blueprints (availability, requirements, tier system)
-- Economy (pricing, markets, aUEC values)
-- Ship Components (mining components, cargo, holds)
-- Pyro and Nyx systems
+    // Use Claude to analyze patch for industrial impact
+    const analysisPrompt = `You are a Star Citizen patch analyst for Redscar Nomads, an industrial mining and crafting organization.
 
-For each change, classify by:
-1. category (mining, crafting, salvage, refinery, materials, blueprints, economy, components, pyro, nyx)
-2. change_summary (1-2 sentence plain description)
-3. severity (high, medium, low)
-4. affected_systems (list of systems affected)
+Analyze this patch note for INDUSTRIAL IMPACT ONLY. Focus exclusively on:
+- Mining mechanics, yields, methods
+- Crafting system, blueprints, fabricators
+- Refinery processes, yields, methods
+- Material quality and types
+- Salvage operations
+- Economy and pricing
+- New components or items
+- T2 quality requirements (80%+ threshold)
+- Pyro and Nyx system changes
+- Any profession-critical mechanics
 
-Also provide a brief 2-3 sentence industry_summary highlighting the most impactful changes.
-
-PATCH TITLE: ${patch.title}
+PATCH TITLE: ${latestPatch.title}
 
 PATCH CONTENT:
-${rawText || '(Content could not be fetched)'}
+${latestPatch.content}
 
-Return as JSON with structure:
+Generate output ONLY as valid JSON (no markdown, no explanation):
 {
-  "industry_summary": "string",
-  "changes": [
-    {
-      "category": "string",
-      "change_summary": "string",
-      "severity": "high|medium|low",
-      "affected_systems": ["string"]
-    }
+  "industry_summary": "2-3 sentence tactical summary of industrial impact",
+  "affected_systems": ["system1", "system2"],
+  "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+  "key_changes": [
+    { "system": "mining", "change": "specific change description" }
   ]
-}`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            industry_summary: { type: 'string' },
-            changes: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  category: { type: 'string' },
-                  change_summary: { type: 'string' },
-                  severity: { type: 'string', enum: ['high', 'medium', 'low'] },
-                  affected_systems: { type: 'array', items: { type: 'string' } },
-                },
+}`;
+
+    const analysisResult = await base44.integrations.Core.InvokeLLM({
+      prompt: analysisPrompt,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          industry_summary: { type: 'string' },
+          affected_systems: { type: 'array', items: { type: 'string' } },
+          severity: { type: 'string' },
+          key_changes: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                system: { type: 'string' },
+                change: { type: 'string' },
               },
             },
           },
         },
-      });
+      },
+    });
 
-      const summary = claudeResponse?.industry_summary || '';
-      const changes = claudeResponse?.changes || [];
+    // Store patch digest
+    const digest = {
+      patch_version: version,
+      comm_link_url: latestPatch.url,
+      raw_text: latestPatch.content,
+      industry_summary: analysisResult.industry_summary || '',
+      affected_systems: analysisResult.affected_systems || [],
+      severity: analysisResult.severity || 'MEDIUM',
+      key_changes: analysisResult.key_changes || [],
+      published_at: latestPatch.published,
+      processed_at: new Date().toISOString(),
+    };
 
-      // Store in PatchDigest
-      const digest = await base44.asServiceRole.entities.PatchDigest.create({
-        patch_version: patch.version,
-        comm_link_url: patch.link,
-        raw_text: rawText,
-        industry_summary: summary,
-        changes_json: changes,
-        published_at: patch.publishedDate,
-        processed_at: new Date().toISOString(),
-      });
-
-      processed.push(digest);
-
-      // Post to Discord via Herald Bot
-      await base44.asServiceRole.functions.invoke('heraldBot', {
-        action: 'patchDigest',
-        payload: {
-          patch_version: patch.version,
-          industry_summary: summary,
-          changes_json: changes,
-        },
-      });
-
-      console.log(`✓ Patch ${patch.version} processed and posted to Discord`);
-    }
+    await base44.entities.PatchDigest.create(digest);
 
     return Response.json({
       success: true,
-      processed: processed.length,
-      digests: processed.map(d => ({
-        patch_version: d.patch_version,
-        changes_count: (d.changes_json as any[])?.length || 0,
-      })),
+      patch_version: version,
+      summary: digest.industry_summary,
     });
   } catch (error) {
-    console.error('patchDigestProcessor error:', error);
-    return Response.json({ error: (error as Error).message }, { status: 500 });
+    console.error('Patch digest processor error:', error);
+    return Response.json({ error: error.message || 'Processing failed' }, { status: 500 });
   }
 });

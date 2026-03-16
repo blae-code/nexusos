@@ -5,6 +5,7 @@ import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
 import MaterialsModule from '@/app/modules/IndustryHub/Materials';
 import CraftQueueTab from '@/components/industry/CraftQueueTab';
 import RefineryManagement from '@/components/industry/RefineryManagement';
+import PatchDigestHeader from '@/components/industry/PatchDigestHeader';
 import IndustryOverview from '@/components/industry/IndustryOverview';
 
 const TABS = [
@@ -216,13 +217,16 @@ export default function IndustryHub() {
 
       <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {tab === 'overview' ? (
-          <IndustryOverview
-            materials={materials}
-            blueprints={blueprints}
-            craftQueue={craftQueue}
-            refineryOrders={refineryOrders}
-            scoutDeposits={scoutDeposits}
-          />
+          <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <PatchDigestHeader />
+            <IndustryOverview
+              materials={materials}
+              blueprints={blueprints}
+              craftQueue={craftQueue}
+              refineryOrders={refineryOrders}
+              scoutDeposits={scoutDeposits}
+            />
+          </div>
         ) : null}
         {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} discordId={discordId} onRefresh={load} /> : null}
