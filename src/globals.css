@@ -84,6 +84,7 @@ body {
   color: var(--t0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease;
 }
 
 /* ─── Shell frame ────────────────────────────────────────────────────────────── */
@@ -182,6 +183,7 @@ body {
   border-radius: 8px;
   position: relative;
   overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .nexus-card-elevated {
@@ -206,17 +208,23 @@ body {
   color: var(--t0);
   font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
   font-size: 11px;
-  padding: 7px 10px;
+  padding: 8px 11px;
   outline: none;
   width: 100%;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.18s, box-shadow 0.18s, background-color 0.18s;
 }
 
 .nexus-input::placeholder { color: var(--t3); }
 
+.nexus-input:hover:not(:focus) {
+  background: var(--bg3);
+  border-color: var(--b3);
+}
+
 .nexus-input:focus {
-  border-color: var(--cyan-dim);
-  box-shadow: 0 0 0 1.5px rgba(0, 200, 232, 0.1);
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 2px rgba(0, 200, 232, 0.12);
+  background: var(--bg2);
 }
 
 select.nexus-input option {
@@ -247,7 +255,7 @@ select.nexus-input option {
   background: var(--bg4);
   border-color: var(--b3);
   color: var(--t0);
-  box-shadow: 0 0 8px rgba(0, 200, 232, 0.1);
+  box-shadow: 0 0 12px rgba(0, 200, 232, 0.15);
 }
 
 .nexus-btn:disabled {
@@ -368,15 +376,16 @@ select.nexus-input option {
 
 .nexus-table tbody tr {
   border-bottom: 0.5px solid var(--b0);
-  transition: background 0.1s;
+  transition: background 0.12s, border-color 0.12s;
 }
 
 .nexus-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.012);
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .nexus-table tbody tr:hover {
   background: var(--bg2);
+  border-bottom-color: var(--b1);
 }
 
 .nexus-table tbody td {
