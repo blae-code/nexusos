@@ -111,31 +111,23 @@ function StatusBar({ status }) {
       : { dot: 'var(--live)', text: 'ONLINE' };
 
   return (
-    <footer
+    <div
       style={{
-        position: 'sticky',
-        bottom: 0,
-        height: 32,
-        background: 'var(--bg1)',
-        borderTop: '0.5px solid var(--b0)',
+        height: 28,
+        background: 'transparent',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         padding: '0 16px',
-        width: '100%',
-        flexShrink: 0,
+        fontSize: 8,
+        color: 'var(--t3)',
+        letterSpacing: '0.08em',
+        gap: 6,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', fontSize: 9 }}>
-        <div style={{ width: 5, height: 5, borderRadius: '50%', background: palette.dot }} />
-        <span style={{ color: 'var(--t2)', marginLeft: 6 }}>VERSE {VERSE_BUILD_LABEL}</span>
-        <span style={{ color: 'var(--t3)', margin: '0 6px' }}>·</span>
-        <span style={{ color: palette.dot }}>{palette.text}</span>
-      </div>
-      <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.1em' }}>
-        NEXUSOS · REDSCAR NOMADS · PRIVATE
-      </span>
-    </footer>
+      <div style={{ width: 4, height: 4, borderRadius: '50%', background: palette.dot }} />
+      <span>{palette.text}</span>
+    </div>
   );
 }
 
