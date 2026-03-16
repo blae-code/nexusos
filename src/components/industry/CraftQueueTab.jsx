@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Zap } from 'lucide-react';
+import RefineryEfficiencyCalculator from '@/components/industry/RefineryEfficiencyCalculator';
 
 const STATUS_COLORS = {
   OPEN:        'var(--info)',
@@ -253,6 +254,8 @@ export default function CraftQueueTab({ craftQueue, callsign, materials = [], bl
 
   return (
     <div className="p-4 flex flex-col gap-3">
+      {/* Refinery Calculator */}
+      <RefineryEfficiencyCalculator />
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
