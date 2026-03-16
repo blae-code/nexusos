@@ -1,5 +1,8 @@
 # NexusOS Changelog
 
+## 0.7.0 — 2026-03-16
+- Release readiness audit and rescue operations completion
+
 ## 0.6.0 — 2026-03-16
 - Full UI visual rebuild matching NexusOS design system
 
