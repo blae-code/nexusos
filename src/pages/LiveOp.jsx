@@ -200,10 +200,19 @@ export default function LiveOp() {
   const handleEndOp = async () => {
     if (!window.confirm('End this op and generate wrap-up report?')) return;
     setEndLoading(true);
-    await base44.entities.Op.update(id, { status: 'COMPLETE', ended_at: new Date().toISOString() });
-    await base44.functions.invoke('opWrapUp', { op_id: id });
+    try {
+      await base44.entities.Op.update(id, { status: 'COMPLETE', ended_at: new Date().toISOString() });
+      const res = await base44.functions.invoke('opWrapUp', { op_id: id });
+      if (res.data?.success) {
+        setTimeout(() => navigate('/app/ops'), 1500);
+      } else {
+        alert('Wrap-up generation failed. Op marked complete.');
+        navigate('/app/ops');
+      }
+    } catch (err) {
+      alert('Error ending op: ' + err.message);
+    }
     setEndLoading(false);
-    navigate('/app/ops');
   };
 
   const handlePhaseChange = async (newPhase) => {
