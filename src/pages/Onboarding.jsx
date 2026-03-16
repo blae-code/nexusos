@@ -108,7 +108,7 @@ function Step1Welcome({ callsign, onContinue }) {
 function Step2HowItWorks({ onContinue }) {
   const bullets = [
     'Coordinates ops and tracks org resources like blueprints, materials, and inventory.',
-    'Does not read Discord messages or act on your behalf—it's a separate system.',
+    "Does not read Discord messages or act on your behalf — it's a separate system.",
     'All data is private to Redscar Nomads and never shared with external parties.',
   ];
 
