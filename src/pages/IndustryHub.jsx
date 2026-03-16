@@ -598,23 +598,40 @@ export default function IndustryHub() {
   const [craftQueue, setCraftQueue] = useState([]);
   const [refineryOrders, setRefineryOrders] = useState([]);
   const [scoutDeposits, setScoutDeposits] = useState([]);
+  const [latestPatch, setLatestPatch] = useState(null);
+  const [patchDismissed, setPatchDismissed] = useState(null); // stores dismissed patch_version
 
   const load = async () => {
-    const [mats, bps, cq, ro, sd] = await Promise.all([
+    const [mats, bps, cq, ro, sd, patches] = await Promise.all([
       base44.entities.Material.list('-logged_at', 100),
       base44.entities.Blueprint.list('-created_date', 100),
       base44.entities.CraftQueue.list('-created_date', 50),
       base44.entities.RefineryOrder.list('-started_at', 50),
       base44.entities.ScoutDeposit.list('-reported_at', 10),
+      base44.entities.PatchDigest.list('-processed_at', 1),
     ]);
     setMaterials(mats || []);
     setBlueprints(bps || []);
     setCraftQueue(cq || []);
     setRefineryOrders(ro || []);
     setScoutDeposits(sd || []);
+    const patch = patches?.[0] || null;
+    setLatestPatch(patch);
+    // Restore dismissed state from localStorage
+    const dismissed = localStorage.getItem('nexus_patch_dismissed');
+    setPatchDismissed(dismissed);
   };
 
   useEffect(() => { load(); }, []);
+
+  const handlePatchDismiss = () => {
+    if (latestPatch?.patch_version) {
+      localStorage.setItem('nexus_patch_dismissed', latestPatch.patch_version);
+      setPatchDismissed(latestPatch.patch_version);
+    }
+  };
+
+  const showPatchCard = latestPatch && patchDismissed !== latestPatch.patch_version;
 
   return (
     <div className="flex flex-col h-full">
