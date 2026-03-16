@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { withAppBase } from '@/lib/app-base-path';
-import { appParams } from '@/lib/app-params';
+import { getAppParams } from '@/lib/app-params';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/lib/auth-api';
+import { buildBase44Url, getBase44Headers } from '@/lib/base44-host';
 
 const SessionContext = createContext(null);
 const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
@@ -81,29 +82,22 @@ function withTimeout(task, timeoutMs, label) {
 }
 
 async function fetchPreviewAdminUser(timeoutMs = SESSION_REFRESH_TIMEOUT_MS) {
-  if (!appParams.serverUrl || !appParams.appId) {
+  const { appId } = getAppParams();
+  if (!appId) {
     return null;
   }
 
   const controller = new AbortController();
-  const url = new URL(`/api/apps/${appParams.appId}/entities/User/me`, appParams.serverUrl);
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
   let response;
   try {
-    response = await fetch(url, {
+    response = await fetch(buildBase44Url(`/api/apps/${appId}/entities/User/me`), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
       signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-        'X-App-Id': appParams.appId,
-        'Base44-App-Id': appParams.appId,
-        ...(appParams.serverUrl ? { 'Base44-Api-Url': appParams.serverUrl } : {}),
-        ...(appParams.functionsVersion ? { 'Base44-Functions-Version': appParams.functionsVersion } : {}),
-        ...((appParams.fromUrl || window.location.href) ? { 'X-Origin-URL': appParams.fromUrl || window.location.href } : {}),
-      },
+      headers: getBase44Headers(),
     });
   } finally {
     window.clearTimeout(timeoutId);

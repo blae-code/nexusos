@@ -1,14 +1,37 @@
 import { createClient } from '@base44/sdk';
-import { appParams } from '@/lib/app-params';
+import { getAppParams } from '@/lib/app-params';
 
-const { appId, token, functionsVersion, appBaseUrl, serverUrl } = appParams;
+/** @typedef {ReturnType<typeof createClient>} Base44Client */
 
-//Create a client with authentication required
-export const base44 = createClient({
-  appId,
-  token,
-  functionsVersion,
-  serverUrl,
-  requiresAuth: false,
-  appBaseUrl
-});
+/** @type {Base44Client | null} */
+let cachedClient = null;
+
+/** @returns {Base44Client} */
+function createBase44Client() {
+  const { appId, token, functionsVersion, appBaseUrl, serverUrl } = getAppParams();
+
+  return createClient({
+    appId,
+    token,
+    functionsVersion,
+    serverUrl,
+    requiresAuth: false,
+    appBaseUrl,
+  });
+}
+
+/** @returns {Base44Client} */
+export function getBase44Client() {
+  if (!cachedClient) {
+    cachedClient = createBase44Client();
+  }
+
+  return cachedClient;
+}
+
+export const base44 = /** @type {Base44Client} */ (new Proxy({}, {
+  get(_target, property) {
+    const value = getBase44Client()[property];
+    return typeof value === 'function' ? value.bind(getBase44Client()) : value;
+  },
+}));

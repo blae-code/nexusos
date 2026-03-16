@@ -27,6 +27,7 @@ Any change pushed to the repo is also reflected in the Base44 builder.
 - `npm run typecheck`
 - `npm run lint`
 - `npm run build`
+- `npm run base44:check`
 - `npm run version:check`
 
 Use `.\version-bump.ps1 patch|minor|major "release note"` for releases. Version metadata is kept in sync automatically from `version.json`.

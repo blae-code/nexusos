@@ -9,6 +9,7 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
+    "base44:check": "node ./scripts/base44-editor/check-base44-editor.mjs",
     "preview": "vite preview",
     "version:sync": "node ./scripts/versioning/sync-versioning.mjs",
     "version:check": "node ./scripts/versioning/check-versioning.mjs",

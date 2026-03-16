@@ -1,13 +1,11 @@
 import { getAppBasePath } from '@/lib/app-base-path';
-import { appParams } from '@/lib/app-params';
-import { safeLocalStorage } from '@/lib/safe-storage';
+import { buildBase44Url, getBase44Headers } from '@/lib/base44-host';
 
 const AUTH_BASE = '/functions/auth';
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
 function buildUrl(path, searchParams) {
-  const origin = appParams.serverUrl || window.location.origin;
-  const url = new URL(`${AUTH_BASE}/${path}`, origin);
+  const url = buildBase44Url(`${AUTH_BASE}/${path}`);
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
       if (value != null && value !== '') {
@@ -40,37 +38,6 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
   }
 }
 
-function getAuthHeaders() {
-  const headers = {};
-  const token = appParams.token
-    || safeLocalStorage.getItem('base44_access_token')
-    || safeLocalStorage.getItem('token');
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  if (appParams.appId) {
-    headers['X-App-Id'] = appParams.appId;
-    headers['Base44-App-Id'] = appParams.appId;
-  }
-
-  if (appParams.serverUrl) {
-    headers['Base44-Api-Url'] = appParams.serverUrl;
-  }
-
-  if (appParams.functionsVersion) {
-    headers['Base44-Functions-Version'] = appParams.functionsVersion;
-  }
-
-  const originUrl = appParams.fromUrl || window.location.href;
-  if (originUrl) {
-    headers['X-Origin-URL'] = originUrl;
-  }
-
-  return headers;
-}
-
 export const authApi = {
   getDiscordStartUrl(redirectTo) {
     return buildUrl('discord/start', {
@@ -84,7 +51,7 @@ export const authApi = {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
-      headers: getAuthHeaders(),
+      headers: getBase44Headers(),
     }, timeoutMs);
 
     const data = await parseJson(response);
@@ -107,7 +74,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: getAuthHeaders(),
+      headers: getBase44Headers(),
     }, timeoutMs);
 
     return parseJson(response);
