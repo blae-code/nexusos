@@ -28,6 +28,15 @@ VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
 
 Run the app: `npm run dev`
 
+**Versioning**
+
+- `version.json` is the canonical release metadata.
+- `CHANGELOG.md`, `package.json`, `package-lock.json`, and `docs/versioning.md` are kept in sync automatically.
+- Run `npm run version:sync` to normalize and regenerate versioning files.
+- Run `npm run version:check` to verify that nothing drifted.
+- Use `.\version-bump.ps1 patch|minor|major "release note"` for releases.
+- `npm install` configures the repo-managed Git hooks automatically.
+
 **Publish your changes**
 
 Open [Base44.com](http://Base44.com) and click on Publish.

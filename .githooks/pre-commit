@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -e
+
+npm run version:sync >/dev/null
+git add version.json CHANGELOG.md package.json package-lock.json docs/versioning.md
+

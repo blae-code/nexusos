@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Bump NexusOS version, update CHANGELOG.md, and commit both.
+  Bump NexusOS version, update CHANGELOG.md, sync all versioning files, and commit the result.
 
 .PARAMETER BumpType
   patch | minor | major
@@ -64,9 +64,13 @@ $existing      = Get-Content $changelogFile -Raw
 $entry = "## $newVersion — $date`n- $Message`n`n"
 Set-Content $changelogFile -Value ($entry + $existing) -Encoding UTF8
 
+# ── Sync generated versioning files ──────────────────────────────────────────
+
+node (Join-Path $PSScriptRoot "scripts\versioning\sync-versioning.mjs")
+
 # ── Git commit ────────────────────────────────────────────────────────────────
 
-git add version.json CHANGELOG.md
+git add version.json CHANGELOG.md package.json package-lock.json docs/versioning.md
 git commit -m "chore($BumpType): v$newVersion — $Message"
 
 Write-Host ""
