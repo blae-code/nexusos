@@ -155,8 +155,25 @@ body {
 .nexus-content-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 var(--content-padding);
+  padding: 0 32px;
   width: 100%;
+}
+
+/* Enforce padding on all responsive breakpoints */
+@media (max-width: 1099px) {
+  .nexus-content-container { padding: 0 32px; }
+}
+
+@media (min-width: 1100px) and (max-width: 1599px) {
+  .nexus-content-container { padding: 0 32px; }
+}
+
+@media (min-width: 1600px) {
+  .nexus-content-container { padding: 0 32px; }
+}
+
+@media (min-width: 1920px) {
+  .nexus-content-container { padding: 0 32px; }
 }
 
 .nexus-shell-content {
@@ -842,7 +859,15 @@ button svg {
 }
 
 /* ─── Responsive Grid Utilities ──────────────────────────────────────────── */
-.grid-compact { display: grid; gap: var(--section-gap); }
+.grid-compact { display: grid; gap: 12px; align-items: stretch; }
+.grid-section { display: grid; gap: 24px; }
+.grid-inline { display: grid; gap: 8px; }
+
+/* Uniform column gap across all grids */
+.grid-stats, .grid-cols-2, .grid-cols-3, .grid-ops-list {
+  gap: 16px;
+  align-items: stretch;
+}
 
 @media (max-width: 1099px) {
   .grid-stats { grid-template-columns: repeat(2, 1fr); }
@@ -859,18 +884,18 @@ button svg {
 }
 
 @media (min-width: 1600px) and (max-width: 1919px) {
-  .grid-stats { grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); }
-  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); }
-  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); }
+  .grid-stats { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (min-width: 1920px) {
-  .grid-stats { grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); }
-  .grid-stats-secondary { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-lg); margin-top: var(--spacing-lg); }
-  .grid-dashboard { grid-template-columns: 50% 25% 25%; gap: var(--spacing-lg); }
-  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); }
-  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); }
-  .grid-ops-list { grid-template-columns: repeat(2, 1fr); gap: var(--spacing-lg); }
+  .grid-stats { grid-template-columns: repeat(4, 1fr); }
+  .grid-stats-secondary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px; }
+  .grid-dashboard { grid-template-columns: 50% 25% 25%; gap: 16px; }
+  .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-ops-list { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 1099px) {
