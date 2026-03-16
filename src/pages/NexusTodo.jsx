@@ -41,6 +41,13 @@ const TODOS = [
         link: 'https://discord.com/developers/applications',
       },
       {
+        id: 'DISCORD_PUBLIC_KEY',
+        label: 'Set DISCORD_PUBLIC_KEY for signed Discord interactions',
+        detail: 'Discord Developer Portal → General Information. Required so Herald Bot can verify button and interaction requests from Discord.',
+        priority: 'HIGH',
+        link: 'https://discord.com/developers/applications',
+      },
+      {
         id: 'SESSION_SIGNING_SECRET',
         label: 'Set SESSION_SIGNING_SECRET',
         detail: 'Add a long random secret in Base44 environment variables. This signs the NexusOS member session cookie and OAuth state cookie.',
@@ -102,6 +109,12 @@ const TODOS = [
         priority: 'CRITICAL',
       },
       {
+        id: 'NEXUSOS_PUBLIC_URL',
+        label: 'Set NEXUSOS_PUBLIC_URL for Herald Bot embed assets',
+        detail: 'Used by Herald Bot token thumbnails and deep links embedded in Discord posts.',
+        priority: 'HIGH',
+      },
+      {
         id: 'VITE_BASE44_APP_ID',
         label: 'Set frontend Base44 app variables',
         detail: 'Ensure the deployed frontend has VITE_BASE44_APP_ID, VITE_BASE44_APP_BASE_URL, and VITE_BASE44_FUNCTIONS_VERSION configured so the client boots cleanly.',
@@ -129,7 +142,7 @@ const TODOS = [
     ],
   },
   {
-    category: 'Features — Still Future Work',
+    category: 'Features — Remaining Integrations',
     color: 'var(--t2)',
     items: [
       {
@@ -146,15 +159,15 @@ const TODOS = [
       },
       {
         id: 'RSVP_INTERACTION',
-        label: 'Discord button RSVP interactions',
-        detail: 'Requires a registered Interactions Endpoint URL and signed request handling.',
-        priority: 'FUTURE',
+        label: 'Register Discord Interactions Endpoint URL for RSVP buttons',
+        detail: 'The signed-request code path is implemented already. Remaining work is the Discord Developer Portal endpoint registration.',
+        priority: 'HIGH',
       },
       {
         id: 'PATCH_WATCHER',
-        label: 'Automated patch-note watcher and digest generation',
-        detail: 'Scheduled function to fetch RSI notes and publish summaries.',
-        priority: 'FUTURE',
+        label: 'Enable the scheduled patch watcher and digest cron',
+        detail: 'rssCheck, patchDigest, and Herald Bot alerting are implemented. Remaining work is enabling the scheduled job in Base44.',
+        priority: 'MEDIUM',
       },
     ],
   },
@@ -190,13 +203,14 @@ function buildLocalAutoStatus() {
   };
 }
 
-function getItemState(itemId, manualChecked, autoChecked) {
+function getItemState(itemId, manualChecked, autoChecked, autoDetails) {
   const auto = autoChecked[itemId];
   if (typeof auto === 'boolean') {
     return {
       checked: auto,
       source: auto ? 'auto_ready' : 'auto_missing',
       locked: true,
+      detail: autoDetails[itemId] || '',
     };
   }
 
@@ -204,6 +218,7 @@ function getItemState(itemId, manualChecked, autoChecked) {
     checked: Boolean(manualChecked[itemId]),
     source: manualChecked[itemId] ? 'manual_done' : 'unverified',
     locked: false,
+    detail: autoDetails[itemId] || '',
   };
 }
 
@@ -272,6 +287,21 @@ function TodoItem({ item, state, onToggle }) {
       {expanded && (
         <div style={{ padding: '0 12px 10px 38px', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.6 }}>{item.detail}</div>
+          {state.detail ? (
+            <div
+              style={{
+                color: 'var(--t2)',
+                fontSize: 10,
+                lineHeight: 1.6,
+                background: 'var(--bg3)',
+                border: '0.5px solid var(--b1)',
+                borderRadius: 4,
+                padding: '7px 8px',
+              }}
+            >
+              {state.detail}
+            </div>
+          ) : null}
           {item.link ? (
             <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--acc2)', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               Open resource <ExternalLink size={10} />
@@ -289,6 +319,7 @@ function TodoItem({ item, state, onToggle }) {
 export default function NexusTodo() {
   const [manualChecked, setManualChecked] = useState(loadManualChecks);
   const [remoteAutoChecked, setRemoteAutoChecked] = useState({});
+  const [remoteAutoDetails, setRemoteAutoDetails] = useState({});
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [statusError, setStatusError] = useState('');
   const [lastCheckedAt, setLastCheckedAt] = useState('');
@@ -306,11 +337,13 @@ export default function NexusTodo() {
       const response = await base44.functions.invoke('setupStatus', {});
       const payload = response?.data || response || {};
       setRemoteAutoChecked(payload.items || {});
+      setRemoteAutoDetails(payload.details || {});
       setLastCheckedAt(payload.checked_at || new Date().toISOString());
     } catch (error) {
       console.warn('[NexusTodo] setup status lookup failed:', error?.message || error);
       setStatusError('Automatic setup detection is unavailable in this runtime.');
       setRemoteAutoChecked({});
+      setRemoteAutoDetails({});
       setLastCheckedAt('');
     } finally {
       setLoadingStatus(false);
@@ -336,10 +369,10 @@ export default function NexusTodo() {
   const allItems = useMemo(() => TODOS.flatMap((category) => category.items), []);
   const itemStates = useMemo(() => {
     return allItems.reduce((acc, item) => {
-      acc[item.id] = getItemState(item.id, manualChecked, autoChecked);
+      acc[item.id] = getItemState(item.id, manualChecked, autoChecked, remoteAutoDetails);
       return acc;
     }, {});
-  }, [allItems, autoChecked, manualChecked]);
+  }, [allItems, autoChecked, manualChecked, remoteAutoDetails]);
 
   const totalItems = allItems.length;
   const doneCount = allItems.filter((item) => itemStates[item.id]?.checked).length;

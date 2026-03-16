@@ -69,12 +69,6 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Verify authentication (service-role context)
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     console.log('[patchFeedPoller] Starting patch feed poll...');
 
     // Fetch RSS feed
@@ -189,9 +183,11 @@ Return valid JSON only. If no industry-relevant changes found, return: { "change
           try {
             await base44.asServiceRole.functions.invoke('heraldBot', {
               action: 'notify_patch_alert',
-              patch_version: patchVersion,
-              summary: industrySummary,
-              changes: changes.filter((c) => c.severity === 'high'),
+              payload: {
+                patch_version: patchVersion,
+                summary: industrySummary,
+                changes: changes.filter((c) => String(c.severity).toLowerCase() === 'high'),
+              },
             });
             console.log(`[patchFeedPoller] Herald Bot notified for ${patchVersion}`);
           } catch (e) {

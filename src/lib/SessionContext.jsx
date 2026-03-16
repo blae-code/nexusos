@@ -102,6 +102,7 @@ async function fetchPreviewAdminUser(timeoutMs = SESSION_REFRESH_TIMEOUT_MS) {
         'Base44-App-Id': appParams.appId,
         ...(appParams.serverUrl ? { 'Base44-Api-Url': appParams.serverUrl } : {}),
         ...(appParams.functionsVersion ? { 'Base44-Functions-Version': appParams.functionsVersion } : {}),
+        ...((appParams.fromUrl || window.location.href) ? { 'X-Origin-URL': appParams.fromUrl || window.location.href } : {}),
       },
     });
   } finally {

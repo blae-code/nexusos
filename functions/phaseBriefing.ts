@@ -13,20 +13,61 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const body = await req.json();
     const {
       op_id,
       op_name,
       phase_name,
       phase_number,
+      phase_index,
       total_phases,
       crew_list = [],
       materials_status = {},
+      material_status,
       threats = [],
+      threat_notes,
       objectives = [],
       next_phase = null,
-    } = await req.json();
+      custom_notes = '',
+      post_to_discord = true,
+    } = body;
 
-    if (!op_id || !op_name || !phase_name) {
+    let resolvedOpName = op_name;
+    let resolvedTotalPhases = total_phases;
+
+    if (op_id && (!resolvedOpName || !resolvedTotalPhases)) {
+      try {
+        const op = (await base44.asServiceRole.entities.Op.filter({ id: op_id }))?.[0];
+        if (op) {
+          resolvedOpName = resolvedOpName || op.name;
+          resolvedTotalPhases = resolvedTotalPhases || (Array.isArray(op.phases) ? op.phases.length : undefined);
+        }
+      } catch (opLookupError) {
+        console.warn('Phase briefing op lookup failed:', opLookupError?.message || opLookupError);
+      }
+    }
+
+    const resolvedPhaseNumber = Number.isFinite(Number(phase_number))
+      ? Number(phase_number)
+      : Number.isFinite(Number(phase_index))
+        ? Number(phase_index) + 1
+        : 1;
+
+    const resolvedTotalPhaseCount = Number.isFinite(Number(resolvedTotalPhases))
+      ? Number(resolvedTotalPhases)
+      : Math.max(resolvedPhaseNumber, 1);
+
+    const normalizedMaterials = material_status
+      ? { reported_status: material_status, ...(materials_status || {}) }
+      : (materials_status || {});
+    const normalizedThreats = Array.isArray(threats)
+      ? [...threats, ...(threat_notes ? [threat_notes] : [])].filter(Boolean)
+      : (threat_notes ? [threat_notes] : []);
+    const normalizedObjectives = Array.isArray(objectives)
+      ? [...objectives, ...(custom_notes ? [custom_notes] : [])].filter(Boolean)
+      : (custom_notes ? [custom_notes] : []);
+
+    if (!op_id || !resolvedOpName || !phase_name) {
       return Response.json({ error: 'Missing op or phase data' }, { status: 400 });
     }
 
@@ -35,22 +76,22 @@ Deno.serve(async (req) => {
       .map(c => `${c.callsign} (${c.role})`)
       .join(', ') || 'Unspecified crew';
 
-    const materialsSummary = Object.entries(materials_status)
+    const materialsSummary = Object.entries(normalizedMaterials)
       .map(([mat, status]) => `${mat}: ${status}`)
       .join(', ') || 'No material tracking';
 
-    const threatSummary = threats.length > 0
-      ? threats.map(t => `- ${t}`).join('\n')
+    const threatSummary = normalizedThreats.length > 0
+      ? normalizedThreats.map(t => `- ${t}`).join('\n')
       : 'No active threats';
 
-    const objectivesList = objectives.length > 0
-      ? objectives.map((o, i) => `${i + 1}. ${o}`).join('\n')
+    const objectivesList = normalizedObjectives.length > 0
+      ? normalizedObjectives.map((o, i) => `${i + 1}. ${o}`).join('\n')
       : 'No specific objectives logged';
 
     const prompt = `You are a Redscar Nomads tactical operations briefing officer. Generate a concise PHASE BRIEFING for:
 
-OPERATION: ${op_name}
-PHASE: ${phase_number}/${total_phases} — ${phase_name}
+OPERATION: ${resolvedOpName}
+PHASE: ${resolvedPhaseNumber}/${resolvedTotalPhaseCount} — ${phase_name}
 NEXT PHASE: ${next_phase || 'N/A'}
 
 CREW (${crew_list.length} members):
@@ -92,7 +133,7 @@ Generate output ONLY as valid JSON:
 
     // Format briefing markdown
     const briefingMarkdown = `
-**PHASE ${phase_number}/${total_phases}: ${phase_name.toUpperCase()}**
+**PHASE ${resolvedPhaseNumber}/${resolvedTotalPhaseCount}: ${phase_name.toUpperCase()}**
 
 ${briefingResult.phase_status}
 
@@ -146,32 +187,39 @@ ${briefingResult.action_items.length > 0 ? `**ACTION ITEMS**\n${briefingResult.a
           : []),
       ],
       footer: {
-        text: `Op: ${op_name} | Phase ${phase_number}/${total_phases}`,
+        text: `Op: ${resolvedOpName} | Phase ${resolvedPhaseNumber}/${resolvedTotalPhaseCount}`,
       },
       timestamp: new Date().toISOString(),
     };
 
     // Post to Discord via Herald Bot
-    try {
-      await base44.functions.invoke('heraldBot', {
-        action: 'phaseBriefing',
-        payload: {
-          op_id,
-          op_name,
-          phase_name,
-          briefing_text: briefingMarkdown,
-          embed: discordEmbed,
-        },
-      });
-    } catch (err) {
-      console.warn('Herald Bot post failed:', err.message);
-      // Don't fail the function, just warn
+    let discordPosted = false;
+    if (post_to_discord !== false) {
+      try {
+        await base44.functions.invoke('heraldBot', {
+          action: 'phaseBriefing',
+          payload: {
+            op_id,
+            op_name: resolvedOpName,
+            phase_name,
+            briefing_text: briefingMarkdown,
+            embed: discordEmbed,
+          },
+        });
+        discordPosted = true;
+      } catch (err) {
+        console.warn('Herald Bot post failed:', err.message);
+        // Don't fail the function, just warn
+      }
     }
 
     return Response.json({
       success: true,
       briefing: briefingMarkdown,
+      brief_text: briefingMarkdown,
       embed: discordEmbed,
+      discord_embed: discordEmbed,
+      discord_posted: discordPosted,
     });
   } catch (error) {
     console.error('Phase briefing error:', error);

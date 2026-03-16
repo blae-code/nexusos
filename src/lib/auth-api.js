@@ -63,6 +63,11 @@ function getAuthHeaders() {
     headers['Base44-Functions-Version'] = appParams.functionsVersion;
   }
 
+  const originUrl = appParams.fromUrl || window.location.href;
+  if (originUrl) {
+    headers['X-Origin-URL'] = originUrl;
+  }
+
   return headers;
 }
 

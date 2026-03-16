@@ -1,10 +1,12 @@
 /**
  * Herald Bot — NexusOS Discord Integration
  *
- * Actions (14): publishOp · rsvpUpdate · opGo · phaseAdvance · threatAlert ·
- *               deliverKey · keyEvent · armoryUpdate · patchDigest · scoutPing ·
- *               depositStaleAlert · opWrapUp · wrapUpDebrief · lowStockAlert
- * Passthrough:  refineryReady · craftComplete
+ * Actions: publishOp · rsvpUpdate · opGo · opActivate · opEnd · phaseAdvance ·
+ *          phaseBriefing · threatAlert · deliverKey · keyEvent · armoryUpdate ·
+ *          armoryAlert · patchDigest · notify_patch_alert · scoutPing ·
+ *          depositStaleAlert · opDebrief · opWrapUp · wrapUpDebrief ·
+ *          lowStockAlert · orgHealthBriefing
+ * Passthrough: refineryReady · craftComplete
  *
  * Discord interactions: rsvp_{op_id}_{role_name} — per-role RSVP toggle
  *   Received via Discord interactions webhook (X-Signature-Ed25519 header).
@@ -70,6 +72,33 @@ const TOKENS = {
   scoutPing:    tokenUrl('hex-green'),
 };
 
+type HeraldRequestBody = {
+  action?: string;
+  payload?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function coerceActionPayload(body: HeraldRequestBody) {
+  const { action, payload, ...rest } = body;
+  return {
+    action: typeof action === 'string' ? action : '',
+    payload: payload && typeof payload === 'object'
+      ? payload as Record<string, unknown>
+      : rest,
+  };
+}
+
+function formatDurationMinutes(startedAt?: string | null, endedAt?: string | null): string | null {
+  if (!startedAt || !endedAt) return null;
+  const durationMs = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+  if (!Number.isFinite(durationMs) || durationMs <= 0) return null;
+  return `${Math.round(durationMs / 60000)}m`;
+}
+
 // ─── Discord REST helpers ─────────────────────────────────────────────────────
 async function discordPost(path: string, body: unknown) {
   if (!BOT_CONFIGURED) {
@@ -110,6 +139,16 @@ async function discordDelete(path: string) {
   });
   if (!res.ok && res.status !== 204) throw new Error(`Discord DELETE ${path} → ${res.status}: ${await res.text()}`);
   return res.status === 204 ? null : res.json();
+}
+
+async function updateScheduledEventStatus(eventId: unknown, status: 2 | 3) {
+  if (!isNonEmptyString(eventId) || !GUILD_ID) return;
+
+  try {
+    await discordPatch(`/guilds/${GUILD_ID}/scheduled-events/${eventId}`, { status });
+  } catch (error) {
+    console.warn(`[heraldBot] scheduled event ${eventId} status ${status} failed:`, (error as Error).message);
+  }
 }
 
 // Open / reuse a DM channel with a Discord user
@@ -332,7 +371,8 @@ Deno.serve(async (req: Request) => {
     const user = await b44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { action, payload } = await req.json();
+    const body = await req.json() as HeraldRequestBody;
+    const { action, payload } = coerceActionPayload(body);
 
     // ── 1. Publish Op ─────────────────────────────────────────────────────────
     if (action === 'publishOp') {
@@ -399,7 +439,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── 3. Op Go (green light — patch embed + optional @here) ────────────────
-    if (action === 'opGo') {
+    if (action === 'opGo' || action === 'opActivate') {
       const { op_id, at_here } = payload;
       const [ops, rsvps] = await Promise.all([
         b44.asServiceRole.entities.Op.filter({ id: op_id }),
@@ -417,7 +457,9 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      if (at_here) {
+      await updateScheduledEventStatus(op.discord_event_id, 2);
+
+      if (action === 'opActivate' || at_here) {
         await discordPost(`/channels/${CH.nexusOps}/messages`, {
           content: `@here 🟢 **${op.name} IS LIVE** — All crew to stations`,
         });
@@ -442,7 +484,27 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 5. Threat Alert ───────────────────────────────────────────────────────
+    // ── 5. Phase Briefing ────────────────────────────────────────────────────
+    if (action === 'phaseBriefing') {
+      const { op_id, op_name, phase_name, briefing_text, embed } = payload;
+      const finalEmbed = embed && typeof embed === 'object'
+        ? embed
+        : {
+            title: `📋 PHASE BRIEFING — ${(phase_name as string || 'UPDATE').toUpperCase()}`,
+            color: 0x4a8fd0,
+            description: String(briefing_text || 'Phase briefing ready.'),
+            footer: { text: `NEXUSOS · ${op_name || op_id || 'PHASE BRIEFING'}` },
+            timestamp: new Date().toISOString(),
+          };
+
+      const message = await discordPost(`/channels/${CH.nexusOps}/messages`, {
+        embeds: [finalEmbed],
+      }) as any;
+
+      return Response.json({ success: true, message_id: message?.id || null });
+    }
+
+    // ── 6. Threat Alert ───────────────────────────────────────────────────────
     if (action === 'threatAlert') {
       const { op_id, op_name, threat_type, description, system, callsign, severity } = payload;
       const sev = ((severity || threat_type) as string)?.toUpperCase();
@@ -465,7 +527,7 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 6. Deliver Key (DM to member — non-fatal) ─────────────────────────────
+    // ── 7. Deliver Key (DM to member — non-fatal) ────────────────────────────
     if (action === 'deliverKey') {
       const { discord_id, callsign, auth_key, rank } = payload;
       try {
@@ -493,7 +555,7 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── Wrap-Up Debrief (Claude-generated) ───────────────────────────────────
+    // ── 8. Wrap-Up Debrief (Claude-generated) ────────────────────────────────
     if (action === 'wrapUpDebrief') {
       const { op_name, system, location, duration_min, crew_count, total_auec, total_scu, report } = payload;
 
@@ -537,7 +599,35 @@ Deno.serve(async (req: Request) => {
 
       return Response.json({ success: true });
     }
-    // ── 7. Key Event (audit log — ISSUED / REISSUED / REVOKED) ───────────────
+
+    // ── 9. Op Debrief (embed already generated elsewhere) ───────────────────
+    if (action === 'opDebrief') {
+      const { op_id, debrief, embed } = payload;
+      const finalEmbed = embed && typeof embed === 'object'
+        ? embed
+        : {
+            title: `📋 OP DEBRIEF — ${op_id || 'UNKNOWN OP'}`,
+            color: 0x5a6080,
+            description: String(debrief || 'Debrief ready.'),
+            footer: { text: 'NEXUSOS · EPIC ARCHIVE' },
+            timestamp: new Date().toISOString(),
+          };
+
+      const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, {
+        embeds: [finalEmbed],
+      }) as any;
+
+      if (msg?.id) {
+        await discordPost(`/channels/${CH.nexusOps}/messages/${msg.id}/threads`, {
+          name: `📁 ${op_id || 'Op'} — Debrief`,
+          auto_archive_duration: 1440,
+        });
+      }
+
+      return Response.json({ success: true, message_id: msg?.id || null });
+    }
+
+    // ── 10. Key Event (audit log — ISSUED / REISSUED / REVOKED) ─────────────
     if (action === 'keyEvent') {
       const { event_type, callsign, issued_by, nexus_rank } = payload;
       const isRevoked = (event_type as string).toUpperCase() === 'REVOKED';
@@ -566,7 +656,7 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 8. Armory Update ──────────────────────────────────────────────────────
+    // ── 11. Armory Update ────────────────────────────────────────────────────
     if (action === 'armoryUpdate') {
       const { callsign, material_name, quantity_scu, quality_pct, source_type } = payload;
       if (CH.armory) {
@@ -584,7 +674,34 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 9. Patch Digest ───────────────────────────────────────────────────────
+    // ── 12. Armory Alert ─────────────────────────────────────────────────────
+    if (action === 'armoryAlert') {
+      const { low_stock_count, items, alert_text } = payload;
+      const targetChannel = CH.armory || CH.nexusLog || CH.nexusOps;
+      const lines = Array.isArray(items)
+        ? items.slice(0, 8).map((item: any) => `• ${item.name} (${item.current}/${item.threshold})`)
+        : [];
+
+      await discordPost(`/channels/${targetChannel}/messages`, {
+        content: Number(low_stock_count || 0) > 0 ? '@here ⚠️ **ARMORY RESTOCK ALERT**' : null,
+        embeds: [{
+          title: '📦 Armory Stock Alert',
+          color: 0xe8a020,
+          thumbnail: { url: TOKENS.armoryUpdate },
+          description: String(alert_text || 'One or more armory items are below threshold.').slice(0, 1024),
+          fields: [
+            { name: 'Items Below Threshold', value: String(low_stock_count || lines.length || 0), inline: true },
+            ...(lines.length > 0 ? [{ name: 'Priority Items', value: lines.join('\n').slice(0, 1024), inline: false }] : []),
+          ],
+          footer: { text: 'NEXUSOS · ARMORY' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+
+      return Response.json({ success: true });
+    }
+
+    // ── 13. Patch Digest ─────────────────────────────────────────────────────
     if (action === 'patchDigest') {
       const { patch_version, industry_summary, changes_json } = payload;
 
@@ -635,7 +752,34 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 10. Scout Ping ────────────────────────────────────────────────────────
+    // ── 14. Patch Alert (high-severity compatibility path) ──────────────────
+    if (action === 'notify_patch_alert') {
+      const { patch_version, summary, changes } = payload;
+      const targetChannel = CH.nexusOps || CH.ptu || CH.announcements;
+      const changeLines = Array.isArray(changes)
+        ? changes
+            .slice(0, 5)
+            .map((change: any) => `• ${(change.category || 'UPDATE').toString().toUpperCase()}: ${change.change_summary || 'High-severity impact detected'}`)
+            .join('\n')
+        : '';
+
+      await discordPost(`/channels/${targetChannel}/messages`, {
+        content: '@here ⚠️ **HIGH-SEVERITY PATCH IMPACT DETECTED**',
+        embeds: [{
+          title: `📦 Patch Alert — ${patch_version || 'Unknown Version'}`,
+          color: 0xe04848,
+          thumbnail: { url: TOKENS.patchDigest },
+          description: String(summary || 'Critical patch changes were detected.').slice(0, 1024),
+          fields: changeLines ? [{ name: 'Immediate Review Items', value: changeLines.slice(0, 1024), inline: false }] : [],
+          footer: { text: 'NEXUSOS · PATCH WATCHER' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+
+      return Response.json({ success: true });
+    }
+
+    // ── 15. Scout Ping ────────────────────────────────────────────────────────
     if (action === 'scoutPing') {
       const { material_name, quality_pct, system_name, location_detail, callsign, risk_level } = payload;
       const t2 = quality_pct >= 80;
@@ -673,29 +817,72 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 11. Deposit Stale Alert ───────────────────────────────────────────────
+    // ── 16. Deposit Stale Alert ──────────────────────────────────────────────
     if (action === 'depositStaleAlert') {
-      const { material_name, system_name, location_detail, reported_by_callsign, stale_votes } = payload;
+      const { material_name, system_name, location_detail, reported_by_callsign, stale_votes, patch_version, deposit_count, comm_link_url } = payload;
       if (CH.nexusIntel) {
-        await discordPost(`/channels/${CH.nexusIntel}/messages`, {
-          embeds: [{
-            title:     `🚩 Deposit Flagged Stale — ${material_name}`,
-            color:     0xe8a020,
-            thumbnail: { url: TOKENS.depositStale },
-            fields: [
-              { name: 'Location',      value: `${system_name}${location_detail ? ` · ${location_detail}` : ''}`, inline: true },
-              { name: 'Original Scout', value: reported_by_callsign || '—', inline: true },
-              { name: 'Stale Votes',   value: String(stale_votes ?? 3), inline: true },
-            ],
-            footer:    { text: 'NEXUSOS · SCOUT INTEL' },
-            timestamp: new Date().toISOString(),
-          }],
-        });
+        if (patch_version || deposit_count || comm_link_url) {
+          await discordPost(`/channels/${CH.nexusIntel}/messages`, {
+            content: Number(deposit_count || 0) > 0 ? '@here ⚠️ **PATCH CHANGE — RE-VERIFY DEPOSITS**' : null,
+            embeds: [{
+              title:     `🚩 Deposit Intel Invalidated${patch_version ? ` — v${patch_version}` : ''}`,
+              color:     0xe8a020,
+              thumbnail: { url: TOKENS.depositStale },
+              description: 'A new patch was detected. Existing scout deposits should be treated as stale until re-verified in the verse.',
+              fields: [
+                { name: 'Deposits Marked Stale', value: String(deposit_count ?? 0), inline: true },
+                ...(comm_link_url ? [{ name: 'Patch Notes', value: comm_link_url as string, inline: false }] : []),
+              ],
+              footer:    { text: 'NEXUSOS · SCOUT INTEL' },
+              timestamp: new Date().toISOString(),
+            }],
+          });
+        } else {
+          await discordPost(`/channels/${CH.nexusIntel}/messages`, {
+            embeds: [{
+              title:     `🚩 Deposit Flagged Stale — ${material_name}`,
+              color:     0xe8a020,
+              thumbnail: { url: TOKENS.depositStale },
+              fields: [
+                { name: 'Location',       value: `${system_name}${location_detail ? ` · ${location_detail}` : ''}`, inline: true },
+                { name: 'Original Scout', value: reported_by_callsign || '—', inline: true },
+                { name: 'Stale Votes',    value: String(stale_votes ?? 3), inline: true },
+              ],
+              footer:    { text: 'NEXUSOS · SCOUT INTEL' },
+              timestamp: new Date().toISOString(),
+            }],
+          });
+        }
       }
       return Response.json({ success: true });
     }
 
-    // ── 12. Op Wrap-Up (summary embed + archive thread + coffer) ─────────────
+    // ── 17. Op End (lightweight completion path) ─────────────────────────────
+    if (action === 'opEnd') {
+      const { op_id, op_name } = payload;
+      const op = (await b44.asServiceRole.entities.Op.filter({ id: op_id }))?.[0];
+      const resolvedName = op?.name || op_name || String(op_id || 'Unknown op');
+      const duration = formatDurationMinutes(op?.started_at, op?.ended_at);
+
+      await updateScheduledEventStatus(op?.discord_event_id, 3);
+
+      await discordPost(`/channels/${CH.nexusOps}/messages`, {
+        embeds: [{
+          title: `⏹ OP COMPLETE — ${resolvedName}`,
+          color: 0x5a6080,
+          fields: [
+            ...(duration ? [{ name: 'Duration', value: duration, inline: true }] : []),
+            ...(op?.system_name || op?.system ? [{ name: 'Location', value: `${op.system_name || op.system}${op.location ? ` · ${op.location}` : ''}`, inline: true }] : []),
+          ],
+          footer: { text: 'NEXUSOS · OPS' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+
+      return Response.json({ success: true });
+    }
+
+    // ── 18. Op Wrap-Up (summary embed + archive thread + coffer) ────────────
     if (action === 'opWrapUp') {
       const { op_id } = payload;
       const [ops, cofferEntries, rsvps] = await Promise.all([
@@ -705,6 +892,8 @@ Deno.serve(async (req: Request) => {
       ]);
       const op = ops?.[0];
       if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
+
+      await updateScheduledEventStatus(op.discord_event_id, 3);
 
       const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, {
         embeds: [buildWrapUpEmbed(op, cofferEntries || [])],
