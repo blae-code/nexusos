@@ -307,9 +307,9 @@ select.nexus-input option {
 
 .nexus-btn:hover {
   background: var(--bg4);
-  border-color: var(--b3);
-  color: var(--t0);
-  box-shadow: 0 0 12px rgba(0, 200, 232, 0.15);
+  border-color: var(--live);
+  color: var(--live);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
 }
 
 .nexus-btn:disabled {
@@ -319,15 +319,15 @@ select.nexus-input option {
 
 /* Primary cyan CTA */
 .nexus-btn.primary {
-  background: rgba(0, 200, 232, 0.08);
+  background: rgba(0, 191, 255, 0.12);
   border-color: var(--cyan-b);
   color: var(--cyan);
 }
 
 .nexus-btn.primary:hover {
-  background: rgba(0, 200, 232, 0.15);
+  background: rgba(0, 191, 255, 0.2);
   border-color: var(--cyan);
-  box-shadow: 0 0 16px rgba(0, 200, 232, 0.22);
+  box-shadow: 0 0 16px rgba(0, 191, 255, 0.25);
 }
 
 /* Live/go */
@@ -338,9 +338,9 @@ select.nexus-input option {
 }
 
 .live-btn:hover {
-  background: rgba(0, 212, 168, 0.12);
+  background: rgba(16, 185, 129, 0.15);
   border-color: var(--live);
-  box-shadow: 0 0 12px rgba(0, 212, 168, 0.2);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
 }
 
 /* Danger */
@@ -351,9 +351,9 @@ select.nexus-input option {
 }
 
 .danger-btn:hover {
-  background: rgba(224, 72, 72, 0.12);
+  background: rgba(248, 113, 113, 0.15);
   border-color: var(--danger);
-  box-shadow: 0 0 12px rgba(224, 72, 72, 0.2);
+  box-shadow: 0 0 12px rgba(248, 113, 113, 0.25);
 }
 
 /* ─── Tags / pills ───────────────────────────────────────────────────────────── */
@@ -364,7 +364,7 @@ select.nexus-input option {
   border-radius: 3px;
   border: 0.5px solid var(--b2);
   background: var(--bg3);
-  color: var(--t2);
+  color: var(--t0);
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -382,6 +382,7 @@ select.nexus-input option {
   letter-spacing: 0.1em;
   white-space: nowrap;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
+  color: var(--t0);
 }
 
 .nexus-pill-live    { background: var(--live-bg);   border-color: var(--live-b);   color: var(--live); }
@@ -389,7 +390,7 @@ select.nexus-input option {
 .nexus-pill-danger  { background: var(--danger-bg); border-color: var(--danger-b); color: var(--danger); }
 .nexus-pill-info    { background: var(--info-bg);   border-color: var(--info-b);   color: var(--info); }
 .nexus-pill-cyan    { background: var(--cyan-bg);   border-color: var(--cyan-b);   color: var(--cyan); }
-.nexus-pill-neu     { background: var(--bg3);       border-color: var(--b2);       color: var(--t1); }
+.nexus-pill-neu     { background: var(--bg3);       border-color: var(--b2);       color: var(--t0); }
 
 /* ─── Pulsing live dot ───────────────────────────────────────────────────────── */
 .pulse-live {
@@ -419,10 +420,10 @@ select.nexus-input option {
 .nexus-table thead th {
   padding: 8px 14px;
   text-align: left;
-  color: var(--t2);
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  font-weight: 400;
+  color: var(--t1);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 500;
   text-transform: uppercase;
   border-bottom: 0.5px solid var(--b1);
   white-space: nowrap;
@@ -434,7 +435,7 @@ select.nexus-input option {
 }
 
 .nexus-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.015);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .nexus-table tbody tr:hover {
@@ -445,7 +446,7 @@ select.nexus-input option {
 .nexus-table tbody td {
   padding: 7px 14px;
   font-size: 11px;
-  color: var(--t1);
+  color: var(--t0);
 }
 
 /* ─── Tooltip ────────────────────────────────────────────────────────────────── */
@@ -462,7 +463,7 @@ select.nexus-input option {
   border-radius: 5px;
   padding: 4px 8px;
   font-size: 10px;
-  color: var(--t1);
+  color: var(--t0);
   letter-spacing: 0.06em;
   white-space: nowrap;
   pointer-events: none;
@@ -513,9 +514,9 @@ select.nexus-input option {
 }
 
 /* ─── Op status stripes ──────────────────────────────────────────────────────── */
-.op-stripe-live      { border-left: 2px solid var(--live);  background: rgba(0, 212, 168, 0.03); }
-.op-stripe-published { border-left: 2px solid var(--cyan);  background: rgba(0, 200, 232, 0.03); }
-.op-stripe-draft     { border-left: 2px solid var(--warn);  background: rgba(232, 160, 32, 0.02); }
+.op-stripe-live      { border-left: 2px solid var(--live);  background: rgba(16, 185, 129, 0.08); }
+.op-stripe-published { border-left: 2px solid var(--cyan);  background: rgba(0, 191, 255, 0.08); }
+.op-stripe-draft     { border-left: 2px solid var(--warn);  background: rgba(245, 158, 11, 0.06); }
 .op-stripe-complete  { border-left: 2px solid var(--acc);   background: transparent; }
 .op-stripe-archived  { border-left: 2px solid var(--b2);    background: transparent; }
 
