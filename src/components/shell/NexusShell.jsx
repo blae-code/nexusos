@@ -43,7 +43,8 @@ export default function NexusShell() {
     return <Navigate to={redirectTo} replace />;
   }
 
-  const isElevated = source === 'admin' || ['PIONEER', 'FOUNDER'].includes(user?.rank);
+  const isAdmin = source === 'admin';
+  const isElevated = isAdmin || ['PIONEER', 'FOUNDER'].includes(user?.rank);
   if (location.pathname.startsWith('/app/admin') && !isElevated) {
     return <Navigate to="/app/industry" replace />;
   }
@@ -51,9 +52,9 @@ export default function NexusShell() {
   const outletContext = {
     layoutMode,
     setLayoutMode: updateLayoutMode,
-    callsign: user?.callsign || 'UNKNOWN',
-    rank: user?.rank || 'AFFILIATE',
-    discordId: user?.discordId || '',
+    callsign: isAdmin ? 'System Administrator' : (user?.callsign || 'UNKNOWN'),
+    rank: isAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE'),
+    isAdmin,
     source: source || session?.source || 'member',
     sessionUserId: user?.id || null,
   };
