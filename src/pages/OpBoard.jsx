@@ -145,6 +145,8 @@ function LiveOpView({ op, rsvps, rank, callsign, onAdvancePhase, onEndOp, refine
   const [log, setLog] = useState(op.session_log || []);
   const [liveTab, setLiveTab] = useState('crew');
   const canAdvance = ['PIONEER', 'FOUNDER', 'VOYAGER'].includes(rank);
+  // Keep log in sync if op.session_log changes externally
+  React.useEffect(() => { setLog(op.session_log || []); }, [op.id]);
 
   const submitLog = async () => {
     if (!logEntry.trim()) return;
