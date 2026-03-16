@@ -176,6 +176,10 @@ export default function AccessGate() {
     }
   };
 
+  if (!loading && isAuthenticated) {
+    return <Navigate to={user?.onboarding_complete === false ? '/onboarding' : '/app/industry'} replace />;
+  }
+
   return (
     <div
       style={{
@@ -228,155 +232,61 @@ export default function AccessGate() {
       >
         <div
           key={shakeKey}
-          className={`access-gate-card${errorMessage ? ' nexus-shake' : ''}`}
+          className={authError ? 'nexus-shake' : ''}
           style={{
-            width: 360,
+            width: 400,
+            maxWidth: '100%',
             background: 'var(--bg1)',
-            border: `0.5px solid ${errorMessage ? 'var(--warn)' : 'var(--b2)'}`,
+            border: `0.5px solid ${authError ? 'var(--warn)' : 'var(--b2)'}`,
+            borderTop: `1px solid var(--b3)`,
             borderRadius: 12,
-            padding: '36px 32px',
+            padding: '40px 32px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             position: 'relative',
           }}
         >
-          <NexusCompass size={44} />
+          <NexusCompass size={40} />
 
-          <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.25em', textAlign: 'center', marginTop: 8 }}>
+          <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.25em', textAlign: 'center', marginTop: 12 }}>
             REDSCAR NOMADS
           </div>
-          <div style={{ fontSize: 24, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.22em', textAlign: 'center', marginTop: 4 }}>
+          <div style={{ fontSize: 18, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.2em', textAlign: 'center', marginTop: 6 }}>
             NEXUSOS
           </div>
-          <div style={{ fontSize: 10, color: 'var(--t2)', letterSpacing: '0.18em', textAlign: 'center', marginTop: 2 }}>
-            ACCESS GATE
-          </div>
 
-          <div style={{ width: '100%', marginTop: 28 }}>
-            <div
-              style={{
-                fontSize: 10,
-                color: 'var(--t2)',
-                lineHeight: 1.6,
-                textAlign: 'center',
-                marginBottom: 8,
-              }}
-            >
-              Member access is verified through Discord role sync for {authHealth.guildLabel}.
-            </div>
-
-            <div
-              style={{
-                fontSize: 10,
-                color: 'var(--t3)',
-                lineHeight: 1.6,
-                textAlign: 'center',
-                marginBottom: 20,
-              }}
-            >
-              First login seeds your callsign from your Discord server nickname. You can edit it later in Profile Settings.
-            </div>
+          <div style={{ width: '100%', marginTop: 32 }}>
+            <AuthKeyInput
+              value={authKey}
+              onChange={setAuthKey}
+              onReveal={setRevealing}
+              revealing={revealing}
+              error={authError}
+            />
 
             <button
-              type="button"
-              onClick={startDiscordAuth}
-              disabled={starting || loading || (authHealth.loaded && authHealth.oauthReady === false)}
-              className="nexus-btn nexus-btn-solid"
+              onClick={handleAuthenticate}
+              disabled={authenticating || !authKey}
               style={{
                 width: '100%',
-                height: 40,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 12,
-                letterSpacing: '0.14em',
-                borderColor: errorMessage ? 'var(--warn)' : 'var(--b2)',
+                marginTop: 20,
+                padding: '10px 16px',
+                background: authenticating || !authKey ? 'var(--bg2)' : 'var(--bg3)',
+                border: `0.5px solid var(--b2)`,
+                borderRadius: 6,
+                color: authenticating || !authKey ? 'var(--t2)' : 'var(--t0)',
+                fontSize: 11,
+                letterSpacing: '0.12em',
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                cursor: authenticating || !authKey ? 'not-allowed' : 'pointer',
+                transition: 'all 0.12s',
+                opacity: !authKey ? 0.4 : 1,
               }}
             >
-              {starting || loading ? (
-                <span className="nexus-loading-dots" style={{ color: 'var(--t0)' }} aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-              ) : (
-                'CONTINUE WITH DISCORD →'
-              )}
+              {authenticating ? 'AUTHENTICATING...' : 'AUTHENTICATE'}
             </button>
-
-            <div
-              style={{
-                minHeight: errorDetail ? 36 : 20,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 5,
-                marginTop: 8,
-                fontSize: 10,
-                color: errorMessage ? 'var(--warn)' : 'transparent',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                {errorMessage ? <AlertTriangle size={10} /> : null}
-                <span>{errorMessage || '.'}</span>
-              </div>
-              {errorDetail ? (
-                <div style={{ color: 'var(--t2)', fontSize: 9, lineHeight: 1.6, maxWidth: 260 }}>
-                  {errorDetail}
-                </div>
-              ) : null}
-            </div>
-
-            <div style={{ marginTop: 14, textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <a
-                href={authHealth.inviteUrl}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  fontSize: 10,
-                  color: 'var(--acc)',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(event) => {
-                  event.currentTarget.style.color = 'var(--acc2)';
-                }}
-                onMouseLeave={(event) => {
-                  event.currentTarget.style.color = 'var(--acc)';
-                }}
-              >
-                Request access via {authHealth.supportChannelLabel}
-              </a>
-
-              {!showOnboarding ? (
-                <button
-                  type="button"
-                  onClick={() => updateOnboardingParam(true)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--t3)',
-                    cursor: 'pointer',
-                    fontSize: 9,
-                    fontFamily: 'var(--font)',
-                  }}
-                >
-                  First time here? View onboarding →
-                </button>
-              ) : null}
-            </div>
-
-            {showOnboarding ? (
-              <OnboardingChecklist
-                guildLabel={authHealth.guildLabel}
-                supportChannelLabel={authHealth.supportChannelLabel}
-                inviteUrl={authHealth.inviteUrl}
-                steps={authHealth.onboardingSteps}
-                onClose={() => updateOnboardingParam(false)}
-              />
-            ) : null}
           </div>
         </div>
       </div>
