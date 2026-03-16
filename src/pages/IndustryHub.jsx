@@ -7,6 +7,7 @@ import IndustryOverview from '@/components/industry/IndustryOverview';
 import CraftQueueTab from '@/components/industry/CraftQueueTab';
 import PatchDigestCard from '@/components/industry/PatchDigestCard';
 import OcrUploadPanel from '@/components/industry/OcrUploadPanel';
+import LivePatchIntel from '@/components/industry/LivePatchIntel';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -155,8 +156,11 @@ export default function IndustryHub() {
         ))}
       </div>
 
+      <div style={{ paddingTop: 10, paddingBottom: 4 }}>
+        <LivePatchIntel />
+      </div>
       {showPatchCard ? (
-        <div style={{ paddingTop: 10, paddingBottom: 4 }}>
+        <div style={{ paddingTop: 0, paddingBottom: 4 }}>
           <PatchDigestCard digest={latestPatch} onDismiss={handlePatchDismiss} />
         </div>
       ) : null}
