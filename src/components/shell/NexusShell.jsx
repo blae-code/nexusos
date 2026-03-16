@@ -57,7 +57,7 @@ export default function NexusShell() {
   };
 
   return (
-    <div style={{ height: '100vh', background: 'var(--bg0)', padding: 6 }}>
+    <div style={{ height: '100vh', background: 'var(--bg0)', padding: 5 }}>
       <div className="nexus-shell-frame">
         <NexusTopbar
           layoutMode={layoutMode}
