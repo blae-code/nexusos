@@ -33,6 +33,7 @@ function App() {
           <Routes>
             <Route path="/" element={<AccessGate />} />
             <Route path="/gate" element={<AccessGate />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />
 
             <Route path="/app" element={<NexusShell />}>
