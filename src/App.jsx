@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-d
 import { queryClientInstance } from '@/lib/query-client';
 import { SessionProvider } from '@/lib/SessionContext';
 import NexusShell from '@/components/shell/NexusShell';
-import LiveOp from '@/app/modules/OpBoard/LiveOp';
+import LiveOp from '@/pages/LiveOp';
 import AccessGate from '@/pages/AccessGate';
 import CofferLedger from '@/pages/CofferLedger';
 import EpicArchive from '@/pages/EpicArchive';
