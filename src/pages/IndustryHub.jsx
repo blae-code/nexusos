@@ -1,74 +1,147 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import MaterialsTab from '@/components/industry/MaterialsTab';
-import ScoutDepositsTab from '@/components/industry/ScoutDepositsTab';
-import BlueprintsTab from '@/components/industry/BlueprintsTab';
-import CraftQueueTabV2 from '@/components/industry/CraftQueueTabV2';
-import RefineryOrdersTab from '@/components/industry/RefineryOrdersTab';
-import CofferLogTab from '@/components/industry/CofferLogTab';
+import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
+import MaterialsModule from '@/app/modules/IndustryHub/Materials';
+import CraftQueueTab from '@/components/industry/CraftQueueTab';
+import IndustryOverview from '@/components/industry/IndustryOverview';
 
 const TABS = [
+  { id: 'overview', label: 'OVERVIEW' },
   { id: 'materials', label: 'MATERIALS' },
-  { id: 'deposits', label: 'SCOUT DEPOSITS' },
   { id: 'blueprints', label: 'BLUEPRINTS' },
   { id: 'craft', label: 'CRAFT QUEUE' },
-  { id: 'refinery', label: 'REFINERY ORDERS' },
-  { id: 'coffer', label: 'COFFER LOG' },
+  { id: 'refinery', label: 'REFINERY' },
 ];
 
-export default function IndustryHub() {
-  const outletContext = useOutletContext() || {};
-  const callsign = outletContext.callsign;
-  const [searchParams, setSearchParams] = useSearchParams();
-  const tab = TABS.some(t => t.id === searchParams.get('tab')) ? searchParams.get('tab') : 'materials';
+function RefineryTab({ refineryOrders }) {
+  function timeLeft(isoStr) {
+    if (!isoStr) return '—';
+    const diff = new Date(isoStr) - Date.now();
+    if (diff <= 0) return 'READY';
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    return `${hours}h ${minutes}m`;
+  }
 
+  return (
+    <div style={{ padding: 14 }}>
+      <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: 'var(--bg2)' }}>
+              {['MATERIAL', 'SCU', 'METHOD', 'YIELD', 'COST', 'STATION', 'SUBMITTED BY', 'TIME LEFT', 'STATUS'].map((heading) => (
+                <th
+                  key={heading}
+                  style={{
+                    padding: '8px 14px',
+                    textAlign: 'left',
+                    color: 'var(--t2)',
+                    fontSize: 10,
+                    letterSpacing: '0.1em',
+                    fontWeight: 600,
+                    borderBottom: '0.5px solid var(--b1)',
+                  }}
+                >
+                  {heading}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {refineryOrders.map((order) => {
+              const isReady = order.status === 'READY' || timeLeft(order.completes_at) === 'READY';
+
+              return (
+                <tr
+                  key={order.id}
+                  style={{
+                    borderBottom: '0.5px solid var(--b0)',
+                    background: isReady ? 'var(--live-bg)' : 'transparent',
+                  }}
+                >
+                  <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{order.material_name}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{order.quantity_scu}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.method || '—'}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--live)', fontSize: 11 }}>{order.yield_pct ? `${order.yield_pct}%` : '—'}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.cost_aUEC ? `${order.cost_aUEC.toLocaleString()}` : '—'}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.station || '—'}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.submitted_by_callsign || '—'}</td>
+                  <td style={{ padding: '8px 14px', color: isReady ? 'var(--live)' : 'var(--info)', fontSize: 11 }}>{timeLeft(order.completes_at)}</td>
+                  <td style={{ padding: '8px 14px' }}>
+                    {isReady ? <span className="nexus-pill nexus-pill-live">READY</span> : <span className="nexus-tag">{order.status}</span>}
+                  </td>
+                </tr>
+              );
+            })}
+            {refineryOrders.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>
+                  No refinery orders have been logged.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export default function IndustryHub() {
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
+  const callsign = outletContext.callsign;
+  const rank = outletContext.rank;
+  const discordId = outletContext.discordId;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = TABS.some((item) => item.id === searchParams.get('tab')) ? searchParams.get('tab') : 'overview';
   const [materials, setMaterials] = useState([]);
-  const [deposits, setDeposits] = useState([]);
   const [blueprints, setBlueprints] = useState([]);
   const [craftQueue, setCraftQueue] = useState([]);
   const [refineryOrders, setRefineryOrders] = useState([]);
-  const [cofferLog, setCofferLog] = useState([]);
+  const [scoutDeposits, setScoutDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
-      const [mats, deps, bps, cq, ro, cl] = await Promise.all([
-        base44.entities.Material.list('-logged_at', 200),
-        base44.entities.ScoutDeposit.list('-reported_at', 100),
+      const [mats, bps, queue, refinery, deposits] = await Promise.all([
+        base44.entities.Material.list('-logged_at', 100),
         base44.entities.Blueprint.list('-created_date', 100),
-        base44.entities.CraftQueue.list('-created_date', 100),
-        base44.entities.RefineryOrder.list('-started_at', 100),
-        base44.entities.CofferLog.list('-logged_at', 200),
+        base44.entities.CraftQueue.list('-created_date', 50),
+        base44.entities.RefineryOrder.list('-started_at', 50),
+        base44.entities.ScoutDeposit.list('-reported_at', 10),
       ]);
 
       setMaterials(mats || []);
-      setDeposits(deps || []);
       setBlueprints(bps || []);
-      setCraftQueue(cq || []);
-      setRefineryOrders(ro || []);
-      setCofferLog(cl || []);
+      setCraftQueue(queue || []);
+      setRefineryOrders(refinery || []);
+      setScoutDeposits(deposits || []);
     } catch (error) {
-      console.error('Industry Hub load error:', error);
+      console.error('[IndustryHub] load failed:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const setTab = (nextTab) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('tab', nextTab);
-    setSearchParams(params, { replace: true });
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextTab === 'overview') {
+      nextParams.delete('tab');
+    } else {
+      nextParams.set('tab', nextTab);
+    }
+    setSearchParams(nextParams, { replace: true });
   };
 
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        <div className="nexus-loading-dots">
+        <div className="nexus-loading-dots" style={{ color: 'var(--t1)' }}>
           <span />
           <span />
           <span />
@@ -79,52 +152,52 @@ export default function IndustryHub() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Tab Bar */}
-      <div style={{
-        display: 'flex',
-        borderBottom: '0.5px solid var(--b0)',
-        background: 'var(--bg1)',
-        overflowX: 'auto',
-        flexShrink: 0,
-        padding: '0 32px',
-      }}>
-        {TABS.map(t => (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          padding: '0 16px',
+          borderBottom: '0.5px solid var(--b1)',
+          background: 'var(--bg1)',
+          flexShrink: 0,
+        }}
+      >
+        {TABS.map((item) => (
           <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+            key={item.id}
+            type="button"
+            onClick={() => setTab(item.id)}
             style={{
-              padding: '12px 16px',
-              background: 'none',
+              padding: '11px 14px',
+              background: 'transparent',
               border: 'none',
-              borderBottom: tab === t.id ? '2px solid var(--cyan)' : '2px solid transparent',
-              color: tab === t.id ? 'var(--t0)' : 'var(--t2)',
+              borderBottom: tab === item.id ? '2px solid var(--t0)' : '2px solid transparent',
+              color: tab === item.id ? 'var(--t0)' : 'var(--t2)',
               fontSize: 10,
               letterSpacing: '0.1em',
               cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'color 0.15s, border-color 0.15s',
-              whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => {
-              if (tab !== t.id) e.currentTarget.style.color = 'var(--t1)';
-            }}
-            onMouseLeave={e => {
-              if (tab !== t.id) e.currentTarget.style.color = 'var(--t2)';
             }}
           >
-            {t.label}
+            {item.label}
           </button>
         ))}
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflow: 'hidden', padding: '24px 32px' }}>
-        {tab === 'materials' && <MaterialsTab materials={materials} onRefresh={load} />}
-        {tab === 'deposits' && <ScoutDepositsTab deposits={deposits} onRefresh={load} />}
-        {tab === 'blueprints' && <BlueprintsTab blueprints={blueprints} materials={materials} onRefresh={load} />}
-        {tab === 'craft' && <CraftQueueTabV2 craftQueue={craftQueue} callsign={callsign} onRefresh={load} />}
-        {tab === 'refinery' && <RefineryOrdersTab orders={refineryOrders} onRefresh={load} />}
-        {tab === 'coffer' && <CofferLogTab logs={cofferLog} />}
+      <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        {tab === 'overview' ? (
+          <IndustryOverview
+            materials={materials}
+            blueprints={blueprints}
+            craftQueue={craftQueue}
+            refineryOrders={refineryOrders}
+            scoutDeposits={scoutDeposits}
+          />
+        ) : null}
+        {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
+        {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} discordId={discordId} onRefresh={load} /> : null}
+        {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} /> : null}
+        {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} /> : null}
       </div>
     </div>
   );

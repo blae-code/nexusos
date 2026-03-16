@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Plus, TrendingUp, TrendingDown, Coins } from 'lucide-react';
@@ -60,12 +60,17 @@ export default function CofferLedger() {
   const [entries, setEntries] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const data = await base44.entities.CofferLog.list('-logged_at', 100);
     setEntries(data || []);
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const unsubscribe = base44.entities.CofferLog.subscribe(() => { load(); });
+    return () => unsubscribe();
+  }, [load]);
 
   const totalIn = entries.filter(e => ['SALE','CRAFT_SALE','OP_SPLIT','DEPOSIT'].includes(e.entry_type)).reduce((s, e) => s + (e.amount_aUEC || 0), 0);
   const totalOut = entries.filter(e => e.entry_type === 'EXPENSE').reduce((s, e) => s + (e.amount_aUEC || 0), 0);
@@ -80,7 +85,6 @@ export default function CofferLedger() {
       source_type: 'MANUAL',
     });
     setShowForm(false);
-    load();
   };
 
   return (

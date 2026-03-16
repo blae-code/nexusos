@@ -1,15 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
+
+const STORAGE_KEY = 'nexus_rescue_calls';
 
 export default function RescueBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const callsign = outletContext.callsign;
-  const [calls, setCalls] = useState([]);
+  const [calls, setCalls] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
   const [form, setForm] = useState({ location: '', system: 'STANTON', situation: '', callsign: '' });
   const [showForm, setShowForm] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(calls));
+  }, [calls]);
+
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (event.key !== STORAGE_KEY) return;
+      try {
+        setCalls(JSON.parse(event.newValue || '[]'));
+      } catch {
+        setCalls([]);
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const submit = () => {
     if (!form.location || !form.situation) return;

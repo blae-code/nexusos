@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import NexusCompass from '@/components/ui/NexusCompass';
 import {
   BlueprintIcon,
   CofferIcon,
@@ -48,7 +47,9 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
           base44.entities.Blueprint.filter({ is_priority: true }),
         ]);
 
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
 
         setBadges({
           craft: (craftQueue || []).some((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)),
@@ -77,14 +78,17 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
     if (path.startsWith('/app/industry?tab=')) {
       return currentPath === '/app/industry' && searchParams.get('tab') === path.split('=')[1];
     }
+
     if (path === '/app/profile') {
       return currentPath === '/app/profile' || currentPath === '/app/settings';
     }
+
     return currentPath === path || currentPath.startsWith(`${path}/`);
   };
 
   return (
     <nav
+      className="nexus-sidebar"
       style={{
         width: 50,
         background: 'var(--bg0)',
@@ -97,22 +101,19 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
         flexShrink: 0,
       }}
     >
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 2,
-        }}
-      >
-        <NexusCompass size={22} />
-      </div>
-
       {NAV_ITEMS.map((item, index) => {
         if (item === null) {
-          return <div key={`divider-${index}`} style={{ width: 22, height: '0.5px', background: 'var(--b0)', margin: '3px 0' }} />;
+          return (
+            <div
+              key={`divider-${index}`}
+              style={{
+                width: 22,
+                height: '0.5px',
+                background: 'var(--b0)',
+                margin: '3px 0',
+              }}
+            />
+          );
         }
 
         const Icon = item.icon;
@@ -130,11 +131,11 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
               width: 36,
               height: 36,
               borderRadius: 8,
+              cursor: 'pointer',
+              border: `0.5px solid ${isActive ? 'var(--b2)' : 'transparent'}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
-              border: `0.5px solid ${isActive ? 'var(--b2)' : 'transparent'}`,
               transition: 'all 0.12s',
               position: 'relative',
               background: isActive ? 'var(--bg3)' : 'transparent',
@@ -154,7 +155,7 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
             }}
           >
             <Icon size={16} />
-            {badgeActive && (
+            {badgeActive ? (
               <div
                 style={{
                   position: 'absolute',
@@ -167,7 +168,7 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
                   background: badgeColor,
                 }}
               />
-            )}
+            ) : null}
           </Link>
         );
       })}

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useOutletContext } from 'react-router-dom';
 import { Save, Share2, Lock, Unlock, ChevronDown, Zap, Shield, Cpu } from 'lucide-react';
 
-const TABS = ['SHIP FITTING', 'FPS LOADOUT', 'FLEET VIEW', 'BUILD LIBRARY', 'COMPARE'];
+const TABS = ['SHIP FITTING', 'FLEET VIEW'];
 
 const SLOT_SECTIONS = [
   { label: 'MINING EQUIPMENT', slots: [
@@ -92,21 +92,33 @@ function SlotRow({ slot, component, onEdit }) {
   );
 }
 
-function ShipFitting({ vehicles, callsign, discordId }) {
+function ShipFitting({ vehicles, componentCatalog, callsign, discordId, onBuildSaved, onViewBuilds }) {
   const [selectedShip, setSelectedShip] = useState('');
   const [buildName, setBuildName] = useState('My Build');
   const [components, setComponents] = useState({});
   const [power, setPower] = useState({ weapons: 33, shields: 33, engines: 34 });
   const [editingSlot, setEditingSlot] = useState(null);
+  const [componentQuery, setComponentQuery] = useState('');
   const [saving, setSaving] = useState(false);
   const [patchLocked, setPatchLocked] = useState(false);
 
   const buildScore = Math.min(100, Object.keys(components).length * 14 + 22);
+  const visibleComponents = (componentCatalog || [])
+    .filter((item) => {
+      const name = item.item_name || item.name || '';
+      const type = (item.type || '').toLowerCase();
+      return name && (type.includes('component') || type.includes('module') || type.includes('weapon'));
+    })
+    .filter((item) => {
+      const name = item.item_name || item.name || '';
+      return !componentQuery.trim() || name.toLowerCase().includes(componentQuery.trim().toLowerCase());
+    })
+    .slice(0, 8);
 
   const saveBuild = async () => {
     if (!selectedShip || !buildName) return;
     setSaving(true);
-    await base44.entities.FleetBuild.create({
+    const record = await base44.entities.FleetBuild.create({
       ship_name: selectedShip,
       build_name: buildName,
       hardpoints: components,
@@ -116,6 +128,7 @@ function ShipFitting({ vehicles, callsign, discordId }) {
       patch_locked: patchLocked,
       stats_snapshot: { build_score: buildScore },
     });
+    onBuildSaved?.(record);
     setSaving(false);
   };
 
@@ -148,7 +161,6 @@ function ShipFitting({ vehicles, callsign, discordId }) {
           <input className="nexus-input" value={buildName} onChange={e => setBuildName(e.target.value)} style={{ fontSize: 12 }} />
         </div>
 
-        {/* Schematic placeholder */}
         <div
           style={{
             flex: 1,
@@ -162,10 +174,15 @@ function ShipFitting({ vehicles, callsign, discordId }) {
           }}
         >
           {selectedShip ? (
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', width: '100%', padding: '0 16px' }}>
               <div style={{ color: 'var(--t2)', fontSize: 28, marginBottom: 8 }}>◈</div>
-              <div style={{ color: 'var(--t1)', fontSize: 11 }}>{selectedShip}</div>
-              <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 4 }}>SCHEMATIC PLACEHOLDER</div>
+              <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{selectedShip}</div>
+              <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
+                {Object.keys(components).length} slot{Object.keys(components).length === 1 ? '' : 's'} equipped
+              </div>
+              <div style={{ color: buildScore >= 70 ? 'var(--live)' : buildScore >= 40 ? 'var(--warn)' : 'var(--danger)', fontSize: 10, marginTop: 4, letterSpacing: '0.08em' }}>
+                BUILD SCORE {buildScore}
+              </div>
             </div>
           ) : (
             <span style={{ color: 'var(--t3)', fontSize: 11 }}>No ship selected</span>
@@ -191,7 +208,10 @@ function ShipFitting({ vehicles, callsign, discordId }) {
                 key={slot.id}
                 slot={slot}
                 component={components[slot.id]}
-                onEdit={s => setEditingSlot(editingSlot?.id === s.id ? null : s)}
+                onEdit={(slotToEdit) => {
+                  setComponentQuery('');
+                  setEditingSlot(editingSlot?.id === slotToEdit.id ? null : slotToEdit);
+                }}
               />
             ))}
           </div>
@@ -204,12 +224,39 @@ function ShipFitting({ vehicles, callsign, discordId }) {
               className="nexus-input"
               placeholder="Search components..."
               style={{ fontSize: 12, marginBottom: 8 }}
+              value={componentQuery}
+              onChange={(event) => setComponentQuery(event.target.value)}
             />
-            <div style={{ display: 'flex', gap: 6 }}>
-              {['Lancet MH2', 'Hofstede S2', 'Arbor MH1', 'Helix II'].map(c => (
-                <button key={c} onClick={() => { setComponents(comps => ({ ...comps, [editingSlot.id]: { name: c } })); setEditingSlot(null); }}
-                  className="nexus-btn" style={{ fontSize: 11, padding: '4px 10px' }}>{c}</button>
-              ))}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {visibleComponents.map((item) => {
+                const name = item.item_name || item.name;
+                return (
+                  <button
+                    key={item.id || name}
+                    onClick={() => {
+                      setComponents((current) => ({
+                        ...current,
+                        [editingSlot.id]: {
+                          id: item.id || name,
+                          name,
+                          type: item.type || '',
+                          category: item.category || '',
+                        },
+                      }));
+                      setEditingSlot(null);
+                    }}
+                    className="nexus-btn"
+                    style={{ fontSize: 11, padding: '4px 10px' }}
+                  >
+                    {name}
+                  </button>
+                );
+              })}
+              {visibleComponents.length === 0 && (
+                <div style={{ color: 'var(--t2)', fontSize: 11 }}>
+                  No cached components match this search.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -250,8 +297,12 @@ function ShipFitting({ vehicles, callsign, discordId }) {
           >
             {patchLocked ? <><Lock size={11}/> PATCH LOCKED</> : <><Unlock size={11}/> LOCK TO PATCH</>}
           </button>
-          <button className="nexus-btn" style={{ justifyContent: 'center', padding: '6px 0' }}>
-            <Share2 size={11} /> POST TO DISCORD
+          <button
+            className="nexus-btn"
+            style={{ justifyContent: 'center', padding: '6px 0' }}
+            onClick={onViewBuilds}
+          >
+            <Share2 size={11} /> VIEW SAVED BUILDS
           </button>
         </div>
       </div>
@@ -296,16 +347,22 @@ export default function FleetForge() {
   const [tab, setTab] = useState('SHIP FITTING');
   const [builds, setBuilds] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [componentCatalog, setComponentCatalog] = useState([]);
 
-  useEffect(() => {
-    Promise.all([
+  const load = useCallback(async () => {
+    const [b, v, items] = await Promise.all([
       base44.entities.FleetBuild.list('-created_date', 50),
       base44.entities.GameCacheVehicle.list('name', 50),
-    ]).then(([b, v]) => {
-      setBuilds(b || []);
-      setVehicles(v || []);
-    });
+      base44.entities.game_cache_items.list('-item_name', 300).catch(() => []),
+    ]);
+    setBuilds(b || []);
+    setVehicles(v || []);
+    setComponentCatalog(items || []);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <div className="flex flex-col h-full">
@@ -339,23 +396,20 @@ export default function FleetForge() {
 
       {/* Tab content */}
       <div className="flex-1 overflow-hidden nexus-fade-in">
-        {tab === 'SHIP FITTING' && <ShipFitting vehicles={vehicles} callsign={callsign} discordId={discordId} />}
+        {tab === 'SHIP FITTING' && (
+          <ShipFitting
+            vehicles={vehicles}
+            componentCatalog={componentCatalog}
+            callsign={callsign}
+            discordId={discordId}
+            onBuildSaved={(record) => {
+              setBuilds((current) => [record, ...current.filter((item) => item.id !== record.id)]);
+              setTab('FLEET VIEW');
+            }}
+            onViewBuilds={() => setTab('FLEET VIEW')}
+          />
+        )}
         {tab === 'FLEET VIEW' && <FleetView builds={builds} />}
-        {tab === 'BUILD LIBRARY' && (
-          <div className="p-4">
-            <div style={{ color: 'var(--t2)', fontSize: 13, textAlign: 'center', padding: 40 }}>Build library coming soon</div>
-          </div>
-        )}
-        {tab === 'COMPARE' && (
-          <div className="p-4">
-            <div style={{ color: 'var(--t2)', fontSize: 13, textAlign: 'center', padding: 40 }}>Compare up to 4 builds side-by-side</div>
-          </div>
-        )}
-        {tab === 'FPS LOADOUT' && (
-          <div className="p-4">
-            <div style={{ color: 'var(--t2)', fontSize: 13, textAlign: 'center', padding: 40 }}>FPS Loadout module coming soon</div>
-          </div>
-        )}
       </div>
     </div>
   );

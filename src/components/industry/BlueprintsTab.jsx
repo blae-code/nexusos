@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Plus, ChevronDown, ChevronUp, Star } from 'lucide-react';
 
 const CATEGORY_COLOURS = {

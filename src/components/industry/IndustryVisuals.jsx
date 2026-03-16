@@ -1,18 +1,33 @@
 import React from 'react';
 
-export function MaterialGlyph({ type, size = 11 }) {
-  const stroke = 'currentColor';
-  const dimension = String(size);
+function resolveGlyphType(materialName, type) {
+  const name = String(materialName || '').toUpperCase();
 
-  if (type === 'RAW') {
-    return (
-      <svg width={dimension} height={dimension} viewBox="0 0 12 12" fill="none" aria-hidden="true">
-        <path d="M6 1.5L10.5 10.5H1.5L6 1.5Z" stroke={stroke} strokeWidth="1" />
-      </svg>
-    );
+  if (name.includes('CMR') || name.includes('POWDER') || type === 'SALVAGE') {
+    return 'salvage';
   }
 
-  if (type === 'REFINED') {
+  if (name.includes('TARANITE') || name.includes('QUANTAINIUM')) {
+    return 'rare';
+  }
+
+  if (name.includes('LARANITE') || name.includes('BEXALITE') || type === 'REFINED') {
+    return 'dense';
+  }
+
+  if (name.includes('JANALITE') || name.includes('SURFACE') || type === 'CRAFTED') {
+    return 'surface';
+  }
+
+  return 'ore';
+}
+
+export function MaterialGlyph({ material, materialName, type, size = 11 }) {
+  const stroke = 'currentColor';
+  const dimension = String(size);
+  const glyphType = resolveGlyphType(material?.material_name || materialName, material?.material_type || type);
+
+  if (glyphType === 'dense') {
     return (
       <svg width={dimension} height={dimension} viewBox="0 0 12 12" fill="none" aria-hidden="true">
         <path d="M6 1.5L10 3.8V8.2L6 10.5L2 8.2V3.8L6 1.5Z" stroke={stroke} strokeWidth="1" />
@@ -20,25 +35,34 @@ export function MaterialGlyph({ type, size = 11 }) {
     );
   }
 
-  if (type === 'SALVAGE') {
+  if (glyphType === 'rare') {
     return (
       <svg width={dimension} height={dimension} viewBox="0 0 12 12" fill="none" aria-hidden="true">
-        <path d="M6 1.5L10.5 6L6 10.5L1.5 6L6 1.5Z" stroke={stroke} strokeWidth="1" />
+        <path d="M6 1.2L10.4 6L6 10.8L1.6 6L6 1.2Z" stroke={stroke} strokeWidth="1" />
       </svg>
     );
   }
 
-  if (type === 'CRAFTED') {
+  if (glyphType === 'salvage') {
     return (
       <svg width={dimension} height={dimension} viewBox="0 0 12 12" fill="none" aria-hidden="true">
-        <rect x="1.5" y="1.5" width="9" height="9" stroke={stroke} strokeWidth="1" />
+        <circle cx="6" cy="6" r="4.5" stroke={stroke} strokeWidth="1" />
+        <circle cx="6" cy="6" r="1.1" fill={stroke} />
+      </svg>
+    );
+  }
+
+  if (glyphType === 'surface') {
+    return (
+      <svg width={dimension} height={dimension} viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <path d="M2 4L4.6 1.6H8.1L10.3 4.4L8.6 10.3H3.5L1.7 6.7L2 4Z" stroke={stroke} strokeWidth="1" />
       </svg>
     );
   }
 
   return (
     <svg width={dimension} height={dimension} viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path d="M2.5 4L5 1.5H8.5L10.5 4.5L8.5 10.5H3.5L1.5 6.5L2.5 4Z" stroke={stroke} strokeWidth="1" />
+      <path d="M6 1.5L10.5 10.5H1.5L6 1.5Z" stroke={stroke} strokeWidth="1" />
     </svg>
   );
 }

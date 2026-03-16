@@ -11,7 +11,7 @@ function PhaseNode({ label, index, status, canAdvance, onClick }) {
 
   const labelColor = isActive ? 'var(--t1)' : 'var(--t3)';
   const subLabelColor = isDone ? 'var(--live)' : isActive ? 'var(--warn)' : 'var(--t3)';
-  const subLabel = isDone ? 'Done' : isActive ? 'In progress' : 'Locked';
+  const subLabel = isDone ? 'DONE' : isActive ? 'ACTIVE' : 'LOCKED';
 
   return (
     <div

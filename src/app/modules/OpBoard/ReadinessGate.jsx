@@ -30,7 +30,6 @@ function GateItem({ item, canEdit, onToggle }) {
         transition: 'all .12s',
         opacity: locked ? 0.5 : 1,
         userSelect: 'none',
-        pointerEvents: locked ? 'none' : 'auto',
       }}
       onMouseEnter={(event) => {
         if (canInteract) {
@@ -125,7 +124,7 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div
         style={{
           display: 'flex',
@@ -164,7 +163,7 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
         {isGo && goFired ? <span style={{ color: 'var(--live)', fontSize: 11 }}>✓ SENT</span> : null}
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {items.length === 0 ? (
           <div style={{ color: 'var(--t2)', fontSize: 11, padding: '8px 0' }}>No gate items defined.</div>
         ) : (

@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { Navigate, useSearchParams } from 'react-router-dom';
-import { AlertTriangle, ExternalLink } from 'lucide-react';
 import NexusCompass from '@/components/ui/NexusCompass';
 import { authApi } from '@/lib/auth-api';
 import { useSession } from '@/lib/SessionContext';
 import { VERSE_BUILD_LABEL, useVerseStatus } from '@/lib/useVerseStatus';
 
 const STAR_COUNT = 80;
+const STAR_SIZES = [
+  ...Array(48).fill(1),
+  ...Array(24).fill(1.5),
+  ...Array(8).fill(2),
+];
+const STAR_DURATIONS = [3, 5, 7];
 
 const ERROR_MESSAGES = {
   not_in_guild: 'REDSCAR MEMBERSHIP REQUIRED',
@@ -16,34 +22,42 @@ const ERROR_MESSAGES = {
 };
 
 function buildStars() {
-  return Array.from({ length: STAR_COUNT }, (_, index) => {
-    const size = index < 48 ? 1 : index < 72 ? 1.5 : 2;
-    let top = Math.random() * 100;
-    let left = Math.random() * 100;
+  if (typeof window === 'undefined') {
+    return [];
+  }
 
-    while (top >= 30 && top <= 70 && left >= 25 && left <= 75) {
-      top = Math.random() * 100;
-      left = Math.random() * 100;
-    }
+  const width = Math.max(window.innerWidth, 1);
+  const height = Math.max(window.innerHeight, 1);
+  const centerLeft = width / 2 - 100;
+  const centerRight = width / 2 + 100;
+  const centerTop = height / 2 - 200;
+  const centerBottom = height / 2 + 200;
 
-    const durations = [3, 5, 7];
+  return STAR_SIZES.map((size, index) => {
+    let left = 0;
+    let top = 0;
+
+    do {
+      left = Math.random() * width;
+      top = Math.random() * height;
+    } while (left >= centerLeft && left <= centerRight && top >= centerTop && top <= centerBottom);
 
     return {
       id: index,
-      top,
-      left,
+      top: (top / height) * 100,
+      left: (left / width) * 100,
       size,
-      duration: durations[Math.floor(Math.random() * durations.length)],
+      duration: STAR_DURATIONS[Math.floor(Math.random() * STAR_DURATIONS.length)],
     };
   });
 }
 
 function StatusBar({ status }) {
   const palette = status === 'offline'
-    ? { color: 'var(--danger)', label: 'OFFLINE' }
+    ? { dot: 'var(--danger)', text: 'OFFLINE' }
     : status === 'degraded' || status === 'unknown'
-      ? { color: 'var(--warn)', label: status === 'unknown' ? 'UNKNOWN' : 'DEGRADED' }
-      : { color: 'var(--live)', label: 'ONLINE' };
+      ? { dot: 'var(--warn)', text: 'DEGRADED' }
+      : { dot: 'var(--live)', text: 'ONLINE' };
 
   return (
     <footer
@@ -61,13 +75,11 @@ function StatusBar({ status }) {
         flexShrink: 0,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9 }}>
-        <div style={{ width: 5, height: 5, borderRadius: '50%', background: palette.color }} />
-        <span style={{ color: 'var(--t2)' }}>VERSE</span>
-        <span style={{ color: 'var(--t3)' }}>/</span>
-        <span style={{ color: palette.color }}>{palette.label}</span>
-        <span style={{ color: 'var(--t3)' }}>/</span>
-        <span style={{ color: 'var(--t3)' }}>{VERSE_BUILD_LABEL}</span>
+      <div style={{ display: 'flex', alignItems: 'center', fontSize: 9 }}>
+        <div style={{ width: 5, height: 5, borderRadius: '50%', background: palette.dot }} />
+        <span style={{ color: 'var(--t2)', marginLeft: 6 }}>VERSE {VERSE_BUILD_LABEL}</span>
+        <span style={{ color: 'var(--t3)', margin: '0 6px' }}>·</span>
+        <span style={{ color: palette.dot }}>{palette.text}</span>
       </div>
       <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.1em' }}>
         NEXUSOS · REDSCAR NOMADS · PRIVATE
@@ -96,7 +108,7 @@ export default function AccessGate() {
 
   useEffect(() => {
     if (errorMessage) {
-      setShakeKey((key) => key + 1);
+      setShakeKey((value) => value + 1);
       setStarting(false);
     }
   }, [errorMessage]);
@@ -138,7 +150,6 @@ export default function AccessGate() {
           inset: 0,
           overflow: 'hidden',
           pointerEvents: 'none',
-          zIndex: 0,
         }}
       >
         {stars.map((star) => (
@@ -153,7 +164,6 @@ export default function AccessGate() {
               borderRadius: '50%',
               background: 'white',
               animation: `twinkle ${star.duration}s ease-in-out infinite`,
-              pointerEvents: 'none',
             }}
           />
         ))}
@@ -166,13 +176,14 @@ export default function AccessGate() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          position: 'relative',
           padding: '24px 16px',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <div
           key={shakeKey}
-          className={errorMessage ? 'nexus-shake' : undefined}
+          className={`access-gate-card${errorMessage ? ' nexus-shake' : ''}`}
           style={{
             width: 360,
             background: 'var(--bg1)',
@@ -183,46 +194,31 @@ export default function AccessGate() {
             flexDirection: 'column',
             alignItems: 'center',
             position: 'relative',
-            zIndex: 1,
           }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: '10%',
-              width: '80%',
-              height: 1,
-              background: 'var(--b3)',
-              borderRadius: '0 0 1px 1px',
-            }}
-          />
+          <NexusCompass size={44} />
 
-          <div style={{ marginBottom: 8 }}>
-            <NexusCompass size={44} />
-          </div>
-
-          <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.25em', marginBottom: 4, textAlign: 'center' }}>
+          <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.25em', textAlign: 'center', marginTop: 8 }}>
             REDSCAR NOMADS
           </div>
-          <div style={{ fontSize: 24, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.22em', marginBottom: 2, textAlign: 'center' }}>
+          <div style={{ fontSize: 24, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.22em', textAlign: 'center', marginTop: 4 }}>
             NEXUSOS
           </div>
-          <div style={{ fontSize: 10, color: 'var(--t2)', letterSpacing: '0.18em', marginBottom: 28, textAlign: 'center' }}>
+          <div style={{ fontSize: 10, color: 'var(--t2)', letterSpacing: '0.18em', textAlign: 'center', marginTop: 2 }}>
             ACCESS GATE
           </div>
 
-          <div style={{ width: '100%' }}>
+          <div style={{ width: '100%', marginTop: 28 }}>
             <div
               style={{
-                color: 'var(--t2)',
                 fontSize: 10,
+                color: 'var(--t2)',
                 lineHeight: 1.6,
                 textAlign: 'center',
-                marginBottom: 18,
+                marginBottom: 20,
               }}
             >
-              Member access now uses Discord OAuth with Redscar role verification.
+              Member access is verified through Discord role sync.
             </div>
 
             <button
@@ -233,34 +229,33 @@ export default function AccessGate() {
               style={{
                 width: '100%',
                 height: 40,
-                fontSize: 12,
-                letterSpacing: '0.14em',
-                marginTop: 20,
-                justifyContent: 'center',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                letterSpacing: '0.14em',
                 borderColor: errorMessage ? 'var(--warn)' : 'var(--b2)',
               }}
             >
               {starting || loading ? (
-                <span className="nexus-loading-dots" aria-hidden="true">
+                <span className="nexus-loading-dots" style={{ color: 'var(--t0)' }} aria-hidden="true">
                   <span />
                   <span />
                   <span />
                 </span>
               ) : (
-                'CONTINUE WITH DISCORD'
+                'CONTINUE WITH DISCORD →'
               )}
             </button>
 
             <div
               style={{
                 minHeight: 20,
-                marginTop: 8,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 5,
+                marginTop: 8,
                 fontSize: 10,
                 color: errorMessage ? 'var(--warn)' : 'transparent',
               }}
@@ -273,34 +268,45 @@ export default function AccessGate() {
               <a
                 href="https://discord.gg/redscar"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noreferrer"
                 style={{
                   fontSize: 10,
                   color: 'var(--acc)',
-                  textDecoration: 'none',
                   cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
+                }}
+                onMouseEnter={(event) => {
+                  event.currentTarget.style.color = 'var(--acc2)';
+                }}
+                onMouseLeave={(event) => {
+                  event.currentTarget.style.color = 'var(--acc)';
                 }}
               >
-                Request access
-                <ExternalLink size={11} />
+                Request access via #nexusos-ops
               </a>
             </div>
 
-            {showOnboarding && (
+            {showOnboarding ? (
               <div style={{ marginTop: 6, textAlign: 'center' }}>
                 <a
                   href="https://discord.gg/redscar"
                   target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: 9, color: 'var(--t3)', cursor: 'pointer' }}
+                  rel="noreferrer"
+                  style={{
+                    fontSize: 9,
+                    color: 'var(--t3)',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(event) => {
+                    event.currentTarget.style.color = 'var(--t2)';
+                  }}
+                  onMouseLeave={(event) => {
+                    event.currentTarget.style.color = 'var(--t3)';
+                  }}
                 >
-                  First time here?
+                  First time here? View onboarding →
                 </a>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

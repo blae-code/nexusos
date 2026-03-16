@@ -1,4 +1,5 @@
 :root {
+  /* ── Backgrounds ─────────────────────────────────── */
   --bg0: #07080b;
   --bg1: #0c0e13;
   --bg2: #10121a;
@@ -6,41 +7,50 @@
   --bg4: #1c1f2a;
   --bg5: #222535;
 
+  /* ── Borders ─────────────────────────────────────── */
   --b0: #161820;
   --b1: #1e2130;
   --b2: #272b3c;
   --b3: #323648;
 
+  /* ── Text ────────────────────────────────────────── */
   --t0: #dde1f0;
   --t1: #8890a8;
   --t2: #4a5068;
   --t3: #2a2e40;
 
-  --acc: #5a6080;
+  /* ── Accent ──────────────────────────────────────── */
+  --acc:  #5a6080;
   --acc2: #7a8098;
 
-  --live: #27c96a;
-  --warn: #e8a020;
+  /* ── Status (semantic only — never decorative) ───── */
+  --live:   #27c96a;
+  --warn:   #e8a020;
   --danger: #e04848;
-  --info: #4a8fd0;
+  --info:   #4a8fd0;
 
-  --live-bg: #081510;
-  --live-b: #1a4428;
-  --warn-bg: #140e00;
-  --warn-b: #3a2800;
+  /* ── Status backgrounds (for status-bearing cards) ── */
+  --live-bg:   #081510;
+  --live-b:    #1a4428;
+  --warn-bg:   #140e00;
+  --warn-b:    #3a2800;
   --danger-bg: #1a0808;
-  --danger-b: #3a1414;
-  --info-bg: #0a1220;
-  --info-b: #1a3050;
+  --danger-b:  #3a1414;
+  --info-bg:   #0a1220;
+  --info-b:    #1a3050;
 
-  --font: 'SF Mono', ui-monospace, 'Cascadia Code', monospace;
+  /* ── Typography ──────────────────────────────────── */
+  --font: 'SF Mono', ui-monospace, 'Cascadia Code',
+          'Fira Code', monospace;
 
+  /* ── Spacing ─────────────────────────────────────── */
   --r-sm: 4px;
   --r-md: 6px;
   --r-lg: 8px;
   --r-xl: 12px;
 }
 
+/* ── Global reset and base ───────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -56,45 +66,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Scrollbars ──────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
-::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
+::-webkit-scrollbar-thumb {
+  background: var(--b2);
+  border-radius: 2px;
+}
 ::-webkit-scrollbar-thumb:hover { background: var(--b3); }
 
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-@keyframes ring {
-  0% { opacity: 0.6; transform: scale(1); }
-  100% { opacity: 0; transform: scale(2.2); }
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 0.15; }
-}
-
-@keyframes tick {
-  0% { transform: scale(0); }
-  60% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-}
-
-@keyframes bar-grow {
-  from { width: 0; }
-  to { width: var(--w); }
-}
-
+/* ── Utility classes ─────────────────────────────── */
 .nexus-card {
   background: var(--bg1);
   border: 0.5px solid var(--b0);
@@ -115,9 +96,9 @@ body {
   gap: 8px;
   font-size: 9px;
   color: var(--t3);
-  letter-spacing: 0.15em;
+  letter-spacing: .15em;
+  margin-bottom: 8px;
 }
-
 .nexus-section-header::after {
   content: '';
   flex: 1;
@@ -125,44 +106,33 @@ body {
   background: var(--b0);
 }
 
-.nexus-section-header .sh-action {
-  font-size: 9px;
-  color: var(--acc);
-  cursor: pointer;
-}
-
 .nexus-pill {
   font-size: 9px;
-  letter-spacing: 0.1em;
+  letter-spacing: .1em;
   padding: 3px 8px;
   border-radius: 3px;
   border: 0.5px solid;
 }
-
 .nexus-pill-live {
   background: var(--live-bg);
   color: var(--live);
   border-color: var(--live-b);
 }
-
 .nexus-pill-warn {
   background: var(--warn-bg);
   color: var(--warn);
   border-color: var(--warn-b);
 }
-
 .nexus-pill-danger {
   background: var(--danger-bg);
   color: var(--danger);
   border-color: var(--danger-b);
 }
-
 .nexus-pill-info {
   background: var(--info-bg);
   color: var(--info);
   border-color: var(--info-b);
 }
-
 .nexus-pill-neu {
   background: var(--bg3);
   color: var(--t2);
@@ -177,25 +147,26 @@ body {
   font-size: 10px;
   color: var(--t1);
   font-family: var(--font);
-  letter-spacing: 0.08em;
+  letter-spacing: .08em;
   cursor: pointer;
-  transition: all 0.12s;
+  transition: background .12s, border-color .12s, color .12s;
+  white-space: nowrap;
 }
-
 .nexus-btn:hover {
   background: var(--bg3);
   color: var(--t0);
   border-color: var(--b3);
 }
-
-.nexus-btn:active {
-  transform: scale(0.99);
-}
+.nexus-btn:active { transform: scale(0.99); }
 
 .nexus-btn-solid {
   background: var(--bg3);
   border-color: var(--b2);
   color: var(--t0);
+}
+.nexus-btn-solid:hover {
+  background: var(--bg4);
+  border-color: var(--b3);
 }
 
 .nexus-btn-danger {
@@ -203,12 +174,18 @@ body {
   border-color: var(--danger-b);
   color: var(--danger);
 }
+.nexus-btn-danger:hover {
+  background: #220a0a;
+  border-color: var(--danger);
+}
 
 .nexus-btn-go {
   background: var(--live-bg);
   border-color: var(--live);
   color: var(--live);
+  letter-spacing: .12em;
 }
+.nexus-btn-go:hover { background: #0d3520; }
 
 .nexus-input {
   height: 36px;
@@ -220,15 +197,11 @@ body {
   font-size: 12px;
   padding: 0 10px;
   outline: none;
+  width: 100%;
+  transition: border-color .12s;
 }
-
-.nexus-input::placeholder {
-  color: var(--t3);
-}
-
-.nexus-input:focus {
-  border-color: var(--b3);
-}
+.nexus-input::placeholder { color: var(--t3); }
+.nexus-input:focus { border-color: var(--b3); }
 
 .nexus-tag {
   font-size: 9px;
@@ -237,6 +210,7 @@ body {
   background: var(--bg3);
   border: 0.5px solid var(--b1);
   border-radius: 3px;
+  white-space: nowrap;
 }
 
 .nexus-avatar {
@@ -245,16 +219,15 @@ body {
   border-radius: 50%;
   background: var(--bg3);
   border: 0.5px solid var(--b2);
-  font-size: 9px;
-  color: var(--t1);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 9px;
+  color: var(--t1);
+  font-weight: 500;
+  flex-shrink: 0;
 }
-
-.nexus-avatar-live {
-  border-color: var(--live);
-}
+.nexus-avatar-live { border-color: var(--live); }
 
 .nexus-bar-bg {
   height: 3px;
@@ -262,75 +235,64 @@ body {
   border-radius: 2px;
   overflow: hidden;
 }
-
 .nexus-bar-fill {
   height: 100%;
   border-radius: 2px;
   background: var(--acc);
-  transition: width 0.4s;
+  transition: width .4s ease-out;
 }
+.nexus-bar-live { background: var(--live); }
+.nexus-bar-warn { background: var(--warn); }
 
-.nexus-bar-fill.nexus-bar-live,
-.nexus-bar-live .nexus-bar-fill {
-  background: var(--live);
-}
-
-.nexus-bar-fill.nexus-bar-warn,
-.nexus-bar-warn .nexus-bar-fill {
-  background: var(--warn);
-}
-
+/* ── Toggle switch ───────────────────────────────── */
 .nexus-toggle {
   display: flex;
+  align-items: center;
   gap: 8px;
   cursor: pointer;
   user-select: none;
 }
-
 .nexus-toggle-track {
   width: 28px;
   height: 15px;
+  border-radius: 8px;
   background: var(--bg4);
   border: 0.5px solid var(--b2);
-  border-radius: 8px;
   position: relative;
+  transition: all .15s;
+  flex-shrink: 0;
 }
-
 .nexus-toggle-track.on {
   background: var(--live-bg);
   border-color: var(--live-b);
 }
-
 .nexus-toggle-thumb {
+  position: absolute;
+  top: 1.5px;
+  left: 1.5px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: var(--t2);
-  position: absolute;
-  top: 1.5px;
-  left: 1.5px;
-  transition: all 0.15s;
+  transition: all .15s;
 }
-
 .nexus-toggle-track.on .nexus-toggle-thumb {
   transform: translateX(13px);
   background: var(--live);
 }
-
 .nexus-toggle-label {
   font-size: 10px;
   color: var(--t2);
 }
-
 .nexus-toggle-track.on + .nexus-toggle-label {
   color: var(--t1);
 }
 
+/* ── Tabular nums for all timers ─────────────────── */
 .nexus-timer {
   font-variant-numeric: tabular-nums;
   color: var(--warn);
 }
-
 .nexus-timer-live {
   font-variant-numeric: tabular-nums;
   color: var(--live);

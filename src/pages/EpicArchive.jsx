@@ -72,6 +72,8 @@ export default function EpicArchive() {
   const [tab, setTab] = useState('OPS');
   const [ops, setOps] = useState([]);
   const [patches, setPatches] = useState([]);
+  const [deposits, setDeposits] = useState([]);
+  const [craftQueue, setCraftQueue] = useState([]);
   const [search, setSearch] = useState('');
   const [selectedPatch, setSelectedPatch] = useState(null);
 
@@ -79,9 +81,14 @@ export default function EpicArchive() {
     Promise.all([
       base44.entities.Op.filter({ status: 'COMPLETE' }, '-ended_at', 30),
       base44.entities.PatchDigest.list('-published_at', 20),
-    ]).then(([o, p]) => {
+      base44.entities.ScoutDeposit.list('-reported_at', 200),
+      base44.entities.CraftQueue.list('-created_date', 200),
+    ]).then(([o, p, deps, queue]) => {
       setOps(o || []);
       setPatches(p || []);
+      setDeposits(deps || []);
+      setCraftQueue(queue || []);
+      setSelectedPatch((current) => current || p?.[0] || null);
     });
   }, []);
 
@@ -89,16 +96,33 @@ export default function EpicArchive() {
     !search || o.name?.toLowerCase().includes(search.toLowerCase()) || o.system?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Synthetic leaderboards from ops data
-  const scoutLeaders = [
-    { callsign: 'NOMAD-01', value: 24, label: 'reports' },
-    { callsign: 'VOID-RUNNER', value: 18, label: 'reports' },
-    { callsign: 'RAVEN', value: 12, label: 'reports' },
-  ];
-  const craftLeaders = [
-    { callsign: 'FABRICATOR', value: 47, label: 'items', color: 'var(--info)' },
-    { callsign: 'FORGE-PRIME', value: 31, label: 'items', color: 'var(--info)' },
-  ];
+  const scoutLeaders = Object.values(
+    deposits.reduce((acc, deposit) => {
+      const callsign = deposit.reported_by_callsign || deposit.reported_by || 'UNKNOWN';
+      if (!acc[callsign]) {
+        acc[callsign] = { callsign, value: 0, label: 'reports' };
+      }
+      acc[callsign].value += 1;
+      return acc;
+    }, {}),
+  )
+    .sort((a, b) => b.value - a.value || a.callsign.localeCompare(b.callsign))
+    .slice(0, 5);
+
+  const craftLeaders = Object.values(
+    craftQueue
+      .filter((item) => item.status === 'COMPLETE')
+      .reduce((acc, item) => {
+        const callsign = item.claimed_by_callsign || item.requested_by_callsign || 'UNKNOWN';
+        if (!acc[callsign]) {
+          acc[callsign] = { callsign, value: 0, label: 'items', color: 'var(--info)' };
+        }
+        acc[callsign].value += Number(item.quantity || 1);
+        return acc;
+      }, {}),
+  )
+    .sort((a, b) => b.value - a.value || a.callsign.localeCompare(b.callsign))
+    .slice(0, 5);
 
   return (
     <div className="flex flex-col h-full">
@@ -167,6 +191,7 @@ export default function EpicArchive() {
                 <span style={{ color: 'var(--t1)', fontSize: 11, letterSpacing: '0.08em' }}>TOP FABRICATORS</span>
               </div>
               {craftLeaders.map((s, i) => <LeaderboardRow key={i} rank={i + 1} {...s} />)}
+              {craftLeaders.length === 0 && <div style={{ padding: 20, color: 'var(--t2)', fontSize: 12, textAlign: 'center' }}>No completed craft data yet</div>}
             </div>
           </div>
         )}

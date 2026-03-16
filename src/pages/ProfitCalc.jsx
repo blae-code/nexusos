@@ -4,6 +4,14 @@ import { TrendingUp } from 'lucide-react';
 
 const MATERIALS = ['TARANITE', 'BEXALITE', 'BORASE', 'QUANTANIUM', 'LARANITE', 'GOLD', 'AGRICIUM'];
 const REFINERY_METHODS = ['Dinyx Solventation', 'Cormack Method', 'Electrostarolysis', 'Gasification', 'Filtration', 'Pyrometric Chromalysis'];
+const REFINERY_CONFIG = {
+  'Dinyx Solventation': { yieldMult: 1.08, costMult: 1.12, note: 'Best yield, highest refinery fee.' },
+  'Cormack Method': { yieldMult: 1.03, costMult: 1.04, note: 'Balanced method with moderate cost.' },
+  Electrostarolysis: { yieldMult: 1.05, costMult: 1.08, note: 'Strong yield with slightly higher operating cost.' },
+  Gasification: { yieldMult: 0.94, costMult: 0.88, note: 'Cheaper and faster, but lower yield.' },
+  Filtration: { yieldMult: 0.97, costMult: 0.92, note: 'Lower cost option with steady returns.' },
+  'Pyrometric Chromalysis': { yieldMult: 1.1, costMult: 1.18, note: 'Highest margin when quality supports it.' },
+};
 
 const BASE_PRICES = {
   TARANITE: { raw: 875, refined: 1120, crafted: 3200 },
@@ -55,12 +63,12 @@ export default function ProfitCalc() {
   const [fuelCost, setFuelCost] = useState(5000);
   const [refMethod, setRefMethod] = useState(REFINERY_METHODS[0]);
   const [risk, setRisk] = useState(0);
-  const [orgMaterial, setOrgMaterial] = useState(false);
 
   const prices = BASE_PRICES[material] || { raw: 500, refined: 700, crafted: 0 };
+  const methodConfig = REFINERY_CONFIG[refMethod] || REFINERY_CONFIG[REFINERY_METHODS[0]];
   const qualityMult = 0.7 + (quality / 100) * 0.6;
-  const refineYield = 0.78;
-  const refineMethodCost = scu * 180;
+  const refineYield = 0.78 * methodConfig.yieldMult;
+  const refineMethodCost = Math.round(scu * 180 * methodConfig.costMult);
   const riskPenalty = 1 - risk / 200;
 
   const grossRaw = Math.round(scu * prices.raw * qualityMult * riskPenalty);
@@ -165,6 +173,9 @@ export default function ProfitCalc() {
           <select className="nexus-input" value={refMethod} onChange={e => setRefMethod(e.target.value)} style={{ cursor: 'pointer' }}>
             {REFINERY_METHODS.map(m => <option key={m}>{m}</option>)}
           </select>
+          <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
+            {methodConfig.note}
+          </div>
         </div>
 
         {/* Fuel cost */}

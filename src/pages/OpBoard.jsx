@@ -2,7 +2,7 @@
  * OpBoard — Op Board list view
  * Route: /app/ops
  */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Plus, RefreshCw } from 'lucide-react';
@@ -110,7 +110,7 @@ export default function OpBoard() {
 
   const canLead = LEADER_RANKS.includes(rank);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const [allOps, allRsvps] = await Promise.all([
       base44.entities.Op.list('-scheduled_at', 100),
@@ -134,9 +134,18 @@ export default function OpBoard() {
     setRsvpMap(counts);
     setMyRsvps(myMap);
     setLoading(false);
-  };
+  }, [callsign, discordId]);
 
-  useEffect(() => { load(); }, [discordId]);
+  useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const unsubOps = base44.entities.Op.subscribe(() => { load(); });
+    const unsubRsvps = base44.entities.OpRsvp.subscribe(() => { load(); });
+    return () => {
+      unsubOps();
+      unsubRsvps();
+    };
+  }, [load]);
 
   const handleRsvp = async (opId) => {
     if (!discordId) return;

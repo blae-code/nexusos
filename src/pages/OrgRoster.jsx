@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Search, Users } from 'lucide-react';
 
@@ -52,9 +52,18 @@ export default function OrgRoster() {
   const [search, setSearch] = useState('');
   const [rankFilter, setRankFilter] = useState('ALL');
 
-  useEffect(() => {
+  const load = useCallback(() => {
     base44.entities.NexusUser.list('-joined_at', 200).then(d => setUsers(d || []));
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    const unsubscribe = base44.entities.NexusUser.subscribe(() => { load(); });
+    return () => unsubscribe();
+  }, [load]);
 
   const filtered = users.filter(u => {
     if (rankFilter !== 'ALL' && u.nexus_rank !== rankFilter) return false;

@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, LogOut, Menu, ScrollText, User, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut, ScrollText, User, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NexusCompass from '@/components/ui/NexusCompass';
-
-import versionData from '../../../version.json';
 import { useSession } from '@/lib/SessionContext';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
+import versionData from '../../../version.json';
+import changelogText from '../../../CHANGELOG.md?raw';
 import { AltTabIcon, MoreIcon, SecondMonitorIcon } from './NexusIcons';
-import { Menu } from 'lucide-react';
 
 const RANK_COLOURS = {
   PIONEER: 'var(--warn)',
@@ -25,99 +24,6 @@ const EXTRA_LINKS = [
   { label: 'Epic Archive', path: '/app/archive' },
   { label: 'Material Ledger', path: '/app/ledger' },
 ];
-
-function ChangelogDialog({ onClose }) {
-  const lines = '';
-
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 200,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(7,8,11,0.88)',
-        padding: 18,
-      }}
-    >
-      <div
-        className="nexus-fade-in"
-        style={{
-          width: 460,
-          maxHeight: 560,
-          background: 'var(--bg2)',
-          border: '0.5px solid var(--b2)',
-          borderRadius: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '10px 14px',
-            borderBottom: '0.5px solid var(--b1)',
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ color: 'var(--t0)', fontSize: 11, letterSpacing: '0.08em', fontWeight: 600 }}>
-            CHANGELOG
-          </span>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--t2)',
-              padding: 2,
-              display: 'flex',
-            }}
-          >
-            <X size={13} />
-          </button>
-        </div>
-        <div style={{ overflowY: 'auto', padding: '10px 14px' }}>
-          {lines.map((line, index) => {
-            if (line.startsWith('## ')) {
-              return (
-                <div
-                  key={index}
-                  style={{
-                    color: 'var(--t0)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    paddingBottom: 5,
-                    marginBottom: 6,
-                    marginTop: index === 0 ? 0 : 14,
-                    borderBottom: '0.5px solid var(--b0)',
-                  }}
-                >
-                  {line.replace(/^## /, '')}
-                </div>
-              );
-            }
-
-            if (line.startsWith('# ')) {
-              return null;
-            }
-
-            return (
-              <div key={index} style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
-                {line || '\u00a0'}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function getBreadcrumb(pathname, search) {
   const params = new URLSearchParams(search || '');
@@ -148,6 +54,244 @@ function getBreadcrumb(pathname, search) {
   return { module: 'NexusOS', tab: 'Overview' };
 }
 
+function ChangelogPanel({ onClose }) {
+  const lines = changelogText.split(/\r?\n/);
+
+  return (
+    <div
+      className="nexus-fade-in"
+      style={{
+        position: 'absolute',
+        top: 'calc(100% + 10px)',
+        right: 16,
+        width: 460,
+        maxHeight: 560,
+        background: 'var(--bg2)',
+        border: '0.5px solid var(--b2)',
+        borderRadius: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        zIndex: 160,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 14px',
+          borderBottom: '0.5px solid var(--b1)',
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ color: 'var(--t0)', fontSize: 11, letterSpacing: '0.08em', fontWeight: 600 }}>
+          CHANGELOG
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--t2)',
+            cursor: 'pointer',
+            padding: 2,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <X size={13} />
+        </button>
+      </div>
+      <div style={{ overflowY: 'auto', padding: '10px 14px' }}>
+        {lines.map((line, index) => {
+          if (line.startsWith('## ')) {
+            return (
+              <div
+                key={index}
+                style={{
+                  color: 'var(--t0)',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  paddingBottom: 5,
+                  marginBottom: 6,
+                  marginTop: index === 0 ? 0 : 14,
+                  borderBottom: '0.5px solid var(--b0)',
+                }}
+              >
+                {line.replace(/^## /, '')}
+              </div>
+            );
+          }
+
+          if (line.startsWith('# ')) {
+            return null;
+          }
+
+          return (
+            <div key={index} style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
+              {line || '\u00a0'}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StatusPill({ verseStatus }) {
+  if (verseStatus === 'offline') {
+    return <div className="nexus-pill nexus-pill-danger">OFFLINE</div>;
+  }
+
+  if (verseStatus === 'degraded' || verseStatus === 'unknown') {
+    return <div className="nexus-pill nexus-pill-warn">DEGRADED</div>;
+  }
+
+  return <div className="nexus-pill nexus-pill-live">LIVE {VERSE_BUILD_LABEL}</div>;
+}
+
+function VersionPill({ version, full, date }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      style={{ position: 'relative', display: 'inline-flex' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className="nexus-pill nexus-pill-neu">v{version}</div>
+      {hovered ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'var(--bg2)',
+            border: '0.5px solid var(--b2)',
+            borderRadius: 6,
+            padding: '6px 8px',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            zIndex: 60,
+          }}
+        >
+          <div style={{ color: 'var(--t1)', fontSize: 9 }}>{full}</div>
+          <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 2 }}>{date}</div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function LayoutButton({ active, title, onClick, icon }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      style={{
+        width: 30,
+        height: 28,
+        borderRadius: 6,
+        border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.12s',
+        background: active ? 'var(--bg3)' : 'transparent',
+        color: active ? 'var(--t1)' : 'var(--t2)',
+      }}
+      onMouseEnter={(event) => {
+        if (!active) {
+          event.currentTarget.style.background = 'var(--bg2)';
+          event.currentTarget.style.borderColor = 'var(--b1)';
+        }
+      }}
+      onMouseLeave={(event) => {
+        if (!active) {
+          event.currentTarget.style.background = 'transparent';
+          event.currentTarget.style.borderColor = 'transparent';
+        }
+      }}
+    >
+      {icon}
+    </button>
+  );
+}
+
+function DropdownContainer({ children, width }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 'calc(100% + 8px)',
+        right: 0,
+        background: 'var(--bg2)',
+        border: '0.5px solid var(--b2)',
+        borderRadius: 8,
+        minWidth: width,
+        padding: '6px 0',
+        zIndex: 100,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Divider() {
+  return <div style={{ height: '0.5px', background: 'var(--b1)', margin: '4px 0' }} />;
+}
+
+function MenuLink({ icon: Icon, label, onClick, danger }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: '100%',
+        padding: '8px 14px',
+        fontSize: 10,
+        color: danger ? 'var(--danger)' : 'var(--t1)',
+        cursor: 'pointer',
+        background: hovered ? 'var(--bg3)' : 'transparent',
+        border: 'none',
+        textAlign: 'left',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
+      {Icon ? <Icon size={13} /> : null}
+      {label}
+    </button>
+  );
+}
+
+function menuButtonStyle(active) {
+  return {
+    width: 30,
+    height: 28,
+    borderRadius: 6,
+    border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.12s',
+    background: active ? 'var(--bg3)' : 'transparent',
+    color: active ? 'var(--t1)' : 'var(--t2)',
+  };
+}
+
 export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, onTogglePortraitNav }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -156,17 +300,22 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
   const [showChangelog, setShowChangelog] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [onlineCount, setOnlineCount] = useState(null);
+  const [isPortrait, setIsPortrait] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1100 : false));
   const userMenuRef = useRef(null);
   const moreMenuRef = useRef(null);
-  const [isPortrait, setIsPortrait] = useState(window.innerWidth < 1100);
+  const changelogRef = useRef(null);
 
   const breadcrumb = useMemo(
     () => getBreadcrumb(location.pathname, location.search),
     [location.pathname, location.search],
   );
 
-  const rankColor = RANK_COLOURS[user?.rank] || 'var(--t1)';
+  const extraLinks = source === 'admin' || ['PIONEER', 'FOUNDER'].includes(user?.rank)
+    ? [...EXTRA_LINKS, { label: 'Setup TODO', path: '/app/admin/todo' }]
+    : EXTRA_LINKS;
+
   const showPtuPill = VERSE_BUILD_LABEL.toUpperCase().includes('PTU');
+  const rankColor = RANK_COLOURS[user?.rank] || 'var(--t1)';
 
   useEffect(() => {
     let cancelled = false;
@@ -195,33 +344,33 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
   }, []);
 
   useEffect(() => {
-    const handleClick = (event) => {
+    const handleResize = () => {
+      setIsPortrait(window.innerWidth < 1100);
+    };
+
+    const handleMouseDown = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setUserMenuOpen(false);
       }
       if (moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
         setMoreMenuOpen(false);
       }
+      if (showChangelog && changelogRef.current && !changelogRef.current.contains(event.target)) {
+        setShowChangelog(false);
+      }
     };
 
-    const handleResize = () => {
-      setIsPortrait(window.innerWidth < 1100);
-    };
-
-    document.addEventListener('mousedown', handleClick);
     window.addEventListener('resize', handleResize);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+    document.addEventListener('mousedown', handleMouseDown);
 
-  const extraLinks = source === 'admin' || ['PIONEER', 'FOUNDER'].includes(user?.rank)
-    ? [...EXTRA_LINKS, { label: 'Setup TODO', path: '/app/admin/todo' }]
-    : EXTRA_LINKS;
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, [showChangelog]);
 
   return (
-    <>
+    <div style={{ position: 'relative', flexShrink: 0 }}>
       <header
         style={{
           height: 44,
@@ -233,28 +382,38 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
           padding: '0 16px',
           flexShrink: 0,
           gap: 12,
-          boxShadow: 'inset 0 1px 0 rgba(0,200,232,0.06)',
           position: 'relative',
+          zIndex: 20,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-          {isPortrait && (
+          {isPortrait && onTogglePortraitNav ? (
             <button
+              type="button"
               onClick={onTogglePortraitNav}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t1)', display: 'flex', padding: '0 4px' }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--t1)',
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                padding: 0,
+                flexShrink: 0,
+              }}
             >
               <Menu size={16} />
             </button>
-          )}
+          ) : null}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <NexusCompass />
+            <NexusCompass size={22} />
             <span
               style={{
                 fontSize: 13,
                 fontWeight: 500,
                 color: 'var(--t0)',
                 letterSpacing: '0.2em',
-                fontFamily: "'SF Mono', ui-monospace, monospace",
                 whiteSpace: 'nowrap',
               }}
             >
@@ -263,20 +422,22 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, minWidth: 0 }}>
-            <span style={{ color: 'var(--t3)' }}>/</span>
-            <span style={{ color: 'var(--t2)', whiteSpace: 'nowrap' }}>{breadcrumb.module}</span>
-            <span style={{ color: 'var(--t3)' }}>/</span>
-            <span style={{ color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {breadcrumb.tab}
-            </span>
-          </div>
+          {!isPortrait ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, minWidth: 0 }}>
+              <span style={{ color: 'var(--t3)' }}>/</span>
+              <span style={{ color: 'var(--t2)', whiteSpace: 'nowrap' }}>{breadcrumb.module}</span>
+              <span style={{ color: 'var(--t3)' }}>/</span>
+              <span style={{ color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {breadcrumb.tab}
+              </span>
+            </div>
+          ) : null}
         </div>
 
-        <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
           <StatusPill verseStatus={verseStatus} />
-          {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
-          <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div>
+          {!isPortrait && showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
+          {!isPortrait ? <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div> : null}
           <VersionPill version={versionData.version} full={versionData.full} date={versionData.date} />
         </div>
 
@@ -290,41 +451,50 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <LayoutButton
-              active={layoutMode === 'ALT-TAB'}
-              title="ALT-TAB"
-              onClick={() => onSelectLayout('ALT-TAB')}
-              icon={<AltTabIcon size={16} />}
-            />
-            <LayoutButton
-              active={layoutMode === '2ND MONITOR'}
-              title="2ND MONITOR"
-              onClick={() => onSelectLayout('2ND MONITOR')}
-              icon={<SecondMonitorIcon size={16} />}
-            />
-          </div>
+          {!isPortrait ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <LayoutButton
+                active={layoutMode === 'ALT-TAB'}
+                title="ALT-TAB"
+                onClick={() => onSelectLayout('ALT-TAB')}
+                icon={<AltTabIcon size={16} />}
+              />
+              <LayoutButton
+                active={layoutMode === '2ND MONITOR'}
+                title="2ND MONITOR"
+                onClick={() => onSelectLayout('2ND MONITOR')}
+                icon={<SecondMonitorIcon size={16} />}
+              />
+            </div>
+          ) : null}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 100 }}>
-            <div
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: '50%',
-                background: 'var(--live)',
-                animation: 'pulse-live 2.5s ease-in-out infinite',
-              }}
-            />
-            <span style={{ color: 'var(--t2)', fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
-              {onlineCount !== null ? `${onlineCount} online` : 'online'}
-            </span>
-          </div>
+          {!isPortrait ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: 'var(--live)',
+                  animation: 'pulse-dot 2.5s ease-in-out infinite',
+                }}
+              />
+              <span style={{ color: 'var(--t2)', fontSize: 10 }}>
+                {onlineCount !== null ? `${onlineCount} online` : 'online'}
+              </span>
+            </div>
+          ) : null}
 
           <div ref={moreMenuRef} style={{ position: 'relative' }}>
-            <button onClick={() => setMoreMenuOpen((open) => !open)} style={menuButtonStyle(moreMenuOpen)} title="More destinations">
+            <button
+              type="button"
+              onClick={() => setMoreMenuOpen((open) => !open)}
+              style={menuButtonStyle(moreMenuOpen)}
+              title="More destinations"
+            >
               <MoreIcon size={16} />
             </button>
-            {moreMenuOpen && (
+            {moreMenuOpen ? (
               <DropdownContainer width={190}>
                 {extraLinks.map((item) => (
                   <MenuLink
@@ -337,23 +507,23 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
                   />
                 ))}
               </DropdownContainer>
-            )}
+            ) : null}
           </div>
 
           <div ref={userMenuRef} style={{ position: 'relative' }}>
             <button
+              type="button"
               onClick={() => setUserMenuOpen((open) => !open)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 5,
                 padding: '3px 9px',
-                background: userMenuOpen ? 'var(--bg3)' : 'var(--bg2)',
+                background: 'var(--bg2)',
                 border: `0.5px solid ${userMenuOpen ? 'var(--b2)' : 'var(--b1)'}`,
                 borderRadius: 4,
                 cursor: 'pointer',
                 color: 'var(--t1)',
-                transition: 'border-color 0.12s',
               }}
             >
               <div
@@ -371,7 +541,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
               <ChevronDown size={11} style={{ color: 'var(--t3)' }} />
             </button>
 
-            {userMenuOpen && (
+            {userMenuOpen ? (
               <DropdownContainer width={180}>
                 <div style={{ padding: '8px 14px' }}>
                   <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 500 }}>
@@ -411,175 +581,16 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
                   }}
                 />
               </DropdownContainer>
-            )}
+            ) : null}
           </div>
         </div>
       </header>
 
-      {showChangelog && <ChangelogDialog onClose={() => setShowChangelog(false)} />}
-    </>
-  );
-}
-
-function StatusPill({ verseStatus }) {
-  const palette = verseStatus === 'offline'
-    ? { className: 'nexus-pill-danger', dot: 'var(--danger)', label: 'VERSE OFFLINE' }
-    : verseStatus === 'degraded' || verseStatus === 'unknown'
-      ? { className: 'nexus-pill-warn', dot: 'var(--warn)', label: verseStatus === 'unknown' ? 'VERSE UNKNOWN' : 'VERSE DEGRADED' }
-      : { className: 'nexus-pill-live', dot: 'var(--live)', label: `VERSE LIVE ${VERSE_BUILD_LABEL}` };
-
-  return (
-    <div className={`nexus-pill ${palette.className}`} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-      <div
-        style={{
-          width: 5,
-          height: 5,
-          borderRadius: '50%',
-          background: palette.dot,
-        }}
-      />
-      {palette.label}
-    </div>
-  );
-}
-
-function VersionPill({ version, full, date }) {
-  const [hovered, setHovered] = useState(false);
-  const tooltip = `${full} - ${date}`;
-
-  return (
-    <div
-      style={{ position: 'relative', display: 'inline-flex' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      title={tooltip}
-    >
-      <div className="nexus-pill nexus-pill-neu">v{version}</div>
-      {hovered && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'var(--bg2)',
-            border: '0.5px solid var(--b2)',
-            borderRadius: 6,
-            padding: '6px 8px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 50,
-          }}
-        >
-          <div style={{ color: 'var(--t1)', fontSize: 9 }}>{full}</div>
-          <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 2 }}>{date}</div>
+      {showChangelog ? (
+        <div ref={changelogRef}>
+          <ChangelogPanel onClose={() => setShowChangelog(false)} />
         </div>
-      )}
+      ) : null}
     </div>
   );
-}
-
-function LayoutButton({ active, title, onClick, icon }) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      style={{
-        width: 30,
-        height: 28,
-        borderRadius: 'var(--r-md)',
-        border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.12s',
-        background: active ? 'var(--bg3)' : 'transparent',
-        color: active ? 'var(--t1)' : 'var(--t2)',
-      }}
-      onMouseEnter={(event) => {
-        if (!active) {
-          event.currentTarget.style.background = 'var(--bg2)';
-          event.currentTarget.style.borderColor = 'var(--b1)';
-        }
-      }}
-      onMouseLeave={(event) => {
-        if (!active) {
-          event.currentTarget.style.background = 'transparent';
-          event.currentTarget.style.borderColor = 'transparent';
-        }
-      }}
-    >
-      {icon}
-    </button>
-  );
-}
-
-function DropdownContainer({ children, width }) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '100%',
-        right: 0,
-        background: 'var(--bg2)',
-        border: '0.5px solid var(--b2)',
-        borderRadius: 8,
-        minWidth: width,
-        padding: '6px 0',
-        zIndex: 100,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Divider() {
-  return <div style={{ height: '0.5px', background: 'var(--b1)', margin: '4px 0' }} />;
-}
-
-function MenuLink({ icon: Icon, label, onClick, danger }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: '100%',
-        padding: '8px 14px',
-        fontSize: 10,
-        color: danger ? 'var(--danger)' : 'var(--t1)',
-        cursor: 'pointer',
-        transition: 'background 0.1s',
-        background: hovered ? 'var(--bg3)' : 'transparent',
-        border: 'none',
-        textAlign: 'left',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-      }}
-    >
-      {Icon ? <Icon size={13} /> : null}
-      {label}
-    </button>
-  );
-}
-
-function menuButtonStyle(active) {
-  return {
-    width: 30,
-    height: 28,
-    borderRadius: 'var(--r-md)',
-    border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.12s',
-    background: active ? 'var(--bg3)' : 'transparent',
-    color: active ? 'var(--t1)' : 'var(--t2)',
-  };
 }
