@@ -662,6 +662,13 @@ export default function IndustryHub() {
         ))}
       </div>
 
+      {/* Patch digest card — shown when a new patch is detected */}
+      {showPatchCard && (
+        <div style={{ paddingTop: 10, paddingBottom: 4 }}>
+          <PatchDigestCard digest={latestPatch} onDismiss={handlePatchDismiss} />
+        </div>
+      )}
+
       {/* Tab content */}
       <div className="flex-1 overflow-auto nexus-fade-in">
         {tab === 'overview'   && <OverviewTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} refineryOrders={refineryOrders} scoutDeposits={scoutDeposits} />}
