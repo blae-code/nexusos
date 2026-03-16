@@ -325,9 +325,13 @@ select.nexus-input option {
 }
 
 .nexus-btn.primary:hover {
-  background: rgba(0, 191, 255, 0.2);
+  background: rgba(0, 191, 255, 0.18);
   border-color: var(--cyan);
-  box-shadow: 0 0 16px rgba(0, 191, 255, 0.25);
+  color: #00bfff;
+}
+
+.nexus-btn.primary:active {
+  transform: scale(0.97);
 }
 
 /* Live/go */
@@ -340,7 +344,11 @@ select.nexus-input option {
 .live-btn:hover {
   background: rgba(16, 185, 129, 0.15);
   border-color: var(--live);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+  color: #1dd966;
+}
+
+.live-btn:active {
+  transform: scale(0.97);
 }
 
 /* Danger */
@@ -353,7 +361,11 @@ select.nexus-input option {
 .danger-btn:hover {
   background: rgba(248, 113, 113, 0.15);
   border-color: var(--danger);
-  box-shadow: 0 0 12px rgba(248, 113, 113, 0.25);
+  color: #f87171;
+}
+
+.danger-btn:active {
+  transform: scale(0.97);
 }
 
 /* ─── Tags / pills ───────────────────────────────────────────────────────────── */
@@ -431,52 +443,79 @@ select.nexus-input option {
 
 .nexus-table tbody tr {
   border-bottom: 0.5px solid var(--b0);
-  transition: background 0.12s, border-color 0.12s;
+  transition: background 150ms ease;
 }
 
 .nexus-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .nexus-table tbody tr:hover {
-  background: var(--bg2);
+  background: rgba(255, 255, 255, 0.06);
   border-bottom-color: var(--b1);
+}
+
+.nexus-table tbody tr.clickable {
+  cursor: pointer;
 }
 
 .nexus-table tbody td {
   padding: 7px 14px;
   font-size: 11px;
   color: var(--t0);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── Tooltip ────────────────────────────────────────────────────────────────── */
-.nexus-tooltip { position: relative; }
+.nexus-tooltip {
+  position: relative;
+}
 
 .nexus-tooltip::after {
   content: attr(data-tip);
   position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--bg4);
   border: 0.5px solid var(--b3);
-  border-radius: 5px;
-  padding: 4px 8px;
+  border-radius: 6px;
+  padding: 6px 10px;
   font-size: 10px;
   color: var(--t0);
   letter-spacing: 0.06em;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.12s;
+  transition: opacity 150ms ease;
   z-index: 50;
 }
 
-.nexus-tooltip:hover::after { opacity: 1; }
+.nexus-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid var(--bg4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 51;
+}
+
+.nexus-tooltip:hover::after,
+.nexus-tooltip:hover::before {
+  opacity: 1;
+}
 
 /* ─── Fade-in ────────────────────────────────────────────────────────────────── */
 .nexus-fade-in {
-  animation: fadeInUp 0.18s ease-out;
+  animation: fadeInUp 0.2s ease-out;
 }
 
 @keyframes fadeInUp {
@@ -484,11 +523,37 @@ select.nexus-input option {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+.fade-in-content {
+  animation: fadeInUp 0.2s ease-out backwards;
+}
+
+@for $i from 1 to 6 {
+  .fade-in-content:nth-child(#{$i}) {
+    animation-delay: #{$i * 30}ms;
+  }
+}
+
 /* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar          { width: 4px; height: 4px; }
-::-webkit-scrollbar-track    { background: var(--bg1); }
-::-webkit-scrollbar-thumb    { background: var(--b3); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--acc); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--b2);
+  border-radius: 3px;
+  border: 1px solid var(--b1);
+  transition: background 150ms ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--b3);
+  border-color: var(--b2);
+}
 
 /* ─── Loading dots ───────────────────────────────────────────────────────────── */
 .nexus-loading-dots {
@@ -528,7 +593,7 @@ select.nexus-input option {
   padding: 14px 16px;
   position: relative;
   overflow: hidden;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: all 150ms ease;
 }
 
 .nexus-stat-card::before {
@@ -539,9 +604,14 @@ select.nexus-input option {
   background: linear-gradient(90deg, rgba(16,185,129,0.2), rgba(16,185,129,0.1), transparent);
 }
 
-.nexus-stat-card:hover {
+.nexus-stat-card.interactive {
+  cursor: pointer;
+}
+
+.nexus-stat-card.interactive:hover {
   border-color: var(--b2);
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.1);
+  background: var(--bg2);
+  transform: translateY(-2px);
 }
 
 .nexus-stat-card-value {
@@ -561,6 +631,64 @@ select.nexus-input option {
 .text-numeric   { color: #A8C7FF; font-variant-numeric: tabular-nums; }
 .glow-cyan      { text-shadow: 0 0 8px rgba(0, 191, 255, 0.6); }
 .glow-live      { text-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+
+/* ─── Empty state ────────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 36px;
+  color: var(--t2);
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-state-title {
+  color: var(--t1);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.empty-state-message {
+  color: var(--t2);
+  font-size: 11px;
+  line-height: 1.5;
+  max-width: 300px;
+  margin-bottom: 20px;
+}
+
+.empty-state-action {
+  margin-top: 8px;
+}
+
+/* ─── Navigation active state ────────────────────────────────────────────── */
+.nav-item.active {
+  color: var(--live);
+  position: relative;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--live);
+  border-radius: 0 1px 1px 0;
+}
+
+.nav-item.active-icon {
+  color: var(--live);
+}
 
 /* ─── Table enhancements ────────────────────────────────────────────────────── */
 .nexus-table tbody tr:nth-child(even) {
@@ -585,23 +713,72 @@ select.nexus-input option {
 }
 
 /* ─── Form inputs ───────────────────────────────────────────────────────── */
+input,
+textarea,
+select {
+  font-family: inherit;
+  background: var(--bg2);
+  border: 0.5px solid var(--b1);
+  border-radius: 5px;
+  padding: 8px 10px;
+  color: var(--t0);
+  font-size: 11px;
+  transition: all 150ms ease;
+}
+
 input::placeholder,
 textarea::placeholder,
 select option {
   color: var(--t2);
 }
 
-input,
-textarea,
-select {
-  color: var(--t0);
-}
-
 input:focus,
 textarea:focus,
 select:focus {
+  outline: none;
   border-color: var(--live);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  background: var(--bg3);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background: var(--bg1);
+  border-color: var(--b0);
+  color: var(--t2);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ─── Form labels ───────────────────────────────────────────────────────── */
+label {
+  display: block;
+  color: var(--t0);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 9px;
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+}
+
+input.error,
+textarea.error,
+select.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(224, 72, 72, 0.1);
 }
 
 /* ─── Icon defaults ──────────────────────────────────────────────────────── */
