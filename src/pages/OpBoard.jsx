@@ -335,9 +335,7 @@ export default function OpBoard() {
   const load = async () => {
     const [data, ro, cq] = await Promise.all([
       base44.entities.Op.list('-scheduled_at', 50),
-      base44.entities.RefineryOrder.filter({ status: 'ACTIVE' }, '-started_at', 50).catch(() =>
-        base44.entities.RefineryOrder.list('-started_at', 50)
-      ),
+      base44.entities.RefineryOrder.list('-started_at', 50),
       base44.entities.CraftQueue.list('-created_date', 50),
     ]);
     setOps(data || []);
