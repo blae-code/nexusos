@@ -3,9 +3,37 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, Plus, Minus } from 'lucide-react';
 
-const OP_TYPES = ['FOCUSED_EVENT', 'PATROL', 'SALVAGE', 'MINING', 'BOUNTY', 'CARGO_RUN', 'EXPLORATION', 'PVP_TRAINING'];
+const OP_TYPES = [
+  'ROCKBREAKER', 'SHIP_MINING', 'VEHICLE_MINING', 'HAND_MINING',
+  'MIXED_INDUSTRIAL', 'SALVAGE', 'CARGO_RUN',
+  'FOCUSED_EVENT', 'PATROL', 'BOUNTY', 'EXPLORATION', 'PVP_TRAINING',
+];
+
 const SYSTEMS = ['STANTON', 'PYRO', 'NYX'];
-const DEFAULT_ROLES = { mining: 3, escort: 2, fabricator: 1, scout: 2 };
+
+// Role presets keyed by op type — capacity values, label is the key
+const ROLE_PRESETS = {
+  ROCKBREAKER:      { mining: 3, escort: 2, fabricator: 1, hauler: 2, medic: 1, scout: 1 },
+  SHIP_MINING:      { mining: 3, hauler: 2, escort: 2, medic: 1 },
+  VEHICLE_MINING:   { roc_operator: 3, escort: 2, hauler: 1, medic: 1 },
+  HAND_MINING:      { hand_miner: 4, escort: 2, hauler: 1 },
+  MIXED_INDUSTRIAL: { mining: 2, salvage: 2, hauler: 2, escort: 2, fabricator: 1, medic: 1 },
+  SALVAGE:          { salvage: 3, hauler: 2, escort: 2 },
+  CARGO_RUN:        { hauler: 4, escort: 2, scout: 1 },
+  FOCUSED_EVENT:    { mining: 3, escort: 2, fabricator: 1, scout: 2 },
+  PATROL:           { escort: 4, scout: 2, medic: 1 },
+  BOUNTY:           { escort: 3, scout: 2 },
+  EXPLORATION:      { scout: 4, escort: 1, medic: 1 },
+  PVP_TRAINING:     { escort: 6 },
+};
+
+const MINING_MODES = ['SHIP', 'VEHICLE', 'HAND', 'MIXED'];
+
+// Op types that involve mining/extraction (show mining_mode selector)
+const MINING_OP_TYPES = new Set(['ROCKBREAKER', 'SHIP_MINING', 'VEHICLE_MINING', 'HAND_MINING', 'MIXED_INDUSTRIAL']);
+
+// Op types that involve significant cargo movement (show hauling SCU field)
+const HAULING_OP_TYPES = new Set(['ROCKBREAKER', 'SHIP_MINING', 'VEHICLE_MINING', 'HAND_MINING', 'MIXED_INDUSTRIAL', 'SALVAGE', 'CARGO_RUN']);
 
 function FormField({ label, children }) {
   return (
