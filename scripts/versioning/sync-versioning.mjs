@@ -4,6 +4,7 @@ import {
   readJson,
   readLatestChangelogEntry,
   readText,
+  renderAppVersionModule,
   renderVersioningDoc,
   writeJson,
   writeText,
@@ -31,6 +32,9 @@ if (packageLock.packages?.['']) {
   packageLock.packages[''].version = versionMeta.version;
 }
 writeJson(paths.packageLock, packageLock);
+
+const appVersionModule = renderAppVersionModule(versionMeta, nextChangelog);
+writeText(paths.appVersionModule, appVersionModule);
 
 const versioningDoc = renderVersioningDoc(versionMeta, latestEntry);
 writeText(paths.versioningDoc, versioningDoc);

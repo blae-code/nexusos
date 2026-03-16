@@ -15,10 +15,11 @@
 - [version.json](../version.json) is the canonical release metadata.
 - [CHANGELOG.md](../CHANGELOG.md) stores release notes in descending order.
 - [package.json](../package.json) and [package-lock.json](../package-lock.json) are synced automatically from `version.json`.
+- [src/lib/generated/versioning.js](../src/lib/generated/versioning.js) is the frontend-safe generated metadata module consumed by the app shell.
 - [docs/versioning.md](./versioning.md) is regenerated automatically from the current release metadata and changelog.
 
 ## Automatic Enforcement
-- `npm run version:sync` normalizes `CHANGELOG.md`, syncs package versions, and regenerates this document.
+- `npm run version:sync` normalizes `CHANGELOG.md`, syncs package versions, regenerates the frontend metadata module, and rewrites this document.
 - `npm run version:check` fails when any versioning file drifts out of sync.
 - `npm install` runs `prepare`, which configures Git to use the repo-managed hooks in `.githooks/`.
 - `.githooks/pre-commit` runs the sync step and stages any updated versioning files.

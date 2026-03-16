@@ -4,9 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import NexusCompass from '@/components/ui/NexusCompass';
 import { useSession } from '@/lib/SessionContext';
+import { appVersion, changelogText } from '@/lib/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
-import versionData from '../../../version.json';
-import changelogText from '../../../CHANGELOG.md?raw';
 import { AltTabIcon, MoreIcon, SecondMonitorIcon } from './NexusIcons';
 
 const RANK_COLOURS = {
@@ -438,7 +437,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
           <StatusPill verseStatus={verseStatus} />
           {!isPortrait && showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
           {!isPortrait ? <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div> : null}
-          <VersionPill version={versionData.version} full={versionData.full} date={versionData.date} />
+          <VersionPill version={appVersion.version} full={appVersion.full} date={appVersion.date} />
         </div>
 
         <div

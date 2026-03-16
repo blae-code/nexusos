@@ -4,6 +4,7 @@ import {
   readJson,
   readLatestChangelogEntry,
   readText,
+  renderAppVersionModule,
   renderVersioningDoc,
 } from './lib.mjs';
 
@@ -47,6 +48,12 @@ const versioningDoc = readText(paths.versioningDoc);
 const expectedVersioningDoc = renderVersioningDoc(versionMeta, latestEntry);
 if (versioningDoc !== expectedVersioningDoc) {
   failures.push('docs/versioning.md is out of date. Run `npm run version:sync`.');
+}
+
+const appVersionModule = readText(paths.appVersionModule);
+const expectedAppVersionModule = renderAppVersionModule(versionMeta, expectedChangelog);
+if (appVersionModule !== expectedAppVersionModule) {
+  failures.push('src/lib/generated/versioning.js is out of date. Run `npm run version:sync`.');
 }
 
 if (failures.length > 0) {

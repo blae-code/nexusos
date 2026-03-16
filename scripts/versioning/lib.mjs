@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,6 +15,7 @@ export const paths = {
   packageJson: path.join(repoRoot, 'package.json'),
   packageLock: path.join(repoRoot, 'package-lock.json'),
   versioningDoc: path.join(repoRoot, 'docs', 'versioning.md'),
+  appVersionModule: path.join(repoRoot, 'src', 'lib', 'generated', 'versioning.js'),
 };
 
 export function normaliseNewlines(value) {
@@ -27,6 +28,7 @@ export function readText(filePath) {
 
 export function writeText(filePath, content) {
   const next = content.endsWith('\n') ? content : `${content}\n`;
+  mkdirSync(path.dirname(filePath), { recursive: true });
   writeFileSync(filePath, next, 'utf8');
 }
 
@@ -100,10 +102,11 @@ ${noteLines.join('\n')}
 - [version.json](../version.json) is the canonical release metadata.
 - [CHANGELOG.md](../CHANGELOG.md) stores release notes in descending order.
 - [package.json](../package.json) and [package-lock.json](../package-lock.json) are synced automatically from \`version.json\`.
+- [src/lib/generated/versioning.js](../src/lib/generated/versioning.js) is the frontend-safe generated metadata module consumed by the app shell.
 - [docs/versioning.md](./versioning.md) is regenerated automatically from the current release metadata and changelog.
 
 ## Automatic Enforcement
-- \`npm run version:sync\` normalizes \`CHANGELOG.md\`, syncs package versions, and regenerates this document.
+- \`npm run version:sync\` normalizes \`CHANGELOG.md\`, syncs package versions, regenerates the frontend metadata module, and rewrites this document.
 - \`npm run version:check\` fails when any versioning file drifts out of sync.
 - \`npm install\` runs \`prepare\`, which configures Git to use the repo-managed hooks in \`.githooks/\`.
 - \`.githooks/pre-commit\` runs the sync step and stages any updated versioning files.
@@ -114,5 +117,12 @@ ${noteLines.join('\n')}
 1. Run \`./version-bump.ps1 patch|minor|major "release note"\`.
 2. The bump script updates \`version.json\`, prepends the changelog entry, syncs the remaining version files, and commits the result.
 3. Push normally. The local hook and CI workflow verify that the versioning files stayed aligned.
+`;
+}
+
+export function renderAppVersionModule(versionMeta, changelogText) {
+  return `export const appVersion = ${JSON.stringify(versionMeta, null, 2)};
+
+export const changelogText = ${JSON.stringify(changelogText)};
 `;
 }
