@@ -19,6 +19,7 @@ import OrgRoster from '@/pages/OrgRoster';
 import ProfitCalc from '@/pages/ProfitCalc';
 import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/pages/ScoutIntel';
+import RedscarHandbook from '@/pages/RedscarHandbook';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
               <Route path="profile" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
               <Route path="ledger" element={<MaterialLedger />} />
+              <Route path="handbook" element={<RedscarHandbook />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/gate" replace />} />
