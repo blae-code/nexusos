@@ -238,7 +238,7 @@ export default function OpCreator() {
 
               <div className="flex gap-3">
                 <FormField label="TYPE">
-                  <select className="nexus-input" value={form.type} onChange={e => set('type', e.target.value)} style={{ cursor: 'pointer' }}>
+                  <select className="nexus-input" value={form.type} onChange={e => handleTypeChange(e.target.value)} style={{ cursor: 'pointer' }}>
                     {OP_TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
                   </select>
                 </FormField>
