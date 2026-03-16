@@ -602,6 +602,80 @@ select.nexus-input option {
 
 @media (min-width: 1600px) {
   .nexus-sidebar { width: 200px; }
+  .nexus-sidebar-item { display: flex; align-items: center; gap: 12px; }
+  .nexus-sidebar-label { display: inline; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .nexus-sidebar-logo { display: block; }
+  .nexus-sidebar-user { display: flex; align-items: center; gap: 8px; }
+}
+
+@media (min-width: 1920px) {
+  .detail-panel-container { position: relative; display: grid; grid-template-columns: 1fr 380px; gap: 0; }
+  .detail-panel { 
+    position: absolute; 
+    right: 0; 
+    top: 0; 
+    width: 380px; 
+    height: 100%; 
+    border-left: 0.5px solid var(--b1); 
+    background: var(--bg1); 
+    overflow-y: auto;
+    animation: slideInRight 0.2s ease-out;
+    z-index: 40;
+  }
+  .detail-panel-header { 
+    padding: 16px; 
+    border-bottom: 0.5px solid var(--b0); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+  }
+  .detail-panel-close { 
+    background: none; 
+    border: none; 
+    color: var(--t2); 
+    cursor: pointer; 
+    font-size: 16px; 
+    padding: 0;
+  }
+  .detail-panel-close:hover { color: var(--t0); }
+  .detail-panel-section { padding: 16px; border-bottom: 0.5px solid var(--b0); }
+  .detail-panel-section:last-child { border-bottom: none; }
+  .quick-access-widget { padding: 12px; margin-bottom: 12px; border: 0.5px solid var(--b1); border-radius: 6px; background: var(--bg2); }
+  .quick-access-timer { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+  .quick-access-progress { height: 2px; background: var(--b0); border-radius: 1px; margin-top: 6px; overflow: hidden; }
+  .quick-access-progress-bar { height: 100%; background: var(--live); width: 0%; transition: width 0.3s; }
+}
+
+@media (max-width: 1099px) {
+  .nav-drawer {
+    position: fixed;
+    left: 0;
+    top: var(--topbar-h);
+    width: 280px;
+    height: calc(100vh - var(--topbar-h));
+    background: var(--bg1);
+    border-right: 0.5px solid var(--b1);
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease-out;
+    overflow-y: auto;
+  }
+  .nav-drawer.open {
+    transform: translateX(0);
+  }
+  .nav-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-out;
+  }
+  .nav-drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 @media (max-width: 1099px) {
