@@ -121,19 +121,10 @@ ${sessionSummary}`,
       wrap_up_report: report,
     });
 
-    // Post to Discord via Herald Bot
+    // Post to Discord via Herald Bot (heraldBot handles thread creation + coffer posting)
     await base44.asServiceRole.functions.invoke('heraldBot', {
       action: 'opWrapUp',
-      payload: {
-        op_id: op_id,
-        op_name: op.name,
-        op_type: op.type,
-        crew_count: rsvps.length,
-        duration_minutes: duration,
-        total_scu: totalMaterialScu,
-        avg_quality: avgQuality,
-        report: report,
-      },
+      payload: { op_id: op_id },
     });
 
     return Response.json({
