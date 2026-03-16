@@ -116,7 +116,7 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
           return (
             <div
               key={`divider-${index}`}
-              style={{ width: 22, height: '0.5px', background: 'var(--b0)', margin: '3px 0' }}
+              style={{ width: 26, height: '0.5px', background: 'var(--b1)', margin: '4px 0' }}
             />
           );
         }
