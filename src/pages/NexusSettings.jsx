@@ -246,7 +246,7 @@ export default function NexusSettings() {
 
       <Section title="SESSION">
         <Row label="Sign Out" description="Clear your current session and return to the Access Gate">
-          <button onClick={() => logout('/')} className="nexus-btn danger" style={{ padding: '5px 12px', fontSize: 11 }}>
+          <button onClick={() => logout('/')} className="nexus-btn danger-btn" style={{ padding: '5px 12px', fontSize: 11 }}>
             <LogOut size={11} />
             SIGN OUT
           </button>

@@ -63,7 +63,7 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
             </div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               <span className="nexus-tag">{(op.type || '').replace(/_/g, ' ')}</span>
-              {op.system && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.system}{op.location ? ` · ${op.location}` : ''}</span>}
+              {op.system_name && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.system_name}{op.location ? ` · ${op.location}` : ''}</span>}
               {op.scheduled_at && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{isLive ? 'started' : 'scheduled'} {relativeTime(op.scheduled_at)}</span>}
               {op.access_type === 'EXCLUSIVE' && <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.05)' }}>EXCLUSIVE</span>}
               {op.buy_in_cost > 0 && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.buy_in_cost.toLocaleString()} aUEC buy-in</span>}

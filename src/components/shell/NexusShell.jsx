@@ -228,6 +228,7 @@ export default function NexusShell() {
     setLayoutMode: updateLayoutMode,
     callsign: isAdmin ? 'System Administrator' : (user?.callsign || 'UNKNOWN'),
     rank: isAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE'),
+    discordId: isAdmin ? null : (user?.discordId || null),
     isAdmin,
     source: source || session?.source || 'member',
     sessionUserId: user?.id || null,

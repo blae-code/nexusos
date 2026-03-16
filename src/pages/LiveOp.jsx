@@ -88,7 +88,7 @@ function PhaseBar({ op, canEdit, onPhaseChange }) {
 
 // ─── Threat alert modal ────────────────────────────────────────────────────────
 function ThreatAlertModal({ op, callsign, onClose }) {
-  const [form, setForm] = useState({ threat_type: 'HOSTILE', description: '', system: op.system || '' });
+  const [form, setForm] = useState({ threat_type: 'HOSTILE', description: '', system: op.system_name || '' });
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -161,6 +161,8 @@ export default function LiveOp() {
   const [tab, setTab] = useState('crew');
   const [showThreat, setShowThreat] = useState(false);
   const [showPhaseBrief, setShowPhaseBrief] = useState(false);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [endError, setEndError] = useState('');
   const [goLoading, setGoLoading] = useState(false);
   const [endLoading, setEndLoading] = useState(false);
 
@@ -198,73 +200,49 @@ export default function LiveOp() {
   };
 
   const handleEndOp = async () => {
-    if (!window.confirm('End this op and generate wrap-up report?')) return;
+    setEndError('');
     setEndLoading(true);
     try {
-      // Calculate duration
       const startTime = op.started_at ? new Date(op.started_at) : new Date();
       const endTime = new Date();
       const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
 
-      // Collect crew data from RSVPs
       const crewList = rsvps
         .filter(r => r.status === 'CONFIRMED')
-        .map(r => ({
-          callsign: r.callsign,
-          role: r.role || 'crew',
-          ship: r.ship,
-        }));
+        .map(r => ({ callsign: r.callsign, role: r.role || 'crew', ship: r.ship }));
 
-      // Collect logged materials from session
       const materialsLogged = (op.session_log || [])
         .filter(log => log.type === 'material_logged')
-        .map(log => ({
-          material_name: log.material_name,
-          quantity_scu: log.quantity_scu,
-          quality_pct: log.quality_pct,
-        }));
+        .map(log => ({ material_name: log.material_name, quantity_scu: log.quantity_scu, quality_pct: log.quality_pct }));
 
-      // Calculate total value estimate
-      const totalValue = materialsLogged.reduce((sum, m) => sum + (m.quantity_scu * 50), 0); // Rough estimate
+      const totalValue = materialsLogged.reduce((sum, m) => sum + (m.quantity_scu * 50), 0);
 
-      // Mark op as complete and get debrief
       await base44.entities.Op.update(id, { status: 'COMPLETE', ended_at: new Date().toISOString() });
 
       const res = await base44.functions.invoke('opWrapUp', {
-        op_id: id,
-        op_name: op.name,
-        op_type: op.type,
-        duration_minutes: durationMinutes,
-        crew_list: crewList,
-        session_log: op.session_log || [],
-        materials_logged: materialsLogged,
+        op_id: id, op_name: op.name, op_type: op.type,
+        duration_minutes: durationMinutes, crew_list: crewList,
+        session_log: op.session_log || [], materials_logged: materialsLogged,
         total_value_aUEC: totalValue,
       });
 
       if (res.data?.debrief_text) {
-        // Store debrief in op record
         await base44.entities.Op.update(id, { wrap_up_report: res.data.debrief_text });
-
-        // Post to Discord via Herald Bot
         if (res.data?.discord_embed) {
           await base44.functions.invoke('heraldBot', {
             action: 'opDebrief',
-            payload: {
-              op_id: id,
-              debrief: res.data.debrief_text,
-              embed: res.data.discord_embed,
-            },
+            payload: { op_id: id, debrief: res.data.debrief_text, embed: res.data.discord_embed },
           });
         }
-
         setTimeout(() => navigate('/app/ops'), 1500);
       } else {
-        alert('Wrap-up generation failed. Op marked complete.');
-        navigate('/app/ops');
+        setEndError('Wrap-up generation failed. Op has been marked complete.');
+        setTimeout(() => navigate('/app/ops'), 3000);
       }
     } catch (err) {
-      alert('Error ending op: ' + err.message);
+      setEndError(`End op failed: ${err.message}`);
     }
+    setShowEndConfirm(false);
     setEndLoading(false);
   };
 
@@ -374,7 +352,7 @@ export default function LiveOp() {
 
           {/* Meta */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-            {op.system && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.system}{op.location ? ` · ${op.location}` : ''}</span>}
+            {op.system_name && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.system_name}{op.location ? ` · ${op.location}` : ''}</span>}
             <span className="nexus-tag">{(op.type || '').replace(/_/g, ' ')}</span>
           </div>
 
@@ -391,10 +369,21 @@ export default function LiveOp() {
                 {goLoading ? 'GOING LIVE...' : '▶ GO LIVE'}
               </button>
             )}
-            {isMyOp && isLive && (
-              <button onClick={handleEndOp} disabled={endLoading} className="nexus-btn" style={{ padding: '4px 10px', fontSize: 9, borderColor: 'var(--b2)', color: 'var(--t1)' }}>
-                <Square size={9} /> {endLoading ? 'ENDING...' : 'END OP'}
+            {isMyOp && isLive && !showEndConfirm && (
+              <button onClick={() => { setEndError(''); setShowEndConfirm(true); }} disabled={endLoading} className="nexus-btn" style={{ padding: '4px 10px', fontSize: 9, borderColor: 'var(--b2)', color: 'var(--t1)' }}>
+                <Square size={9} /> END OP
               </button>
+            )}
+            {isMyOp && isLive && showEndConfirm && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ color: 'var(--t2)', fontSize: 9 }}>End op?</span>
+                <button onClick={handleEndOp} disabled={endLoading} className="nexus-btn danger-btn" style={{ padding: '4px 10px', fontSize: 9 }}>
+                  {endLoading ? 'ENDING...' : 'CONFIRM'}
+                </button>
+                <button onClick={() => setShowEndConfirm(false)} disabled={endLoading} className="nexus-btn" style={{ padding: '4px 8px', fontSize: 9 }}>
+                  CANCEL
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -428,6 +417,17 @@ export default function LiveOp() {
           ))}
         </div>
       </div>
+
+      {/* End op error banner */}
+      {endError && (
+        <div style={{
+          flexShrink: 0, padding: '7px 16px',
+          background: 'var(--danger-bg)', borderBottom: '0.5px solid var(--danger-b)',
+          color: 'var(--danger)', fontSize: 10, letterSpacing: '0.04em',
+        }}>
+          {endError}
+        </div>
+      )}
 
       {/* Tab content */}
       <div style={{ flex: 1, overflow: 'auto', padding: '0 16px' }}>
