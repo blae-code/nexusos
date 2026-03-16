@@ -82,10 +82,11 @@ export default function IndustryHub() {
       {/* Tab Bar */}
       <div style={{
         display: 'flex',
-        borderBottom: '0.5px solid var(--b1)',
+        borderBottom: '0.5px solid var(--b0)',
         background: 'var(--bg1)',
         overflowX: 'auto',
         flexShrink: 0,
+        padding: '0 32px',
       }}>
         {TABS.map(t => (
           <button
@@ -117,7 +118,7 @@ export default function IndustryHub() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflow: 'hidden', padding: '24px 32px' }}>
         {tab === 'materials' && <MaterialsTab materials={materials} onRefresh={load} />}
         {tab === 'deposits' && <ScoutDepositsTab deposits={deposits} onRefresh={load} />}
         {tab === 'blueprints' && <BlueprintsTab blueprints={blueprints} materials={materials} onRefresh={load} />}
