@@ -32,7 +32,6 @@ function App() {
           <Route path="/" element={<Navigate to="/gate" replace />} />
           <Route path="/gate" element={<AccessGate />} />
           <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />
-          <Route path="/onboarding" element={<FirstRun />} />
 
           {/* App shell — all /app/* routes rendered inside NexusShell */}
           <Route path="/app" element={<NexusShell />}>
