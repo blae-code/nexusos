@@ -1,6 +1,6 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import OpBoardModule from '@/app/modules/OpBoard';
+import OpBoardModule from '@/components/ops/OpBoardModule';
 
 export default function OpBoardPage() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
