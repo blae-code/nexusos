@@ -217,10 +217,10 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--acc2)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--cyan)', flexShrink: 0 }}>
             <CompassMark size={22} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--t0)', letterSpacing: '0.2em' }}>
-              NEXUS<span style={{ color: 'var(--t2)' }}>OS</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--t0)', letterSpacing: '0.2em', fontFamily: "'Rajdhani', 'SF Mono', monospace" }}>
+              NEXUS<span style={{ color: 'var(--cyan)', textShadow: '0 0 8px rgba(0,200,232,0.4)' }}>OS</span>
             </span>
           </div>
 
