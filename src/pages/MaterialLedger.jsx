@@ -18,14 +18,18 @@ export default function MaterialLedger() {
   const [refineryOrders, setRefineryOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [commodities, setCommodities] = useState([]);
+
   const load = useCallback(async () => {
     setLoading(true);
-    const [mats, ro] = await Promise.all([
+    const [mats, ro, comms] = await Promise.all([
       base44.entities.Material.list('-logged_at', 200),
       base44.entities.RefineryOrder.list('-started_at', 100),
+      base44.entities.GameCacheCommodity.list('name', 500),
     ]);
     setMaterials(mats || []);
     setRefineryOrders(ro || []);
+    setCommodities(comms || []);
     setLoading(false);
   }, []);
 
