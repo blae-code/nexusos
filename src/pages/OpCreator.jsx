@@ -128,16 +128,29 @@ export default function OpCreator() {
 
   const [form, setForm] = useState({
     name: '',
-    type: 'FOCUSED_EVENT',
+    type: 'ROCKBREAKER',
+    mining_mode: 'SHIP',
     system: 'STANTON',
     location: '',
     access_type: 'EXCLUSIVE',
     buy_in_cost: 0,
+    hauling_scu_required: 0,
     scheduled_at: '',
     min_rank: 'VAGRANT',
   });
 
-  const [roleSlots, setRoleSlots] = useState({ ...DEFAULT_ROLES });
+  const [roleSlots, setRoleSlots] = useState({ ...ROLE_PRESETS['ROCKBREAKER'] });
+
+  // When op type changes, auto-load the role preset for that type
+  const handleTypeChange = (newType) => {
+    set('type', newType);
+    if (ROLE_PRESETS[newType]) setRoleSlots({ ...ROLE_PRESETS[newType] });
+    // Auto-set mining_mode for mining op types
+    if (newType === 'VEHICLE_MINING') set('mining_mode', 'VEHICLE');
+    else if (newType === 'HAND_MINING') set('mining_mode', 'HAND');
+    else if (newType === 'SHIP_MINING') set('mining_mode', 'SHIP');
+    else if (newType === 'MIXED_INDUSTRIAL') set('mining_mode', 'MIXED');
+  };
   const [options, setOptions] = useState({
     reminder_24h: true,
     reminder_1h: true,
