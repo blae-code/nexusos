@@ -8,6 +8,7 @@ import versionData from '../../../version.json';
 import { useSession } from '@/lib/SessionContext';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
 import { AltTabIcon, MoreIcon, SecondMonitorIcon } from './NexusIcons';
+import { Menu } from 'lucide-react';
 
 const RANK_COLOURS = {
   PIONEER: 'var(--warn)',
@@ -146,7 +147,7 @@ function getBreadcrumb(pathname, search) {
   return { module: 'NexusOS', tab: 'Overview' };
 }
 
-export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus }) {
+export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, onTogglePortraitNav }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, source } = useSession();
@@ -156,6 +157,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   const [onlineCount, setOnlineCount] = useState(null);
   const userMenuRef = useRef(null);
   const moreMenuRef = useRef(null);
+  const [isPortrait, setIsPortrait] = useState(window.innerWidth < 1100);
 
   const breadcrumb = useMemo(
     () => getBreadcrumb(location.pathname, location.search),
@@ -201,8 +203,16 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
       }
     };
 
+    const handleResize = () => {
+      setIsPortrait(window.innerWidth < 1100);
+    };
+
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const extraLinks = source === 'admin' || ['PIONEER', 'FOUNDER'].includes(user?.rank)
@@ -227,6 +237,14 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+          {isPortrait && (
+            <button
+              onClick={onTogglePortraitNav}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t1)', display: 'flex', padding: '0 4px' }}
+            >
+              <Menu size={16} />
+            </button>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <NexusCompass />
             <span
