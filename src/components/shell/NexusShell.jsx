@@ -1,25 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
 
 export default function NexusShell() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [layoutMode, setLayoutMode] = useState('alt-tab'); // 'alt-tab' | '2nd-monitor'
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [layoutMode, setLayoutMode] = useState('alt-tab');
+  const [ready, setReady] = useState(false);
 
-  // Auth gate
+  // Auth gate — allow nexus_session (org members) OR Base44 native admin session
   useEffect(() => {
-    const session = localStorage.getItem('nexus_session');
-    const isAdminRoute = location.pathname.startsWith('/admin');
-    if (!session && !isAdminRoute) {
-      navigate('/gate');
-    }
-  }, [location.pathname, navigate]);
+    const nexusSession = localStorage.getItem('nexus_session');
+    if (nexusSession) { setReady(true); return; }
 
-  const callsign = localStorage.getItem('nexus_callsign') || 'UNKNOWN';
-  const rank = localStorage.getItem('nexus_rank') || 'VAGRANT';
+    base44.auth.me().then(user => {
+      if (user) {
+        // Base44 admin — inject identity so topbar renders correctly
+        if (!localStorage.getItem('nexus_callsign')) {
+          localStorage.setItem('nexus_callsign', 'SYS-ADMIN');
+          localStorage.setItem('nexus_rank', 'PIONEER');
+        }
+        setReady(true);
+      } else {
+        navigate('/gate');
+      }
+    }).catch(() => navigate('/gate'));
+  }, []);
+
+  const callsign = localStorage.getItem('nexus_callsign') || 'SYS-ADMIN';
+  const rank = localStorage.getItem('nexus_rank') || 'PIONEER';
+
+  if (!ready) return null;
 
   return (
     <div
