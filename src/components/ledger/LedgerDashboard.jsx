@@ -162,6 +162,12 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
         <StatCard label="AVG QUALITY" value={`${stats.avgQuality.toFixed(0)}%`} sub="across all materials" accent={stats.avgQuality >= 80 ? 'var(--live)' : stats.avgQuality >= 60 ? 'var(--warn)' : 'var(--danger)'} />
         <StatCard label="T2-ELIGIBLE" value={stats.t2Ready} sub={`${stats.t2Scu.toFixed(1)} SCU @ 80%+`} accent="var(--live)" />
         <StatCard label="REFINING NOW" value={`${stats.refiningScu.toFixed(1)} SCU`} sub={`${refineryOrders.filter(r => r.status === 'ACTIVE').length} active orders`} accent="var(--info)" />
+        <StatCard
+          label="EST. MARKET VALUE"
+          value={stats.totalValue > 0 ? `${Math.round(stats.totalValue / 1000)}k` : '—'}
+          sub={stats.totalValue > 0 ? `aUEC · ${stats.valuedCount} priced` : 'no price data'}
+          accent={stats.totalValue > 0 ? 'var(--live)' : 'var(--t2)'}
+        />
       </div>
 
       {/* Pipeline flow */}
