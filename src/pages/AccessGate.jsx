@@ -21,10 +21,10 @@ function buildStars() {
 
   const width = Math.max(window.innerWidth, 1);
   const height = Math.max(window.innerHeight, 1);
-  const centerLeft = width / 2 - 100;
-  const centerRight = width / 2 + 100;
-  const centerTop = height / 2 - 200;
-  const centerBottom = height / 2 + 200;
+  const centerLeft = width / 2 - 200;
+  const centerRight = width / 2 + 200;
+  const centerTop = height / 2 - 250;
+  const centerBottom = height / 2 + 250;
 
   return STAR_SIZES.map((size, index) => {
     let left = 0;
@@ -43,6 +43,64 @@ function buildStars() {
       duration: STAR_DURATIONS[Math.floor(Math.random() * STAR_DURATIONS.length)],
     };
   });
+}
+
+function AuthKeyInput({ value, onChange, onReveal, revealing, error }) {
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <label style={{ color: 'var(--t2)', fontSize: 10, display: 'block', marginBottom: 8, letterSpacing: '0.12em' }}>
+        AUTHENTICATION KEY
+      </label>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <input
+          type={revealing ? 'text' : 'password'}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="RSN-XXXX-XXXX-XXXX"
+          style={{
+            flex: 1,
+            padding: '10px 12px',
+            background: 'var(--bg2)',
+            border: `0.5px solid ${error ? 'var(--warn)' : 'var(--b1)'}`,
+            borderRadius: 6,
+            color: 'var(--t0)',
+            fontSize: 11,
+            fontFamily: 'monospace',
+            letterSpacing: '0.08em',
+            transition: 'border-color 0.12s',
+            outline: 'none',
+          }}
+        />
+        <button
+          type="button"
+          onMouseDown={() => onReveal(true)}
+          onMouseUp={() => onReveal(false)}
+          onMouseLeave={() => onReveal(false)}
+          onTouchStart={() => onReveal(true)}
+          onTouchEnd={() => onReveal(false)}
+          style={{
+            position: 'absolute',
+            right: 10,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--t2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4px 6px',
+          }}
+        >
+          <Eye size={14} />
+        </button>
+      </div>
+      {error && (
+        <div style={{ color: 'var(--warn)', fontSize: 9, marginTop: 6, letterSpacing: '0.04em' }}>
+          {error}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function StatusBar({ status }) {
