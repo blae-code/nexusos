@@ -88,9 +88,25 @@ function PipelineFlow({ raw, refining, refined, armory }) {
   );
 }
 
-export default function LedgerDashboard({ materials, refineryOrders, loading }) {
+export default function LedgerDashboard({ materials, refineryOrders, commodities = [], loading }) {
   const stats = useMemo(() => {
     const active = materials.filter(m => !m.is_archived);
+
+    // Build commodity price lookup by name (case-insensitive)
+    const priceByName = {};
+    commodities.forEach(c => {
+      if (c.sell_price_uex > 0) priceByName[(c.name || '').toLowerCase()] = c.sell_price_uex;
+    });
+
+    // Stockpile value = sum(quantity_scu * sell_price per SCU)
+    // sell_price_uex is typically per unit; 1 SCU ≈ 100 units in SC economy
+    const UNITS_PER_SCU = 100;
+    let totalValue = 0;
+    active.forEach(m => {
+      const price = priceByName[(m.material_name || '').toLowerCase()];
+      if (price && m.quantity_scu) totalValue += m.quantity_scu * UNITS_PER_SCU * price;
+    });
+    const valuedCount = active.filter(m => priceByName[(m.material_name || '').toLowerCase()]).length;
 
     const totalScu  = active.reduce((s, m) => s + (m.quantity_scu || 0), 0);
     const avgQuality = active.length ? active.reduce((s, m) => s + (m.quality_pct || 0), 0) / active.length : 0;
