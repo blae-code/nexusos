@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Monitor, Columns, ChevronDown, LogOut, Key, User } from 'lucide-react';
+import { Monitor, Columns, ChevronDown, LogOut, Key, User, ScrollText, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import versionData    from '../../../version.json';
+import changelogRaw  from '../../../CHANGELOG.md?raw';
 
 const RANK_COLOURS = {
   PIONEER: '#c8a84b',
@@ -32,11 +34,79 @@ const BREADCRUMBS = {
   '/app/admin/keys': 'Admin / Key Management',
 };
 
+// ─── Changelog dialog ─────────────────────────────────────────────────────────
+
+function ChangelogDialog({ onClose }) {
+  const lines = changelogRaw.split('\n');
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end',
+        paddingTop: 52, paddingRight: 12,
+        pointerEvents: 'none',
+      }}
+    >
+      <div
+        className="nexus-fade-in"
+        style={{
+          width: 400, maxHeight: 480, pointerEvents: 'all',
+          background: 'var(--bg2)', border: '0.5px solid var(--b2)',
+          borderRadius: 8, display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 14px', borderBottom: '0.5px solid var(--b1)', flexShrink: 0,
+        }}>
+          <span style={{ color: 'var(--t0)', fontSize: 11, letterSpacing: '0.08em', fontWeight: 600 }}>
+            CHANGELOG
+          </span>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: 2, display: 'flex' }}
+          >
+            <X size={13} />
+          </button>
+        </div>
+        {/* Content */}
+        <div style={{ overflowY: 'auto', padding: '10px 14px' }}>
+          {lines.map((line, i) => {
+            if (line.startsWith('## ')) {
+              return (
+                <div key={i} style={{
+                  color: 'var(--t0)', fontSize: 11, fontWeight: 600,
+                  paddingBottom: 5, marginBottom: 6, marginTop: i === 0 ? 0 : 14,
+                  borderBottom: '0.5px solid var(--b0)',
+                }}>
+                  {line.replace(/^## /, '')}
+                </div>
+              );
+            }
+            if (line.startsWith('# ')) {
+              return null; // skip top-level heading
+            }
+            return (
+              <div key={i} style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
+                {line || '\u00a0'}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function NexusTopbar({ callsign, rank, layoutMode, onToggleLayout, currentPath }) {
   const navigate = useNavigate();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [patchVersion, setPatchVersion] = useState('4.0.x');
-  const [onlineCount, setOnlineCount] = useState(null);
+  const [userMenuOpen, setUserMenuOpen]     = useState(false);
+  const [showChangelog, setShowChangelog]   = useState(false);
+  const [patchVersion, setPatchVersion]     = useState('4.0.x');
+  const [onlineCount, setOnlineCount]       = useState(null);
 
   const breadcrumb = BREADCRUMBS[currentPath] || currentPath.replace('/app/', '').replace(/\//g, ' / ');
   const rankColor = RANK_COLOURS[rank] || '#8890a8';
@@ -58,6 +128,7 @@ export default function NexusTopbar({ callsign, rank, layoutMode, onToggleLayout
   }, []);
 
   return (
+    <>
     <header
       className="flex items-center flex-shrink-0"
       style={{
@@ -84,6 +155,7 @@ export default function NexusTopbar({ callsign, rank, layoutMode, onToggleLayout
       {/* Centre — status pills */}
       <div className="flex items-center gap-2">
         <StatusPill dot="live" label={`LIVE ${patchVersion}`} />
+        <VersionPill version={versionData.version} full={versionData.full} date={versionData.date} />
         <OrgPill label="REDSCAR NOMADS" />
       </div>
 
@@ -161,6 +233,7 @@ export default function NexusTopbar({ callsign, rank, layoutMode, onToggleLayout
                 <MenuLink icon={Key} label="Key Management" onClick={() => { navigate('/app/admin/keys'); setUserMenuOpen(false); }} />
               )}
               <MenuLink icon={User} label="Profile" onClick={() => setUserMenuOpen(false)} />
+              <MenuLink icon={ScrollText} label="Changelog" onClick={() => { setShowChangelog(true); setUserMenuOpen(false); }} />
               <div style={{ borderTop: '0.5px solid var(--b1)', marginTop: 2 }}/>
               <MenuLink icon={LogOut} label="Sign Out" onClick={handleLogout} danger />
             </div>
@@ -168,6 +241,9 @@ export default function NexusTopbar({ callsign, rank, layoutMode, onToggleLayout
         </div>
       </div>
     </header>
+
+    {showChangelog && <ChangelogDialog onClose={() => setShowChangelog(false)} />}
+    </>
   );
 }
 
@@ -188,6 +264,51 @@ function StatusPill({ dot, label }) {
     >
       <div style={{ width: 5, height: 5, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
       {label}
+    </div>
+  );
+}
+
+function VersionPill({ version, full, date }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      style={{ position: 'relative', display: 'inline-flex' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div
+        style={{
+          background: 'var(--bg2)',
+          border: '0.5px solid var(--b2)',
+          borderRadius: 20,
+          padding: '2px 8px',
+          fontSize: 10,
+          letterSpacing: '0.06em',
+          color: 'var(--t2)',
+          cursor: 'default',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        v{version}
+      </div>
+      {hovered && (
+        <div style={{
+          position: 'absolute',
+          bottom: 'calc(100% + 6px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--bg2)',
+          border: '0.5px solid var(--b2)',
+          borderRadius: 6,
+          padding: '5px 9px',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          zIndex: 50,
+        }}>
+          <div style={{ color: 'var(--t1)', fontSize: 9 }}>{full}</div>
+          <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 2 }}>{date}</div>
+        </div>
+      )}
     </div>
   );
 }
