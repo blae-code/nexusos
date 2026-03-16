@@ -49,7 +49,6 @@ function App() {
             <Route path="settings" element={<NexusSettings />} />
             <Route path="admin/keys" element={<KeyManagement />} />
             <Route path="admin/todo" element={<NexusTodo />} />
-            <Route path="profile" element={<ProfileSettings />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/gate" replace />} />
