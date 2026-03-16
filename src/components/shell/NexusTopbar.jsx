@@ -3,6 +3,8 @@ import { ChevronDown, LogOut, Menu, ScrollText, User, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import NexusCompass from '@/components/ui/NexusCompass';
+import NexusToken from '@/components/ui/NexusToken';
+import { rankToken } from '@/lib/tokenMap';
 import { useSession } from '@/lib/SessionContext';
 import { appVersion, changelogText } from '@/lib/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
@@ -525,14 +527,10 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
                 color: 'var(--t1)',
               }}
             >
-              <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 1,
-                  background: rankColor,
-                  flexShrink: 0,
-                }}
+              <NexusToken
+                src={rankToken(source === 'admin' ? 'PIONEER' : (user?.rank || 'AFFILIATE'))}
+                size={16}
+                alt={source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}
               />
               <span style={{ fontSize: 10 }}>
                 {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
@@ -546,7 +544,12 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
                   <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 500 }}>
                     {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
                   </div>
-                  <div style={{ marginTop: 5 }}>
+                  <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <NexusToken
+                      src={rankToken(source === 'admin' ? 'PIONEER' : (user?.rank || 'AFFILIATE'))}
+                      size={22}
+                      alt={source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}
+                    />
                     <span className="nexus-pill nexus-pill-neu" style={{ color: rankColor, borderColor: 'var(--b2)' }}>
                       {source === 'admin' ? 'SUDO' : (user?.rank || 'AFFILIATE')}
                     </span>

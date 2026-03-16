@@ -9,6 +9,8 @@
  * Voice channel shown at bottom based on op type routing from spec.
  */
 import React from 'react';
+import NexusToken from '@/components/ui/NexusToken';
+import { roleToken } from '@/lib/tokenMap';
 
 // ─── Role colour map ──────────────────────────────────────────────────────────
 
@@ -81,14 +83,21 @@ function CrewCard({ rsvp, op }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
             {rsvp.role && (
-              <span style={{
-                fontSize: 9, padding: '1px 5px', borderRadius: 4,
-                border: `0.5px solid ${rCol}50`,
-                background: `${rCol}12`,
-                color: rCol, letterSpacing: '0.06em', fontWeight: 600,
-              }}>
-                {rsvp.role.toUpperCase()}
-              </span>
+              <>
+                <NexusToken
+                  src={roleToken(rsvp.role.toUpperCase())}
+                  size={22}
+                  alt={rsvp.role}
+                />
+                <span style={{
+                  fontSize: 9, padding: '1px 5px', borderRadius: 4,
+                  border: `0.5px solid ${rCol}50`,
+                  background: `${rCol}12`,
+                  color: rCol, letterSpacing: '0.06em', fontWeight: 600,
+                }}>
+                  {rsvp.role.toUpperCase()}
+                </span>
+              </>
             )}
             {rsvp.ship && (
               <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.04em' }}>

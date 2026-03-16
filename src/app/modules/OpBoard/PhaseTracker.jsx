@@ -1,5 +1,7 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
+import NexusToken from '@/components/ui/NexusToken';
+import { phaseToken } from '@/lib/tokenMap';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 
@@ -29,33 +31,12 @@ function PhaseNode({ label, index, status, canAdvance, onClick }) {
       onClick={clickable ? onClick : undefined}
       title={clickable ? 'Advance phase' : undefined}
     >
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: '50%',
-          border: `0.5px solid ${isDone ? 'var(--live-b)' : isActive ? 'var(--acc2)' : 'var(--b1)'}`,
-          background: isDone ? 'var(--live-bg)' : isActive ? 'var(--bg4)' : 'var(--bg2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: isDone ? 'var(--live)' : isActive ? 'var(--warn)' : 'var(--t2)',
-          transition: 'border-color .12s, background .12s, box-shadow .12s',
-          boxShadow: isActive ? '0 0 0 2px var(--bg0), 0 0 0 3px var(--b2)' : 'none',
-        }}
-      >
-        {isDone ? (
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M2.5 7l3.5 3.5 5.5-7" stroke="var(--live)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        ) : isActive ? (
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M6 2L8.8 7H3.2L6 2Z" stroke="var(--warn)" strokeWidth="1" strokeLinejoin="round" />
-          </svg>
-        ) : (
-          <span style={{ fontSize: 12, fontWeight: 600 }}>{index + 1}</span>
-        )}
-      </div>
+      <NexusToken
+        src={phaseToken(index + 1, status.toUpperCase())}
+        size={36}
+        pulse={isActive ? 'live' : false}
+        alt={`Phase ${index + 1} — ${subLabel}`}
+      />
 
       <span style={{ fontSize: 8, color: labelColor, letterSpacing: '.06em', textAlign: 'center', lineHeight: 1.3, maxWidth: 72 }}>
         {label}

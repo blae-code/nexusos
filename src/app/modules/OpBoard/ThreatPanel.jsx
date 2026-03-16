@@ -11,24 +11,10 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { AlertTriangle, Plus, X } from 'lucide-react';
+import NexusToken from '@/components/ui/NexusToken';
+import { threatToken } from '@/lib/tokenMap';
 
 // ─── Severity config ──────────────────────────────────────────────────────────
-
-const SEVERITY = {
-  HIGH: { color: 'var(--danger)', label: 'HIGH' },
-  MED:  { color: 'var(--warn)',   label: 'MED'  },
-  LOW:  { color: 'var(--t2)',     label: 'LOW'  },
-};
-
-function severityDot(severity) {
-  const s = SEVERITY[severity] || SEVERITY.LOW;
-  return (
-    <div style={{
-      width: 6, height: 6, borderRadius: '50%',
-      background: s.color, flexShrink: 0,
-    }} />
-  );
-}
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';
@@ -240,7 +226,11 @@ export default function ThreatPanel({ op, callsign, onUpdate }) {
               padding: '7px 10px', borderRadius: 5,
               background: 'var(--bg2)', border: '0.5px solid var(--b1)',
             }}>
-              {severityDot(t.severity || 'LOW')}
+              <NexusToken
+                src={threatToken(t.severity || 'LOW')}
+                size={28}
+                alt={t.severity || 'LOW'}
+              />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: 'var(--t0)', fontSize: 11, lineHeight: 1.4 }}>{t.text}</div>
                 <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 2 }}>

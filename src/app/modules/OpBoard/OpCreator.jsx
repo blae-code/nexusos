@@ -11,6 +11,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, Plus, X, GripVertical } from 'lucide-react';
+import NexusToken from '@/components/ui/NexusToken';
+import { opTypeToken } from '@/lib/tokenMap';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -103,7 +105,7 @@ function FormField({ label, children }) {
 
 // ─── Segmented control ────────────────────────────────────────────────────────
 
-function SegmentedControl({ options, value, onChange }) {
+function SegmentedControl({ options, value, onChange, tokenFn }) {
   return (
     <div style={{
       display: 'flex', flexWrap: 'wrap', gap: 3,
@@ -127,8 +129,12 @@ function SegmentedControl({ options, value, onChange }) {
               color: active ? 'var(--t0)' : 'var(--t2)',
               transition: 'all 0.12s',
               fontWeight: active ? 600 : 400,
+              display: tokenFn ? 'inline-flex' : undefined,
+              alignItems: tokenFn ? 'center' : undefined,
+              gap: tokenFn ? 4 : undefined,
             }}
           >
+            {tokenFn && <NexusToken src={tokenFn(val)} size={16} alt={val} />}
             {lbl}
           </button>
         );
@@ -508,6 +514,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                 options={OP_TYPES}
                 value={form.type}
                 onChange={v => set('type', v)}
+                tokenFn={opTypeToken}
               />
             </FormField>
 

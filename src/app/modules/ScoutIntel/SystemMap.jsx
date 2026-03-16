@@ -13,8 +13,10 @@
  * Heatmap: opacity-scaled density circles per body when toggled.
  * Op overlay: pulsing amber ring on craft-target deposits when live op active.
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Layers, Crosshair } from 'lucide-react';
+import NexusToken from '@/components/ui/NexusToken';
+import { depositToken } from '@/lib/tokenMap';
 
 // ─── System layout data ────────────────────────────────────────────────────────
 
@@ -276,6 +278,8 @@ export default function SystemMap({
     return Object.values(SYSTEMS).filter(s => s.label === system);
   }, [system]);
 
+  const [hoveredDepositId, setHoveredDepositId] = useState(null);
+
   const svgW = 900, svgH = 480;
 
   return (
@@ -383,15 +387,6 @@ export default function SystemMap({
         borderRadius: 8,
         overflow: 'hidden',
       }}>
-        {/* Keyframe for pulsing op-overlay ring */}
-        <style>{`
-          @keyframes scout-pulse {
-            0%,100% { r: 10; opacity: 0.7; }
-            50%      { r: 18; opacity: 0.1; }
-          }
-          .scout-pulse-ring { animation: scout-pulse 2s ease-in-out infinite; }
-        `}</style>
-
         <svg
           width="100%"
           viewBox={`0 0 ${svgW} ${svgH}`}
@@ -536,7 +531,7 @@ export default function SystemMap({
             const col = qColor(deposit.quality_pct);
             const stale = deposit.is_stale;
             const selected = deposit.id === selectedDepositId;
-            const firstLetter = (deposit.material_name || '?')[0].toUpperCase();
+            const hovered = deposit.id === hoveredDepositId;
             const isCraftTarget = opOverlay && liveOp &&
               craftTargetMaterials.has((deposit.material_name || '').toLowerCase());
 
@@ -546,37 +541,26 @@ export default function SystemMap({
                 opacity={stale ? 0.35 : 1}
                 style={{ cursor: 'pointer' }}
                 onClick={() => onSelectDeposit(deposit)}
+                onMouseEnter={() => setHoveredDepositId(deposit.id)}
+                onMouseLeave={() => setHoveredDepositId(null)}
               >
-                {/* Op overlay pulse ring */}
-                {isCraftTarget && (
+                {/* Selection / hover ring */}
+                {(selected || hovered) && (
                   <circle
                     cx={pos.x} cy={pos.y}
-                    r={10}
-                    fill="none"
-                    stroke="var(--warn)"
-                    strokeWidth={1.5}
-                    className="scout-pulse-ring"
-                    style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
-                  />
-                )}
-
-                {/* Selection ring */}
-                {selected && (
-                  <circle
-                    cx={pos.x} cy={pos.y}
-                    r={12}
+                    r={18}
                     fill="none"
                     stroke={col}
-                    strokeWidth={1}
-                    opacity={0.7}
+                    strokeWidth={selected ? 1 : 0.5}
+                    opacity={selected ? 0.7 : 0.4}
                   />
                 )}
 
-                {/* Quality label (above circle) */}
+                {/* Quality label (above token) */}
                 {deposit.quality_pct != null && (
                   <text
                     x={pos.x}
-                    y={pos.y - 12}
+                    y={pos.y - 18}
                     textAnchor="middle"
                     fill={col}
                     fontSize={8}
@@ -587,38 +571,22 @@ export default function SystemMap({
                   </text>
                 )}
 
-                {/* Marker circle */}
-                <circle
-                  cx={pos.x} cy={pos.y}
-                  r={7}
-                  fill="var(--bg3)"
-                  stroke={col}
-                  strokeWidth={stale ? 0 : 0.5}
-                  strokeDasharray={stale ? '2 2' : 'none'}
-                />
-                {stale && (
-                  <circle
-                    cx={pos.x} cy={pos.y}
-                    r={7}
-                    fill="none"
-                    stroke={col}
-                    strokeWidth={0.5}
-                    strokeDasharray="2 2"
-                  />
-                )}
-
-                {/* Material letter */}
-                <text
-                  x={pos.x}
-                  y={pos.y + 3.5}
-                  textAnchor="middle"
-                  fill={col}
-                  fontSize={8}
-                  fontFamily="monospace"
-                  fontWeight={700}
+                {/* NexusToken deposit marker — 28px centred on pos */}
+                <foreignObject
+                  x={pos.x - 14}
+                  y={pos.y - 14}
+                  width={28}
+                  height={28}
+                  style={{ overflow: 'visible' }}
                 >
-                  {firstLetter}
-                </text>
+                  <NexusToken
+                    src={depositToken(deposit.quality_pct, stale, isCraftTarget)}
+                    size={28}
+                    pulse={isCraftTarget ? 'warn' : false}
+                    alt={deposit.material_name || 'deposit'}
+                    title={deposit.material_name}
+                  />
+                </foreignObject>
               </g>
             );
           })}

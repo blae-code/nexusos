@@ -6,7 +6,9 @@
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Upload, ChevronDown, ChevronUp, Search, MessageSquare, X, Check } from 'lucide-react';
-import { MaterialGlyph, MaterialStatusPill } from '@/components/industry/IndustryVisuals';
+import { MaterialStatusPill } from '@/components/industry/IndustryVisuals';
+import NexusToken from '@/components/ui/NexusToken';
+import { materialToken } from '@/lib/tokenMap';
 
 // ─── Shared style constants ────────────────────────────────────────────────────
 
@@ -25,6 +27,21 @@ const TH = {
 const TD = { padding: '6px 12px' };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// Maps material_type to tokenMap category shape
+function matCategory(type) {
+  if (type === 'SALVAGE') return 'salvage';
+  if (type === 'CRAFTED') return 'general';
+  return 'ore'; // RAW, REFINED
+}
+
+// Maps material fields to tokenMap status colour
+function matStatus(m) {
+  if (m.t2_eligible) return 'CRAFT-READY';
+  if ((m.material_type || '') === 'RAW') return 'REFINE FIRST';
+  if (m.material_type) return 'BELOW T2';
+  return 'neutral';
+}
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';
@@ -118,7 +135,9 @@ function EditRow({ material, onSave, onCancel }) {
   return (
     <tr style={{ background: 'rgba(90,96,128,0.08)', borderBottom: '0.5px solid var(--b1)' }}>
       {/* icon */}
-      <td style={TD}><MaterialGlyph type={type} size={14} /></td>
+      <td style={TD}>
+        <NexusToken src={materialToken(matCategory(type), 'neutral')} size={24} alt={type} />
+      </td>
       {/* name + type selector */}
       <td colSpan={2} style={TD}>
         <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{material.material_name}</div>
@@ -726,8 +745,8 @@ export default function Materials({ materials, onRefresh }) {
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     {/* Icon */}
-                    <td style={{ padding: '8px 8px 8px 12px', width: 28 }}>
-                      <MaterialGlyph type={m.material_type} size={14} />
+                    <td style={{ padding: '8px 8px 8px 12px', width: 36 }}>
+                      <NexusToken src={materialToken(matCategory(m.material_type), matStatus(m))} size={24} alt={m.material_type} />
                     </td>
 
                     {/* Material name + source */}

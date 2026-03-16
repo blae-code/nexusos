@@ -9,8 +9,9 @@ import { Star, ChevronDown, ChevronUp, Plus, X, Search, Wrench } from 'lucide-re
 import {
   BlueprintHolderChip,
   BlueprintPriorityTag,
-  BlueprintStatusDot,
 } from '@/components/industry/IndustryVisuals';
+import NexusToken from '@/components/ui/NexusToken';
+import { blueprintToken } from '@/lib/tokenMap';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -313,8 +314,7 @@ function BlueprintRow({ blueprint, isPioneer, materials, callsign, onTogglePrior
         onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
-        {/* 6px status dot */}
-        <BlueprintStatusDot isPriority={isPriority} owned={owned} />
+        <NexusToken src={blueprintToken(owned, isPriority)} size={18} alt="blueprint status" />
 
         {/* Item name */}
         <span style={{
@@ -426,7 +426,7 @@ function PriorityPanel({ blueprints, materials, onClearPriority }) {
             }
             return (
               <div key={bp.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '0.5px solid var(--b0)' }}>
-                <BlueprintStatusDot isPriority owned={owned} />
+                <NexusToken src={blueprintToken(owned, true)} size={18} alt="priority status" />
                 <span style={{ flex: 1, color: 'var(--t0)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {bp.item_name}
                 </span>
@@ -868,7 +868,7 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
               borderBottom: '0.5px solid var(--b1)',
               color: 'var(--t2)', fontSize: 9, letterSpacing: '0.1em',
             }}>
-              <div style={{ width: 6, flexShrink: 0 }} />
+              <div style={{ width: 18, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>BLUEPRINT</div>
               <div style={{ width: 32 }}>TIER</div>
               <div style={{ width: 80 }}>CATEGORY</div>

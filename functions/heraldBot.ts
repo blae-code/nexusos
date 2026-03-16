@@ -52,6 +52,24 @@ const DISCORD_API        = 'https://discord.com/api/v10';
 
 const BOT_CONFIGURED = !!BOT_TOKEN && !!GUILD_ID;
 
+// ─── Token URLs for Discord embed thumbnails ──────────────────────────────────
+const BASE_URL = (Deno.env.get('NEXUSOS_PUBLIC_URL') || '').replace(/\/$/, '');
+const tokenUrl = (name: string) => `${BASE_URL}/tokens/token-${name}.png`;
+const TOKENS = {
+  opAnnounce:   tokenUrl('objective-blue'),
+  opLive:       tokenUrl('objective-cyan'),
+  phaseAdvance: tokenUrl('objective-cyan'),
+  threatHigh:   tokenUrl('target-red'),
+  threatMed:    tokenUrl('target-alt-orange'),
+  keyDelivered: tokenUrl('square-cyan'),
+  keyRevoked:   tokenUrl('square-red'),
+  armoryUpdate: tokenUrl('mechanics-blue'),
+  patchDigest:  tokenUrl('energy-blue'),
+  depositStale: tokenUrl('hex-grey'),
+  depositReady: tokenUrl('hex-green'),
+  scoutPing:    tokenUrl('hex-green'),
+};
+
 // ─── Discord REST helpers ─────────────────────────────────────────────────────
 async function discordPost(path: string, body: unknown) {
   if (!BOT_CONFIGURED) {
@@ -325,7 +343,7 @@ Deno.serve(async (req: Request) => {
 
       const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, {
         content:    '@here 📡 **New op published** — RSVP below',
-        embeds:     [buildRsvpEmbed(op, [])],
+        embeds:     [{ ...buildRsvpEmbed(op, []), thumbnail: { url: TOKENS.opAnnounce } }],
         components: buildRsvpButtons(op),
       }) as any;
 
@@ -392,7 +410,7 @@ Deno.serve(async (req: Request) => {
 
       if (op.discord_message_id) {
         const confirmed  = (rsvps || []).filter((r: any) => r.status === 'CONFIRMED');
-        const liveEmbed  = { ...buildRsvpEmbed({ ...op, status: 'LIVE' }, confirmed) };
+        const liveEmbed  = { ...buildRsvpEmbed({ ...op, status: 'LIVE' }, confirmed), thumbnail: { url: TOKENS.opLive } };
         await discordPatch(`/channels/${CH.nexusOps}/messages/${op.discord_message_id}`, {
           embeds:     [liveEmbed],
           components: buildRsvpButtons(op),
@@ -416,6 +434,7 @@ Deno.serve(async (req: Request) => {
           title:       `⚙️ PHASE ${phase_index + 1} — ${(phase_name as string).toUpperCase()}`,
           color:       0xe8a020,
           description: 'Phase advanced — all crew acknowledge',
+          thumbnail:   { url: TOKENS.phaseAdvance },
           footer:      { text: `NEXUSOS · OP ID ${op_id}` },
           timestamp:   new Date().toISOString(),
         }],
@@ -425,13 +444,16 @@ Deno.serve(async (req: Request) => {
 
     // ── 5. Threat Alert ───────────────────────────────────────────────────────
     if (action === 'threatAlert') {
-      const { op_id, op_name, threat_type, description, system, callsign } = payload;
+      const { op_id, op_name, threat_type, description, system, callsign, severity } = payload;
+      const sev = ((severity || threat_type) as string)?.toUpperCase();
+      const thumbnailUrl = sev === 'HIGH' ? TOKENS.threatHigh : TOKENS.threatMed;
       await discordPost(`/channels/${CH.nexusOps}/messages`, {
         content: '@here ⚠️ **THREAT ALERT**',
         embeds: [{
           title:       `⚠️ ${(threat_type as string)?.toUpperCase() || 'THREAT'} — ${op_name || op_id}`,
           color:       0xe04848,
           description: description || '—',
+          thumbnail:   { url: thumbnailUrl },
           fields: [
             ...(system   ? [{ name: 'System',      value: system,   inline: true }] : []),
             ...(callsign ? [{ name: 'Reported by', value: callsign, inline: true }] : []),
@@ -452,6 +474,7 @@ Deno.serve(async (req: Request) => {
           embeds: [{
             title:       '🔑 Your NexusOS Access Key',
             color:       0x4a5070,
+            thumbnail:   { url: TOKENS.keyDelivered },
             description: [
               `Welcome to NexusOS, **${callsign}** [${rank || 'OPERATIVE'}].`,
               '',
@@ -521,8 +544,9 @@ Deno.serve(async (req: Request) => {
 
       await discordPost(`/channels/${CH.nexusLog}/messages`, {
         embeds: [{
-          title:  `🔑 KEY ${(event_type as string).toUpperCase()} — ${callsign}`,
-          color:  isRevoked ? 0xe04848 : 0x4a5070,
+          title:     `🔑 KEY ${(event_type as string).toUpperCase()} — ${callsign}`,
+          color:     isRevoked ? 0xe04848 : 0x4a5070,
+          thumbnail: { url: isRevoked ? TOKENS.keyRevoked : TOKENS.keyDelivered },
           fields: [
             ...(nexus_rank ? [{ name: 'Rank',                                     value: nexus_rank, inline: true }] : []),
             ...(issued_by  ? [{ name: isRevoked ? 'Revoked By' : 'Issued By',     value: issued_by,  inline: true }] : []),
@@ -548,8 +572,9 @@ Deno.serve(async (req: Request) => {
       if (CH.armory) {
         await discordPost(`/channels/${CH.armory}/messages`, {
           embeds: [{
-            title:       '📦 Armory Updated',
-            color:       0x4a8fd0,
+            title:     '📦 Armory Updated',
+            color:     0x4a8fd0,
+            thumbnail: { url: TOKENS.armoryUpdate },
             description: `**${callsign}** logged **${quantity_scu} SCU ${material_name}** @ ${quality_pct}% via ${source_type}`,
             footer:      { text: 'NEXUSOS · ARMORY' },
             timestamp:   new Date().toISOString(),
@@ -572,8 +597,9 @@ Deno.serve(async (req: Request) => {
       if (CH.ptu) {
         await discordPost(`/channels/${CH.ptu}/messages`, {
           embeds: [{
-            title:       `📦 Star Citizen v${patch_version} — Patch Notes`,
-            color:       0x5a6080,
+            title:     `📦 Star Citizen v${patch_version} — Patch Notes`,
+            color:     0x5a6080,
+            thumbnail: { url: TOKENS.patchDigest },
             description: (allChanges || industry_summary || 'Patch notes received.').slice(0, 4096),
             footer:      { text: 'NEXUSOS · PATCH DIGEST' },
             timestamp:   new Date().toISOString(),
@@ -618,8 +644,9 @@ Deno.serve(async (req: Request) => {
       await discordPost(`/channels/${CH.nexusIntel}/messages`, {
         ...(t2 ? { content: '@here 🔥 **T2-eligible deposit detected**' } : {}),
         embeds: [{
-          title: `📡 Scout Deposit — ${material_name}`,
-          color: t2 ? 0x27c96a : ok ? 0xe8a020 : 0x5a6080,
+          title:     `📡 Scout Deposit — ${material_name}`,
+          color:     t2 ? 0x27c96a : ok ? 0xe8a020 : 0x5a6080,
+          thumbnail: { url: t2 ? TOKENS.depositReady : TOKENS.depositStale },
           fields: [
             { name: 'Quality',  value: `${quality_pct}%${t2 ? ' · T2 ELIGIBLE' : ''}`, inline: true },
             { name: 'Location', value: `${system_name}${location_detail ? ` · ${location_detail}` : ''}`, inline: true },
@@ -652,8 +679,9 @@ Deno.serve(async (req: Request) => {
       if (CH.nexusIntel) {
         await discordPost(`/channels/${CH.nexusIntel}/messages`, {
           embeds: [{
-            title: `🚩 Deposit Flagged Stale — ${material_name}`,
-            color: 0xe8a020,
+            title:     `🚩 Deposit Flagged Stale — ${material_name}`,
+            color:     0xe8a020,
+            thumbnail: { url: TOKENS.depositStale },
             fields: [
               { name: 'Location',      value: `${system_name}${location_detail ? ` · ${location_detail}` : ''}`, inline: true },
               { name: 'Original Scout', value: reported_by_callsign || '—', inline: true },

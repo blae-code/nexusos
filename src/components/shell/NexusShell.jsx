@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
@@ -6,6 +6,7 @@ import PortraitNavDrawer from './PortraitNavDrawer';
 import { useSession } from '@/lib/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/lib/layout-mode';
 import { useVerseStatus } from '@/lib/useVerseStatus';
+import { preloadCriticalTokens } from '@/lib/tokenMap';
 
 export default function NexusShell() {
   const location = useLocation();
@@ -48,6 +49,10 @@ export default function NexusShell() {
   if (location.pathname.startsWith('/app/admin') && !isElevated) {
     return <Navigate to="/app/industry" replace />;
   }
+
+  useEffect(() => {
+    if (user?.rank) preloadCriticalTokens(user.rank, 6);
+  }, [user?.rank]);
 
   const outletContext = {
     layoutMode,
