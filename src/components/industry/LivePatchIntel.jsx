@@ -63,7 +63,7 @@ function PatchCard({ patch, isPtu }) {
       {/* Highlights */}
       {patch.highlights?.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 6 }}>
-          {patch.highlights.slice(0, 2).map((h: string, i: number) => (
+          {patch.highlights.slice(0, 2).map((h, i) => (
             <div key={i} style={{ color: 'var(--t1)', fontSize: 10, lineHeight: 1.4 }}>
               • {h}
             </div>
