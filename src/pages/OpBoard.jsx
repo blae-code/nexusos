@@ -140,10 +140,10 @@ function OpCard({ op, onClick }) {
   );
 }
 
-function LiveOpView({ op, rsvps, rank, callsign, onAdvancePhase, onEndOp }) {
+function LiveOpView({ op, rsvps, rank, callsign, onAdvancePhase, onEndOp, refineryOrders, craftQueue, onOpUpdate }) {
   const [logEntry, setLogEntry] = useState('');
   const [log, setLog] = useState(op.session_log || []);
-  const [threatForm, setThreatForm] = useState(false);
+  const [liveTab, setLiveTab] = useState('crew');
   const canAdvance = ['PIONEER', 'FOUNDER', 'VOYAGER'].includes(rank);
 
   const submitLog = async () => {
