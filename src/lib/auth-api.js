@@ -5,7 +5,8 @@ import { safeLocalStorage } from '@/lib/safe-storage';
 const AUTH_BASE = '/functions/auth';
 
 function buildUrl(path, searchParams) {
-  const url = new URL(`${AUTH_BASE}/${path}`, window.location.origin);
+  const origin = appParams.serverUrl || window.location.origin;
+  const url = new URL(`${AUTH_BASE}/${path}`, origin);
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
       if (value != null && value !== '') {
@@ -36,6 +37,15 @@ function getAuthHeaders() {
 
   if (appParams.appId) {
     headers['X-App-Id'] = appParams.appId;
+    headers['Base44-App-Id'] = appParams.appId;
+  }
+
+  if (appParams.serverUrl) {
+    headers['Base44-Api-Url'] = appParams.serverUrl;
+  }
+
+  if (appParams.functionsVersion) {
+    headers['Base44-Functions-Version'] = appParams.functionsVersion;
   }
 
   return headers;

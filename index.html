@@ -4,6 +4,30 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        var pathname = window.location.pathname || '/';
+        var markers = ['/gate', '/AccessGate', '/app'];
+        var markerIndex = -1;
+
+        for (var i = 0; i < markers.length; i += 1) {
+          var nextIndex = pathname.indexOf(markers[i]);
+          if (nextIndex >= 0 && (markerIndex === -1 || nextIndex < markerIndex)) {
+            markerIndex = nextIndex;
+          }
+        }
+
+        var basePath = markerIndex >= 0 ? pathname.slice(0, markerIndex) : pathname;
+        if (!basePath || basePath === '/') {
+          basePath = '/';
+        } else if (!basePath.endsWith('/')) {
+          basePath += '/';
+        }
+
+        window.__NEXUSOS_BASE_PATH__ = basePath === '/' ? '' : basePath.slice(0, -1);
+        document.write('<base href="' + basePath.replace(/"/g, '&quot;') + '">');
+      })();
+    </script>
     <link rel="manifest" href="./manifest.json" />
     <title>Base44 APP</title>
   </head>
