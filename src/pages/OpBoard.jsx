@@ -4,8 +4,9 @@ import { base44 } from '@/api/base44Client';
 import {
   Plus, ChevronRight, Clock, Users, Layers,
   AlertTriangle, CheckCircle, Circle, Play,
-  Shield, Crosshair, Wrench, MapPin, Zap
+  Shield, Crosshair, Wrench, MapPin, Zap, GitBranch
 } from 'lucide-react';
+import SupplyChainView from '@/components/ops/SupplyChainView';
 
 const STATUS_COLORS = {
   DRAFT: 'var(--t2)', PUBLISHED: 'var(--info)', LIVE: 'var(--live)',
