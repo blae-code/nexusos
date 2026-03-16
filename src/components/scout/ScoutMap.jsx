@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Crosshair, ZoomIn, ZoomOut } from 'lucide-react';
 
 const SYSTEM_DATA = {
