@@ -64,6 +64,14 @@
   --shell-radius: 10px;
   --topbar-h:     44px;
   --sidebar-w:    52px;
+  
+  /* Responsive spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --content-padding: 32px;
+  --section-gap: 24px;
 }
 
 /* ─── Base reset ────────────────────────────────────────────────────────────── */
@@ -103,6 +111,52 @@ body {
   display: flex;
   overflow: hidden;
   min-height: 0;
+}
+
+/* ─── Responsive Breakpoints ─────────────────────────────────────────────── */
+/* Compact: <1100px (portrait desktop, narrow viewports) */
+/* Standard: 1100px–1599px (typical 1280p and 1440p) */
+/* Wide: 1600px–1919px */
+/* Ultrawide: 1920px+ (fullscreen 1080p, 1440p) */
+
+@media (max-width: 1099px) {
+  :root {
+    --sidebar-w: 0px;
+    --section-gap: 20px;
+  }
+  
+  .nexus-shell-body {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1599px) {
+  :root {
+    --section-gap: 24px;
+  }
+}
+
+@media (min-width: 1600px) and (max-width: 1919px) {
+  :root {
+    --sidebar-w: 200px;
+    --section-gap: 28px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --sidebar-w: 200px;
+    --section-gap: 32px;
+    --content-padding: 40px;
+  }
+}
+
+/* Content max-width container */
+.nexus-content-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+  width: 100%;
 }
 
 .nexus-shell-content {
