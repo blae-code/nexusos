@@ -590,6 +590,7 @@ export default function IndustryHub() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const callsign = outletContext.callsign;
   const rank = outletContext.rank;
+  const discordId = outletContext.discordId;
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = TABS.some((item) => item.id === searchParams.get('tab')) ? searchParams.get('tab') : 'overview';
   const [materials, setMaterials] = useState([]);
