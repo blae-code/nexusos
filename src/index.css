@@ -55,6 +55,12 @@ textarea.nexus-input {
   background: var(--bg0);
 }
 
+.nexus-page-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
 .nexus-fade-in {
   animation: nexus-fade-in 0.18s ease-out both;
 }
@@ -194,9 +200,9 @@ textarea.nexus-input {
   .nav-drawer {
     position: fixed;
     left: 0;
-    top: 44px;
+    top: var(--topbar-h);
     width: 280px;
-    height: calc(100vh - 44px);
+    height: calc(100vh - var(--topbar-h));
     background: var(--bg1);
     border-right: 0.5px solid var(--b1);
     transform: translateX(-100%);
@@ -211,7 +217,7 @@ textarea.nexus-input {
 
   .nav-drawer-backdrop {
     position: fixed;
-    inset: 44px 0 0;
+    inset: var(--topbar-h) 0 0;
     background: rgba(7, 8, 11, 0.82);
     opacity: 0;
     pointer-events: none;

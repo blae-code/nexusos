@@ -10,8 +10,8 @@ export default class AppErrorBoundary extends React.Component {
     return { error };
   }
 
-  componentDidCatch(error, info) {
-    console.error('[AppErrorBoundary] uncaught render error:', error, info);
+  componentDidCatch() {
+    // error already captured in getDerivedStateFromError
   }
 
   render() {

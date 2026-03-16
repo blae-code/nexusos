@@ -12,8 +12,7 @@ export default function OcrPreview({ result, onConfirm, onCancel }) {
       // Just acknowledge and close
       setSaving(false);
       onConfirm();
-    } catch (err) {
-      console.error('Error:', err);
+    } catch {
       setSaving(false);
     }
   };

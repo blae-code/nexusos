@@ -48,6 +48,10 @@
   --r-md: 6px;
   --r-lg: 8px;
   --r-xl: 12px;
+
+  /* ── Layout ──────────────────────────────────────── */
+  --topbar-h:  44px;
+  --sidebar-w: 56px;
 }
 
 /* ── Global reset and base ───────────────────────── */
@@ -80,14 +84,22 @@ body {
   background: var(--bg1);
   border: 0.5px solid var(--b0);
   border-radius: var(--r-lg);
-  padding: 11px 12px;
+  padding: 20px;
 }
 
 .nexus-card-2 {
   background: var(--bg2);
   border: 0.5px solid var(--b1);
   border-radius: var(--r-lg);
-  padding: 11px 12px;
+  padding: 20px;
+}
+
+.nexus-card-clickable {
+  transition: border-color 150ms, transform 150ms;
+}
+.nexus-card-clickable:hover {
+  border-color: rgba(90,96,128,0.3);
+  transform: translateY(-2px);
 }
 
 .nexus-section-header {
@@ -175,7 +187,7 @@ body {
   color: var(--danger);
 }
 .nexus-btn-danger:hover {
-  background: #220a0a;
+  background: var(--danger-bg);
   border-color: var(--danger);
 }
 
@@ -185,10 +197,18 @@ body {
   color: var(--live);
   letter-spacing: .12em;
 }
-.nexus-btn-go:hover { background: #0d3520; }
+.nexus-btn-go:hover { background: var(--live-bg); }
+
+.nexus-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--t2);
+}
 
 .nexus-input {
-  height: 36px;
+  height: 40px;
   background: var(--bg2);
   border: 0.5px solid var(--b1);
   border-radius: var(--r-md);
@@ -198,10 +218,13 @@ body {
   padding: 0 10px;
   outline: none;
   width: 100%;
-  transition: border-color .12s;
+  transition: border-color .12s, box-shadow .12s;
 }
 .nexus-input::placeholder { color: var(--t3); }
-.nexus-input:focus { border-color: var(--b3); }
+.nexus-input:focus {
+  border-color: var(--b3);
+  box-shadow: 0 0 0 3px rgba(90,96,128,0.15);
+}
 
 .nexus-tag {
   font-size: 9px;
@@ -296,4 +319,31 @@ body {
 .nexus-timer-live {
   font-variant-numeric: tabular-nums;
   color: var(--live);
+}
+
+/* ── Data tables ─────────────────────────────────── */
+.nexus-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.nexus-table thead { background: var(--bg2); }
+.nexus-table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 12px;
+  color: var(--t2);
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+  border-bottom: 0.5px solid var(--b1);
+}
+.nexus-table tbody tr { height: 44px; }
+.nexus-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.nexus-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+.nexus-table td {
+  padding: 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

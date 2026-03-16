@@ -5,25 +5,19 @@
  */
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Upload, ChevronDown, ChevronUp, Search, MessageSquare, X, Check } from 'lucide-react';
+import { Upload, ChevronDown, ChevronUp, Search, X, Check } from 'lucide-react';
 import { MaterialStatusPill } from '@/components/industry/IndustryVisuals';
 import NexusToken from '@/components/ui/NexusToken';
 import { materialToken } from '@/lib/tokenMap';
+import {
+  TH, T2Badge,
+  SortableColHeader, StaticColHeader,
+} from './MaterialTablePrimitives';
+import EditRow from './MaterialEditRow';
+import OCRReviewTable from './OCRReviewTable';
+import DiscordPathCard from './DiscordPathCard';
 
 // ─── Shared style constants ────────────────────────────────────────────────────
-
-/** @type {import('react').CSSProperties} */
-const TH = {
-  padding: '7px 12px',
-  textAlign: 'left',
-  color: 'var(--t2)',
-  fontSize: 9,
-  letterSpacing: '0.1em',
-  fontWeight: 600,
-  borderBottom: '0.5px solid var(--b1)',
-  whiteSpace: 'nowrap',
-  background: 'var(--bg2)',
-};
 
 /** @type {import('react').CSSProperties} */
 const TD = { padding: '6px 12px' };
@@ -53,283 +47,6 @@ function relativeTime(isoStr) {
   const hr = Math.floor(min / 60);
   if (hr < 24) return `${hr}h ago`;
   return `${Math.floor(hr / 24)}d ago`;
-}
-
-function T2Badge({ t2_eligible }) {
-  if (t2_eligible) {
-    return (
-      <span style={{
-        fontSize: 9, fontWeight: 700,
-        padding: '1px 6px', borderRadius: 10,
-        border: '0.5px solid rgba(39,201,106,0.4)',
-        background: 'rgba(39,201,106,0.1)',
-        color: 'var(--live)', letterSpacing: '0.05em',
-      }}>T2</span>
-    );
-  }
-  return (
-    <span style={{
-      fontSize: 9, fontWeight: 700,
-      padding: '1px 6px', borderRadius: 10,
-      border: '0.5px solid rgba(232,160,32,0.4)',
-      background: 'rgba(232,160,32,0.08)',
-      color: 'var(--warn)', letterSpacing: '0.05em',
-    }}>T1</span>
-  );
-}
-
-function SortArrow({ active, dir }) {
-  return (
-    <span style={{ marginLeft: 3, fontSize: 8, color: active ? 'var(--t0)' : 'var(--t3)' }}>
-      {active ? (dir === 'desc' ? '↓' : '↑') : '↕'}
-    </span>
-  );
-}
-
-// ─── Sort column header ────────────────────────────────────────────────────────
-
-function SortableColHeader({ col, label, sortBy, sortDir, onToggle }) {
-  const active = sortBy === col;
-  return (
-    <th
-      onClick={() => onToggle(col)}
-      style={{
-        ...TH,
-        cursor: 'pointer',
-        color: active ? 'var(--t0)' : 'var(--t2)',
-        userSelect: 'none',
-      }}
-    >
-      {label}<SortArrow active={active} dir={sortDir} />
-    </th>
-  );
-}
-
-function StaticColHeader({ label, right = false }) {
-  if (right) {
-    return <th style={{ ...TH, textAlign: 'right' }}>{label}</th>;
-  }
-
-  return <th style={TH}>{label}</th>;
-}
-
-// ─── Inline row editor ─────────────────────────────────────────────────────────
-
-function EditRow({ material, onSave, onCancel }) {
-  const [qty, setQty]   = useState(String(material.quantity_scu ?? ''));
-  const [qual, setQual] = useState(String(material.quality_pct ?? ''));
-  const [type, setType] = useState(material.material_type || 'RAW');
-
-  const inputStyle = {
-    background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-    color: 'var(--t0)', fontFamily: 'inherit', fontSize: 11,
-    padding: '2px 6px', borderRadius: 4, outline: 'none', width: '70px',
-  };
-
-  const handleSave = async () => {
-    await base44.entities.Material.update(material.id, {
-      quantity_scu: parseFloat(qty)  || 0,
-      quality_pct:  parseFloat(qual) || 0,
-      material_type: type,
-      t2_eligible:  (parseFloat(qual) || 0) >= 80,
-    });
-    onSave();
-  };
-
-  return (
-    <tr style={{ background: 'rgba(90,96,128,0.08)', borderBottom: '0.5px solid var(--b1)' }}>
-      {/* icon */}
-      <td style={TD}>
-        <NexusToken src={materialToken(matCategory(type), 'neutral')} size={24} alt={type} />
-      </td>
-      {/* name + type selector */}
-      <td colSpan={2} style={TD}>
-        <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{material.material_name}</div>
-        <div style={{ display: 'flex', gap: 3 }}>
-          {['RAW', 'REFINED', 'SALVAGE', 'CRAFTED'].map(t => (
-            <button
-              key={t}
-              onClick={() => setType(t)}
-              style={{
-                padding: '2px 7px', fontSize: 9, cursor: 'pointer', fontFamily: 'inherit',
-                background: type === t ? 'var(--bg4)' : 'var(--bg2)',
-                border: `0.5px solid ${type === t ? 'var(--b3)' : 'var(--b1)'}`,
-                color: type === t ? 'var(--t0)' : 'var(--t2)', borderRadius: 4,
-              }}
-            >{t}</button>
-          ))}
-        </div>
-      </td>
-      {/* quality input */}
-      <td style={TD}>
-        <div style={{ color: 'var(--t2)', fontSize: 9, marginBottom: 3 }}>QUALITY %</div>
-        <input type="number" min="0" max="100" step="0.1" value={qual}
-          onChange={e => setQual(e.target.value)} style={inputStyle} />
-      </td>
-      {/* qty input */}
-      <td style={TD}>
-        <div style={{ color: 'var(--t2)', fontSize: 9, marginBottom: 3 }}>QTY SCU</div>
-        <input type="number" min="0" step="0.1" value={qty}
-          onChange={e => setQty(e.target.value)} style={inputStyle} />
-      </td>
-      {/* t2, status, logged — read-only during edit */}
-      <td colSpan={3} />
-      {/* save / cancel */}
-      <td style={{ ...TD, textAlign: 'right' }}>
-        <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-          <button
-            onClick={handleSave}
-            className="nexus-btn"
-            style={{ padding: '3px 8px', fontSize: 9, background: 'rgba(39,201,106,0.1)', borderColor: 'rgba(39,201,106,0.3)', color: 'var(--live)' }}
-          >SAVE</button>
-          <button onClick={onCancel} className="nexus-btn" style={{ padding: '3px 8px', fontSize: 9 }}>
-            CANCEL
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-// ─── OCR review table ──────────────────────────────────────────────────────────
-
-function OCRReviewTable({ items, checked, setChecked, setItems, onConfirm, onDismiss, confirming }) {
-  const checkedCount = Object.values(checked).filter(Boolean).length;
-
-  const updateItem = (idx, field, value) =>
-    setItems(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
-
-  const inputStyle = {
-    background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-    color: 'var(--t0)', fontFamily: 'inherit', fontSize: 11,
-    padding: '2px 6px', borderRadius: 4, outline: 'none', width: '68px',
-  };
-
-  const allChecked = items.length > 0 && Object.values(checked).every(Boolean);
-
-  return (
-    <div style={{ marginTop: 8 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ color: 'var(--t1)', fontSize: 11 }}>
-          {items.length} item{items.length !== 1 ? 's' : ''} extracted — review before saving
-        </span>
-        <button onClick={onDismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: 2 }}>
-          <X size={13} />
-        </button>
-      </div>
-
-      <div style={{ border: '0.5px solid var(--b1)', borderRadius: 6, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ ...TH, width: 28 }}>
-                <input
-                  type="checkbox"
-                  checked={allChecked}
-                  onChange={e => setChecked(Object.fromEntries(items.map((_, i) => [i, e.target.checked])))}
-                  style={{ accentColor: 'var(--acc)', cursor: 'pointer' }}
-                />
-              </th>
-              {['MATERIAL', 'TYPE', 'QUALITY %', 'QTY SCU', 'T2'].map(h => (
-                <th key={h} style={TH}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => {
-              const isT2 = (parseFloat(item.quality_pct) || 0) >= 80;
-              return (
-                <tr
-                  key={idx}
-                  style={{ borderBottom: '0.5px solid var(--b0)', opacity: checked[idx] ? 1 : 0.4 }}
-                >
-                  <td style={TD}>
-                    <input
-                      type="checkbox"
-                      checked={!!checked[idx]}
-                      onChange={e => setChecked(prev => ({ ...prev, [idx]: e.target.checked }))}
-                      style={{ accentColor: 'var(--acc)', cursor: 'pointer' }}
-                    />
-                  </td>
-                  <td style={TD}>
-                    <span style={{ color: 'var(--t0)', fontSize: 11 }}>{item.material_name || '—'}</span>
-                  </td>
-                  <td style={TD}>
-                    <span className="nexus-tag" style={{ color: 'var(--t1)', borderColor: 'var(--b2)', background: 'var(--bg3)', fontSize: 9 }}>
-                      {item.material_type || 'RAW'}
-                    </span>
-                  </td>
-                  <td style={TD}>
-                    {/* quality input — inline editing per spec */}
-                    <input
-                      type="number" min="0" max="100" step="0.1"
-                      value={item.quality_pct ?? ''}
-                      onChange={e => updateItem(idx, 'quality_pct', e.target.value)}
-                      disabled={!checked[idx]}
-                      style={inputStyle}
-                    />
-                  </td>
-                  <td style={TD}>
-                    {/* quantity input — inline editing per spec */}
-                    <input
-                      type="number" min="0" step="0.1"
-                      value={item.quantity_scu ?? ''}
-                      onChange={e => updateItem(idx, 'quantity_scu', e.target.value)}
-                      disabled={!checked[idx]}
-                      style={inputStyle}
-                    />
-                  </td>
-                  <td style={TD}>
-                    {/* T2 eligibility auto-computed from quality_pct */}
-                    <T2Badge t2_eligible={isT2} />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-        <button
-          onClick={onConfirm}
-          disabled={confirming || checkedCount === 0}
-          className="nexus-btn"
-          style={{
-            padding: '5px 14px', fontSize: 11,
-            background: checkedCount > 0 ? 'rgba(39,201,106,0.1)' : 'var(--bg2)',
-            borderColor: checkedCount > 0 ? 'rgba(39,201,106,0.3)' : 'var(--b1)',
-            color: checkedCount > 0 ? 'var(--live)' : 'var(--t2)',
-          }}
-        >
-          {confirming ? 'Saving...' : `Confirm ${checkedCount} item${checkedCount !== 1 ? 's' : ''}`}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Discord path instruction card ────────────────────────────────────────────
-
-function DiscordPathCard() {
-  return (
-    <div style={{
-      background: 'var(--bg1)',
-      border: '0.5px solid var(--b1)',
-      borderRadius: 7,
-      padding: 12,
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: 8,
-    }}>
-      <MessageSquare size={13} style={{ color: 'var(--t2)', flexShrink: 0, marginTop: 1 }} />
-      <span style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
-        Fastest path: drop your screenshot in{' '}
-        <span style={{ color: 'var(--t1)' }}>#nexusos-ocr</span> on Discord.
-        Herald Bot extracts and posts a confirmation.
-      </span>
-    </div>
-  );
 }
 
 // ─── Main Materials component ──────────────────────────────────────────────────
@@ -433,8 +150,7 @@ export default function Materials({ materials, onRefresh }) {
         setOcrState('SUCCESS');
         onRefresh();
       }
-    } catch (e) {
-      console.error('[Materials] ocrExtract failed:', e);
+    } catch {
       setOcrState('ERROR');
     }
     setUploading(false);
@@ -464,8 +180,8 @@ export default function Materials({ materials, onRefresh }) {
       setOcrState('SUCCESS');
       setReviewItems([]);
       onRefresh();
-    } catch (e) {
-      console.error('[Materials] confirm create failed:', e);
+    } catch {
+      // confirm create failed
     }
     setConfirming(false);
   };

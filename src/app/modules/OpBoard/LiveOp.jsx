@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { ChevronLeft, Play, Square } from 'lucide-react';
+import { ChevronLeft, Play, Square, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import CrewGrid from './CrewGrid';
 import LootTally from './LootTally';
@@ -11,6 +11,7 @@ import SplitCalc from './SplitCalc';
 import ThreatPanel from './ThreatPanel';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
+const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
 function normalizeRoleSlots(slots) {
   if (!slots) return [];
@@ -78,6 +79,7 @@ export default function LiveOp() {
   const ctx = useOutletContext() || {};
   const rank = ctx.rank || 'VAGRANT';
   const callsign = ctx.callsign || 'UNKNOWN';
+  const discordId = ctx.discordId || null;
   const layoutMode = ctx.layoutMode || 'ALT-TAB';
   const setLayoutMode = ctx.setLayoutMode;
 
@@ -87,6 +89,7 @@ export default function LiveOp() {
   const [error, setError] = useState(null);
   const [activating, setActivating] = useState(false);
   const [ending, setEnding] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const fetchOp = useCallback(async () => {
     try {
@@ -104,8 +107,7 @@ export default function LiveOp() {
       setOp(opData);
       setRsvps(rsvpData || []);
       setError(null);
-    } catch (fetchError) {
-      console.error('[LiveOp] fetch failed:', fetchError);
+    } catch {
       setError('Failed to load op');
     } finally {
       setLoading(false);
@@ -143,8 +145,8 @@ export default function LiveOp() {
         payload: { op_id: op.id, op_name: op.name },
       }).catch((error) => console.warn('[LiveOp] heraldBot opActivate failed:', error.message));
       await fetchOp();
-    } catch (activateError) {
-      console.error('[LiveOp] activate failed:', activateError);
+    } catch {
+      // activating failed — button re-enables via finally
     } finally {
       setActivating(false);
     }
@@ -161,11 +163,25 @@ export default function LiveOp() {
       base44.functions.invoke('heraldBot', {
         action: 'opEnd',
         payload: { op_id: op.id, op_name: op.name },
-      }).catch((error) => console.warn('[LiveOp] heraldBot opEnd failed:', error.message));
+      }).catch((err) => console.warn('[LiveOp] heraldBot opEnd failed:', err.message));
       navigate('/app/ops');
-    } catch (endError) {
-      console.error('[LiveOp] end op failed:', endError);
+    } catch {
       setEnding(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!op || publishing) return;
+    setPublishing(true);
+    try {
+      await base44.entities.Op.update(op.id, { status: 'PUBLISHED' });
+      base44.functions.invoke('heraldBot', {
+        action: 'publishOp',
+        payload: { op_id: op.id, op_name: op.name },
+      }).catch((err) => console.warn('[LiveOp] heraldBot publishOp failed:', err.message));
+      await fetchOp();
+    } catch {
+      setPublishing(false);
     }
   };
 
@@ -195,8 +211,13 @@ export default function LiveOp() {
   const phases = Array.isArray(op.phases) ? op.phases : [];
   const currentPhase = op.phase_current || 0;
   const isPioneer = PIONEER_RANKS.includes(rank);
+  const canManage = SCOUT_RANKS.includes(rank);
   const isLive = op.status === 'LIVE';
   const isPublished = op.status === 'PUBLISHED';
+  const isDraft = op.status === 'DRAFT';
+  const canPublish = isDraft && (
+    (canManage && String(op.created_by) === String(discordId)) || isPioneer
+  );
   const confirmedCrew = rsvps.filter((item) => item.status === 'CONFIRMED').length;
   const crewCapacity = normalizeRoleSlots(op.role_slots).reduce((sum, item) => sum + (item.capacity || 0), 0);
   const phaseLabel = phases[currentPhase] || 'Awaiting phase';
@@ -205,9 +226,9 @@ export default function LiveOp() {
   const phaseTrackerProps = { phases, currentPhase, opId: op.id, rank, onAdvance: handlePhaseAdvance };
   const readinessGateProps = { op, rank, onUpdate: handleGateUpdate };
   const crewGridProps = { rsvps, op };
-  const sessionLogProps = { op, callsign, onUpdate: handleLogUpdate };
+  const sessionLogProps = { op, callsign, rank, onUpdate: handleLogUpdate };
   const threatPanelProps = { op, callsign, onUpdate: handleLogUpdate };
-  const lootTallyProps = { op, callsign, currentPhase, onUpdate: handleLogUpdate };
+  const lootTallyProps = { op, callsign, rank, currentPhase, onUpdate: handleLogUpdate };
   const splitCalcProps = { op, rsvps };
 
   const hero = (
@@ -235,7 +256,7 @@ export default function LiveOp() {
               position: 'absolute',
               inset: 0,
               borderRadius: '50%',
-              border: '1px solid var(--live)',
+              border: '0.5px solid var(--live)',
               animation: 'ring 2.2s ease-out infinite',
             }}
           />
@@ -296,13 +317,19 @@ export default function LiveOp() {
           >
             2ND MONITOR
           </button>
-          {isPublished && isPioneer ? (
+          {canPublish ? (
+            <button onClick={handlePublish} disabled={publishing} className="nexus-btn" style={{ padding: '5px 12px', fontSize: 10 }}>
+              <Upload size={10} />
+              {publishing ? 'PUBLISHING' : 'PUBLISH'}
+            </button>
+          ) : null}
+          {isPublished && canManage ? (
             <button onClick={handleActivate} disabled={activating} className="nexus-btn nexus-btn-go" style={{ padding: '5px 12px', fontSize: 10 }}>
               <Play size={10} />
               {activating ? 'ACTIVATING' : 'ACTIVATE'}
             </button>
           ) : null}
-          {isLive && isPioneer ? (
+          {isLive && canManage ? (
             <button onClick={handleEndOp} disabled={ending} className="nexus-btn nexus-btn-danger" style={{ padding: '5px 12px', fontSize: 10 }}>
               <Square size={10} />
               {ending ? 'ENDING' : 'END OP'}

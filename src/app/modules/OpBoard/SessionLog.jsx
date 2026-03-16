@@ -88,7 +88,9 @@ function LogEntry({ entry }) {
 
 // ─── SessionLog ───────────────────────────────────────────────────────────────
 
-export default function SessionLog({ op, callsign, onUpdate }) {
+const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+
+export default function SessionLog({ op, callsign, rank, onUpdate }) {
   const [input, setInput]     = useState('');
   const [posting, setPosting] = useState(false);
   const scrollRef             = useRef(null);
@@ -118,11 +120,13 @@ export default function SessionLog({ op, callsign, onUpdate }) {
       await base44.entities.Op.update(op.id, { session_log: newLog });
       setInput('');
       onUpdate?.(newLog);
-    } catch (e) {
-      console.error('[SessionLog] submit failed:', e);
+    } catch {
+      setPosting(false);
     }
     setPosting(false);
   };
+
+  const canPost = SCOUT_RANKS.includes(rank);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 200 }}>
@@ -140,29 +144,31 @@ export default function SessionLog({ op, callsign, onUpdate }) {
         )}
       </div>
 
-      {/* Manual entry */}
-      <div style={{
-        display: 'flex', gap: 6, paddingTop: 8,
-        borderTop: '0.5px solid var(--b1)',
-      }}>
-        <input
-          className="nexus-input"
-          style={{ flex: 1, fontSize: 11, padding: '5px 10px' }}
-          placeholder="Add log entry..."
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
-          disabled={posting}
-        />
-        <button
-          onClick={submit}
-          disabled={posting || !input.trim()}
-          className="nexus-btn"
-          style={{ padding: '5px 10px', fontSize: 10, flexShrink: 0, opacity: posting ? 0.6 : 1 }}
-        >
-          <Send size={11} />
-        </button>
-      </div>
+      {/* Manual entry — SCOUT+ only */}
+      {canPost && (
+        <div style={{
+          display: 'flex', gap: 6, paddingTop: 8,
+          borderTop: '0.5px solid var(--b1)',
+        }}>
+          <input
+            className="nexus-input"
+            style={{ flex: 1, fontSize: 11, padding: '5px 10px' }}
+            placeholder="Add log entry..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
+            disabled={posting}
+          />
+          <button
+            onClick={submit}
+            disabled={posting || !input.trim()}
+            className="nexus-btn"
+            style={{ padding: '5px 10px', fontSize: 10, flexShrink: 0, opacity: posting ? 0.6 : 1 }}
+          >
+            <Send size={11} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

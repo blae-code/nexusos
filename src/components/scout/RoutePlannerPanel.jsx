@@ -15,8 +15,8 @@ export default function RoutePlannerPanel({ materials, onRouteGenerated, onClose
       try {
         const allDeposits = await base44.entities.ScoutDeposit.list('-reported_at', 100);
         setDeposits(allDeposits || []);
-      } catch (err) {
-        console.error('Load deposits failed:', err);
+      } catch {
+        // deposits load failed
       }
     };
     loadDeposits();

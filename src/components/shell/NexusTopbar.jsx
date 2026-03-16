@@ -1,14 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, LogOut, Menu, ScrollText, User, X } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, ScrollText, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import NexusCompass from '@/components/ui/NexusCompass';
 import NexusToken from '@/components/ui/NexusToken';
 import { rankToken } from '@/lib/tokenMap';
 import { useSession } from '@/lib/SessionContext';
-import { appVersion, changelogText } from '@/lib/generated/versioning';
+import { appVersion } from '@/lib/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
 import { AltTabIcon, MoreIcon, SecondMonitorIcon } from './NexusIcons';
+import { StatusPill, VersionPill } from './TopbarPills';
+import { LayoutButton, DropdownContainer, Divider, MenuLink, ChangelogPanel } from './TopbarMenu';
 
 const RANK_COLOURS = {
   PIONEER: 'var(--warn)',
@@ -53,228 +55,6 @@ function getBreadcrumb(pathname, search) {
   if (pathname === '/app/profile' || pathname === '/app/settings') return { module: 'Profile', tab: 'Settings' };
   if (pathname === '/app/admin/todo') return { module: 'Admin', tab: 'Setup TODO' };
   return { module: 'NexusOS', tab: 'Overview' };
-}
-
-function ChangelogPanel({ onClose }) {
-  const lines = changelogText.split(/\r?\n/);
-
-  return (
-    <div
-      className="nexus-fade-in"
-      style={{
-        position: 'absolute',
-        top: 'calc(100% + 10px)',
-        right: 16,
-        width: 460,
-        maxHeight: 560,
-        background: 'var(--bg2)',
-        border: '0.5px solid var(--b2)',
-        borderRadius: 8,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        zIndex: 160,
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 14px',
-          borderBottom: '0.5px solid var(--b1)',
-          flexShrink: 0,
-        }}
-      >
-        <span style={{ color: 'var(--t0)', fontSize: 11, letterSpacing: '0.08em', fontWeight: 600 }}>
-          CHANGELOG
-        </span>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--t2)',
-            cursor: 'pointer',
-            padding: 2,
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <X size={13} />
-        </button>
-      </div>
-      <div style={{ overflowY: 'auto', padding: '10px 14px' }}>
-        {lines.map((line, index) => {
-          if (line.startsWith('## ')) {
-            return (
-              <div
-                key={index}
-                style={{
-                  color: 'var(--t0)',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  paddingBottom: 5,
-                  marginBottom: 6,
-                  marginTop: index === 0 ? 0 : 14,
-                  borderBottom: '0.5px solid var(--b0)',
-                }}
-              >
-                {line.replace(/^## /, '')}
-              </div>
-            );
-          }
-
-          if (line.startsWith('# ')) {
-            return null;
-          }
-
-          return (
-            <div key={index} style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
-              {line || '\u00a0'}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function StatusPill({ verseStatus }) {
-  if (verseStatus === 'offline') {
-    return <div className="nexus-pill nexus-pill-danger">OFFLINE</div>;
-  }
-
-  if (verseStatus === 'degraded' || verseStatus === 'unknown') {
-    return <div className="nexus-pill nexus-pill-warn">DEGRADED</div>;
-  }
-
-  return <div className="nexus-pill nexus-pill-live">LIVE {VERSE_BUILD_LABEL}</div>;
-}
-
-function VersionPill({ version, full, date }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <div
-      style={{ position: 'relative', display: 'inline-flex' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div className="nexus-pill nexus-pill-neu">v{version}</div>
-      {hovered ? (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'var(--bg2)',
-            border: '0.5px solid var(--b2)',
-            borderRadius: 6,
-            padding: '6px 8px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 60,
-          }}
-        >
-          <div style={{ color: 'var(--t1)', fontSize: 9 }}>{full}</div>
-          <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 2 }}>{date}</div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function LayoutButton({ active, title, onClick, icon }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      style={{
-        width: 30,
-        height: 28,
-        borderRadius: 6,
-        border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.12s',
-        background: active ? 'var(--bg3)' : 'transparent',
-        color: active ? 'var(--t1)' : 'var(--t2)',
-      }}
-      onMouseEnter={(event) => {
-        if (!active) {
-          event.currentTarget.style.background = 'var(--bg2)';
-          event.currentTarget.style.borderColor = 'var(--b1)';
-        }
-      }}
-      onMouseLeave={(event) => {
-        if (!active) {
-          event.currentTarget.style.background = 'transparent';
-          event.currentTarget.style.borderColor = 'transparent';
-        }
-      }}
-    >
-      {icon}
-    </button>
-  );
-}
-
-function DropdownContainer({ children, width }) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 'calc(100% + 8px)',
-        right: 0,
-        background: 'var(--bg2)',
-        border: '0.5px solid var(--b2)',
-        borderRadius: 8,
-        minWidth: width,
-        padding: '6px 0',
-        zIndex: 100,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Divider() {
-  return <div style={{ height: '0.5px', background: 'var(--b1)', margin: '4px 0' }} />;
-}
-
-function MenuLink({ icon: Icon, label, onClick, danger }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: '100%',
-        padding: '8px 14px',
-        fontSize: 10,
-        color: danger ? 'var(--danger)' : 'var(--t1)',
-        cursor: 'pointer',
-        background: hovered ? 'var(--bg3)' : 'transparent',
-        border: 'none',
-        textAlign: 'left',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-      }}
-    >
-      {Icon ? <Icon size={13} /> : null}
-      {label}
-    </button>
-  );
 }
 
 function menuButtonStyle(active) {
@@ -374,9 +154,9 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
     <div style={{ position: 'relative', flexShrink: 0 }}>
       <header
         style={{
-          height: 44,
+          height: 'var(--topbar-h)',
           background: 'var(--bg1)',
-          borderBottom: '0.5px solid var(--b0)',
+          borderBottom: '0.5px solid var(--b1)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

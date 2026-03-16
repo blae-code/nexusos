@@ -128,8 +128,8 @@ export default function SplitCalc({ op, rsvps = [] }) {
         )
       );
       setLogged(true);
-    } catch (e) {
-      console.error('[SplitCalc] log split failed:', e);
+    } catch {
+      // log split failed — logged state unchanged
     }
     setLogging(false);
   };

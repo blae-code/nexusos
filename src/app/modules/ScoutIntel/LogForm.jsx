@@ -164,8 +164,8 @@ export default function LogForm({ callsign, discordId, onSubmit, onCancel }) {
 
       setSaved(true);
       onSubmit?.(deposit);
-    } catch (e) {
-      console.error('[LogForm] submit failed:', e);
+    } catch {
+      // submit failed — saving state cleared
     }
     setSaving(false);
   };
