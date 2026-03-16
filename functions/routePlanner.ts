@@ -1,154 +1,115 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Route Planner — Analyzes scout deposits and generates an optimized
- * mining route based on target material, quality threshold, and risk tolerance.
- *
- * Input:
- *   target_material: string (material name to search for)
- *   quality_threshold: number (min quality %, default 70)
- *   risk_tolerance: string ('LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME')
- *   max_deposits: number (max route stops, default 5)
- *
- * Output:
- *   route: [{ deposit_id, material_name, system, location, quality, risk,
- *     estimated_yield_scu, travel_minutes, order }]
- *   total_estimated_yield: number
- *   total_travel_minutes: number
- *   route_efficiency: number (0-1, yield per minute)
- */
 Deno.serve(async (req) => {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'POST only' }, { status: 405 });
+  }
+
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const {
-      target_material,
-      quality_threshold = 70,
-      risk_tolerance = 'MEDIUM',
-      max_deposits = 5,
-    } = await req.json();
-
-    if (!target_material) {
-      return Response.json({ error: 'target_material required' }, { status: 400 });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch all non-stale scout deposits
-    const allDeposits = await base44.asServiceRole.entities.ScoutDeposit.filter({
-      is_stale: false,
-    });
+    const { target_material, quality_threshold, risk_tolerance, deposits } = await req.json();
 
-    // Filter by material and quality threshold
-    const candidates = (allDeposits || []).filter(d => {
-      const materialMatch =
-        (d.material_name || '').toLowerCase() === target_material.toLowerCase();
-      const qualityOk = (d.quality_pct || 0) >= quality_threshold;
-      return materialMatch && qualityOk;
-    });
-
-    if (candidates.length === 0) {
-      return Response.json({
-        success: true,
-        route: [],
-        message: `No deposits found for ${target_material} at ${quality_threshold}% quality`,
-      });
+    if (!target_material || !deposits || deposits.length === 0) {
+      return Response.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    // Risk scoring: filter and prioritize by risk tolerance
-    const riskScore = { LOW: 1, MEDIUM: 2, HIGH: 3, EXTREME: 4 };
-    const userRiskScore = riskScore[risk_tolerance] || 2;
-
-    const viable = candidates.filter(d => {
-      const depRiskScore = riskScore[d.risk_level || 'MEDIUM'] || 2;
-      return depRiskScore <= userRiskScore;
-    });
+    // Filter deposits by material and quality
+    const viable = deposits.filter(d =>
+      d.material_name === target_material &&
+      (d.quality_pct || 0) >= (quality_threshold || 0)
+    );
 
     if (viable.length === 0) {
       return Response.json({
-        success: true,
         route: [],
-        message: `No deposits match risk tolerance: ${risk_tolerance}`,
+        estimated_yield_scu: 0,
+        estimated_session_minutes: 0,
+        message: 'No viable deposits found matching criteria',
       });
     }
 
-    // Estimate yields by volume category
-    const volumeYield = {
-      SMALL: 15,
-      MEDIUM: 45,
-      LARGE: 100,
-      MASSIVE: 250,
-    };
+    // Build context for Claude
+    const deposit_summary = viable.map((d, i) => ({
+      index: i,
+      material: d.material_name,
+      system: d.system_name,
+      location: d.location_detail,
+      quality: d.quality_pct,
+      volume: d.volume_estimate,
+      risk: d.risk_level,
+      coords: d.coords_approx || 'TBD',
+    }));
 
-    // Estimate travel time between systems (simplified)
-    const systemTravelMinutes = {
-      'STANTON-STANTON': 5, // within same system
-      'STANTON-PYRO': 45,
-      'STANTON-NYX': 60,
-      'PYRO-NYX': 30,
-    };
+    const prompt = `You are a Star Citizen route planning AI for Redscar Nomads industrial ops.
 
-    const getSystemKey = (s1, s2) => {
-      const systems = [s1, s2].sort();
-      return `${systems[0]}-${systems[1]}`;
-    };
+Given these viable deposits for ${target_material}:
+${JSON.stringify(deposit_summary, null, 2)}
 
-    // Sort by: quality (desc) > volume size (desc) > risk (asc)
-    const sorted = [...viable].sort((a, b) => {
-      if ((b.quality_pct || 0) !== (a.quality_pct || 0)) {
-        return (b.quality_pct || 0) - (a.quality_pct || 0);
-      }
-      const volumeOrder = ['MASSIVE', 'LARGE', 'MEDIUM', 'SMALL'];
-      const aIdx = volumeOrder.indexOf(a.volume_estimate || 'MEDIUM');
-      const bIdx = volumeOrder.indexOf(b.volume_estimate || 'MEDIUM');
-      if (aIdx !== bIdx) return aIdx - bIdx;
-      return riskScore[a.risk_level || 'MEDIUM'] - riskScore[b.risk_level || 'MEDIUM'];
-    });
+Risk tolerance: ${risk_tolerance || 'MEDIUM'}
 
-    // Build route (limit to max_deposits)
-    const route = [];
-    let lastSystem = 'STANTON';
-    let totalTravel = 0;
-    let totalYield = 0;
+Generate the most efficient route (fewest jumps, fastest execution).
+Consider:
+- System jumps add ~3 minutes per jump
+- Risk affects time (EXTREME +50%, HIGH +25%, MEDIUM +10%, LOW baseline)
+- Volume estimates: SMALL=30min, MEDIUM=60min, LARGE=90min, MASSIVE=120min
+- Quality >80% adds 10% bonus speed
 
-    for (let i = 0; i < Math.min(sorted.length, max_deposits); i++) {
-      const dep = sorted[i];
-      const sys = dep.system_name || 'STANTON';
-      const travelKey = getSystemKey(lastSystem, sys);
-      const travelTime = systemTravelMinutes[travelKey] || 30;
-
-      const estimatedYield = volumeYield[dep.volume_estimate || 'MEDIUM'] || 45;
-      totalTravel += travelTime;
-      totalYield += estimatedYield;
-
-      route.push({
-        deposit_id: dep.id,
-        material_name: dep.material_name,
-        system: sys,
-        location: dep.location_detail || 'Unknown',
-        quality_pct: dep.quality_pct || 0,
-        risk_level: dep.risk_level || 'MEDIUM',
-        volume_estimate: dep.volume_estimate || 'MEDIUM',
-        estimated_yield_scu: estimatedYield,
-        travel_minutes: travelTime,
-        order: i + 1,
-        reported_by: dep.reported_by_callsign || 'Unknown',
-      });
-
-      lastSystem = sys;
+Return ONLY valid JSON (no markdown, no explanation):
+{
+  "route": [
+    {
+      "waypoint": 1,
+      "deposit_index": <index from above>,
+      "system": "STANTON|PYRO|NYX",
+      "location": "string",
+      "quality_pct": number,
+      "volume_estimate": "SMALL|MEDIUM|LARGE|MASSIVE",
+      "risk_level": "LOW|MEDIUM|HIGH|EXTREME",
+      "estimated_minutes": number
     }
+  ],
+  "estimated_yield_scu": number,
+  "estimated_total_minutes": number,
+  "efficiency_note": "brief tactical reason for this route"
+}`;
 
-    const routeEfficiency = totalTravel > 0 ? totalYield / totalTravel : 0;
-
-    return Response.json({
-      success: true,
-      route,
-      total_estimated_yield: totalYield,
-      total_travel_minutes: totalTravel,
-      route_efficiency: routeEfficiency.toFixed(2),
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          route: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                waypoint: { type: 'number' },
+                deposit_index: { type: 'number' },
+                system: { type: 'string' },
+                location: { type: 'string' },
+                quality_pct: { type: 'number' },
+                volume_estimate: { type: 'string' },
+                risk_level: { type: 'string' },
+                estimated_minutes: { type: 'number' },
+              },
+            },
+          },
+          estimated_yield_scu: { type: 'number' },
+          estimated_total_minutes: { type: 'number' },
+          efficiency_note: { type: 'string' },
+        },
+      },
     });
+
+    return Response.json(result);
   } catch (error) {
-    console.error('routePlanner error:', error);
+    console.error('Route planner error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
