@@ -39,7 +39,7 @@ export default function NexusShell() {
   }
 
   if (!isAuthenticated) {
-    const redirectTo = `/gate?redirect_to=${encodeURIComponent(`${location.pathname}${location.search}`)}`;
+    const redirectTo = `/?redirect_to=${encodeURIComponent(`${location.pathname}${location.search}`)}`;
     return <Navigate to={redirectTo} replace />;
   }
 

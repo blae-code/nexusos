@@ -166,6 +166,16 @@ export function normalizeRedirectTo(raw: string | null): string {
   return raw;
 }
 
+export function normalizeAppBase(raw: string | null): string {
+  if (!raw || raw === '/') return '';
+  if (!raw.startsWith('/')) return '';
+  if (raw.startsWith('//')) return '';
+  if (raw.includes('?') || raw.includes('#')) return '';
+
+  const trimmed = raw.endsWith('/') ? raw.slice(0, -1) : raw;
+  return trimmed === '/' ? '' : trimmed;
+}
+
 function getDiscordConfig() {
   const clientId = Deno.env.get('DISCORD_CLIENT_ID');
   const clientSecret = Deno.env.get('DISCORD_CLIENT_SECRET');
@@ -180,12 +190,13 @@ function getDiscordConfig() {
   return { clientId, clientSecret, redirectUri, guildId, botToken };
 }
 
-export async function buildDiscordAuthorizeUrl(req: Request, redirectTo: string) {
+export async function buildDiscordAuthorizeUrl(req: Request, redirectTo: string, appBase = '') {
   const { clientId, redirectUri } = getDiscordConfig();
   const state = crypto.randomUUID().replace(/-/g, '');
   const signedState = await encodeSignedPayload({
     state,
     redirect_to: redirectTo,
+    app_base: appBase,
     exp: Date.now() + (STATE_MAX_AGE_SECONDS * 1000),
   });
 
@@ -386,16 +397,33 @@ export function sessionNoStoreHeaders() {
   };
 }
 
-export function gateErrorRedirect(errorCode: string, req: Request, headers = new Headers()) {
-  const appUrl = Deno.env.get('APP_URL') || new URL(req.url).origin;
-  const target = new URL('/gate', appUrl);
+function resolveAppUrl(req: Request, appBase = '') {
+  const configured = Deno.env.get('APP_URL') || new URL(req.url).origin;
+  const normalizedBase = normalizeAppBase(appBase);
+  if (normalizedBase) {
+    return new URL(`${normalizedBase}/`, configured);
+  }
+
+  const configuredUrl = new URL(configured);
+  const configuredPath = configuredUrl.pathname && configuredUrl.pathname !== '/'
+    ? (configuredUrl.pathname.endsWith('/') ? configuredUrl.pathname : `${configuredUrl.pathname}/`)
+    : '/';
+
+  return new URL(configuredPath, configuredUrl);
+}
+
+export function gateErrorRedirect(errorCode: string, req: Request, headers = new Headers(), appBase = '') {
+  const target = resolveAppUrl(req, appBase);
   target.searchParams.set('error', errorCode);
   headers.set('Location', target.toString());
   return new Response(null, { status: 302, headers });
 }
 
-export function appRedirect(targetPath: string, req: Request, headers = new Headers()) {
-  const appUrl = Deno.env.get('APP_URL') || new URL(req.url).origin;
-  headers.set('Location', new URL(targetPath, appUrl).toString());
+export function appRedirect(targetPath: string, req: Request, headers = new Headers(), appBase = '') {
+  const target = resolveAppUrl(req, appBase);
+  if (targetPath && targetPath !== '/') {
+    target.searchParams.set('redirect_to', targetPath);
+  }
+  headers.set('Location', target.toString());
   return new Response(null, { status: 302, headers });
 }

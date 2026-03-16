@@ -576,7 +576,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
                   danger
                   onClick={() => {
                     setUserMenuOpen(false);
-                    logout('/gate');
+                    logout('/');
                   }}
                 />
               </DropdownContainer>

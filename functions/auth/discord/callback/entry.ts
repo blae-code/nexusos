@@ -28,10 +28,11 @@ Deno.serve(async (req: Request) => {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     const cookies = parseCookies(req);
-    const statePayload = await decodeSignedPayload<{ state: string; redirect_to: string }>(cookies[STATE_COOKIE_NAME]);
+    const statePayload = await decodeSignedPayload<{ state: string; redirect_to: string; app_base?: string }>(cookies[STATE_COOKIE_NAME]);
+    const appBase = statePayload?.app_base || '';
 
     if (!code || !state || !statePayload || statePayload.state !== state) {
-      return gateErrorRedirect('expired_state', req, headers);
+      return gateErrorRedirect('expired_state', req, headers, appBase);
     }
 
     const tokens = await exchangeDiscordCode(code);
@@ -39,19 +40,19 @@ Deno.serve(async (req: Request) => {
     const member = await fetchGuildMember(String(discordUser.id));
 
     if (!member) {
-      return gateErrorRedirect('not_in_guild', req, headers);
+      return gateErrorRedirect('not_in_guild', req, headers, appBase);
     }
 
     const { roleNames, nexusRank } = await mapGuildRolesToRank(member.roles || []);
     if (!nexusRank) {
-      return gateErrorRedirect('role_not_allowed', req, headers);
+      return gateErrorRedirect('role_not_allowed', req, headers, appBase);
     }
 
     const user = await upsertNexusUser(req, discordUser, member, roleNames, nexusRank);
     const sessionCookie = await createSessionCookieValue(String(discordUser.id));
     setCookie(headers, SESSION_COOKIE_NAME, sessionCookie, req, { maxAge: 60 * 60 * 24 * 7 });
 
-    return appRedirect(statePayload.redirect_to || '/app/industry', req, headers);
+    return appRedirect(statePayload.redirect_to || '/app/industry', req, headers, appBase);
   } catch (error) {
     console.error('[auth/discord/callback]', error);
     return gateErrorRedirect('auth_failed', req, headers);

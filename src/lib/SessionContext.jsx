@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { withAppBase } from '@/lib/app-base-path';
 import { authApi } from '@/lib/auth-api';
 
 const SessionContext = createContext(null);
@@ -70,9 +71,11 @@ export function SessionProvider({ children }) {
     return () => window.removeEventListener('focus', handleFocus);
   }, [refreshSession]);
 
-  const logout = useCallback(async (redirectTo = '/gate') => {
+  const logout = useCallback(async (redirectTo = '/') => {
+    const destination = withAppBase(redirectTo);
+
     if (session?.source === 'admin') {
-      base44.auth.logout(new URL(redirectTo, window.location.origin).toString());
+      base44.auth.logout(new URL(destination, window.location.origin).toString());
       return;
     }
 
@@ -83,7 +86,7 @@ export function SessionProvider({ children }) {
     }
 
     setSession(null);
-    window.location.assign(redirectTo);
+    window.location.assign(destination);
   }, [session]);
 
   const patchUser = useCallback((partial) => {

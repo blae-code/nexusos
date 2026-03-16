@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { queryClientInstance } from '@/lib/query-client';
+import { getAppBasePath } from '@/lib/app-base-path';
 import { SessionProvider } from '@/lib/SessionContext';
 import NexusShell from '@/components/shell/NexusShell';
 import LiveOp from '@/pages/LiveOp';
@@ -26,9 +27,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <SessionProvider>
-        <Router>
+        <Router basename={getAppBasePath()}>
           <Routes>
-            <Route path="/" element={<Navigate to="/gate" replace />} />
+            <Route path="/" element={<AccessGate />} />
             <Route path="/gate" element={<AccessGate />} />
             <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />
 
@@ -53,7 +54,7 @@ function App() {
               <Route path="armory" element={<Armory />} />
             </Route>
 
-            <Route path="*" element={<Navigate to="/gate" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </SessionProvider>

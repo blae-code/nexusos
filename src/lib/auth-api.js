@@ -1,3 +1,4 @@
+import { getAppBasePath } from '@/lib/app-base-path';
 import { appParams } from '@/lib/app-params';
 import { safeLocalStorage } from '@/lib/safe-storage';
 
@@ -42,7 +43,10 @@ function getAuthHeaders() {
 
 export const authApi = {
   getDiscordStartUrl(redirectTo) {
-    return buildUrl('discord/start', { redirect_to: redirectTo }).toString();
+    return buildUrl('discord/start', {
+      redirect_to: redirectTo,
+      app_base: getAppBasePath(),
+    }).toString();
   },
 
   async getSession() {
