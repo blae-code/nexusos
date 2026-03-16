@@ -299,8 +299,10 @@ export default function OpBoard() {
     if (!selectedOp) return;
     const endedAt = new Date().toISOString();
     await base44.entities.Op.update(selectedOp.id, { status: 'COMPLETE', ended_at: endedAt });
-    // Fire-and-forget: Claude debrief + Discord post (non-blocking)
-    base44.functions.invoke('opWrapUp', { op_id: selectedOp.id }).catch(e => console.warn('[opWrapUp]', e));
+    // Generate Claude debrief + post to Discord (fire-and-forget, non-blocking)
+    base44.functions.invoke('opWrapUp', { op_id: selectedOp.id }).catch(e =>
+      console.warn('[OpBoard] opWrapUp failed:', e.message)
+    );
     setSelectedOp(null);
     setView('list');
     load();
