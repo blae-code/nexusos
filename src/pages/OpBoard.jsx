@@ -216,9 +216,15 @@ function LiveOpView({ op, rsvps, rank, callsign, onAdvancePhase, onEndOp }) {
                 <div key={role} style={{ marginBottom: 8 }}>
                   <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', padding: '4px 6px', textTransform: 'uppercase' }}>{role}</div>
                   {members.map(m => (
-                    <div key={m.id} className="flex items-center justify-between" style={{ padding: '5px 8px', borderRadius: 4 }}>
-                      <span style={{ color: 'var(--t0)', fontSize: 12 }}>{m.callsign}</span>
-                      <span style={{ color: 'var(--t2)', fontSize: 10 }}>{m.ship || '—'}</span>
+                    <div key={m.id} className="flex items-center gap-3" style={{ padding: '5px 8px', borderRadius: 4 }}>
+                      <span style={{ color: 'var(--t0)', fontSize: 12, flex: 1 }}>{m.callsign}</span>
+                      {m.ship && <span style={{ color: 'var(--t2)', fontSize: 10 }}>{m.ship}</span>}
+                      {m.cargo_scu_available > 0 && (
+                        <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.2)', background: 'transparent', fontSize: 9 }}>{m.cargo_scu_available} SCU</span>
+                      )}
+                      {m.ship_class === 'MEDICAL' && (
+                        <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.07)', fontSize: 9 }}>MEDIC</span>
+                      )}
                     </div>
                   ))}
                 </div>
