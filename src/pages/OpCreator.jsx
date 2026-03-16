@@ -177,6 +177,8 @@ export default function OpCreator() {
     try {
       const op = await base44.entities.Op.create({
         ...form,
+        hauling_scu_required: HAULING_OP_TYPES.has(form.type) ? (form.hauling_scu_required || 0) : 0,
+        mining_mode: MINING_OP_TYPES.has(form.type) ? form.mining_mode : undefined,
         role_slots: roleSlots,
         reminders_enabled: options.reminder_24h || options.reminder_1h,
         post_phase_updates: options.post_phase_updates,
