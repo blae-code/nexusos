@@ -365,7 +365,9 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
                   flexShrink: 0,
                 }}
               />
-              <span style={{ fontSize: 10 }}>{user?.callsign || 'UNKNOWN'}</span>
+              <span style={{ fontSize: 10 }}>
+                {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
+              </span>
               <ChevronDown size={11} style={{ color: 'var(--t3)' }} />
             </button>
 
