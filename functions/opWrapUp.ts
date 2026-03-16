@@ -1,141 +1,125 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Op Wrap-Up — Generates a tactical debrief report using Claude,
- * then posts to Discord #nexusos-ops and creates a discussion thread.
- *
- * Input: { op_id }
- * 
- * Fetches:
- * - Op record (session_log, crew count, duration, materials, splits)
- * - OpRsvp records (crew list, roles)
- * - Material records filtered to op's session_id
- * 
- * Calls Claude with debrief officer prompt, then:
- * - Stores markdown report in ops.wrap_up_report
- * - Invokes heraldBot to post embed + create thread
- */
 Deno.serve(async (req) => {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'POST only' }, { status: 405 });
+  }
+
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { op_id } = await req.json();
-    if (!op_id) return Response.json({ error: 'op_id required' }, { status: 400 });
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Fetch op
-    const ops = await base44.asServiceRole.entities.Op.filter({ id: op_id });
-    const op = ops?.[0];
-    if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
+    const {
+      op_id,
+      op_name,
+      op_type,
+      duration_minutes,
+      crew_list = [],
+      session_log = [],
+      materials_logged = [],
+      total_value_aUEC = 0,
+    } = await req.json();
 
-    // Fetch crew RSVPs
-    const rsvps = await base44.asServiceRole.entities.OpRsvp.filter({ op_id: op_id, status: 'CONFIRMED' });
+    if (!op_id || !op_name) {
+      return Response.json({ error: 'Missing op_id or op_name' }, { status: 400 });
+    }
 
-    // Fetch materials logged during this op
-    const materials = await base44.asServiceRole.entities.Material.filter({
-      session_id: op_id,
+    // Format crew summary
+    const crewSummary = crew_list
+      .map(member => `- ${member.callsign || member.name} (${member.role || 'unknown'})`)
+      .join('\n');
+
+    // Format materials summary
+    const materialsSummary = materials_logged
+      .map(m => `- ${m.material_name}: ${m.quantity_scu} SCU @ ${m.quality_pct}% quality`)
+      .join('\n');
+
+    // Format session log excerpt (last 5 entries)
+    const logExcerpt = (session_log || [])
+      .slice(-5)
+      .map(entry => `[${entry.time || 'T+?'}] ${entry.message || entry.action || 'Event logged'}`)
+      .join('\n');
+
+    const prompt = `You are a Redscar Nomads operations debrief officer. Generate a tactical, concise markdown debrief for:
+
+OPERATION: ${op_name}
+TYPE: ${op_type}
+DURATION: ${duration_minutes} minutes
+CREW: ${crew_list.length} members
+TOTAL VALUE: ${total_value_aUEC.toLocaleString()} aUEC
+
+CREW ROSTER:
+${crewSummary || '(None recorded)'}
+
+MATERIALS LOGGED:
+${materialsSummary || '(None recorded)'}
+
+SESSION HIGHLIGHTS (last entries):
+${logExcerpt || '(No session log entries)'}
+
+Write a brief tactical debrief that:
+1. Opens with status line (SUCCESS/PARTIAL/CHALLENGING)
+2. Notes crew performance and coordination
+3. Highlights material yields and quality achieved
+4. Flags any issues or improvements for next time
+5. Closes with operational summary
+
+Use military/tactical tone. Keep it under 300 words. Do NOT include any markdown code blocks.
+Return ONLY the markdown text for the debrief.`;
+
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt,
     });
 
-    // Calculate metrics
-    const duration = op.ended_at && op.started_at
-      ? Math.floor((new Date(op.ended_at) - new Date(op.started_at)) / 60000) // minutes
-      : 0;
+    // The debrief markdown text
+    const debrief_text = result;
 
-    const totalMaterialScu = (materials || []).reduce((s, m) => s + (m.quantity_scu || 0), 0);
-    const avgQuality = materials.length > 0
-      ? (materials.reduce((s, m) => s + (m.quality_pct || 0), 0) / materials.length).toFixed(1)
-      : 0;
-
-    // Group materials by type
-    const materialsByType = {};
-    (materials || []).forEach(m => {
-      const type = m.material_type || 'OTHER';
-      if (!materialsByType[type]) materialsByType[type] = [];
-      materialsByType[type].push(m);
-    });
-
-    // Build session summary for Claude
-    const sessionSummary = `
-**OPERATION:** ${op.name}
-**TYPE:** ${op.type}
-**SYSTEM:** ${op.system}
-**LOCATION:** ${op.location || 'N/A'}
-**DURATION:** ${duration} minutes
-**CREW:** ${rsvps.length} members
-
-**CREW BREAKDOWN:**
-${(rsvps || []).map(r => `- ${r.callsign} (${r.role || 'unassigned'})${r.ship ? ` · ${r.ship}` : ''}`).join('\n')}
-
-**MATERIAL HARVEST:**
-Total: ${totalMaterialScu} SCU (avg quality: ${avgQuality}%)
-${Object.entries(materialsByType).map(([type, mats]) => {
-  const scu = mats.reduce((s, m) => s + (m.quantity_scu || 0), 0);
-  return `- ${type}: ${scu} SCU`;
-}).join('\n')}
-
-**SESSION LOG ENTRIES:**
-${(op.session_log || []).map(entry => {
-  const time = entry.t ? new Date(entry.t).toLocaleTimeString('en-US', { timeZone: 'UTC' }) : '??:??:??';
-  if (entry.type === 'threat') {
-    return `[${time}] THREAT: ${entry.text} (reported by ${entry.author})`;
-  } else if (entry.type === 'phase') {
-    return `[${time}] PHASE: ${entry.text}`;
-  } else {
-    return `[${time}] LOG: ${entry.text}`;
-  }
-}).join('\n')}
-    `.trim();
-
-    // Call Claude for debrief
-    const debrief = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      model: 'claude_sonnet_4_6',
-      prompt: `You are a tactical debrief officer for the Star Citizen industrial org Redscar Nomads.
-Generate a concise mission wrap-up report for this completed operation.
-
-Tone: Professional, tactical, org-native. Not corporate or marketing speak.
-Format: Markdown (no triple-backticks, no code blocks)
-Length: 200-300 words max
-
-Focus on:
-1. Mission success/status
-2. Key achievements (material yields, T2 quality metrics, crew performance)
-3. Notable incidents or challenges
-4. Logistics summary
-5. Brief recommendations for next phase
-
-SESSION DATA:
-${sessionSummary}`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          report: { type: 'string' },
+    // Format Discord embed for #nexusos-ops
+    const discordEmbed = {
+      title: `📋 OP DEBRIEF: ${op_name}`,
+      description: debrief_text.substring(0, 2048), // Discord limit
+      color: total_value_aUEC > 0 ? 2611200 : 6918400, // Green if profitable, amber if not
+      fields: [
+        {
+          name: 'Duration',
+          value: `${duration_minutes}m`,
+          inline: true,
         },
+        {
+          name: 'Crew',
+          value: `${crew_list.length} members`,
+          inline: true,
+        },
+        {
+          name: 'Total Value',
+          value: `${total_value_aUEC.toLocaleString()} aUEC`,
+          inline: true,
+        },
+        {
+          name: 'Materials Logged',
+          value: materials_logged.length > 0
+            ? materials_logged.map(m => `${m.material_name} (${m.quantity_scu} SCU)`).join('\n')
+            : '(None)',
+          inline: false,
+        },
+      ],
+      footer: {
+        text: `Op ID: ${op_id}`,
       },
-    });
-
-    const report = debrief?.report || 'Debrief report generation failed.';
-
-    // Store report on op
-    await base44.asServiceRole.entities.Op.update(op_id, {
-      wrap_up_report: report,
-    });
-
-    // Post to Discord via Herald Bot (heraldBot handles thread creation + coffer posting)
-    await base44.asServiceRole.functions.invoke('heraldBot', {
-      action: 'opWrapUp',
-      payload: { op_id: op_id },
-    });
+      timestamp: new Date().toISOString(),
+    };
 
     return Response.json({
-      success: true,
-      op_id: op_id,
-      report_length: report.length,
-      crew_count: rsvps.length,
-      materials_logged: materials.length,
+      debrief_text,
+      discord_embed: discordEmbed,
+      op_id,
     });
   } catch (error) {
-    console.error('opWrapUp error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Op wrap-up error:', error);
+    return Response.json({ error: error.message || 'Debrief generation failed' }, { status: 500 });
   }
 });
