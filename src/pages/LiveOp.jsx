@@ -1,28 +1,150 @@
 /**
- * LiveOp — Full live operation command screen
+ * LiveOp — Live operation management screen
  * Route: /app/ops/:id
- * Tabs: CREW · SUPPLY CHAIN · SESSION LOG
- * Actions: Go Live · End Op · Threat Alert · Phase Brief · Phase Advance
+ *
+ * Tabs: CREW | SUPPLY CHAIN | SESSION LOG
+ * Phase tracker + controls for Op Leaders (VOYAGER+)
+ * Threat alert, Phase Brief, End Op actions
  */
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft } from 'lucide-react';
-import LiveOpHeader from '@/components/ops/LiveOpHeader';
-import CrewRoster from '@/components/ops/CrewRoster';
+import { AlertTriangle, ChevronLeft, ChevronRight, Radio, Square } from 'lucide-react';
+import LiveOpCrewTab from '@/components/ops/LiveOpCrewTab';
 import SupplyChainView from '@/components/ops/SupplyChainView';
-import SessionLog from '@/components/ops/SessionLog';
-import PhaseBriefModal from '@/components/ops/PhaseBriefModal';
-import ThreatAlertModal from '@/components/ops/ThreatAlertModal';
+import LiveOpSessionLog from '@/components/ops/LiveOpSessionLog';
+import PhaseBriefPanel from '@/components/ops/PhaseBriefPanel';
+
+const STATUS_CONFIG = {
+  DRAFT:     { label: 'DRAFT',     color: 'var(--warn)',  bg: 'var(--warn-bg)',  border: 'var(--warn-b)' },
+  PUBLISHED: { label: 'PUBLISHED', color: 'var(--info)',  bg: 'var(--info-bg)',  border: 'var(--info-b)' },
+  LIVE:      { label: 'LIVE',      color: 'var(--live)',  bg: 'var(--live-bg)',  border: 'var(--live-b)' },
+  COMPLETE:  { label: 'COMPLETE',  color: 'var(--t1)',    bg: 'var(--bg2)',      border: 'var(--b2)' },
+  ARCHIVED:  { label: 'ARCHIVED',  color: 'var(--t2)',    bg: 'var(--bg2)',      border: 'var(--b1)' },
+};
 
 const TABS = [
-  { id: 'crew',    label: 'CREW' },
-  { id: 'supply',  label: 'SUPPLY CHAIN' },
-  { id: 'log',     label: 'SESSION LOG' },
+  { id: 'crew',   label: 'CREW' },
+  { id: 'supply', label: 'SUPPLY CHAIN' },
+  { id: 'log',    label: 'SESSION LOG' },
 ];
 
-const CAN_LEAD_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
+const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
 
+// ─── Phase progress bar ────────────────────────────────────────────────────────
+function PhaseBar({ op, canEdit, onPhaseChange }) {
+  const phases = op.phases || [];
+  if (phases.length === 0) return null;
+  const current = op.phase_current || 0;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.12em', flexShrink: 0 }}>PHASE</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, overflow: 'auto', flex: 1 }}>
+        {phases.map((p, i) => {
+          const name = typeof p === 'object' ? p.name : p;
+          const isCurrent = i === current;
+          const isDone = i < current;
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
+              <div style={{
+                padding: '3px 8px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em',
+                background: isCurrent ? 'rgba(232,160,32,0.12)' : isDone ? 'var(--bg2)' : 'transparent',
+                border: `0.5px solid ${isCurrent ? 'rgba(232,160,32,0.4)' : isDone ? 'var(--b1)' : 'transparent'}`,
+                color: isCurrent ? 'var(--warn)' : isDone ? 'var(--live)' : 'var(--t3)',
+              }}>
+                {isDone ? '✓' : isCurrent ? '▶' : `${i + 1}`} {name || `P${i + 1}`}
+              </div>
+              {i < phases.length - 1 && (
+                <div style={{ width: 12, height: '0.5px', background: isDone ? 'var(--b2)' : 'var(--b0)', flexShrink: 0 }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {canEdit && (
+        <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+          <button
+            onClick={() => onPhaseChange(Math.max(0, current - 1))}
+            disabled={current === 0}
+            className="nexus-btn"
+            style={{ padding: '3px 7px', fontSize: 10, opacity: current === 0 ? 0.3 : 1 }}
+          >
+            <ChevronLeft size={10} />
+          </button>
+          <button
+            onClick={() => onPhaseChange(Math.min(phases.length - 1, current + 1))}
+            disabled={current >= phases.length - 1}
+            className="nexus-btn"
+            style={{ padding: '3px 7px', fontSize: 10, opacity: current >= phases.length - 1 ? 0.3 : 1 }}
+          >
+            <ChevronRight size={10} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Threat alert modal ────────────────────────────────────────────────────────
+function ThreatAlertModal({ op, callsign, onClose }) {
+  const [form, setForm] = useState({ threat_type: 'HOSTILE', description: '', system: op.system || '' });
+  const [saving, setSaving] = useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    await base44.functions.invoke('heraldBot', {
+      action: 'threatAlert',
+      payload: { op_id: op.id, op_name: op.name, threat_type: form.threat_type, description: form.description, system: form.system, callsign },
+    });
+    const entry = { type: 'threat', t: new Date().toISOString(), author: callsign, text: `${form.threat_type}: ${form.description}` };
+    await base44.entities.Op.update(op.id, { session_log: [...(op.session_log || []), entry] });
+    setSaving(false);
+    onClose();
+  };
+
+  const TYPES = ['HOSTILE', 'GRIEFER', 'SERVER_ISSUE', 'DISCONNECT', 'EMERGENCY', 'OTHER'];
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(7,9,14,0.88)' }}>
+      <div className="nexus-fade-in" style={{ width: 420, background: 'var(--bg2)', border: '0.5px solid rgba(224,72,72,0.3)', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <AlertTriangle size={13} style={{ color: 'var(--danger)' }} />
+          <span style={{ color: 'var(--danger)', fontSize: 11, fontWeight: 500, letterSpacing: '0.08em' }}>THREAT ALERT</span>
+        </div>
+        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div>
+            <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', marginBottom: 5 }}>TYPE</div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {TYPES.map(t => (
+                <button key={t} onClick={() => set('threat_type', t)} style={{
+                  padding: '3px 8px', borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 9, letterSpacing: '0.08em',
+                  background: form.threat_type === t ? 'rgba(224,72,72,0.12)' : 'var(--bg3)',
+                  border: `0.5px solid ${form.threat_type === t ? 'var(--danger)' : 'var(--b2)'}`,
+                  color: form.threat_type === t ? 'var(--danger)' : 'var(--t1)',
+                }}>{t}</button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', marginBottom: 5 }}>DESCRIPTION</div>
+            <textarea className="nexus-input" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Ship type, location, count…" rows={3} style={{ fontSize: 11, resize: 'none' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={onClose} className="nexus-btn" style={{ padding: '7px 14px', fontSize: 10 }}>CANCEL</button>
+            <button onClick={handleSubmit} disabled={saving} className="nexus-btn danger-btn" style={{ flex: 1, justifyContent: 'center', padding: '7px 0', fontSize: 10 }}>
+              {saving ? 'POSTING...' : '⚠ BROADCAST ALERT'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────────
 export default function LiveOp() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -37,13 +159,12 @@ export default function LiveOp() {
   const [craftQueue, setCraftQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('crew');
-
-  const [showPhaseBrief, setShowPhaseBrief] = useState(false);
   const [showThreat, setShowThreat] = useState(false);
-  const [actionPending, setActionPending] = useState(false);
-  const [wrapUpPending, setWrapUpPending] = useState(false);
+  const [showPhaseBrief, setShowPhaseBrief] = useState(false);
+  const [goLoading, setGoLoading] = useState(false);
+  const [endLoading, setEndLoading] = useState(false);
 
-  const canLead = CAN_LEAD_RANKS.includes(rank);
+  const canLead = LEADER_RANKS.includes(rank);
 
   const load = useCallback(async () => {
     const [ops, rv, ro, cq] = await Promise.all([
@@ -52,8 +173,7 @@ export default function LiveOp() {
       base44.entities.RefineryOrder.list('-started_at', 30),
       base44.entities.CraftQueue.list('-created_date', 30),
     ]);
-    const found = ops?.[0];
-    if (found) setOp(found);
+    setOp(ops?.[0] || null);
     setRsvps(rv || []);
     setRefineryOrders(ro || []);
     setCraftQueue(cq || []);
@@ -62,67 +182,38 @@ export default function LiveOp() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Real-time op subscription
   useEffect(() => {
     const unsub = base44.entities.Op.subscribe(event => {
       if (event.id === id && event.data) setOp(event.data);
     });
-    return unsub;
-  }, [id]);
+    const unsubRsvp = base44.entities.OpRsvp.subscribe(() => { load(); });
+    return () => { unsub(); unsubRsvp(); };
+  }, [id, load]);
 
   const handleGoLive = async () => {
-    setActionPending(true);
-    const updated = await base44.entities.Op.update(id, {
-      status: 'LIVE',
-      started_at: new Date().toISOString(),
-    });
-    setOp(prev => ({ ...prev, status: 'LIVE', started_at: updated.started_at }));
-
-    // Herald opGo
-    await base44.functions.invoke('heraldBot', {
-      action: 'opGo',
-      payload: { op_id: id, at_here: true },
-    });
-
-    // Log
-    const entry = { type: 'system', t: new Date().toISOString(), author: 'NEXUSOS', text: `Op went LIVE — called by ${callsign}` };
-    await base44.entities.Op.update(id, { session_log: [...(op?.session_log || []), entry] });
-    setActionPending(false);
-    await load();
+    setGoLoading(true);
+    await base44.entities.Op.update(id, { status: 'LIVE', started_at: new Date().toISOString() });
+    await base44.functions.invoke('heraldBot', { action: 'opGo', payload: { op_id: id, at_here: true } });
+    setGoLoading(false);
   };
 
   const handleEndOp = async () => {
     if (!window.confirm('End this op and generate wrap-up report?')) return;
-    setWrapUpPending(true);
-    const ended_at = new Date().toISOString();
-    await base44.entities.Op.update(id, { status: 'COMPLETE', ended_at });
-    setOp(prev => ({ ...prev, status: 'COMPLETE', ended_at }));
-
-    // Generate wrap-up report
+    setEndLoading(true);
+    await base44.entities.Op.update(id, { status: 'COMPLETE', ended_at: new Date().toISOString() });
     await base44.functions.invoke('opWrapUp', { op_id: id });
-    setWrapUpPending(false);
-    await load();
+    setEndLoading(false);
+    navigate('/app/ops');
   };
 
-  const handlePhaseAdvance = async (nextPhase) => {
-    const phases = op.phases || [];
-    await base44.entities.Op.update(id, { phase_current: nextPhase });
-    setOp(prev => ({ ...prev, phase_current: nextPhase }));
-
-    const phaseName = phases[nextPhase]?.name || phases[nextPhase] || `Phase ${nextPhase + 1}`;
-    const entry = { type: 'system', t: new Date().toISOString(), author: 'NEXUSOS', text: `Phase advanced → ${phaseName}` };
-    const updated = [...(op.session_log || []), entry];
-    await base44.entities.Op.update(id, { session_log: updated });
-    setOp(prev => ({ ...prev, phase_current: nextPhase, session_log: updated }));
-
-    // Post to Discord
-    await base44.functions.invoke('heraldBot', {
-      action: 'phaseAdvance',
-      payload: { op_id: id, phase_name: phaseName, phase_index: nextPhase },
-    });
+  const handlePhaseChange = async (newPhase) => {
+    setOp(prev => ({ ...prev, phase_current: newPhase }));
+    await base44.entities.Op.update(id, { phase_current: newPhase });
   };
 
-  const handleOpUpdate = (updatedOp) => setOp(updatedOp);
+  const handleLogEntry = (entry) => {
+    setOp(prev => prev ? { ...prev, session_log: [...(prev.session_log || []), entry] } : prev);
+  };
 
   if (loading) {
     return (
@@ -135,202 +226,123 @@ export default function LiveOp() {
   if (!op) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12 }}>
-        <span style={{ color: 'var(--danger)', fontSize: 13 }}>Op not found</span>
-        <button onClick={() => navigate('/app/ops')} className="nexus-btn" style={{ padding: '6px 16px', fontSize: 11 }}>← BACK</button>
+        <span style={{ color: 'var(--t2)', fontSize: 12 }}>Op not found</span>
+        <button onClick={() => navigate('/app/ops')} className="nexus-btn" style={{ padding: '6px 14px', fontSize: 10 }}>← BACK</button>
       </div>
     );
   }
 
-  const newLogCount = (op.session_log || []).filter(e => e.type !== 'supply_chain').length;
+  const statusCfg = STATUS_CONFIG[op.status] || STATUS_CONFIG.DRAFT;
+  const isLive = op.status === 'LIVE';
+  const isMyOp = op.created_by === discordId || canLead;
+  const canEdit = canLead && ['LIVE', 'PUBLISHED'].includes(op.status);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
-      {/* Back + header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
-        <button
-          onClick={() => navigate('/app/ops')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 3, padding: '10px 12px 10px 16px',
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)',
-            borderRight: '0.5px solid var(--b1)', flexShrink: 0,
-            borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)',
-          }}
-        >
-          <ChevronLeft size={14} />
-        </button>
-        <div style={{ flex: 1 }}>
-          <LiveOpHeader
-            op={op}
-            canLead={canLead}
-            onGoLive={handleGoLive}
-            onEndOp={handleEndOp}
-            onThreatAlert={() => setShowThreat(true)}
-            onPhaseAdvance={handlePhaseAdvance}
-          />
-        </div>
-        {/* Phase brief button — only during LIVE ops with phases */}
-        {canLead && op.status === 'LIVE' && (
-          <button
-            onClick={() => setShowPhaseBrief(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '0 16px', height: '100%',
-              background: 'rgba(232,160,32,0.07)', border: 'none',
-              borderLeft: '0.5px solid var(--warn-b)',
-              borderBottom: '0.5px solid var(--b1)',
-              cursor: 'pointer', color: 'var(--warn)', fontSize: 10,
-              letterSpacing: '0.08em', fontFamily: 'inherit', flexShrink: 0,
-              transition: 'background 0.12s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,160,32,0.13)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(232,160,32,0.07)'}
-          >
-            POST PHASE BRIEF
+      {/* Header */}
+      <div style={{ flexShrink: 0, background: 'var(--bg1)', borderBottom: '0.5px solid var(--b1)', padding: '0 16px' }}>
+
+        {/* Top row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 10, paddingBottom: 6 }}>
+          <button onClick={() => navigate('/app/ops')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', display: 'flex', alignItems: 'center', padding: 0 }}>
+            <ChevronLeft size={14} />
           </button>
-        )}
-      </div>
 
-      {/* Wrap-up pending banner */}
-      {wrapUpPending && (
-        <div style={{
-          padding: '8px 16px', background: 'rgba(232,160,32,0.08)', borderBottom: '0.5px solid var(--warn-b)',
-          color: 'var(--warn)', fontSize: 10, letterSpacing: '0.08em', flexShrink: 0,
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <div className="nexus-loading-dots"><span /><span /><span /></div>
-          Generating wrap-up report and posting to Discord...
-        </div>
-      )}
+          {/* Status */}
+          <div style={{
+            padding: '2px 8px', borderRadius: 3, flexShrink: 0,
+            background: statusCfg.bg, border: `0.5px solid ${statusCfg.border}`,
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            {isLive && <div className="pulse-live" />}
+            <span style={{ color: statusCfg.color, fontSize: 9, letterSpacing: '0.12em' }}>{statusCfg.label}</span>
+          </div>
 
-      {/* Tabs */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0,
-        borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)', padding: '0 16px',
-      }}>
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            style={{
-              padding: '10px 14px',
-              background: 'none', border: 'none',
-              borderBottom: tab === t.id ? '1.5px solid var(--acc2)' : '1.5px solid transparent',
-              color: tab === t.id ? 'var(--t0)' : 'var(--t2)',
-              fontSize: 10, letterSpacing: '0.1em', cursor: 'pointer',
-              fontFamily: 'inherit', transition: 'color 0.12s',
-              position: 'relative',
-            }}
-          >
-            {t.label}
-            {t.id === 'log' && newLogCount > 0 && (
-              <span style={{
-                position: 'absolute', top: 6, right: 4,
-                width: 5, height: 5, borderRadius: '50%',
-                background: 'var(--live)',
-              }} />
+          {/* Name */}
+          <span style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {op.name}
+          </span>
+
+          {/* Meta */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+            {op.system && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.system}{op.location ? ` · ${op.location}` : ''}</span>}
+            <span className="nexus-tag">{(op.type || '').replace(/_/g, ' ')}</span>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+            {canEdit && (
+              <button onClick={() => setShowThreat(true)} className="nexus-btn danger-btn" style={{ padding: '4px 10px', fontSize: 9 }}>
+                <AlertTriangle size={10} /> THREAT
+              </button>
             )}
-          </button>
-        ))}
+            {canEdit && (
+              <button onClick={() => setShowPhaseBrief(true)} className="nexus-btn" style={{
+                padding: '4px 10px', fontSize: 9,
+                borderColor: 'rgba(74,143,208,0.35)', color: 'var(--info)', background: 'rgba(74,143,208,0.06)',
+              }}>
+                <Radio size={10} /> PHASE BRIEF
+              </button>
+            )}
+            {isMyOp && op.status === 'PUBLISHED' && (
+              <button onClick={handleGoLive} disabled={goLoading} className="nexus-btn live-btn" style={{ padding: '4px 12px', fontSize: 9 }}>
+                {goLoading ? 'GOING LIVE...' : '▶ GO LIVE'}
+              </button>
+            )}
+            {isMyOp && isLive && (
+              <button onClick={handleEndOp} disabled={endLoading} className="nexus-btn" style={{ padding: '4px 10px', fontSize: 9, borderColor: 'var(--b2)', color: 'var(--t1)' }}>
+                <Square size={9} /> {endLoading ? 'ENDING...' : 'END OP'}
+              </button>
+            )}
+          </div>
+        </div>
 
-        {/* RSVP me button for non-leads */}
-        {!canLead && op.status !== 'COMPLETE' && op.status !== 'ARCHIVED' && (
-          <div style={{ marginLeft: 'auto' }}>
-            <RsvpMeButton op={op} discordId={discordId} callsign={callsign} onDone={load} />
+        {/* Phase bar */}
+        {(op.phases || []).length > 0 && (
+          <div style={{ paddingBottom: 8 }}>
+            <PhaseBar op={op} canEdit={canEdit} onPhaseChange={handlePhaseChange} />
           </div>
         )}
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 0 }}>
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer',
+                borderBottom: tab === t.id ? '2px solid var(--acc2)' : '2px solid transparent',
+                color: tab === t.id ? 'var(--t0)' : 'var(--t2)',
+                fontSize: 10, letterSpacing: '0.1em', fontFamily: 'inherit', transition: 'color 0.15s',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tab content */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {tab === 'crew' && (
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            <CrewRoster op={op} rsvps={rsvps} canLead={canLead} onRsvpUpdate={load} />
-          </div>
-        )}
+      <div style={{ flex: 1, overflow: 'auto', padding: '0 16px' }}>
+        {tab === 'crew' && <LiveOpCrewTab op={op} rsvps={rsvps} canEdit={canEdit} />}
         {tab === 'supply' && (
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <SupplyChainView
-              op={op}
-              rsvps={rsvps}
-              refineryOrders={refineryOrders}
-              craftQueue={craftQueue}
-              canEdit={canLead && op.status === 'LIVE'}
-              onUpdate={handleOpUpdate}
-            />
-          </div>
+          <SupplyChainView
+            op={op} rsvps={rsvps} refineryOrders={refineryOrders} craftQueue={craftQueue}
+            canEdit={canEdit} onUpdate={setOp}
+          />
         )}
-        {tab === 'log' && (
-          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <SessionLog op={op} callsign={callsign} canLead={canLead} onUpdate={handleOpUpdate} />
-          </div>
-        )}
+        {tab === 'log' && <LiveOpSessionLog op={op} callsign={callsign} canEdit={canEdit} />}
       </div>
 
       {/* Modals */}
-      {showPhaseBrief && (
-        <PhaseBriefModal
-          op={op}
-          onClose={() => setShowPhaseBrief(false)}
-          onPosted={() => { setShowPhaseBrief(false); load(); }}
-        />
-      )}
       {showThreat && (
-        <ThreatAlertModal
-          op={op}
-          callsign={callsign}
-          onClose={() => setShowThreat(false)}
-          onPosted={(updated) => { handleOpUpdate(updated); setShowThreat(false); }}
-        />
+        <ThreatAlertModal op={op} callsign={callsign} onClose={() => { setShowThreat(false); load(); }} />
       )}
-    </div>
-  );
-}
-
-// ── Inline RSVP button for crew members ──────────────────────────────────────
-function RsvpMeButton({ op, discordId, callsign, onDone }) {
-  const [open, setOpen] = useState(false);
-  const [role, setRole] = useState('');
-  const [ship, setShip] = useState('');
-  const [posting, setPosting] = useState(false);
-
-  const roles = Object.keys(op.role_slots || {});
-
-  const handleRsvp = async (status) => {
-    setPosting(true);
-    const existing = await base44.entities.OpRsvp.filter({ op_id: op.id, discord_id: discordId });
-    if (existing?.[0]) {
-      await base44.entities.OpRsvp.update(existing[0].id, { status, role: role || existing[0].role, ship: ship || existing[0].ship });
-    } else {
-      await base44.entities.OpRsvp.create({ op_id: op.id, discord_id: discordId, callsign, role, ship, status });
-    }
-    setPosting(false);
-    setOpen(false);
-    onDone && onDone();
-  };
-
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} className="nexus-btn" style={{ padding: '4px 12px', fontSize: 10 }}>
-        RSVP
-      </button>
-    );
-  }
-
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0',
-      background: 'var(--bg2)', border: '0.5px solid var(--b2)', borderRadius: 5,
-      padding: '4px 8px',
-    }}>
-      <select className="nexus-input" value={role} onChange={e => setRole(e.target.value)} style={{ fontSize: 10, padding: '2px 6px', width: 100 }}>
-        <option value="">Role...</option>
-        {roles.map(r => <option key={r} value={r}>{r}</option>)}
-      </select>
-      <input className="nexus-input" value={ship} onChange={e => setShip(e.target.value)} placeholder="Ship..." style={{ fontSize: 10, padding: '2px 6px', width: 90 }} />
-      <button onClick={() => handleRsvp('CONFIRMED')} disabled={posting} className="nexus-btn live-btn" style={{ padding: '2px 8px', fontSize: 9 }}>CONFIRM</button>
-      <button onClick={() => handleRsvp('DECLINED')} disabled={posting} className="nexus-btn danger-btn" style={{ padding: '2px 8px', fontSize: 9 }}>DECLINE</button>
-      <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', fontSize: 13, padding: 2 }}>×</button>
+      {showPhaseBrief && (
+        <PhaseBriefPanel op={op} onClose={() => setShowPhaseBrief(false)} onLogEntry={handleLogEntry} />
+      )}
     </div>
   );
 }
