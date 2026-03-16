@@ -196,7 +196,7 @@ export default function IndustryHub() {
         ) : null}
         {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} discordId={discordId} onRefresh={load} /> : null}
-        {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} /> : null}
+        {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} materials={materials} blueprints={blueprints} /> : null}
         {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} /> : null}
       </div>
     </div>
