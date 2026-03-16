@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
-    // ── Wrap-Up ──────────────────────────────────────────────────────────────
+    // ── Wrap-Up (legacy simple) ───────────────────────────────────────────────
     if (action === 'wrapUp') {
       const { op_id } = payload;
       const [ops, cofferEntries] = await Promise.all([
@@ -291,13 +291,11 @@ Deno.serve(async (req) => {
         embeds: [wrapUpEmbed(op, cofferEntries || [])],
       });
 
-      // Create archive thread on the wrap-up message
       await discordPost(`/channels/${CH.nexusOps}/messages/${msg.id}/threads`, {
         name: `📁 ${op.name} — Session Log`,
-        auto_archive_duration: 1440, // 24h
+        auto_archive_duration: 1440,
       });
 
-      // Post aUEC split to #COFFER
       const totalAuec = (cofferEntries || []).reduce((s, e) => s + (e.amount_aUEC || 0), 0);
       if (totalAuec > 0 && CH.coffer) {
         await discordPost(`/channels/${CH.coffer}/messages`, {
@@ -305,6 +303,51 @@ Deno.serve(async (req) => {
             title: `💰 Op Split — ${op.name}`,
             color: 0x27c96a,
             description: `Total: **${totalAuec.toLocaleString()} aUEC**`,
+            footer: { text: 'NEXUSOS · COFFER' },
+            timestamp: new Date().toISOString(),
+          }],
+        });
+      }
+
+      return Response.json({ success: true });
+    }
+
+    // ── Wrap-Up Debrief (Claude-generated) ───────────────────────────────────
+    if (action === 'wrapUpDebrief') {
+      const { op_name, system, location, duration_min, crew_count, total_auec, total_scu, report } = payload;
+
+      const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, {
+        embeds: [{
+          title: `📋 DEBRIEF — ${op_name}`,
+          color: 0x5a6080,
+          description: report,
+          fields: [
+            { name: 'System',    value: system + (location ? ` · ${location}` : ''), inline: true },
+            ...(duration_min != null ? [{ name: 'Duration', value: `${duration_min}m`, inline: true }] : []),
+            { name: 'Crew',      value: String(crew_count || 0), inline: true },
+            ...(total_scu > 0 ? [{ name: 'Material Yield', value: `${total_scu.toFixed(1)} SCU`, inline: true }] : []),
+            ...(total_auec > 0 ? [{ name: 'Gross aUEC', value: total_auec.toLocaleString(), inline: true }] : []),
+          ],
+          footer: { text: 'NEXUSOS · EPIC ARCHIVE' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+
+      // Create debrief thread
+      if (msg?.id) {
+        await discordPost(`/channels/${CH.nexusOps}/messages/${msg.id}/threads`, {
+          name: `📁 ${op_name} — Debrief`,
+          auto_archive_duration: 1440,
+        });
+      }
+
+      // Post aUEC to #COFFER if applicable
+      if (total_auec > 0 && CH.coffer) {
+        await discordPost(`/channels/${CH.coffer}/messages`, {
+          embeds: [{
+            title: `💰 Op Split — ${op_name}`,
+            color: 0x27c96a,
+            description: `Gross: **${total_auec.toLocaleString()} aUEC**`,
             footer: { text: 'NEXUSOS · COFFER' },
             timestamp: new Date().toISOString(),
           }],
@@ -478,37 +521,6 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({ success: true });
-    }
-
-    // ── Wrap-Up Debrief (Claude-generated) ──────────────────────────────────
-    if (action === 'wrapUpDebrief') {
-      const { op_name, op_type, system, location, duration_min, crew_count, total_auec, total_scu, report } = payload;
-
-      const embed = {
-        title: `📋 DEBRIEF — ${op_name}`,
-        color: 0x5a6080,
-        description: report,
-        fields: [
-          { name: 'Type',     value: op_type?.replace(/_/g, ' ') || '—', inline: true },
-          { name: 'System',   value: system + (location ? ` · ${location}` : ''), inline: true },
-          ...(duration_min != null ? [{ name: 'Duration', value: `${duration_min}m`, inline: true }] : []),
-          ...(crew_count   ? [{ name: 'Crew',     value: String(crew_count), inline: true }] : []),
-          ...(total_scu    ? [{ name: 'Yield',    value: `${total_scu.toFixed(1)} SCU`, inline: true }] : []),
-          ...(total_auec   ? [{ name: 'Gross',    value: `${total_auec.toLocaleString()} aUEC`, inline: true }] : []),
-        ],
-        footer: { text: 'NEXUSOS · EPIC ARCHIVE' },
-        timestamp: new Date().toISOString(),
-      };
-
-      const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, { embeds: [embed] });
-
-      // Auto-thread for debrief discussion
-      await discordPost(`/channels/${CH.nexusOps}/messages/${msg.id}/threads`, {
-        name: `📁 ${op_name} — Debrief`,
-        auto_archive_duration: 1440,
-      });
-
-      return Response.json({ success: true, message_id: msg.id });
     }
 
     // ── Armory Update ────────────────────────────────────────────────────────
