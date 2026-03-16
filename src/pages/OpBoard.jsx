@@ -178,8 +178,25 @@ function LiveOpView({ op, rsvps, rank, callsign, onAdvancePhase, onEndOp }) {
               <span style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 700, letterSpacing: '0.04em' }}>{op.name}</span>
               <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.08)' }}>LIVE</span>
             </div>
-            <div style={{ color: 'var(--t1)', fontSize: 11 }}>
-              {op.system}{op.location ? ` · ${op.location}` : ''} · {rsvps.filter(r => r.status === 'CONFIRMED').length} confirmed crew
+            <div style={{ color: 'var(--t1)', fontSize: 11, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <span>{op.system}{op.location ? ` · ${op.location}` : ''} · {rsvps.filter(r => r.status === 'CONFIRMED').length} confirmed crew</span>
+              {(() => {
+                const haulScu = rsvps.filter(r => r.status === 'CONFIRMED' && (r.ship_class === 'HAULER' || r.role === 'hauler' || r.role === 'logistics')).reduce((s, r) => s + (r.cargo_scu_available || 0), 0);
+                const haulReq = op.hauling_scu_required || 0;
+                if (haulReq === 0 && haulScu === 0) return null;
+                return (
+                  <span className="nexus-tag" style={{
+                    color: haulScu >= haulReq ? 'var(--live)' : 'var(--warn)',
+                    borderColor: haulScu >= haulReq ? 'rgba(39,201,106,0.3)' : 'rgba(232,160,32,0.3)',
+                    background: 'transparent',
+                  }}>
+                    {haulScu} SCU haul capacity{haulReq > 0 ? ` / ${haulReq} needed` : ''}
+                  </span>
+                );
+              })()}
+              {rsvps.some(r => r.ship_class === 'MEDICAL' && r.status === 'CONFIRMED') && (
+                <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.07)', fontSize: 9 }}>MEDICAL ONLINE</span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-3">
