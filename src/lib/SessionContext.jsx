@@ -4,22 +4,56 @@ import { authApi } from '@/lib/auth-api';
 
 const SessionContext = createContext(null);
 
+function isBase44Admin(user) {
+  if (!user) return false;
+
+  return user.role === 'admin'
+    || user.role === 'system_admin'
+    || user.access_level === 'admin'
+    || user.is_admin === true;
+}
+
 export function SessionProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const refreshSession = useCallback(async () => {
     setLoading(true);
+    let nextSession = null;
+
     try {
       const data = await authApi.getSession();
       if (data?.authenticated) {
-        setSession(data);
-      } else {
-        setSession(null);
+        nextSession = data;
       }
     } catch (error) {
       console.error('[SessionProvider] refresh failed:', error);
-      setSession(null);
+    }
+
+    if (!nextSession) {
+      try {
+        const adminUser = await base44.auth.me();
+        if (isBase44Admin(adminUser)) {
+          nextSession = {
+            authenticated: true,
+            source: 'admin',
+            user: {
+              id: adminUser.id || 'admin',
+              discordId: 'SYSTEM_ADMIN',
+              callsign: adminUser.full_name || adminUser.name || 'SYS-ADMIN',
+              rank: 'PIONEER',
+              discordRoles: ['Base44 Admin'],
+              joinedAt: null,
+            },
+          };
+        }
+      } catch (error) {
+        console.warn('[SessionProvider] Base44 admin fallback unavailable:', error?.message || error);
+      }
+    }
+
+    try {
+      setSession(nextSession);
     } finally {
       setLoading(false);
     }

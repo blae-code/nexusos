@@ -1,6 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { resolveMemberSession, sessionNoStoreHeaders } from '../_shared/auth.ts';
 
+function isBase44Admin(user: any) {
+  if (!user) return false;
+
+  return user.role === 'admin'
+    || user.role === 'system_admin'
+    || user.access_level === 'admin'
+    || user.is_admin === true;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== 'GET') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
@@ -16,7 +25,7 @@ Deno.serve(async (req: Request) => {
 
     const base44 = createClientFromRequest(req);
     const adminUser = await base44.auth.me().catch(() => null);
-    if (adminUser?.role === 'admin') {
+    if (isBase44Admin(adminUser)) {
       return Response.json({
         authenticated: true,
         source: 'admin',
