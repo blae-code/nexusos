@@ -13,6 +13,10 @@ export function getAppBasePath(pathname) {
     return '';
   }
 
+  if (typeof window.__NEXUSOS_BASE_PATH__ === 'string') {
+    return trimTrailingSlash(window.__NEXUSOS_BASE_PATH__);
+  }
+
   const currentPath = pathname || window.location.pathname || '/';
   if (currentPath === '/') {
     return '';

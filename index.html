@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      html, body, #root {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: #07080b;
+        color: #dde1f0;
+        font-family: 'SF Mono', ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+      }
+    </style>
     <script>
       (function () {
         var pathname = window.location.pathname || '/';
@@ -25,7 +37,9 @@
         }
 
         window.__NEXUSOS_BASE_PATH__ = basePath === '/' ? '' : basePath.slice(0, -1);
-        document.write('<base href="' + basePath.replace(/"/g, '&quot;') + '">');
+        var baseElement = document.createElement('base');
+        baseElement.setAttribute('href', basePath);
+        document.head.appendChild(baseElement);
       })();
     </script>
     <link rel="manifest" href="./manifest.json" />
