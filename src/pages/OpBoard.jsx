@@ -399,27 +399,76 @@ function OpDetail({ op, rsvps, rank, callsign, onActivate }) {
   const canActivate = ['PIONEER', 'FOUNDER'].includes(rank) && op.status === 'PUBLISHED';
   const confirmedCrew = rsvps.filter(r => r.status === 'CONFIRMED');
 
-  const handleRsvp = async (role) => {
+  const [rsvpShip, setRsvpShip] = useState('');
+  const [rsvpShipClass, setRsvpShipClass] = useState('OTHER');
+  const [rsvpCargo, setRsvpCargo] = useState(0);
+  const [rsvpRole, setRsvpRole] = useState('');
+
+  const SHIP_CLASSES = ['FIGHTER', 'HEAVY_FIGHTER', 'MINER', 'HAULER', 'SALVAGER', 'MEDICAL', 'EXPLORER', 'GROUND_VEHICLE', 'OTHER'];
+
+  // Auto-suggest ship class based on role
+  const roleToShipClass = {
+    mining: 'MINER', escort: 'FIGHTER', hauler: 'HAULER', medic: 'MEDICAL',
+    salvage: 'SALVAGER', fabricator: 'OTHER', scout: 'EXPLORER',
+    roc_operator: 'GROUND_VEHICLE', hand_miner: 'OTHER', refinery_coord: 'OTHER', logistics: 'HAULER',
+  };
+
+  const handleRoleSelect = (role) => {
+    setRsvpRole(role);
+    setRsvpShipClass(roleToShipClass[role] || 'OTHER');
+    // Haulers — preset some default cargo based on common ships
+    if (role === 'hauler') setRsvpCargo(prev => prev === 0 ? 96 : prev);
+  };
+
+  const handleRsvp = async () => {
     const discord_id = localStorage.getItem('nexus_discord_id') || '';
+    if (!rsvpRole) return;
+    const payload = {
+      role: rsvpRole,
+      ship: rsvpShip,
+      ship_class: rsvpShipClass,
+      cargo_scu_available: rsvpCargo,
+      status: 'CONFIRMED',
+    };
     const existing = rsvps.find(r => r.discord_id === discord_id);
     if (existing) {
-      await base44.entities.OpRsvp.update(existing.id, { role, status: 'CONFIRMED', ship: '' });
+      await base44.entities.OpRsvp.update(existing.id, payload);
     } else {
-      await base44.entities.OpRsvp.create({ op_id: op.id, discord_id, callsign, role, status: 'CONFIRMED' });
+      await base44.entities.OpRsvp.create({ op_id: op.id, discord_id, callsign, ...payload });
     }
   };
 
   const roleSlots = op.role_slots || { mining: { capacity: 3 }, escort: { capacity: 2 }, scout: { capacity: 2 } };
 
+  // Compute total committed hauling SCU from RSVP'd haulers
+  const committedHaulScu = rsvps
+    .filter(r => r.status === 'CONFIRMED' && (r.ship_class === 'HAULER' || r.role === 'hauler' || r.role === 'logistics'))
+    .reduce((s, r) => s + (r.cargo_scu_available || 0), 0);
+  const haulRequired = op.hauling_scu_required || 0;
+  const haulCovered = haulRequired === 0 || committedHaulScu >= haulRequired;
+
   return (
     <div className="p-4 flex flex-col gap-4">
       <div className="nexus-card" style={{ padding: '14px 16px' }}>
-        <div style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{op.name}</div>
-        <div style={{ color: 'var(--t2)', fontSize: 11 }}>{op.type} · {op.system}{op.location ? ` · ${op.location}` : ''}</div>
-        <div className="flex items-center gap-4 mt-3" style={{ color: 'var(--t1)', fontSize: 11 }}>
+        <div style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 500, marginBottom: 4 }}>{op.name}</div>
+        <div style={{ color: 'var(--t2)', fontSize: 11 }}>
+          {op.type?.replace(/_/g, ' ')}
+          {op.mining_mode && op.mining_mode !== 'SHIP' ? ` · ${op.mining_mode} MINING` : ''}
+          {` · ${op.system}`}{op.location ? ` · ${op.location}` : ''}
+        </div>
+        <div className="flex items-center gap-4 mt-3 flex-wrap" style={{ color: 'var(--t1)', fontSize: 11 }}>
           <span className="flex items-center gap-1"><Clock size={11}/> <RelativeTime isoStr={op.scheduled_at} /></span>
           <span className="flex items-center gap-1"><Users size={11}/> {confirmedCrew.length} confirmed</span>
           {op.access_type && <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.2)', background: 'transparent' }}>{op.access_type}</span>}
+          {haulRequired > 0 && (
+            <span className="nexus-tag" style={{
+              color: haulCovered ? 'var(--live)' : 'var(--warn)',
+              borderColor: haulCovered ? 'rgba(39,201,106,0.3)' : 'rgba(232,160,32,0.3)',
+              background: haulCovered ? 'rgba(39,201,106,0.07)' : 'rgba(232,160,32,0.07)',
+            }}>
+              HAUL {committedHaulScu}/{haulRequired} SCU
+            </span>
+          )}
         </div>
         {canActivate && (
           <button onClick={onActivate} className="nexus-btn live-btn" style={{ marginTop: 12, width: '100%', justifyContent: 'center', padding: '8px 0' }}>
@@ -431,37 +480,90 @@ function OpDetail({ op, rsvps, rank, callsign, onActivate }) {
       {/* RSVP */}
       <div className="nexus-card" style={{ padding: '12px 14px' }}>
         <div style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', marginBottom: 10 }}>ROLE RSVP</div>
-        <div className="flex gap-2 flex-wrap">
+        {/* Role buttons */}
+        <div className="flex gap-2 flex-wrap mb-3">
           {Object.entries(roleSlots).map(([role, slot]) => {
             const filled = rsvps.filter(r => r.role === role && r.status === 'CONFIRMED').length;
-            const capacity = slot.capacity || 0;
+            const capacity = typeof slot === 'object' ? (slot.capacity || 0) : slot;
             const full = filled >= capacity;
+            const selected = rsvpRole === role;
             return (
               <button
                 key={role}
-                onClick={() => handleRsvp(role)}
+                onClick={() => handleRoleSelect(role)}
                 disabled={full}
                 className="nexus-btn"
-                style={{ opacity: full ? 0.5 : 1, flexDirection: 'column', gap: 2, padding: '8px 14px', alignItems: 'center' }}
+                style={{
+                  opacity: full ? 0.4 : 1,
+                  flexDirection: 'column', gap: 2, padding: '8px 14px', alignItems: 'center',
+                  background: selected ? 'var(--bg4)' : 'var(--bg2)',
+                  borderColor: selected ? 'var(--acc2)' : 'var(--b1)',
+                }}
               >
-                <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{role}</span>
-                <span style={{ fontSize: 10, color: full ? 'var(--danger)' : 'var(--live)' }}>{filled}/{capacity}</span>
+                <span style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: selected ? 'var(--t0)' : 'var(--t1)' }}>{role.replace(/_/g, ' ')}</span>
+                <span style={{ fontSize: 9, color: full ? 'var(--danger)' : 'var(--live)' }}>{filled}/{capacity}</span>
               </button>
             );
           })}
         </div>
+
+        {/* Ship + cargo details (shown when a role is selected) */}
+        {rsvpRole && (
+          <div className="flex flex-col gap-2" style={{ borderTop: '0.5px solid var(--b1)', paddingTop: 10, marginTop: 4 }}>
+            <div className="flex gap-2">
+              <input
+                className="nexus-input"
+                style={{ flex: 2, fontSize: 11, padding: '5px 10px' }}
+                placeholder="Ship name (e.g. Hercules C2)"
+                value={rsvpShip}
+                onChange={e => setRsvpShip(e.target.value)}
+              />
+              <select
+                className="nexus-input"
+                style={{ flex: 1, fontSize: 10, padding: '5px 8px', cursor: 'pointer' }}
+                value={rsvpShipClass}
+                onChange={e => setRsvpShipClass(e.target.value)}
+              >
+                {SHIP_CLASSES.map(c => <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>)}
+              </select>
+              {(rsvpShipClass === 'HAULER' || rsvpRole === 'hauler' || rsvpRole === 'logistics') && (
+                <input
+                  className="nexus-input"
+                  type="number"
+                  min={0}
+                  style={{ width: 90, fontSize: 11, padding: '5px 8px' }}
+                  placeholder="SCU"
+                  value={rsvpCargo || ''}
+                  onChange={e => setRsvpCargo(+e.target.value)}
+                />
+              )}
+            </div>
+            <button onClick={handleRsvp} className="nexus-btn live-btn" style={{ alignSelf: 'flex-start', padding: '5px 16px', fontSize: 10 }}>
+              CONFIRM RSVP →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Crew list */}
       {confirmedCrew.length > 0 && (
         <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--b1)' }}>
+          <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--b1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em' }}>CONFIRMED CREW</span>
+            {haulRequired > 0 && (
+              <span style={{ color: haulCovered ? 'var(--live)' : 'var(--warn)', fontSize: 10 }}>
+                {committedHaulScu} / {haulRequired} SCU hauling
+              </span>
+            )}
           </div>
           {confirmedCrew.map(r => (
-            <div key={r.id} className="flex items-center justify-between" style={{ padding: '7px 14px', borderBottom: '0.5px solid var(--b0)' }}>
-              <span style={{ color: 'var(--t0)', fontSize: 12 }}>{r.callsign}</span>
-              <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.2)', background: 'transparent', fontSize: 9 }}>{r.role?.toUpperCase()}</span>
+            <div key={r.id} className="flex items-center gap-3" style={{ padding: '7px 14px', borderBottom: '0.5px solid var(--b0)' }}>
+              <span style={{ color: 'var(--t0)', fontSize: 12, minWidth: 100 }}>{r.callsign}</span>
+              <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.2)', background: 'transparent', fontSize: 9 }}>{r.role?.toUpperCase().replace(/_/g, ' ')}</span>
+              {r.ship && <span style={{ color: 'var(--t2)', fontSize: 10 }}>{r.ship}</span>}
+              {(r.cargo_scu_available > 0) && (
+                <span style={{ color: 'var(--t2)', fontSize: 10, marginLeft: 'auto' }}>{r.cargo_scu_available} SCU</span>
+              )}
             </div>
           ))}
         </div>
