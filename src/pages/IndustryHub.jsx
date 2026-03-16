@@ -3,7 +3,7 @@ import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import MaterialsModule from '@/app/modules/IndustryHub/Materials';
-import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
+import BlueprintsModule from '@/components/industry/BlueprintsModule';
 import PatchDigestCard from '@/components/industry/PatchDigestCard';
 import CraftQueueTab from '@/components/industry/CraftQueueTab';
 
