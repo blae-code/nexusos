@@ -8,7 +8,6 @@ export default function NexusShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const [layoutMode, setLayoutMode] = useState('alt-tab');
-  const [ready, setReady] = useState(false);
 
   // Auth gate — allow nexus_session (org members) OR Base44 native admin session
   useEffect(() => {
