@@ -13,16 +13,14 @@ export default function NexusShell() {
   // Auth gate — allow nexus_session (org members) OR Base44 native admin session
   useEffect(() => {
     const nexusSession = localStorage.getItem('nexus_session');
-    if (nexusSession) { setReady(true); return; }
+    if (nexusSession) return; // already authed as org member
 
     base44.auth.me().then(user => {
       if (user) {
-        // Base44 admin — inject identity so topbar renders correctly
         if (!localStorage.getItem('nexus_callsign')) {
           localStorage.setItem('nexus_callsign', 'SYS-ADMIN');
           localStorage.setItem('nexus_rank', 'PIONEER');
         }
-        setReady(true);
       } else {
         navigate('/gate');
       }
@@ -31,8 +29,6 @@ export default function NexusShell() {
 
   const callsign = localStorage.getItem('nexus_callsign') || 'SYS-ADMIN';
   const rank = localStorage.getItem('nexus_rank') || 'PIONEER';
-
-  if (!ready) return null;
 
   return (
     <div
