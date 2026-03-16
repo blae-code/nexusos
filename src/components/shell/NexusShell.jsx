@@ -3,7 +3,6 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
-import PortraitNavDrawer from './PortraitNavDrawer';
 import { withAppBase } from '@/lib/app-base-path';
 import { notifyBrowser, useNotificationPreferences } from '@/lib/notification-preferences';
 import { loadRescueCalls, refreshRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
@@ -18,7 +17,6 @@ export default function NexusShell() {
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
-  const [portraitNavOpen, setPortraitNavOpen] = useState(false);
   const seenLiveOpsRef = useRef(new Set());
   const seenScoutDepositsRef = useRef(new Set());
   const seenRescueCallsRef = useRef(new Set());
@@ -240,9 +238,7 @@ export default function NexusShell() {
           layoutMode={layoutMode}
           onSelectLayout={updateLayoutMode}
           verseStatus={verseStatus}
-          onTogglePortraitNav={() => setPortraitNavOpen(!portraitNavOpen)}
         />
-        <PortraitNavDrawer isOpen={portraitNavOpen} onClose={() => setPortraitNavOpen(false)} />
         <div className="nexus-shell-body">
           <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
           <main className="nexus-shell-content nexus-fade-in">

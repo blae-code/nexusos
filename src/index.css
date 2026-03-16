@@ -192,45 +192,6 @@ textarea.nexus-input {
   border-left: 2px solid var(--b1);
 }
 
-@media (max-width: 1099px) {
-  .nexus-sidebar {
-    display: none !important;
-  }
-
-  .nav-drawer {
-    position: fixed;
-    left: 0;
-    top: var(--topbar-h);
-    width: 280px;
-    height: calc(100vh - var(--topbar-h));
-    background: var(--bg1);
-    border-right: 0.5px solid var(--b1);
-    transform: translateX(-100%);
-    transition: transform 0.2s ease-out;
-    z-index: 140;
-    overflow-y: auto;
-  }
-
-  .nav-drawer.open {
-    transform: translateX(0);
-  }
-
-  .nav-drawer-backdrop {
-    position: fixed;
-    inset: var(--topbar-h) 0 0;
-    background: rgba(7, 8, 11, 0.82);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease-out;
-    z-index: 130;
-  }
-
-  .nav-drawer-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
 @keyframes pulse-dot {
   0%, 100% {
     opacity: 1;

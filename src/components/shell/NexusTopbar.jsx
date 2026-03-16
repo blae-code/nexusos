@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, LogOut, Menu, ScrollText, User } from 'lucide-react';
+import { ChevronDown, LogOut, ScrollText, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import NexusCompass from '@/components/ui/NexusCompass';
@@ -73,7 +73,7 @@ function menuButtonStyle(active) {
   };
 }
 
-export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, onTogglePortraitNav }) {
+export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, source } = useSession();
@@ -81,7 +81,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
   const [showChangelog, setShowChangelog] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [onlineCount, setOnlineCount] = useState(null);
-  const [isPortrait, setIsPortrait] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1100 : false));
   const userMenuRef = useRef(null);
   const moreMenuRef = useRef(null);
   const changelogRef = useRef(null);
@@ -125,10 +124,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
   }, []);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsPortrait(window.innerWidth < 1100);
-    };
-
     const handleMouseDown = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setUserMenuOpen(false);
@@ -141,11 +136,9 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
       }
     };
 
-    window.addEventListener('resize', handleResize);
     document.addEventListener('mousedown', handleMouseDown);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
       document.removeEventListener('mousedown', handleMouseDown);
     };
   }, [showChangelog]);
@@ -168,25 +161,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-          {isPortrait && onTogglePortraitNav ? (
-            <button
-              type="button"
-              onClick={onTogglePortraitNav}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--t1)',
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                padding: 0,
-                flexShrink: 0,
-              }}
-            >
-              <Menu size={16} />
-            </button>
-          ) : null}
-
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <NexusCompass size={22} />
             <span
@@ -203,22 +177,20 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
             </span>
           </div>
 
-          {!isPortrait ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, minWidth: 0 }}>
-              <span style={{ color: 'var(--t3)' }}>/</span>
-              <span style={{ color: 'var(--t2)', whiteSpace: 'nowrap' }}>{breadcrumb.module}</span>
-              <span style={{ color: 'var(--t3)' }}>/</span>
-              <span style={{ color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {breadcrumb.tab}
-              </span>
-            </div>
-          ) : null}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, minWidth: 0 }}>
+            <span style={{ color: 'var(--t3)' }}>/</span>
+            <span style={{ color: 'var(--t2)', whiteSpace: 'nowrap' }}>{breadcrumb.module}</span>
+            <span style={{ color: 'var(--t3)' }}>/</span>
+            <span style={{ color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {breadcrumb.tab}
+            </span>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
           <StatusPill verseStatus={verseStatus} />
-          {!isPortrait && showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
-          {!isPortrait ? <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div> : null}
+          {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
+          <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div>
           <VersionPill version={appVersion.version} full={appVersion.full} date={appVersion.date} />
         </div>
 
@@ -232,39 +204,35 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus, o
             flexShrink: 0,
           }}
         >
-          {!isPortrait ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <LayoutButton
-                active={layoutMode === 'ALT-TAB'}
-                title="ALT-TAB"
-                onClick={() => onSelectLayout('ALT-TAB')}
-                icon={<AltTabIcon size={16} />}
-              />
-              <LayoutButton
-                active={layoutMode === '2ND MONITOR'}
-                title="2ND MONITOR"
-                onClick={() => onSelectLayout('2ND MONITOR')}
-                icon={<SecondMonitorIcon size={16} />}
-              />
-            </div>
-          ) : null}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <LayoutButton
+              active={layoutMode === 'ALT-TAB'}
+              title="ALT-TAB"
+              onClick={() => onSelectLayout('ALT-TAB')}
+              icon={<AltTabIcon size={16} />}
+            />
+            <LayoutButton
+              active={layoutMode === '2ND MONITOR'}
+              title="2ND MONITOR"
+              onClick={() => onSelectLayout('2ND MONITOR')}
+              icon={<SecondMonitorIcon size={16} />}
+            />
+          </div>
 
-          {!isPortrait ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: '50%',
-                  background: 'var(--live)',
-                  animation: 'pulse-dot 2.5s ease-in-out infinite',
-                }}
-              />
-              <span style={{ color: 'var(--t2)', fontSize: 10 }}>
-                {onlineCount !== null ? `${onlineCount} online` : 'online'}
-              </span>
-            </div>
-          ) : null}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div
+              style={{
+                width: 5,
+                height: 5,
+                borderRadius: '50%',
+                background: 'var(--live)',
+                animation: 'pulse-dot 2.5s ease-in-out infinite',
+              }}
+            />
+            <span style={{ color: 'var(--t2)', fontSize: 10 }}>
+              {onlineCount !== null ? `${onlineCount} online` : 'online'}
+            </span>
+          </div>
 
           <div ref={moreMenuRef} style={{ position: 'relative' }}>
             <button
