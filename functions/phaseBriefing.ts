@@ -1,145 +1,180 @@
-/**
- * phaseBriefing — Rockbreaker Phase Briefing (Claude #5)
- * Generates a tactical Discord-ready phase brief for Op Leaders.
- * Called from LiveOp "POST PHASE BRIEF" button.
- *
- * Input: { op_id, phase_name, phase_index, threat_notes, material_status, custom_notes }
- * Output: { success, brief_text, discord_posted }
- */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'POST only' }, { status: 405 });
+  }
+
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const {
       op_id,
+      op_name,
       phase_name,
-      phase_index = 0,
-      threat_notes = '',
-      material_status = '',
-      custom_notes = '',
-      post_to_discord = true,
+      phase_number,
+      total_phases,
+      crew_list = [],
+      materials_status = {},
+      threats = [],
+      objectives = [],
+      next_phase = null,
     } = await req.json();
 
-    if (!op_id) return Response.json({ error: 'op_id required' }, { status: 400 });
-
-    // Gather op data
-    const [ops, rsvps, materials] = await Promise.all([
-      base44.asServiceRole.entities.Op.filter({ id: op_id }),
-      base44.asServiceRole.entities.OpRsvp.filter({ op_id }),
-      base44.asServiceRole.entities.Material.filter({ session_id: op_id }),
-    ]);
-
-    const op = ops?.[0];
-    if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
-
-    const confirmedCrew = (rsvps || []).filter(r => r.status === 'CONFIRMED');
-
-    // Group crew by role
-    const byRole = {};
-    confirmedCrew.forEach(r => {
-      const role = r.role || 'crew';
-      if (!byRole[role]) byRole[role] = [];
-      byRole[role].push(r.callsign || r.discord_id);
-    });
-    const crewByRole = Object.entries(byRole)
-      .map(([role, names]) => `${role.toUpperCase()}: ${names.join(', ')}`)
-      .join('\n');
-
-    // Material summary from session
-    const matSummary = (materials || []).length > 0
-      ? materials.map(m => `${m.material_name} ${m.quantity_scu}SCU@${m.quality_pct || 0}%`).join(', ')
-      : material_status || 'Not yet logged';
-
-    // Phases context
-    const phases = op.phases || [];
-    const completedPhases = phases.slice(0, phase_index).map(p => p.name || p).filter(Boolean);
-    const remainingPhases = phases.slice(phase_index + 1).map(p => p.name || p).filter(Boolean);
-
-    const prompt = `You are the operations debrief officer for Redscar Nomads, a Star Citizen industrial org. You are writing a PHASE BRIEF — a tactical status update for crew during an active op.
-
-Format for Discord. Use this exact structure:
-**PHASE ${phase_index + 1} — ${(phase_name || 'UNKNOWN').toUpperCase()}**
-*Op: ${op.name} · ${op.system}${op.location ? ` · ${op.location}` : ''}*
-
-**STATUS:** [1-2 sentences on current phase state and crew readiness]
-
-**CREW ASSIGNMENTS:**
-[list key assignments by role, keep tight]
-
-**MATERIALS:** [brief yield status, highlight T2-quality if above 80%]
-
-**THREATS:** [if any — else omit this section entirely]
-
-**NEXT PHASE:** [what's coming next — if known]
-
-**ALL CREWS:** [one punchy directive sentence]
-
-Rules:
-- Tone: tactical, Redscar-native, no corporate fluff
-- Max 200 words total
-- No markdown headers with ##, use **bold** only
-- No emojis
-
-DATA:
-Op Type: ${op.type?.replace(/_/g, ' ')}
-Current Phase: ${phase_name || 'Unknown'} (${phase_index + 1}/${phases.length || '?'})
-Completed: ${completedPhases.join(', ') || 'None'}
-Remaining: ${remainingPhases.join(', ') || 'Unknown'}
-Crew (${confirmedCrew.length}):
-${crewByRole || 'Crew not listed'}
-Material Status: ${matSummary}
-${threat_notes ? `Threats: ${threat_notes}` : ''}
-${custom_notes ? `Notes: ${custom_notes}` : ''}`;
-
-    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      model: 'claude_sonnet_4_6',
-      prompt,
-    });
-
-    const briefText = typeof result === 'string' ? result : (result?.text || result?.content || String(result));
-
-    // Optionally post to Discord
-    let discordPosted = false;
-    if (post_to_discord) {
-      try {
-        await base44.asServiceRole.functions.invoke('heraldBot', {
-          action: 'phaseAdvance',
-          payload: {
-            op_id,
-            phase_name: phase_name || 'UNKNOWN',
-            phase_index,
-            brief_text: briefText,
-          },
-        });
-        discordPosted = true;
-      } catch (e) {
-        console.warn('[phaseBriefing] Discord post failed:', e.message);
-      }
+    if (!op_id || !op_name || !phase_name) {
+      return Response.json({ error: 'Missing op or phase data' }, { status: 400 });
     }
 
-    // Log to op session_log
-    const existingLog = op.session_log || [];
-    const logEntry = {
-      type: 'phase_brief',
-      t: new Date().toISOString(),
-      author: 'NEXUSOS',
-      text: `Phase brief posted: ${phase_name || 'Phase ' + (phase_index + 1)}`,
-      phase: phase_name,
-      phase_index,
-    };
-    await base44.asServiceRole.entities.Op.update(op_id, {
-      session_log: [...existingLog, logEntry],
-      phase_current: phase_index,
+    // Build tactical briefing prompt
+    const crewSummary = crew_list
+      .map(c => `${c.callsign} (${c.role})`)
+      .join(', ') || 'Unspecified crew';
+
+    const materialsSummary = Object.entries(materials_status)
+      .map(([mat, status]) => `${mat}: ${status}`)
+      .join(', ') || 'No material tracking';
+
+    const threatSummary = threats.length > 0
+      ? threats.map(t => `- ${t}`).join('\n')
+      : 'No active threats';
+
+    const objectivesList = objectives.length > 0
+      ? objectives.map((o, i) => `${i + 1}. ${o}`).join('\n')
+      : 'No specific objectives logged';
+
+    const prompt = `You are a Redscar Nomads tactical operations briefing officer. Generate a concise PHASE BRIEFING for:
+
+OPERATION: ${op_name}
+PHASE: ${phase_number}/${total_phases} — ${phase_name}
+NEXT PHASE: ${next_phase || 'N/A'}
+
+CREW (${crew_list.length} members):
+${crewSummary}
+
+MATERIALS STATUS:
+${materialsSummary}
+
+ACTIVE THREATS:
+${threatSummary}
+
+CURRENT OBJECTIVES:
+${objectivesList}
+
+Generate output ONLY as valid JSON:
+{
+  "phase_status": "brief 1-sentence status of this phase",
+  "crew_readiness": "assessment of crew capability for this phase",
+  "material_readiness": "can we proceed with current materials?",
+  "threat_advisory": "any active threats or concerns",
+  "next_steps": "what happens next phase",
+  "action_items": ["item1", "item2"]
+}`;
+
+    const briefingResult = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          phase_status: { type: 'string' },
+          crew_readiness: { type: 'string' },
+          material_readiness: { type: 'string' },
+          threat_advisory: { type: 'string' },
+          next_steps: { type: 'string' },
+          action_items: { type: 'array', items: { type: 'string' } },
+        },
+      },
     });
 
-    return Response.json({ success: true, brief_text: briefText, discord_posted: discordPosted });
+    // Format briefing markdown
+    const briefingMarkdown = `
+**PHASE ${phase_number}/${total_phases}: ${phase_name.toUpperCase()}**
 
+${briefingResult.phase_status}
+
+**CREW READINESS**
+${briefingResult.crew_readiness}
+
+**MATERIAL STATUS**
+${briefingResult.material_readiness}
+
+**THREAT ADVISORY**
+${briefingResult.threat_advisory}
+
+**NEXT STEPS**
+${briefingResult.next_steps}
+
+${briefingResult.action_items.length > 0 ? `**ACTION ITEMS**\n${briefingResult.action_items.map(a => `• ${a}`).join('\n')}` : ''}
+`;
+
+    // Format Discord embed
+    const discordEmbed = {
+      title: `📋 PHASE BRIEFING: ${phase_name.toUpperCase()}`,
+      description: briefingResult.phase_status,
+      color: 4149032, // Blue
+      fields: [
+        {
+          name: 'Crew Readiness',
+          value: briefingResult.crew_readiness,
+          inline: false,
+        },
+        {
+          name: 'Materials',
+          value: briefingResult.material_readiness,
+          inline: false,
+        },
+        {
+          name: 'Threat Advisory',
+          value: briefingResult.threat_advisory,
+          inline: false,
+        },
+        {
+          name: 'Next Steps',
+          value: briefingResult.next_steps,
+          inline: false,
+        },
+        ...(briefingResult.action_items.length > 0
+          ? [{
+              name: 'Action Items',
+              value: briefingResult.action_items.map(a => `• ${a}`).join('\n'),
+              inline: false,
+            }]
+          : []),
+      ],
+      footer: {
+        text: `Op: ${op_name} | Phase ${phase_number}/${total_phases}`,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    // Post to Discord via Herald Bot
+    try {
+      await base44.functions.invoke('heraldBot', {
+        action: 'phaseBriefing',
+        payload: {
+          op_id,
+          op_name,
+          phase_name,
+          briefing_text: briefingMarkdown,
+          embed: discordEmbed,
+        },
+      });
+    } catch (err) {
+      console.warn('Herald Bot post failed:', err.message);
+      // Don't fail the function, just warn
+    }
+
+    return Response.json({
+      success: true,
+      briefing: briefingMarkdown,
+      embed: discordEmbed,
+    });
   } catch (error) {
-    console.error('[phaseBriefing] error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Phase briefing error:', error);
+    return Response.json({ error: error.message || 'Briefing generation failed' }, { status: 500 });
   }
 });

@@ -9,7 +9,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { AlertTriangle, ChevronLeft, ChevronRight, Radio, Square } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Radio, Square, Radio as RadioIcon } from 'lucide-react';
 import LiveOpCrewTab from '@/components/ops/LiveOpCrewTab';
 import SupplyChainView from '@/components/ops/SupplyChainView';
 import LiveOpSessionLog from '@/components/ops/LiveOpSessionLog';
@@ -271,6 +271,52 @@ export default function LiveOp() {
   const handlePhaseChange = async (newPhase) => {
     setOp(prev => ({ ...prev, phase_current: newPhase }));
     await base44.entities.Op.update(id, { phase_current: newPhase });
+
+    // Auto-trigger phase briefing
+    const phases = op.phases || [];
+    const currentPhase = phases[newPhase];
+    const phaseName = typeof currentPhase === 'object' ? currentPhase.name : `Phase ${newPhase + 1}`;
+    const nextPhase = newPhase + 1 < phases.length ? (typeof phases[newPhase + 1] === 'object' ? phases[newPhase + 1].name : null) : null;
+
+    // Prepare crew list from RSVPs
+    const briefingCrew = rsvps
+      .filter(r => r.status === 'CONFIRMED')
+      .map(r => ({
+        callsign: r.callsign,
+        role: r.role || 'crew',
+      }));
+
+    // Prepare materials status from session log
+    const materialsStatus = {};
+    (op.session_log || [])
+      .filter(log => log.type === 'material_logged')
+      .slice(-5)
+      .forEach(log => {
+        materialsStatus[log.material_name] = `${log.quantity_scu} SCU @ ${log.quality_pct}%`;
+      });
+
+    // Get active threats from session log
+    const threats = (op.session_log || [])
+      .filter(log => log.type === 'threat')
+      .slice(-3)
+      .map(log => log.text || 'Unspecified threat');
+
+    try {
+      await base44.functions.invoke('phaseBriefing', {
+        op_id: id,
+        op_name: op.name,
+        phase_name: phaseName,
+        phase_number: newPhase + 1,
+        total_phases: phases.length,
+        crew_list: briefingCrew,
+        materials_status: materialsStatus,
+        threats,
+        next_phase: nextPhase,
+      });
+    } catch (err) {
+      console.warn('Phase briefing failed:', err.message);
+      // Continue anyway, briefing is optional
+    }
   };
 
   const handleLogEntry = (entry) => {
