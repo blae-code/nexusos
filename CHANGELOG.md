@@ -1,3 +1,6 @@
+## 0.4.0 — 2026-03-16
+- Full UI visual rebuild matching NexusOS design system
+
 ## 0.3.0 — 2026-03-15
 - Scout Intel module — system map, deposit logging, gap analysis, scout leaderboard
 
@@ -14,5 +17,6 @@
 - Op Board (/app/ops) — list view, OpCreator with phase editor and role slots
 - LiveOp (/app/ops/:id) — full live command center with PhaseTracker, ReadinessGate, CrewGrid, SessionLog, ThreatPanel, LootTally, SplitCalc
 - Herald Bot (src/bot/) — Discord bindings, heraldBot edge function stubs
+
 
 
