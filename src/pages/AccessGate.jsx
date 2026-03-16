@@ -21,6 +21,20 @@ const ERROR_MESSAGES = {
   auth_failed: 'DISCORD AUTH FAILED - TRY AGAIN',
 };
 
+const ERROR_DETAILS = {
+  not_in_guild: 'Join the Redscar Discord first, then come back once you are in the server.',
+  role_not_allowed: 'Your Discord account is in the server, but it does not yet have a Redscar member role that can launch NexusOS.',
+  expired_state: 'The Discord login handoff took too long or was interrupted. Start the sign-in flow again from this page.',
+  auth_failed: 'The Discord callback did not complete successfully. Retry once, then contact ops if the issue persists.',
+};
+
+const FALLBACK_ONBOARDING_STEPS = [
+  'Join the Redscar Discord server.',
+  'Make sure you have a Redscar member role in Discord.',
+  'Return here and continue with Discord to launch NexusOS.',
+  'After first login, confirm or edit your seeded callsign in Profile Settings.',
+];
+
 function buildStars() {
   if (typeof window === 'undefined') {
     return [];
@@ -88,22 +102,147 @@ function StatusBar({ status }) {
   );
 }
 
+function OnboardingChecklist({ guildLabel, supportChannelLabel, inviteUrl, steps, onClose }) {
+  return (
+    <div
+      style={{
+        width: '100%',
+        marginTop: 16,
+        padding: '12px 14px',
+        background: 'var(--bg2)',
+        border: '0.5px solid var(--b1)',
+        borderRadius: 8,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ color: 'var(--t0)', fontSize: 10, letterSpacing: '0.12em' }}>FIRST-TIME CHECKLIST</div>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{ background: 'transparent', border: 'none', color: 'var(--t2)', cursor: 'pointer', fontSize: 10 }}
+        >
+          HIDE
+        </button>
+      </div>
+
+      <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6, marginTop: 8 }}>
+        Access is role-gated through Discord for {guildLabel}. New members should complete these steps before trying to launch the app.
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+        {steps.map((step, index) => (
+          <div key={step} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+            <div
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                background: 'var(--bg3)',
+                border: '0.5px solid var(--b2)',
+                color: 'var(--t1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 9,
+                flexShrink: 0,
+                marginTop: 1,
+              }}
+            >
+              {index + 1}
+            </div>
+            <div style={{ color: 'var(--t1)', fontSize: 10, lineHeight: 1.6 }}>{step}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <a
+          href={inviteUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="nexus-btn"
+          style={{ flex: 1, textAlign: 'center', fontSize: 10 }}
+        >
+          JOIN DISCORD
+        </a>
+        <a
+          href={inviteUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="nexus-btn"
+          style={{ flex: 1, textAlign: 'center', fontSize: 10 }}
+        >
+          OPEN {supportChannelLabel.toUpperCase()}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function AccessGate() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated, loading, source } = useSession();
   const { status: verseStatus } = useVerseStatus();
   const [starting, setStarting] = useState(false);
   const [localError, setLocalError] = useState('');
   const [shakeKey, setShakeKey] = useState(0);
   const [stars, setStars] = useState([]);
+  const [authHealth, setAuthHealth] = useState({
+    loaded: false,
+    oauthReady: true,
+    guildLabel: 'REDSCAR NOMADS',
+    supportChannelLabel: '#nexusos-ops',
+    inviteUrl: 'https://discord.gg/redscar',
+    onboardingSteps: FALLBACK_ONBOARDING_STEPS,
+  });
 
   const redirectTo = searchParams.get('redirect_to') || '/app/industry';
   const errorCode = searchParams.get('error');
-  const errorMessage = localError || ERROR_MESSAGES[errorCode] || '';
+  const errorMessage = localError
+    || ERROR_MESSAGES[errorCode]
+    || (authHealth.loaded && authHealth.oauthReady === false ? 'DISCORD LOGIN TEMPORARILY UNAVAILABLE' : '');
+  const errorDetail = ERROR_DETAILS[errorCode]
+    || (authHealth.loaded && authHealth.oauthReady === false
+      ? 'The deployed app is missing required Discord auth configuration. Contact a Redscar operator before retrying.'
+      : '');
   const showOnboarding = searchParams.get('new') === '1';
 
   useEffect(() => {
     setStars(buildStars());
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAuthHealth = async () => {
+      try {
+        const health = await authApi.getHealth();
+        if (cancelled || !health) {
+          return;
+        }
+
+        setAuthHealth({
+          loaded: true,
+          oauthReady: health.oauth_ready !== false,
+          guildLabel: health.guild_label || 'REDSCAR NOMADS',
+          supportChannelLabel: health.support_channel_label || '#nexusos-ops',
+          inviteUrl: health.invite_url || 'https://discord.gg/redscar',
+          onboardingSteps: Array.isArray(health.onboarding_steps) && health.onboarding_steps.length > 0
+            ? health.onboarding_steps
+            : FALLBACK_ONBOARDING_STEPS,
+        });
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[AccessGate] auth health unavailable:', error?.message || error);
+          setAuthHealth((current) => ({ ...current, loaded: true }));
+        }
+      }
+    };
+
+    loadAuthHealth();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -120,6 +259,11 @@ export default function AccessGate() {
   }
 
   const startDiscordAuth = () => {
+    if (authHealth.loaded && authHealth.oauthReady === false) {
+      setLocalError('DISCORD LOGIN TEMPORARILY UNAVAILABLE');
+      return;
+    }
+
     try {
       setStarting(true);
       setLocalError('');
@@ -129,6 +273,16 @@ export default function AccessGate() {
       setStarting(false);
       setLocalError('DISCORD AUTH UNAVAILABLE');
     }
+  };
+
+  const updateOnboardingParam = (enabled) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (enabled) {
+      nextParams.set('new', '1');
+    } else {
+      nextParams.delete('new');
+    }
+    setSearchParams(nextParams);
   };
 
   return (
@@ -215,16 +369,28 @@ export default function AccessGate() {
                 color: 'var(--t2)',
                 lineHeight: 1.6,
                 textAlign: 'center',
+                marginBottom: 8,
+              }}
+            >
+              Member access is verified through Discord role sync for {authHealth.guildLabel}.
+            </div>
+
+            <div
+              style={{
+                fontSize: 10,
+                color: 'var(--t3)',
+                lineHeight: 1.6,
+                textAlign: 'center',
                 marginBottom: 20,
               }}
             >
-              Member access is verified through Discord role sync.
+              First login seeds your callsign from your Discord server nickname. You can edit it later in Profile Settings.
             </div>
 
             <button
               type="button"
               onClick={startDiscordAuth}
-              disabled={starting || loading}
+              disabled={starting || loading || (authHealth.loaded && authHealth.oauthReady === false)}
               className="nexus-btn nexus-btn-solid"
               style={{
                 width: '100%',
@@ -250,23 +416,32 @@ export default function AccessGate() {
 
             <div
               style={{
-                minHeight: 20,
+                minHeight: errorDetail ? 36 : 20,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 5,
                 marginTop: 8,
                 fontSize: 10,
                 color: errorMessage ? 'var(--warn)' : 'transparent',
+                textAlign: 'center',
               }}
             >
-              {errorMessage ? <AlertTriangle size={10} /> : null}
-              <span>{errorMessage || '.'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                {errorMessage ? <AlertTriangle size={10} /> : null}
+                <span>{errorMessage || '.'}</span>
+              </div>
+              {errorDetail ? (
+                <div style={{ color: 'var(--t2)', fontSize: 9, lineHeight: 1.6, maxWidth: 260 }}>
+                  {errorDetail}
+                </div>
+              ) : null}
             </div>
 
-            <div style={{ marginTop: 14, textAlign: 'center' }}>
+            <div style={{ marginTop: 14, textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 6 }}>
               <a
-                href="https://discord.gg/redscar"
+                href={authHealth.inviteUrl}
                 target="_blank"
                 rel="noreferrer"
                 style={{
@@ -281,31 +456,35 @@ export default function AccessGate() {
                   event.currentTarget.style.color = 'var(--acc)';
                 }}
               >
-                Request access via #nexusos-ops
+                Request access via {authHealth.supportChannelLabel}
               </a>
-            </div>
 
-            {showOnboarding ? (
-              <div style={{ marginTop: 6, textAlign: 'center' }}>
-                <a
-                  href="https://discord.gg/redscar"
-                  target="_blank"
-                  rel="noreferrer"
+              {!showOnboarding ? (
+                <button
+                  type="button"
+                  onClick={() => updateOnboardingParam(true)}
                   style={{
-                    fontSize: 9,
+                    background: 'transparent',
+                    border: 'none',
                     color: 'var(--t3)',
                     cursor: 'pointer',
-                  }}
-                  onMouseEnter={(event) => {
-                    event.currentTarget.style.color = 'var(--t2)';
-                  }}
-                  onMouseLeave={(event) => {
-                    event.currentTarget.style.color = 'var(--t3)';
+                    fontSize: 9,
+                    fontFamily: 'var(--font)',
                   }}
                 >
                   First time here? View onboarding →
-                </a>
-              </div>
+                </button>
+              ) : null}
+            </div>
+
+            {showOnboarding ? (
+              <OnboardingChecklist
+                guildLabel={authHealth.guildLabel}
+                supportChannelLabel={authHealth.supportChannelLabel}
+                inviteUrl={authHealth.inviteUrl}
+                steps={authHealth.onboardingSteps}
+                onClose={() => updateOnboardingParam(false)}
+              />
             ) : null}
           </div>
         </div>
