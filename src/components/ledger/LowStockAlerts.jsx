@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { AlertTriangle, Send } from 'lucide-react';
+import { safeLocalStorage } from '@/lib/safe-storage';
 
 const DEFAULT_THRESHOLDS = [
   { material: 'Taranite',      min_scu: 20, min_quality: 80, critical: true },
@@ -17,13 +18,13 @@ const STORAGE_KEY = 'nexus_stock_thresholds';
 
 function loadThresholds() {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = safeLocalStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : DEFAULT_THRESHOLDS;
   } catch { return DEFAULT_THRESHOLDS; }
 }
 
 function saveThresholds(t) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(t));
+  safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(t));
 }
 
 function SectionHeader({ label }) {

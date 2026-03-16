@@ -1,4 +1,5 @@
 import { appParams } from '@/lib/app-params';
+import { safeLocalStorage } from '@/lib/safe-storage';
 
 const AUTH_BASE = '/functions/auth';
 
@@ -25,8 +26,8 @@ async function parseJson(response) {
 function getAuthHeaders() {
   const headers = {};
   const token = appParams.token
-    || window.localStorage.getItem('base44_access_token')
-    || window.localStorage.getItem('token');
+    || safeLocalStorage.getItem('base44_access_token')
+    || safeLocalStorage.getItem('token');
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;

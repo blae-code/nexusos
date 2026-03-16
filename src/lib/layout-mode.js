@@ -1,3 +1,5 @@
+import { safeLocalStorage } from '@/lib/safe-storage';
+
 export const LAYOUT_STORAGE_KEY = 'nexusos_layout_mode';
 
 const LEGACY_KEYS = ['nexus_layout'];
@@ -22,19 +24,19 @@ export function getStoredLayoutMode() {
     return DEFAULT_LAYOUT_MODE;
   }
 
-  const currentValue = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
+  const currentValue = safeLocalStorage.getItem(LAYOUT_STORAGE_KEY);
   if (currentValue) {
     const normalized = normalizeLayoutMode(currentValue);
-    window.localStorage.setItem(LAYOUT_STORAGE_KEY, normalized);
+    safeLocalStorage.setItem(LAYOUT_STORAGE_KEY, normalized);
     return normalized;
   }
 
   for (const key of LEGACY_KEYS) {
-    const legacyValue = window.localStorage.getItem(key);
+    const legacyValue = safeLocalStorage.getItem(key);
     if (legacyValue) {
       const normalized = normalizeLayoutMode(legacyValue);
-      window.localStorage.setItem(LAYOUT_STORAGE_KEY, normalized);
-      window.localStorage.removeItem(key);
+      safeLocalStorage.setItem(LAYOUT_STORAGE_KEY, normalized);
+      safeLocalStorage.removeItem(key);
       return normalized;
     }
   }
@@ -45,7 +47,7 @@ export function getStoredLayoutMode() {
 export function setStoredLayoutMode(value) {
   const normalized = normalizeLayoutMode(value);
   if (typeof window !== 'undefined') {
-    window.localStorage.setItem(LAYOUT_STORAGE_KEY, normalized);
+    safeLocalStorage.setItem(LAYOUT_STORAGE_KEY, normalized);
   }
   return normalized;
 }

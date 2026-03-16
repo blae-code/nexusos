@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
+import { safeLocalStorage } from '@/lib/safe-storage';
 
 const STORAGE_KEY = 'nexus_rescue_calls';
 
@@ -9,7 +10,7 @@ export default function RescueBoard() {
   const callsign = outletContext.callsign;
   const [calls, setCalls] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      return JSON.parse(safeLocalStorage.getItem(STORAGE_KEY) || '[]');
     } catch {
       return [];
     }
@@ -20,7 +21,7 @@ export default function RescueBoard() {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(calls));
+    safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(calls));
   }, [calls]);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle, ChevronDown, ChevronRight, Circle, ExternalLink } from 'lucide-react';
+import { safeLocalStorage } from '@/lib/safe-storage';
 
 const TODOS = [
   {
@@ -212,7 +213,7 @@ function TodoItem({ item, checked, onToggle }) {
 export default function NexusTodo() {
   const [checked, setChecked] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('nexus_todo_checked') || '{}');
+      return JSON.parse(safeLocalStorage.getItem('nexus_todo_checked') || '{}');
     } catch {
       return {};
     }
@@ -221,7 +222,7 @@ export default function NexusTodo() {
   const toggle = (id) => {
     setChecked((previous) => {
       const next = { ...previous, [id]: !previous[id] };
-      localStorage.setItem('nexus_todo_checked', JSON.stringify(next));
+      safeLocalStorage.setItem('nexus_todo_checked', JSON.stringify(next));
       return next;
     });
   };

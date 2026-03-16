@@ -5,5 +5,16 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 } 
 
+export function detectIframe() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
 
-export const isIframe = window.self !== window.top;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
+export const isIframe = detectIframe();
