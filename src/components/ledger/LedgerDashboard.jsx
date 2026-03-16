@@ -142,8 +142,8 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
     // Recently logged
     const recent = [...active].sort((a, b) => new Date(b.logged_at || b.created_date) - new Date(a.logged_at || a.created_date)).slice(0, 6);
 
-    return { totalScu, avgQuality, t2Ready: t2Ready.length, t2Scu, byType, maxScu, rawScu, refiningScu, refinedScu, armScu, t2, good, low, poor, top5, recent };
-  }, [materials, refineryOrders]);
+    return { totalScu, avgQuality, t2Ready: t2Ready.length, t2Scu, byType, maxScu, rawScu, refiningScu, refinedScu, armScu, t2, good, low, poor, top5, recent, totalValue, valuedCount };
+  }, [materials, refineryOrders, commodities]);
 
   if (loading) {
     return (
