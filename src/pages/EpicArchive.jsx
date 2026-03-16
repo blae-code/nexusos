@@ -6,7 +6,7 @@ const TABS = ['OPS', 'LEADERBOARDS', 'PATCH HISTORY'];
 
 function OpArchiveCard({ op }) {
   const duration = op.started_at && op.ended_at
-    ? Math.round((new Date(op.ended_at) - new Date(op.started_at)) / 60000)
+    ? Math.round((new Date(op.ended_at).getTime() - new Date(op.started_at).getTime()) / 60000)
     : null;
 
   return (

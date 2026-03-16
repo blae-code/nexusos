@@ -204,7 +204,7 @@ export default function LiveOp() {
       // Calculate duration
       const startTime = op.started_at ? new Date(op.started_at) : new Date();
       const endTime = new Date();
-      const durationMinutes = Math.round((endTime - startTime) / 60000);
+      const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
 
       // Collect crew data from RSVPs
       const crewList = rsvps

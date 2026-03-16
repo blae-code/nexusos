@@ -582,8 +582,8 @@ function AddBlueprintDialog({ onClose, onCreated }) {
         .filter(r => r.material_name.trim())
         .map(r => ({
           material_name: r.material_name.trim(),
-          min_quality:   parseFloat(r.min_quality) || 0,
-          quantity_scu:  parseFloat(r.quantity_scu) || 0,
+          min_quality:   Number(r.min_quality) || 0,
+          quantity_scu:  Number(r.quantity_scu) || 0,
         }));
 
       await base44.entities.Blueprint.create({

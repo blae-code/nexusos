@@ -4,14 +4,14 @@ import { useSearchParams } from 'react-router-dom';
 
 const RANK_COLORS = {
   PIONEER: { color: 'var(--warn)', label: 'The Pioneer' },
-  FOUNDER: { color: '#ffb84d', label: 'Founder' },
+  FOUNDER: { color: 'var(--acc2)', label: 'Founder' },
   VOYAGER: { color: 'var(--info)', label: 'Voyager' },
   SCOUT: { color: 'var(--live)', label: 'Scout' },
   VAGRANT: { color: 'var(--t1)', label: 'Vagrant' },
   AFFILIATE: { color: 'var(--t2)', label: 'Affiliate' },
 };
 
-function Section({ title, children, defaultOpen = false, forceOpen = false, sectionId, sectionRef }) {
+function Section({ title, children, defaultOpen = false, forceOpen = false, sectionId = undefined, sectionRef = undefined }) {
   const [open, setOpen] = useState(defaultOpen || forceOpen);
 
   useEffect(() => {

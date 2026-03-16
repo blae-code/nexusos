@@ -40,7 +40,7 @@ const CUSTOM_TOOLTIP_STYLE = {
   padding: '8px 12px',
 };
 
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active = false, payload = [], label = '' }) {
   if (!active || !payload || !payload.length) return null;
   return (
     <div style={CUSTOM_TOOLTIP_STYLE}>

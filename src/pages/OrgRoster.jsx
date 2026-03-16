@@ -17,7 +17,7 @@ function MemberCard({ user }) {
   const rankColor = RANK_COLORS[user.nexus_rank] || 'var(--t2)';
   const timeAgo = (iso) => {
     if (!iso) return '—';
-    const h = Math.floor((Date.now() - new Date(iso)) / 3600000);
+    const h = Math.floor((Date.now() - new Date(iso).getTime()) / 3600000);
     if (h < 1) return 'just now';
     if (h < 24) return `${h}h ago`;
     return `${Math.floor(h / 24)}d ago`;

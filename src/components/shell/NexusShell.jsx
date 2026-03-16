@@ -6,7 +6,7 @@ import NexusTopbar from './NexusTopbar';
 import PortraitNavDrawer from './PortraitNavDrawer';
 import { withAppBase } from '@/lib/app-base-path';
 import { notifyBrowser, useNotificationPreferences } from '@/lib/notification-preferences';
-import { loadRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
+import { loadRescueCalls, refreshRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
 import { useSession } from '@/lib/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/lib/layout-mode';
 import { useVerseStatus } from '@/lib/useVerseStatus';
@@ -133,9 +133,14 @@ export default function NexusShell() {
       }
     };
 
-    const seedRescueCalls = () => {
+    const seedRescueCalls = async () => {
+      const calls = await refreshRescueCalls().catch(() => loadRescueCalls());
+      if (cancelled) {
+        return;
+      }
+
       seenRescueCallsRef.current = new Set(
-        loadRescueCalls()
+        (calls || [])
           .filter((call) => call.status === 'OPEN')
           .map((call) => call.id),
       );

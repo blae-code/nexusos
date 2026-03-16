@@ -16,12 +16,12 @@ const TABS = [
   { id: 'refinery', label: 'REFINERY' },
 ];
 
-function RefineryTab({ refineryOrders, materials }) {
+function RefineryTab({ refineryOrders, materials, callsign }) {
   const [showInput, setShowInput] = React.useState(false);
 
   function timeLeft(isoStr) {
     if (!isoStr) return '—';
-    const diff = new Date(isoStr) - Date.now();
+    const diff = new Date(isoStr).getTime() - Date.now();
     if (diff <= 0) return 'READY';
     const hours = Math.floor(diff / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
@@ -33,7 +33,7 @@ function RefineryTab({ refineryOrders, materials }) {
       {/* Input Section */}
       {showInput ? (
         <div>
-          <RefineryManagement materials={materials} />
+          <RefineryManagement materials={materials} callsign={callsign} />
           <div style={{ padding: '0 16px 12px' }}>
             <button
               onClick={() => setShowInput(false)}
@@ -123,7 +123,6 @@ export default function IndustryHub() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const callsign = outletContext.callsign;
   const rank = outletContext.rank;
-  const discordId = outletContext.discordId;
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = TABS.some((item) => item.id === searchParams.get('tab')) ? searchParams.get('tab') : 'overview';
   const [materials, setMaterials] = useState([]);
@@ -229,9 +228,9 @@ export default function IndustryHub() {
           </div>
         ) : null}
         {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
-        {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} discordId={discordId} onRefresh={load} /> : null}
+        {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} onRefresh={load} /> : null}
         {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} materials={materials} blueprints={blueprints} /> : null}
-        {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} /> : null}
+        {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} callsign={callsign} /> : null}
       </div>
     </div>
   );

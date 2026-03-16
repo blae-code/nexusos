@@ -34,6 +34,7 @@ export default function PhaseTracker({ op, canEdit, onPhaseChange }) {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
               {/* Phase bubble */}
               <div
+                title={name}
                 style={{
                   width: 32,
                   height: 32,
@@ -65,30 +66,6 @@ export default function PhaseTracker({ op, canEdit, onPhaseChange }) {
                     }}
                   />
                 )}
-              </div>
-
-              {/* Phase label tooltip on hover */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: -28,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'var(--bg2)',
-                  border: '0.5px solid var(--b2)',
-                  borderRadius: 4,
-                  padding: '4px 8px',
-                  fontSize: 8,
-                  color: 'var(--t1)',
-                  whiteSpace: 'nowrap',
-                  pointerEvents: 'none',
-                  opacity: 0,
-                  transition: 'opacity 0.15s',
-                }}
-                onMouseEnter={e => { e.parentElement.style.opacity = '1'; }}
-                onMouseLeave={e => { e.parentElement.style.opacity = '0'; }}
-              >
-                {name}
               </div>
 
               {/* Connector line */}

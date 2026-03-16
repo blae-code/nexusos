@@ -173,12 +173,12 @@ function LeaderRow({ rank: pos, callsign, count, avgQuality }) {
 
 // ─── DetailRow ────────────────────────────────────────────────────────────────
 
-function DetailRow({ label, value, color }) {
+function DetailRow({ label, value, color = 'var(--t1)' }) {
   if (!value && value !== 0) return null;
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
       <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.08em' }}>{label}</span>
-      <span style={{ color: color || 'var(--t1)', fontSize: 11 }}>{value}</span>
+      <span style={{ color, fontSize: 11 }}>{value}</span>
     </div>
   );
 }

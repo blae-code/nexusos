@@ -137,7 +137,7 @@ export default function LedgerFlowTable({ materials, refineryOrders, onRefresh }
               </div>
             ))}
             {activeRO.map(o => {
-              const diff = o.completes_at ? new Date(o.completes_at) - Date.now() : null;
+              const diff = o.completes_at ? new Date(o.completes_at).getTime() - Date.now() : null;
               const tl = diff > 0 ? (() => { const h = Math.floor(diff / 3600000); const m = Math.floor((diff % 3600000) / 60000); return h > 0 ? `${h}h ${m}m` : `${m}m`; })() : 'READY';
               return (
                 <div key={o.id} style={{ background: 'var(--bg2)', border: '0.5px solid var(--b2)', borderRadius: 6, padding: '6px 10px', display: 'flex', gap: 8, alignItems: 'center' }}>

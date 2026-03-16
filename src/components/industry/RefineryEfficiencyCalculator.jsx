@@ -35,9 +35,9 @@ export default function RefineryEfficiencyCalculator() {
     try {
       const res = await base44.functions.invoke('refineryEfficiencyCalculator', {
         material_name: form.material_name,
-        raw_scu: parseFloat(form.raw_scu),
+        raw_scu: Number(form.raw_scu),
         refinery_method: form.refinery_method,
-        material_quality: parseFloat(form.material_quality),
+        material_quality: Number(form.material_quality),
       });
 
       setResult(res.data);

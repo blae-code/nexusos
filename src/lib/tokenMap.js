@@ -204,8 +204,7 @@ export function roleToken(role) {
  * Used in: user chip dropdown, profile settings, key management table,
  * roster module member cards.
  *
- * @param {'PIONEER'|'FOUNDER'|'VOYAGER'|'SCOUT'|'VAGRANT'|'AFFILIATE'} rank
- * @param {'sm'|'md'|'lg'} size — informational only, affects no logic here
+ * @param {'PIONEER'|'FOUNDER'|'VOYAGER'|'SCOUT'|'VAGRANT'|'AFFILIATE'|string} rank
  * @returns {string} token path
  */
 export function rankToken(rank) {
@@ -378,7 +377,7 @@ export const HERALD_TOKENS = {
 /**
  * preloadCriticalTokens
  * Call from Shell.jsx useEffect on mount.
- * @param {string} userRank   — the current user's rank string
+ * @param {'PIONEER'|'FOUNDER'|'VOYAGER'|'SCOUT'|'VAGRANT'|'AFFILIATE'|string} userRank
  * @param {number} maxPhases  — how many phase tokens to preload (default 6)
  */
 export function preloadCriticalTokens(userRank, maxPhases = 6) {

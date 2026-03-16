@@ -19,7 +19,7 @@ function SectionHeader({ label }) {
   );
 }
 
-function StatCard({ label, value, sub, accent }) {
+function StatCard({ label, value, sub, accent = 'var(--t0)' }) {
   return (
     <div style={{
       background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 8,
@@ -49,7 +49,7 @@ function TypeBar({ label, count, scu, maxScu, color }) {
 function QualityBand({ label, range, mats, color }) {
   const total = mats.reduce((s, m) => s + (m.quantity_scu || 0), 0);
   return (
-    <div style={{ display: 'flex', items: 'center', gap: 8, padding: '5px 8px', borderRadius: 5, background: 'var(--bg1)', border: '0.5px solid var(--b0)', marginBottom: 4 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 5, background: 'var(--bg1)', border: '0.5px solid var(--b0)', marginBottom: 4 }}>
       <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0, marginTop: 3 }} />
       <div style={{ flex: 1 }}>
         <div style={{ color: 'var(--t1)', fontSize: 11 }}>{label}</div>
@@ -93,6 +93,7 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
     const active = materials.filter(m => !m.is_archived);
 
     // Build commodity price lookup by name (case-insensitive)
+    /** @type {Record<string, number>} */
     const priceByName = {};
     commodities.forEach(c => {
       if (c.sell_price_uex > 0) priceByName[(c.name || '').toLowerCase()] = c.sell_price_uex;
@@ -113,6 +114,7 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
     const t2Ready   = active.filter(m => (m.quality_pct || 0) >= 80);
     const t2Scu     = t2Ready.reduce((s, m) => s + (m.quantity_scu || 0), 0);
 
+    /** @type {Record<string, { count: number; scu: number }>} */
     const byType = TYPE_ORDER.reduce((acc, t) => {
       const group = active.filter(m => m.material_type === t);
       acc[t] = {
@@ -120,7 +122,7 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
         scu: group.reduce((s, m) => s + (m.quantity_scu || 0), 0),
       };
       return acc;
-    }, {});
+    }, /** @type {Record<string, { count: number; scu: number }>} */ ({}));
 
     const maxScu = Math.max(...Object.values(byType).map(g => g.scu), 1);
 
@@ -140,7 +142,7 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
     const top5 = [...active].sort((a, b) => (b.quantity_scu || 0) - (a.quantity_scu || 0)).slice(0, 8);
 
     // Recently logged
-    const recent = [...active].sort((a, b) => new Date(b.logged_at || b.created_date) - new Date(a.logged_at || a.created_date)).slice(0, 6);
+    const recent = [...active].sort((a, b) => new Date(b.logged_at || b.created_date).getTime() - new Date(a.logged_at || a.created_date).getTime()).slice(0, 6);
 
     return { totalScu, avgQuality, t2Ready: t2Ready.length, t2Scu, byType, maxScu, rawScu, refiningScu, refinedScu, armScu, t2, good, low, poor, top5, recent, totalValue, valuedCount };
   }, [materials, refineryOrders, commodities]);

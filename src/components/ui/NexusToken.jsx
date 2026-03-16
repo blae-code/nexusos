@@ -88,16 +88,29 @@ const RING_STYLES = {
 // Component
 // ---------------------------------------------------------------------------
 
+/**
+ * @param {{
+ *   src: string;
+ *   size?: number;
+ *   pulse?: 'live' | 'warn' | false;
+ *   opacity?: number;
+ *   alt?: string;
+ *   className?: string;
+ *   onClick?: (() => void) | undefined;
+ *   title?: string;
+ * }} props
+ */
 function NexusToken({
   src,
   size = 32,
   pulse = false,
   opacity = 1,
   alt = '',
-  className,
-  onClick,
-  title,
+  className = '',
+  onClick = undefined,
+  title = '',
 }) {
+  /** @type {import('react').CSSProperties} */
   const imgStyle = {
     display: 'block',
     width:   size,
@@ -141,6 +154,7 @@ function NexusToken({
   }
 
   // With pulse ring — needs relative wrapper so ring can use absolute inset
+  /** @type {import('react').CSSProperties} */
   const ringStyle = {
     position:      'absolute',
     inset:         -(size * 0.1),  // ring gap scales with token size

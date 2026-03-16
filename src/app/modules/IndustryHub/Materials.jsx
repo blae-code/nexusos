@@ -12,6 +12,7 @@ import { materialToken } from '@/lib/tokenMap';
 
 // ─── Shared style constants ────────────────────────────────────────────────────
 
+/** @type {import('react').CSSProperties} */
 const TH = {
   padding: '7px 12px',
   textAlign: 'left',
@@ -24,6 +25,7 @@ const TH = {
   background: 'var(--bg2)',
 };
 
+/** @type {import('react').CSSProperties} */
 const TD = { padding: '6px 12px' };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -104,9 +106,11 @@ function SortableColHeader({ col, label, sortBy, sortDir, onToggle }) {
 }
 
 function StaticColHeader({ label, right = false }) {
-  return (
-    <th style={{ ...TH, textAlign: right ? 'right' : 'left' }}>{label}</th>
-  );
+  if (right) {
+    return <th style={{ ...TH, textAlign: 'right' }}>{label}</th>;
+  }
+
+  return <th style={TH}>{label}</th>;
 }
 
 // ─── Inline row editor ─────────────────────────────────────────────────────────

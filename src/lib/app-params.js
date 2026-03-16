@@ -1,6 +1,8 @@
 import { safeLocalStorage } from '@/lib/safe-storage';
 
 const isNode = typeof window === 'undefined';
+const importMetaWithEnv = /** @type {{ env?: Record<string, string | undefined> }} */ (import.meta);
+const viteEnv = importMetaWithEnv.env || {};
 
 const toSnakeCase = (str) => {
 	return str.replace(/([A-Z])/g, '_$1').toLowerCase();
@@ -44,13 +46,13 @@ const getAppParams = () => {
 		safeLocalStorage.removeItem('token');
 	}
 	return {
-		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
+		appId: getAppParamValue("app_id", { defaultValue: viteEnv.VITE_BASE44_APP_ID }),
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: isNode ? '' : window.location.href }),
-		serverUrl: getAppParamValue("server_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }),
-		functionsVersion: getAppParamValue("functions_version", { defaultValue: import.meta.env.VITE_BASE44_FUNCTIONS_VERSION }),
+		serverUrl: getAppParamValue("server_url", { defaultValue: viteEnv.VITE_BASE44_APP_BASE_URL }),
+		functionsVersion: getAppParamValue("functions_version", { defaultValue: viteEnv.VITE_BASE44_FUNCTIONS_VERSION }),
 		appBaseUrl: getAppParamValue("app_base_url", {
-			defaultValue: getAppParamValue("server_url", { defaultValue: import.meta.env.VITE_BASE44_APP_BASE_URL }),
+			defaultValue: getAppParamValue("server_url", { defaultValue: viteEnv.VITE_BASE44_APP_BASE_URL }),
 		}),
 	}
 }

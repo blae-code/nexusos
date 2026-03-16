@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { getActiveRescueCount, loadRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
+import { getActiveRescueCount, loadRescueCalls, refreshRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
 import {
   BlueprintIcon,
   CofferIcon,
@@ -54,11 +54,12 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
           return;
         }
 
+        const rescueCalls = await refreshRescueCalls();
         setBadges({
           craft: (craftQueue || []).some((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)),
           live: Array.isArray(liveOps) && liveOps.length > 0,
           blueprints: (priorityBlueprints || []).some((item) => !(item.owned_by || item.owned_by_callsign)),
-          rescue: getActiveRescueCount(loadRescueCalls()) > 0,
+          rescue: getActiveRescueCount(rescueCalls || loadRescueCalls()) > 0,
         });
       } catch (error) {
         if (!cancelled) {

@@ -2,7 +2,7 @@
  * Herald Bot — NexusOS Discord Integration
  *
  * Actions: publishOp · rsvpUpdate · opGo · opActivate · opEnd · phaseAdvance ·
- *          phaseBriefing · threatAlert · deliverKey · keyEvent · armoryUpdate ·
+ *          phaseBriefing · threatAlert · rescueAlert · deliverKey · keyEvent · armoryUpdate ·
  *          armoryAlert · patchDigest · notify_patch_alert · scoutPing ·
  *          depositStaleAlert · opDebrief · opWrapUp · wrapUpDebrief ·
  *          lowStockAlert · orgHealthBriefing
@@ -70,6 +70,8 @@ const TOKENS = {
   depositStale: tokenUrl('hex-grey'),
   depositReady: tokenUrl('hex-green'),
   scoutPing:    tokenUrl('hex-green'),
+  rescueActive: tokenUrl('hospital-red'),
+  rescueReady:  tokenUrl('hospital-green'),
 };
 
 type HeraldRequestBody = {
@@ -527,7 +529,40 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 7. Deliver Key (DM to member — non-fatal) ────────────────────────────
+    // ── 7. Rescue Alert ───────────────────────────────────────────────────────
+    if (action === 'rescueAlert') {
+      const { callsign, system, location, situation, status, responder } = payload;
+      const state = String(status || 'OPEN').toUpperCase();
+      const channelId = CH.nexusOps || CH.nexusLog;
+      if (!channelId) {
+        return Response.json({ success: true, skipped: true });
+      }
+
+      const isOpen = state === 'OPEN';
+      const isResponding = state === 'RESPONDING';
+      const isResolved = state === 'RESOLVED';
+      const color = isOpen ? 0xe04848 : isResponding ? 0xe8a020 : 0x27c96a;
+
+      await discordPost(`/channels/${channelId}/messages`, {
+        ...(isOpen ? { content: '@here 🚨 **DISTRESS CALL**' } : {}),
+        embeds: [{
+          title: `${isResolved ? '✅' : isResponding ? '🟠' : '🚨'} Rescue ${state} — ${callsign || 'UNKNOWN'}`,
+          color,
+          thumbnail: { url: isResolved ? TOKENS.rescueReady : TOKENS.rescueActive },
+          description: String(situation || 'Rescue assistance requested.'),
+          fields: [
+            ...(system || location ? [{ name: 'Location', value: `${system || 'VERSE'}${location ? ` · ${location}` : ''}`, inline: true }] : []),
+            ...(responder ? [{ name: 'Responder', value: String(responder), inline: true }] : []),
+          ],
+          footer: { text: 'NEXUSOS · RESCUE BOARD' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+
+      return Response.json({ success: true });
+    }
+
+    // ── 8. Deliver Key (DM to member — non-fatal) ────────────────────────────
     if (action === 'deliverKey') {
       const { discord_id, callsign, auth_key, rank } = payload;
       try {

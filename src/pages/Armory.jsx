@@ -148,7 +148,7 @@ function CategorySection({ title, items, onReturn }) {
 }
 
 export default function Armory() {
-  const outletContext = useOutletContext() || {};
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
   const { callsign, discordId } = outletContext;
 
   const [items, setItems] = useState([]);

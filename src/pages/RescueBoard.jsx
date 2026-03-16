@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
-import { getActiveRescueCount, loadRescueCalls, saveRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
+import {
+  createRescueCall,
+  getActiveRescueCount,
+  loadRescueCalls,
+  refreshRescueCalls,
+  subscribeToRescueCalls,
+  updateRescueCall,
+} from '@/lib/rescue-board-store';
 
 export default function RescueBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
@@ -9,39 +17,76 @@ export default function RescueBoard() {
   const [calls, setCalls] = useState(() => loadRescueCalls());
   const [form, setForm] = useState({ location: '', system: 'STANTON', situation: '', callsign: '' });
   const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    return subscribeToRescueCalls(setCalls);
+    let active = true;
+    refreshRescueCalls().then((nextCalls) => {
+      if (active) {
+        setCalls(nextCalls);
+      }
+    });
+
+    const unsubscribe = subscribeToRescueCalls(setCalls);
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
-  const submit = () => {
+  const broadcastRescueAlert = async (payload) => {
+    try {
+      await base44.functions.invoke('heraldBot', { action: 'rescueAlert', payload });
+    } catch (error) {
+      console.warn('[RescueBoard] rescue alert broadcast failed:', error?.message || error);
+    }
+  };
+
+  const submit = async () => {
     if (!form.location || !form.situation) return;
-    const nextCalls = [{
-      id: Date.now(),
+    setSubmitting(true);
+    const nextCall = {
+      id: `rescue_${Date.now()}`,
       ...form,
       callsign: form.callsign || callsign || 'UNKNOWN',
       ts: new Date().toISOString(),
       status: 'OPEN',
-    }, ...calls];
-    setCalls(saveRescueCalls(nextCalls));
+    };
+    const nextCalls = await createRescueCall(nextCall);
+    setCalls(nextCalls);
     setForm({ location: '', system: 'STANTON', situation: '', callsign: '' });
     setShowForm(false);
+    setSubmitting(false);
+    await broadcastRescueAlert(nextCall);
   };
 
-  const respond = (id) => {
-    const nextCalls = calls.map((call) => (
-      call.id === id ? { ...call, status: 'RESPONDING', responder: callsign || 'UNKNOWN' } : call
-    ));
-    setCalls(saveRescueCalls(nextCalls));
+  const respond = async (id) => {
+    setUpdatingId(id);
+    const responder = callsign || 'UNKNOWN';
+    const nextCalls = await updateRescueCall(id, { status: 'RESPONDING', responder });
+    setCalls(nextCalls);
+    setUpdatingId(null);
+    const activeCall = nextCalls.find((call) => String(call.id) === String(id));
+    await broadcastRescueAlert({
+      ...activeCall,
+      status: 'RESPONDING',
+      responder,
+    });
   };
 
-  const resolve = (id) => {
-    const nextCalls = calls.map((call) => (
-      call.id === id ? { ...call, status: 'RESOLVED' } : call
-    ));
-    setCalls(saveRescueCalls(nextCalls));
+  const resolve = async (id) => {
+    setUpdatingId(id);
+    const nextCalls = await updateRescueCall(id, { status: 'RESOLVED' });
+    setCalls(nextCalls);
+    setUpdatingId(null);
+    const resolvedCall = nextCalls.find((call) => String(call.id) === String(id));
+    await broadcastRescueAlert({
+      ...resolvedCall,
+      status: 'RESOLVED',
+    });
   };
 
   const STATUS_COLORS = { OPEN: 'var(--danger)', RESPONDING: 'var(--warn)', RESOLVED: 'var(--live)' };
@@ -89,8 +134,10 @@ export default function RescueBoard() {
               <input className="nexus-input" value={form.situation} onChange={e => set('situation', e.target.value)} placeholder="Ship destroyed, stranded. Need evac / fuel / escort..." />
             </div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowForm(false)} className="nexus-btn" style={{ padding: '6px 14px' }}>CANCEL</button>
-              <button onClick={submit} className="nexus-btn danger" style={{ padding: '6px 14px' }}>BROADCAST →</button>
+              <button onClick={() => setShowForm(false)} className="nexus-btn" style={{ padding: '6px 14px' }} disabled={submitting}>CANCEL</button>
+              <button onClick={submit} className="nexus-btn danger" style={{ padding: '6px 14px' }} disabled={submitting}>
+                {submitting ? 'BROADCASTING...' : 'BROADCAST →'}
+              </button>
             </div>
           </div>
         </div>
@@ -119,13 +166,17 @@ export default function RescueBoard() {
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-1" style={{ color: 'var(--t2)', fontSize: 10 }}>
                   <Clock size={10}/>
-                  {Math.floor((Date.now() - new Date(call.ts)) / 60000)}m ago
+                  {Math.floor((Date.now() - new Date(call.ts).getTime()) / 60000)}m ago
                 </div>
                 {call.status === 'OPEN' && (
-                  <button onClick={() => respond(call.id)} className="nexus-btn live-btn" style={{ padding: '4px 10px', fontSize: 10 }}>RESPOND</button>
+                  <button onClick={() => respond(call.id)} className="nexus-btn live-btn" style={{ padding: '4px 10px', fontSize: 10 }} disabled={updatingId === call.id}>
+                    {updatingId === call.id ? 'UPDATING...' : 'RESPOND'}
+                  </button>
                 )}
                 {call.status === 'RESPONDING' && (
-                  <button onClick={() => resolve(call.id)} className="nexus-btn" style={{ padding: '4px 10px', fontSize: 10 }}>RESOLVED</button>
+                  <button onClick={() => resolve(call.id)} className="nexus-btn" style={{ padding: '4px 10px', fontSize: 10 }} disabled={updatingId === call.id}>
+                    {updatingId === call.id ? 'UPDATING...' : 'RESOLVED'}
+                  </button>
                 )}
               </div>
             </div>

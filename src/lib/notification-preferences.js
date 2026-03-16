@@ -52,6 +52,15 @@ export async function requestBrowserNotificationPermission() {
   return Notification.requestPermission();
 }
 
+/**
+ * @param {{
+ *   title?: string;
+ *   body?: string;
+ *   tag?: string;
+ *   silent?: boolean;
+ *   onClickUrl?: string;
+ * }=} options
+ */
 export function notifyBrowser({ title, body, tag, silent = false, onClickUrl } = {}) {
   if (typeof window === 'undefined' || typeof Notification === 'undefined') {
     return null;

@@ -218,7 +218,7 @@ function MaterialPreviewRow({ material }) {
             flexShrink: 0,
           }}
         >
-          <MaterialGlyph material={material} />
+          <MaterialGlyph material={material} materialName={material.material_name} type={material.material_type} />
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ color: 'var(--t0)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

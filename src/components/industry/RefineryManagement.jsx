@@ -15,7 +15,7 @@ const STATIONS = {
   'GRIM-HEX': { name: 'Grim Hex', bonus: 0 },
 };
 
-export default function RefineryManagement({ materials = [] }) {
+export default function RefineryManagement({ materials = [], callsign = '' }) {
   const [form, setForm] = useState({
     material_name: '',
     quantity_scu: '',
@@ -46,8 +46,8 @@ export default function RefineryManagement({ materials = [] }) {
 
       const res = await base44.functions.invoke('refineryCalculator', {
         material_name: form.material_name,
-        quantity_scu: parseFloat(form.quantity_scu),
-        quality_pct: parseFloat(form.quality_pct),
+        quantity_scu: Number(form.quantity_scu),
+        quality_pct: Number(form.quality_pct),
         refinery_method: form.refinery_method,
         station: form.station,
         base_yield_pct: method.base_yield,
@@ -74,12 +74,12 @@ export default function RefineryManagement({ materials = [] }) {
       // Create refinery order
       const order = {
         material_name: form.material_name,
-        quantity_scu: parseFloat(form.quantity_scu),
+        quantity_scu: Number(form.quantity_scu),
         method: form.refinery_method,
         yield_pct: forecast.yield_pct,
         cost_aUEC: forecast.cost_aUEC,
         station: form.station,
-        submitted_by_callsign: '', // Will be populated from session
+        submitted_by_callsign: callsign || 'UNKNOWN',
         started_at: new Date().toISOString(),
         completes_at: forecast.completes_at,
         status: 'ACTIVE',
@@ -95,7 +95,8 @@ export default function RefineryManagement({ materials = [] }) {
         quality_pct: forecast.quality_retained_pct,
         material_type: 'REFINED',
         location: form.station,
-        logged_by: '', // Will be populated from session
+        logged_by_callsign: callsign || 'UNKNOWN',
+        logged_by: callsign || 'UNKNOWN',
         source_type: 'REFINERY_ORDER',
         session_id: orderRes?.id,
         notes: `Refining via ${form.refinery_method} at ${form.station} - ETA ${Math.round(forecast.processing_minutes)}m`,

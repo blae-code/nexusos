@@ -190,7 +190,7 @@ function RefineryCard({ order }) {
 
   function timeLeft(isoStr) {
     if (!isoStr) return null;
-    const diff = new Date(isoStr) - Date.now();
+    const diff = new Date(isoStr).getTime() - Date.now();
     if (diff <= 0) return 'READY';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
