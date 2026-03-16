@@ -124,7 +124,7 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
         const Icon = item.icon;
         const isActive = isActiveRoute(item.path);
         const badgeActive = item.badge ? badges[item.badge] : false;
-        const badgeColor = item.badge === 'live' ? 'var(--live)' : 'var(--warn)';
+        const badgeColor = item.badge === 'live' ? 'var(--live)' : item.badge === 'craft' ? 'var(--cyan)' : 'var(--warn)';
 
         return (
           <Link
