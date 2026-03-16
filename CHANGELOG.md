@@ -1,5 +1,8 @@
 # NexusOS Changelog
 
+## 0.6.0 — 2026-03-16
+- Full UI visual rebuild matching NexusOS design system
+
 ## 0.5.0 — 2026-03-16
 - Full visual system implementation — Codex rebuild
 
