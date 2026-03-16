@@ -55,6 +55,12 @@ textarea.nexus-input {
   background: var(--bg0);
 }
 
+.nexus-page-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
 .nexus-fade-in {
   animation: nexus-fade-in 0.18s ease-out both;
 }
@@ -184,45 +190,6 @@ textarea.nexus-input {
 
 .op-stripe-archived {
   border-left: 2px solid var(--b1);
-}
-
-@media (max-width: 1099px) {
-  .nexus-sidebar {
-    display: none !important;
-  }
-
-  .nav-drawer {
-    position: fixed;
-    left: 0;
-    top: 44px;
-    width: 280px;
-    height: calc(100vh - 44px);
-    background: var(--bg1);
-    border-right: 0.5px solid var(--b1);
-    transform: translateX(-100%);
-    transition: transform 0.2s ease-out;
-    z-index: 140;
-    overflow-y: auto;
-  }
-
-  .nav-drawer.open {
-    transform: translateX(0);
-  }
-
-  .nav-drawer-backdrop {
-    position: fixed;
-    inset: 44px 0 0;
-    background: rgba(7, 8, 11, 0.82);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease-out;
-    z-index: 130;
-  }
-
-  .nav-drawer-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
-  }
 }
 
 @keyframes pulse-dot {

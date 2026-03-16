@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import NexusToken from '@/components/ui/NexusToken';
 import { phaseToken } from '@/lib/tokenMap';
 
-const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
+const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
 function PhaseNode({ label, index, status, canAdvance, onClick }) {
   const isDone = status === 'done';
@@ -47,7 +47,7 @@ function PhaseNode({ label, index, status, canAdvance, onClick }) {
 }
 
 export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank, onAdvance }) {
-  const canAdvance = PIONEER_RANKS.includes(rank);
+  const canAdvance = SCOUT_RANKS.includes(rank);
 
   const handleClick = async () => {
     const nextPhase = currentPhase + 1;
@@ -64,8 +64,8 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank
         },
       }).catch((error) => console.warn('[PhaseTracker] heraldBot failed:', error.message));
       onAdvance?.(nextPhase);
-    } catch (error) {
-      console.error('[PhaseTracker] phase update failed:', error);
+    } catch {
+      // phase update failed — UI stays on current phase
     }
   };
 

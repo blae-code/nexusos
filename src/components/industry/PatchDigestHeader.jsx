@@ -20,8 +20,8 @@ export default function PatchDigestHeader() {
         if (digests && digests.length > 0) {
           setDigest(digests[0]);
         }
-      } catch (err) {
-        console.error('Load patch digest failed:', err);
+      } catch {
+        // patch digest load failed — header stays empty
       } finally {
         setLoading(false);
       }

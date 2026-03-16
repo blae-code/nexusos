@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Zap } from 'lucide-react';
 
-const EDIT_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
+const EDIT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 const PRIORITY_BORDER = {
   high: 'var(--danger)',
   warn: 'var(--warn)',
@@ -110,8 +110,8 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
     try {
       await base44.entities.Op.update(op.id, { readiness_gate: nextGate });
       onUpdate?.();
-    } catch (error) {
-      console.error('[ReadinessGate] toggle failed:', error);
+    } catch {
+      // toggle failed — gate state unchanged
     }
   };
 

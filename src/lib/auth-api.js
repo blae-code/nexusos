@@ -46,6 +46,22 @@ export const authApi = {
     }).toString();
   },
 
+  async getHealth({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildUrl('health'), {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: getBase44Headers({ includeAuth: false }),
+    }, timeoutMs);
+
+    const data = await parseJson(response);
+    return {
+      ok: response.ok,
+      status: response.status,
+      ...(data || {}),
+    };
+  },
+
   async getSession({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
     const response = await fetchWithTimeout(buildUrl('session'), {
       method: 'GET',

@@ -25,8 +25,8 @@ export default function ScoutIntelModule() {
       setMaterials(
         unique.map(name => ({ material_name: name }))
       );
-    } catch (err) {
-      console.error('Scout Intel load failed:', err);
+    } catch {
+      // load failed — empty state shown
     }
     setLoading(false);
   };

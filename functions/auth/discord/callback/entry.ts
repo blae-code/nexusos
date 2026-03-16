@@ -22,6 +22,7 @@ Deno.serve(async (req: Request) => {
 
   const headers = new Headers();
   clearCookie(headers, STATE_COOKIE_NAME, req);
+  let appBase = '';
 
   try {
     const url = new URL(req.url);
@@ -29,7 +30,7 @@ Deno.serve(async (req: Request) => {
     const state = url.searchParams.get('state');
     const cookies = parseCookies(req);
     const statePayload = await decodeSignedPayload<{ state: string; redirect_to: string; app_base?: string }>(cookies[STATE_COOKIE_NAME]);
-    const appBase = statePayload?.app_base || '';
+    appBase = statePayload?.app_base || '';
 
     if (!code || !state || !statePayload || statePayload.state !== state) {
       return gateErrorRedirect('expired_state', req, headers, appBase);
@@ -55,6 +56,16 @@ Deno.serve(async (req: Request) => {
     return appRedirect(statePayload.redirect_to || '/app/industry', req, headers, appBase);
   } catch (error) {
     console.error('[auth/discord/callback]', error);
-    return gateErrorRedirect('auth_failed', req, headers);
+    if (!appBase) {
+      try {
+        const cookies = parseCookies(req);
+        const statePayload = await decodeSignedPayload<{ app_base?: string }>(cookies[STATE_COOKIE_NAME]);
+        appBase = statePayload?.app_base || '';
+      } catch {
+        appBase = '';
+      }
+    }
+
+    return gateErrorRedirect('auth_failed', req, headers, appBase);
   }
 });

@@ -147,8 +147,8 @@ export default function IndustryHub() {
       setCraftQueue(queue || []);
       setRefineryOrders(refinery || []);
       setScoutDeposits(deposits || []);
-    } catch (error) {
-      console.error('[IndustryHub] load failed:', error);
+    } catch {
+      // load failed
     } finally {
       setLoading(false);
     }

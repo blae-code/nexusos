@@ -64,8 +64,8 @@ export default function ScoutIntel() {
       setMaterials(mats || []);
       setBlueprints(bps || []);
       setLiveOp(Array.isArray(ops) && ops.length > 0 ? ops[0] : null);
-    } catch (e) {
-      console.error('[ScoutIntel] load failed:', e);
+    } catch {
+      // load failed — empty state shown
     } finally {
       setLoading(false);
     }

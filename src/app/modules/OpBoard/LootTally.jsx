@@ -236,8 +236,11 @@ function LogLootDialog({ onClose, onSubmit }) {
 
 // ─── LootTally ────────────────────────────────────────────────────────────────
 
-export default function LootTally({ op, callsign, currentPhase, onUpdate }) {
+const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+
+export default function LootTally({ op, callsign, rank, currentPhase, onUpdate }) {
   const [showDialog, setShowDialog] = useState(false);
+  const canLog = SCOUT_RANKS.includes(rank);
 
   // Only visible in phases index >= 4
   if ((currentPhase || 0) < 4) return null;
@@ -272,18 +275,20 @@ export default function LootTally({ op, callsign, currentPhase, onUpdate }) {
     <div style={{ position: 'relative', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' }}>LOOT TALLY</span>
-        <button
-          onClick={() => setShowDialog(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            background: 'none', border: '0.5px solid var(--b2)',
-            borderRadius: 5, cursor: 'pointer', color: 'var(--t2)',
-            fontSize: 9, letterSpacing: '0.07em', padding: '3px 8px',
-            fontFamily: 'inherit',
-          }}
-        >
-          <Plus size={9} /> LOG LOOT
-        </button>
+        {canLog && (
+          <button
+            onClick={() => setShowDialog(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              background: 'none', border: '0.5px solid var(--b2)',
+              borderRadius: 5, cursor: 'pointer', color: 'var(--t2)',
+              fontSize: 9, letterSpacing: '0.07em', padding: '3px 8px',
+              fontFamily: 'inherit',
+            }}
+          >
+            <Plus size={9} /> LOG LOOT
+          </button>
+        )}
       </div>
 
       <div style={{ border: '0.5px solid var(--b1)', borderRadius: 7, overflow: 'hidden' }}>

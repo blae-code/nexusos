@@ -106,9 +106,9 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
     <nav
       className="nexus-sidebar"
       style={{
-        width: 50,
+        width: 'var(--sidebar-w)',
         background: 'var(--bg0)',
-        borderRight: '0.5px solid var(--b0)',
+        borderRight: '0.5px solid var(--b1)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -148,29 +148,28 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
             className="nexus-tooltip"
             data-tip={item.label}
             style={{
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               borderRadius: 8,
               cursor: 'pointer',
-              border: `0.5px solid ${isActive ? 'var(--b2)' : 'transparent'}`,
+              borderLeft: isActive ? '3px solid var(--acc)' : '3px solid transparent',
+              border: isActive ? undefined : '0.5px solid transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.12s',
               position: 'relative',
-              background: isActive ? 'var(--bg3)' : 'transparent',
-              color: isActive ? 'var(--acc2)' : 'var(--t2)',
+              background: isActive ? 'rgba(90,96,128,0.08)' : 'transparent',
+              color: isActive ? 'var(--acc)' : 'var(--t2)',
             }}
             onMouseEnter={(event) => {
               if (!isActive) {
-                event.currentTarget.style.background = 'var(--bg2)';
-                event.currentTarget.style.borderColor = 'var(--b1)';
+                event.currentTarget.style.background = 'rgba(90,96,128,0.05)';
               }
             }}
             onMouseLeave={(event) => {
               if (!isActive) {
                 event.currentTarget.style.background = 'transparent';
-                event.currentTarget.style.borderColor = 'transparent';
               }
             }}
           >
