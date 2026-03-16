@@ -1,69 +1,133 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import {
-  Factory, Map, Crosshair, Wrench, Calculator,
-  Coins, ShieldAlert, Users, BookOpen,
-  Settings, ClipboardList, Archive
-} from 'lucide-react';
+  BlueprintIcon,
+  CofferIcon,
+  CompassMark,
+  FleetIcon,
+  IndustryIcon,
+  OpBoardIcon,
+  RescueIcon,
+  RosterIcon,
+  ScoutIcon,
+  SettingsIcon,
+} from './NexusIcons';
 
 const NAV_ITEMS = [
-  { icon: Factory,       label: 'Industry Hub',     path: '/app/industry',    badge: null },
-  { icon: Archive,       label: 'Material Ledger',  path: '/app/ledger',      badge: null },
-  { icon: Map,           label: 'Scout Intel',       path: '/app/scout',       badge: null },
-  { icon: Crosshair,     label: 'Op Board',          path: '/app/ops',         badge: null },
-  { icon: Wrench,        label: 'Fleet Forge',       path: '/app/fleet',       badge: null },
-  { icon: Calculator,    label: 'Profit Calc',       path: '/app/profit',      badge: null },
-  null, // divider
-  { icon: Coins,         label: 'Coffer',            path: '/app/coffer',      badge: null },
-  { icon: ShieldAlert,   label: 'Rescue',          path: '/app/rescue',      badge: null },
-  { icon: Users,         label: 'Roster',          path: '/app/roster',      badge: null },
-  { icon: BookOpen,      label: 'Epic Archive',    path: '/app/archive',     badge: null },
-  null, // divider
-  { icon: ClipboardList, label: 'Setup TODO',      path: '/app/admin/todo',  badge: '!' },
-  { icon: Settings,      label: 'Settings',        path: '/app/settings',    badge: null },
+  { icon: IndustryIcon, label: 'Industry Hub', path: '/app/industry', badge: 'craft' },
+  { icon: OpBoardIcon, label: 'Op Board', path: '/app/ops', badge: 'live' },
+  { icon: ScoutIcon, label: 'Scout Intel', path: '/app/scout' },
+  { icon: FleetIcon, label: 'Fleet Forge', path: '/app/fleet' },
+  { icon: BlueprintIcon, label: 'Blueprint Registry', path: '/app/industry?tab=blueprints', badge: 'blueprints' },
+  null,
+  { icon: CofferIcon, label: 'Coffer', path: '/app/coffer' },
+  { icon: RescueIcon, label: 'Rescue', path: '/app/rescue' },
+  { icon: RosterIcon, label: 'Roster', path: '/app/roster' },
+  null,
+  { icon: SettingsIcon, label: 'Profile Settings', path: '/app/profile' },
 ];
 
-export default function NexusSidebar({ currentPath }) {
+export default function NexusSidebar({ currentPath, currentSearch }) {
+  const [badges, setBadges] = useState({
+    craft: false,
+    live: false,
+    blueprints: false,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadBadges = async () => {
+      try {
+        const [craftQueue, liveOps, priorityBlueprints] = await Promise.all([
+          base44.entities.CraftQueue.list('-created_date', 50),
+          base44.entities.Op.filter({ status: 'LIVE' }),
+          base44.entities.Blueprint.filter({ is_priority: true }),
+        ]);
+
+        if (cancelled) return;
+
+        setBadges({
+          craft: (craftQueue || []).some((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)),
+          live: Array.isArray(liveOps) && liveOps.length > 0,
+          blueprints: (priorityBlueprints || []).some((item) => !(item.owned_by || item.owned_by_callsign)),
+        });
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[NexusSidebar] badge load failed:', error?.message || error);
+        }
+      }
+    };
+
+    loadBadges();
+    const intervalId = window.setInterval(loadBadges, 45000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const searchParams = useMemo(() => new URLSearchParams(currentSearch || ''), [currentSearch]);
+
+  const isActiveRoute = (path) => {
+    if (path.startsWith('/app/industry?tab=')) {
+      return currentPath === '/app/industry' && searchParams.get('tab') === path.split('=')[1];
+    }
+    if (path === '/app/profile') {
+      return currentPath === '/app/profile' || currentPath === '/app/settings';
+    }
+    return currentPath === path || currentPath.startsWith(`${path}/`);
+  };
+
   return (
     <nav
-      className="flex flex-col items-center py-3 gap-1 flex-shrink-0"
       style={{
         width: 50,
-        background: 'var(--bg1)',
-        borderRight: '0.5px solid var(--b1)',
-        height: '100vh',
-        position: 'relative',
-        zIndex: 10,
+        background: 'var(--bg0)',
+        borderRight: '0.5px solid var(--b0)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '8px 0',
+        gap: 2,
+        flexShrink: 0,
       }}
     >
-      {/* Logo */}
       <div
-        className="flex items-center justify-center mb-2"
-        style={{ width: 34, height: 34 }}
+        style={{
+          width: 36,
+          height: 36,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--acc2)',
+          marginBottom: 2,
+        }}
       >
-        <CompassIcon size={22} />
+        <CompassMark size={22} />
       </div>
 
-      <div style={{ width: '100%', borderBottom: '0.5px solid var(--b1)', marginBottom: 4 }} />
-
-      {NAV_ITEMS.map((item, i) => {
+      {NAV_ITEMS.map((item, index) => {
         if (item === null) {
           return (
             <div
-              key={`div-${i}`}
-              style={{ width: '60%', borderBottom: '0.5px solid var(--b1)', margin: '4px auto' }}
+              key={`divider-${index}`}
+              style={{ width: 22, height: '0.5px', background: 'var(--b0)', margin: '3px 0' }}
             />
           );
         }
 
         const Icon = item.icon;
-        const isActive = currentPath.startsWith(item.path);
+        const isActive = isActiveRoute(item.path);
+        const badgeActive = item.badge ? badges[item.badge] : false;
+        const badgeColor = item.badge === 'live' ? 'var(--live)' : 'var(--warn)';
 
         return (
           <Link
             key={item.path}
             to={item.path}
-            title={item.label}
             className="nexus-tooltip"
             data-tip={item.label}
             style={{
@@ -73,28 +137,41 @@ export default function NexusSidebar({ currentPath }) {
               justifyContent: 'center',
               width: 36,
               height: 36,
-              borderRadius: 7,
-              border: isActive ? '0.5px solid var(--b2)' : '0.5px solid transparent',
+              borderRadius: 8,
+              cursor: 'pointer',
+              border: `0.5px solid ${isActive ? 'var(--b2)' : 'transparent'}`,
               background: isActive ? 'var(--bg3)' : 'transparent',
-              color: isActive ? 'var(--t0)' : 'var(--t2)',
-              transition: 'all 0.15s',
+              color: isActive ? 'var(--acc2)' : 'var(--t2)',
+              transition: 'all 0.12s',
               textDecoration: 'none',
             }}
-            onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--bg2)'; e.currentTarget.style.color = 'var(--t1)'; }}}
-            onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--t2)'; }}}
+            onMouseEnter={(event) => {
+              if (!isActive) {
+                event.currentTarget.style.background = 'var(--bg2)';
+                event.currentTarget.style.borderColor = 'var(--b1)';
+                event.currentTarget.style.color = 'var(--t1)';
+              }
+            }}
+            onMouseLeave={(event) => {
+              if (!isActive) {
+                event.currentTarget.style.background = 'transparent';
+                event.currentTarget.style.borderColor = 'transparent';
+                event.currentTarget.style.color = 'var(--t2)';
+              }
+            }}
           >
-            <Icon size={15} />
-            {item.badge && (
+            <Icon size={16} />
+            {badgeActive && (
               <div
                 style={{
                   position: 'absolute',
-                  top: 4,
-                  right: 4,
-                  width: 6,
-                  height: 6,
-                  background: 'var(--warn)',
+                  top: 5,
+                  right: 5,
+                  width: 5,
+                  height: 5,
                   borderRadius: '50%',
-                  border: '1px solid var(--bg1)',
+                  background: badgeColor,
+                  border: '1.5px solid var(--bg0)',
                 }}
               />
             )}
@@ -102,18 +179,5 @@ export default function NexusSidebar({ currentPath }) {
         );
       })}
     </nav>
-  );
-}
-
-function CompassIcon({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="var(--acc)" strokeWidth="0.5"/>
-      <circle cx="12" cy="12" r="1.5" fill="var(--acc2)"/>
-      <polygon points="12,3 10.5,10 12,9 13.5,10" fill="var(--t0)" opacity="0.9"/>
-      <polygon points="12,21 13.5,14 12,15 10.5,14" fill="var(--t2)" opacity="0.6"/>
-      <polygon points="21,12 14,13.5 15,12 14,10.5" fill="var(--t2)" opacity="0.6"/>
-      <polygon points="3,12 10,10.5 9,12 10,13.5" fill="var(--t2)" opacity="0.6"/>
-    </svg>
   );
 }

@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AlertTriangle, Bell, BellOff, Send } from 'lucide-react';
+import { AlertTriangle, Send } from 'lucide-react';
 
 const DEFAULT_THRESHOLDS = [
   { material: 'Taranite',      min_scu: 20, min_quality: 80, critical: true },
@@ -211,7 +211,7 @@ function ThresholdEditor({ thresholds, onSave }) {
   );
 }
 
-export default function LowStockAlerts({ materials, onRefresh }) {
+export default function LowStockAlerts({ materials, callsign = 'SYSTEM' }) {
   const [thresholds, setThresholds]       = useState(loadThresholds);
   const [showEditor, setShowEditor]       = useState(false);
   const [sendingId, setSendingId]         = useState(null);
@@ -251,7 +251,6 @@ export default function LowStockAlerts({ materials, onRefresh }) {
 
   const handleSendAlert = async (threshold, stockData) => {
     setSendingId(threshold.material);
-    const callsign = localStorage.getItem('nexus_callsign') || 'SYSTEM';
     try {
       await base44.functions.invoke('heraldBot', {
         action: 'lowStockAlert',
@@ -263,11 +262,11 @@ export default function LowStockAlerts({ materials, onRefresh }) {
           min_quality:    threshold.min_quality,
           status:         stockData.status,
           critical:       threshold.critical,
-          callsign,
+          callsign: callsign || 'SYSTEM',
         },
       });
       setLastSent(prev => ({ ...prev, [threshold.material]: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }));
-      setAlertLog(prev => [{ material: threshold.material, status: stockData.status, time: new Date().toISOString(), callsign }, ...prev.slice(0, 19)]);
+      setAlertLog(prev => [{ material: threshold.material, status: stockData.status, time: new Date().toISOString(), callsign: callsign || 'SYSTEM' }, ...prev.slice(0, 19)]);
     } catch (e) {
       console.warn('[LowStockAlerts] heraldBot alert failed:', e.message);
     }

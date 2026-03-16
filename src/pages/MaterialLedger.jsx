@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import LedgerDashboard from '@/components/ledger/LedgerDashboard';
 import RefineryEfficiency from '@/components/ledger/RefineryEfficiency';
@@ -13,6 +14,8 @@ const TABS = [
 ];
 
 export default function MaterialLedger() {
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
+  const callsign = outletContext.callsign;
   const [tab, setTab] = useState('dashboard');
   const [materials, setMaterials] = useState([]);
   const [refineryOrders, setRefineryOrders] = useState([]);
@@ -82,8 +85,8 @@ export default function MaterialLedger() {
       <div className="flex-1 overflow-auto nexus-fade-in">
         {tab === 'dashboard'  && <LedgerDashboard materials={materials} refineryOrders={refineryOrders} commodities={commodities} loading={loading} />}
         {tab === 'flow'       && <LedgerFlowTable materials={materials} refineryOrders={refineryOrders} onRefresh={load} />}
-        {tab === 'refinery'   && <RefineryEfficiency refineryOrders={refineryOrders} onRefresh={load} />}
-        {tab === 'alerts'     && <LowStockAlerts materials={materials} onRefresh={load} />}
+        {tab === 'refinery'   && <RefineryEfficiency refineryOrders={refineryOrders} />}
+        {tab === 'alerts'     && <LowStockAlerts materials={materials} callsign={callsign} />}
       </div>
     </div>
   );

@@ -1,0 +1,522 @@
+:root {
+  /* ── Backgrounds ─────────────────────────────────── */
+  --bg0: #07080b;
+  --bg1: #0c0e13;
+  --bg2: #10121a;
+  --bg3: #161921;
+  --bg4: #1c1f2a;
+  --bg5: #222535;
+
+  /* ── Borders ─────────────────────────────────────── */
+  --b0: #161820;
+  --b1: #1e2130;
+  --b2: #272b3c;
+  --b3: #323648;
+
+  /* ── Text ────────────────────────────────────────── */
+  --t0: #dde1f0;
+  --t1: #8890a8;
+  --t2: #4a5068;
+  --t3: #2a2e40;
+
+  /* ── Accent ──────────────────────────────────────── */
+  --acc:  #5a6080;
+  --acc2: #7a8098;
+
+  /* ── Status (semantic only — never decorative) ───── */
+  --live:   #27c96a;
+  --warn:   #e8a020;
+  --danger: #e04848;
+  --info:   #4a8fd0;
+
+  /* ── Status backgrounds (for status-bearing cards) ── */
+  --live-bg:   #081510;
+  --live-b:    #1a4428;
+  --warn-bg:   #140e00;
+  --warn-b:    #3a2800;
+  --danger-bg: #1a0808;
+  --danger-b:  #3a1414;
+  --info-bg:   #0a1220;
+  --info-b:    #1a3050;
+  --live-hover-bg: #0d3520;
+  --danger-hover-bg: #220a0a;
+  --star-core: var(--t0);
+
+  /* ── Typography ──────────────────────────────────── */
+  --font: 'SF Mono', ui-monospace, 'Cascadia Code',
+          'Fira Code', monospace;
+
+  /* ── Spacing ─────────────────────────────────────── */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+}
+
+/* ── Global reset and base ───────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg0);
+  color: var(--t0);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbars ──────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb {
+  background: var(--b2);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--b3); }
+
+/* ── Utility classes ─────────────────────────────── */
+.nexus-card {
+  background: var(--bg1);
+  border: 0.5px solid var(--b0);
+  border-radius: var(--r-lg);
+  padding: 11px 12px;
+}
+
+.nexus-card-2 {
+  background: var(--bg2);
+  border: 0.5px solid var(--b1);
+  border-radius: var(--r-lg);
+  padding: 11px 12px;
+}
+
+.nexus-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  color: var(--t3);
+  letter-spacing: .15em;
+  margin-bottom: 8px;
+}
+.nexus-section-header::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--b0);
+}
+
+.nexus-pill {
+  font-size: 9px;
+  letter-spacing: .1em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 0.5px solid;
+}
+.nexus-pill-live {
+  background: var(--live-bg);
+  color: var(--live);
+  border-color: var(--live-b);
+}
+.nexus-pill-warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-color: var(--warn-b);
+}
+.nexus-pill-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-b);
+}
+.nexus-pill-info {
+  background: var(--info-bg);
+  color: var(--info);
+  border-color: var(--info-b);
+}
+.nexus-pill-neu {
+  background: var(--bg3);
+  color: var(--t2);
+  border-color: var(--b1);
+}
+
+.nexus-btn {
+  padding: 7px 14px;
+  background: var(--bg2);
+  border: 0.5px solid var(--b2);
+  border-radius: var(--r-md);
+  font-size: 10px;
+  color: var(--t1);
+  font-family: var(--font);
+  letter-spacing: .08em;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+  white-space: nowrap;
+}
+.nexus-btn:hover {
+  background: var(--bg3);
+  color: var(--t0);
+  border-color: var(--b3);
+}
+.nexus-btn:active { transform: scale(0.99); }
+
+.nexus-btn-solid {
+  background: var(--bg3);
+  border-color: var(--b2);
+  color: var(--t0);
+}
+.nexus-btn-solid:hover {
+  background: var(--bg4);
+  border-color: var(--b3);
+}
+
+.nexus-btn-danger {
+  background: var(--danger-bg);
+  border-color: var(--danger-b);
+  color: var(--danger);
+}
+.nexus-btn-danger:hover {
+  background: var(--danger-hover-bg);
+  border-color: var(--danger);
+}
+
+.nexus-btn-go {
+  background: var(--live-bg);
+  border-color: var(--live);
+  color: var(--live);
+  letter-spacing: .12em;
+}
+.nexus-btn-go:hover { background: var(--live-hover-bg); }
+
+.nexus-input {
+  height: 36px;
+  background: var(--bg2);
+  border: 0.5px solid var(--b1);
+  border-radius: var(--r-md);
+  color: var(--t0);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 0 10px;
+  outline: none;
+  width: 100%;
+  transition: border-color .12s;
+}
+.nexus-input::placeholder { color: var(--t3); }
+.nexus-input:focus { border-color: var(--b3); }
+
+.nexus-tag {
+  font-size: 9px;
+  color: var(--t2);
+  padding: 2px 6px;
+  background: var(--bg3);
+  border: 0.5px solid var(--b1);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.nexus-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 0.5px solid var(--b2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--t1);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.nexus-avatar-live { border-color: var(--live); }
+
+.nexus-bar-bg {
+  height: 3px;
+  background: var(--bg4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.nexus-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--acc);
+  transition: width .4s ease-out;
+}
+.nexus-bar-live { background: var(--live); }
+.nexus-bar-warn { background: var(--warn); }
+
+/* ── Toggle switch ───────────────────────────────── */
+.nexus-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.nexus-toggle-track {
+  width: 28px;
+  height: 15px;
+  border-radius: 8px;
+  background: var(--bg4);
+  border: 0.5px solid var(--b2);
+  position: relative;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.nexus-toggle-track.on {
+  background: var(--live-bg);
+  border-color: var(--live-b);
+}
+.nexus-toggle-thumb {
+  position: absolute;
+  top: 1.5px;
+  left: 1.5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--t2);
+  transition: all .15s;
+}
+.nexus-toggle-track.on .nexus-toggle-thumb {
+  transform: translateX(13px);
+  background: var(--live);
+}
+.nexus-toggle-label {
+  font-size: 10px;
+  color: var(--t2);
+}
+.nexus-toggle-track.on + .nexus-toggle-label {
+  color: var(--t1);
+}
+
+/* ── Tabular nums for all timers ─────────────────── */
+.nexus-timer {
+  font-variant-numeric: tabular-nums;
+  color: var(--warn);
+}
+.nexus-timer-live {
+  font-variant-numeric: tabular-nums;
+  color: var(--live);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+textarea.nexus-input {
+  height: auto;
+  min-height: 96px;
+  padding: 10px;
+}
+
+.nexus-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.nexus-btn.primary,
+.nexus-btn-solid {
+  background: var(--bg3);
+  border-color: var(--b2);
+  color: var(--t0);
+}
+
+.nexus-btn.primary:hover,
+.nexus-btn-solid:hover {
+  background: var(--bg4);
+  border-color: var(--b3);
+}
+
+.nexus-btn.danger,
+.nexus-btn-danger {
+  background: var(--danger-bg);
+  border-color: var(--danger-b);
+  color: var(--danger);
+}
+
+.nexus-btn.danger:hover,
+.nexus-btn-danger:hover {
+  background: var(--danger-hover-bg);
+  border-color: var(--danger);
+}
+
+.nexus-btn.live-btn,
+.nexus-btn-go {
+  background: var(--live-bg);
+  border-color: var(--live);
+  color: var(--live);
+}
+
+.nexus-btn.live-btn:hover,
+.nexus-btn-go:hover {
+  background: var(--live-hover-bg);
+}
+
+.nexus-bar {
+  height: 3px;
+  background: var(--bg4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.nexus-fade-in {
+  animation: nexus-fade-in .18s ease-out both;
+}
+
+.nexus-tooltip {
+  position: relative;
+}
+
+.nexus-tooltip[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg2);
+  border: 0.5px solid var(--b2);
+  border-radius: 6px;
+  color: var(--t1);
+  font-size: 9px;
+  letter-spacing: .08em;
+  padding: 6px 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 120;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--star-core);
+  animation: twinkle var(--duration, 5s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.pulse-live,
+.nexus-pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--live);
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+
+.nexus-shell-frame {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 12px);
+  background: var(--bg0);
+  border: 0.5px solid var(--b1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.nexus-shell-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.nexus-shell-content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg0);
+}
+
+.nexus-loading-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.nexus-loading-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: loading-dot 1s ease-in-out infinite;
+}
+
+.nexus-loading-dots span:nth-child(2) {
+  animation-delay: .15s;
+}
+
+.nexus-loading-dots span:nth-child(3) {
+  animation-delay: .3s;
+}
+
+.nexus-shake {
+  animation: shake .35s ease-out;
+}
+
+.nexus-ring {
+  animation: ring 2.2s ease-out infinite;
+}
+
+.nexus-tick {
+  animation: tick .22s ease-out;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.15; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes loading-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes nexus-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes ring {
+  0% { opacity: .6; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2.2); }
+}
+
+@keyframes tick {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}

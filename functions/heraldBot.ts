@@ -1,35 +1,38 @@
 /**
  * Herald Bot — NexusOS Discord Integration
- * Handles: op publishing, OCR routing, scout pings, log events,
- *          refinery alerts, craft completions, voice state sync,
- *          Discord Scheduled Events creation/update/delete
+ *
+ * Actions (14): publishOp · rsvpUpdate · opGo · phaseAdvance · threatAlert ·
+ *               deliverKey · keyEvent · armoryUpdate · patchDigest · scoutPing ·
+ *               depositStaleAlert · opWrapUp · wrapUpDebrief · lowStockAlert
+ * Passthrough:  refineryReady · craftComplete
+ *
+ * Discord interactions: rsvp_{op_id}_{role_name} — per-role RSVP toggle
+ *   Received via Discord interactions webhook (X-Signature-Ed25519 header).
+ *   Verified with Ed25519, deferred ephemeral, toggles OpRsvp, refreshes embed.
+ *
+ * Stub mode: BOT_CONFIGURED=false → Discord calls log-only, never throw.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-// ─── Channel Config (loaded from env) ────────────────────────────────────────
+// ─── Channel config ───────────────────────────────────────────────────────────
 const CH = {
-  // New NexusOS channels
-  nexusOps:     Deno.env.get('NEXUSOS_OPS_CHANNEL_ID'),
-  nexusOcr:     Deno.env.get('NEXUSOS_OCR_CHANNEL_ID'),
-  nexusIntel:   Deno.env.get('NEXUSOS_INTEL_CHANNEL_ID'),
-  nexusLog:     Deno.env.get('NEXUSOS_LOG_CHANNEL_ID'),
-  // Existing channels
-  armory:       Deno.env.get('ARMORY_CHANNEL_ID'),
-  coffer:       Deno.env.get('COFFER_CHANNEL_ID'),
-  invoices:     Deno.env.get('INVOICES_CHANNEL_ID'),
-  industry:     Deno.env.get('INDUSTRY_CHANNEL_ID'),
-  rangers:      Deno.env.get('RANGERS_CHANNEL_ID'),
-  announcements:Deno.env.get('ANNOUNCEMENTS_CHANNEL_ID'),
-  events:       Deno.env.get('EVENTS_CHANNEL_ID'),
-  ptu:          Deno.env.get('PTU_CHANNEL_ID'),
-  bonfire:      Deno.env.get('BONFIRE_CHANNEL_ID'),
-  redscarOnly:  Deno.env.get('REDSCAR_ONLY_CHANNEL_ID'),
-  // Placeholder — future Marketplace module
-  // TODO: BAZZAR_CHANNEL_ID — future NexusOS Marketplace integration
+  nexusOps:      Deno.env.get('NEXUSOS_OPS_CHANNEL_ID'),
+  nexusOcr:      Deno.env.get('NEXUSOS_OCR_CHANNEL_ID'),
+  nexusIntel:    Deno.env.get('NEXUSOS_INTEL_CHANNEL_ID'),
+  nexusLog:      Deno.env.get('NEXUSOS_LOG_CHANNEL_ID'),
+  armory:        Deno.env.get('ARMORY_CHANNEL_ID'),
+  coffer:        Deno.env.get('COFFER_CHANNEL_ID'),
+  invoices:      Deno.env.get('INVOICES_CHANNEL_ID'),
+  industry:      Deno.env.get('INDUSTRY_CHANNEL_ID'),
+  rangers:       Deno.env.get('RANGERS_CHANNEL_ID'),
+  announcements: Deno.env.get('ANNOUNCEMENTS_CHANNEL_ID'),
+  ptu:           Deno.env.get('PTU_CHANNEL_ID'),
+  bonfire:       Deno.env.get('BONFIRE_CHANNEL_ID'),
+  redscarOnly:   Deno.env.get('REDSCAR_ONLY_CHANNEL_ID'),
 };
 
-// ─── Profession → Channel routing (configurable, not hardcoded) ──────────────
-const PROFESSION_ROUTING = {
+// ─── Profession → secondary channel routing ───────────────────────────────────
+const PROFESSION_ROUTING: Record<string, { secondary: string | null | undefined }> = {
   INDUSTRY:    { secondary: CH.industry },
   MINING:      { secondary: CH.industry },
   ROCKBREAKER: { secondary: CH.industry },
@@ -38,208 +41,317 @@ const PROFESSION_ROUTING = {
   COMBAT:      { secondary: CH.rangers },
   ESCORT:      { secondary: CH.rangers },
   S17:         { secondary: CH.rangers },
-  RESCUE:      { secondary: null, emergency: true },
-  EMERGENCY:   { secondary: null, emergency: true },
-  // RACING: placeholder, no Herald Bot features yet
+  RESCUE:      { secondary: null },
+  EMERGENCY:   { secondary: null },
 };
 
-const BOT_TOKEN = Deno.env.get('HERALD_BOT_TOKEN');
-const GUILD_ID  = Deno.env.get('REDSCAR_GUILD_ID');
-const DISCORD_API = 'https://discord.com/api/v10';
+const BOT_TOKEN          = Deno.env.get('HERALD_BOT_TOKEN');
+const GUILD_ID           = Deno.env.get('REDSCAR_GUILD_ID');
+const DISCORD_PUBLIC_KEY = Deno.env.get('DISCORD_PUBLIC_KEY');
+const DISCORD_API        = 'https://discord.com/api/v10';
 
-// ─── Stub mode — gracefully no-op if bot token not yet configured ─────────────
 const BOT_CONFIGURED = !!BOT_TOKEN && !!GUILD_ID;
 
-// ─── Discord API helpers ──────────────────────────────────────────────────────
-async function discordPost(path, body) {
+// ─── Discord REST helpers ─────────────────────────────────────────────────────
+async function discordPost(path: string, body: unknown) {
   if (!BOT_CONFIGURED) {
     console.log(`[HERALD STUB] POST ${path}`, JSON.stringify(body).slice(0, 120));
     return { id: `stub_${Date.now()}` };
   }
   const res = await fetch(`${DISCORD_API}${path}`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    method:  'POST',
+    headers: { Authorization: `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Discord API error ${res.status}: ${err}`);
-  }
-  return res.json();
+  if (!res.ok) throw new Error(`Discord POST ${path} → ${res.status}: ${await res.text()}`);
+  return res.status === 204 ? null : res.json();
 }
 
-async function discordPatch(path, body) {
+async function discordPatch(path: string, body: unknown) {
+  if (!BOT_CONFIGURED) {
+    console.log(`[HERALD STUB] PATCH ${path}`, JSON.stringify(body).slice(0, 120));
+    return { id: `stub_${Date.now()}` };
+  }
   const res = await fetch(`${DISCORD_API}${path}`, {
-    method: 'PATCH',
-    headers: { 'Authorization': `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    method:  'PATCH',
+    headers: { Authorization: `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Discord API error ${res.status}: ${err}`);
-  }
+  if (!res.ok) throw new Error(`Discord PATCH ${path} → ${res.status}: ${await res.text()}`);
   return res.json();
 }
 
-async function discordDelete(path) {
+async function discordDelete(path: string) {
   if (!BOT_CONFIGURED) {
     console.log(`[HERALD STUB] DELETE ${path}`);
     return null;
   }
   const res = await fetch(`${DISCORD_API}${path}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bot ${BOT_TOKEN}` },
+    method:  'DELETE',
+    headers: { Authorization: `Bot ${BOT_TOKEN}` },
   });
-  if (!res.ok && res.status !== 204) {
-    const err = await res.text();
-    throw new Error(`Discord API error ${res.status}: ${err}`);
-  }
+  if (!res.ok && res.status !== 204) throw new Error(`Discord DELETE ${path} → ${res.status}: ${await res.text()}`);
   return res.status === 204 ? null : res.json();
 }
 
-// ─── Embed builders ───────────────────────────────────────────────────────────
-function opEmbed(op) {
-  const roleLines = op.role_slots
-    ? Object.entries(op.role_slots).map(([role, slot]) => `**${role.toUpperCase()}** × ${typeof slot === 'object' ? slot.capacity : slot}`).join('\n')
-    : '—';
-  const scheduled = op.scheduled_at ? `<t:${Math.floor(new Date(op.scheduled_at).getTime() / 1000)}:F>` : '—';
-  const relative  = op.scheduled_at ? `<t:${Math.floor(new Date(op.scheduled_at).getTime() / 1000)}:R>` : '';
+// Open / reuse a DM channel with a Discord user
+async function openDM(discordId: string): Promise<string> {
+  const dm = await discordPost('/users/@me/channels', { recipient_id: discordId }) as any;
+  return dm.id;
+}
+
+// ─── Ed25519 signature verification (Discord interactions) ────────────────────
+function hexToUint8(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+  return bytes;
+}
+
+async function verifyDiscordSig(publicKey: string, sig: string, ts: string, body: string): Promise<boolean> {
+  try {
+    const key = await crypto.subtle.importKey('raw', hexToUint8(publicKey), 'Ed25519', false, ['verify']);
+    return await crypto.subtle.verify('Ed25519', key, hexToUint8(sig), new TextEncoder().encode(ts + body));
+  } catch {
+    return false;
+  }
+}
+
+// ─── Embed / component builders ───────────────────────────────────────────────
+
+/** Per-role RSVP buttons — one ACTION_ROW per 5 roles (max 5 rows). */
+function buildRsvpButtons(op: any): any[] {
+  const roles = Object.keys(op.role_slots || {});
+  if (roles.length === 0) return [];
+  const rows: any[] = [];
+  for (let i = 0; i < roles.length && rows.length < 5; i += 5) {
+    rows.push({
+      type: 1,
+      components: roles.slice(i, i + 5).map(role => ({
+        type: 2, style: 2,
+        label:     role.toUpperCase(),
+        custom_id: `rsvp_${op.id}_${role}`,
+      })),
+    });
+  }
+  return rows;
+}
+
+/** Op embed with live RSVP roster per role. */
+function buildRsvpEmbed(op: any, confirmedRsvps: any[]) {
+  const ts        = op.scheduled_at ? Math.floor(new Date(op.scheduled_at).getTime() / 1000) : null;
+  const scheduled = ts ? `<t:${ts}:F>` : '—';
+  const relative  = ts ? `<t:${ts}:R>` : '';
+  const isLive    = op.status === 'LIVE';
+
+  const roleFields = Object.entries(op.role_slots || {}).map(([role, slot]) => {
+    const cap   = typeof slot === 'object' ? (slot as any).capacity ?? slot : slot;
+    const crew  = confirmedRsvps.filter(r => r.role === role);
+    const names = crew.length > 0 ? crew.map(r => r.discord_username || r.discord_id).join(', ') : '—';
+    return { name: `${role.toUpperCase()} [${crew.length}/${cap}]`, value: names, inline: true };
+  });
 
   return {
-    title: `🎯 ${op.name}`,
-    color: 0x4a8fd0,
+    title: isLive ? `🟢 LIVE — ${op.name}` : `🎯 ${op.name}`,
+    color: isLive ? 0x27c96a : 0x4a8fd0,
     fields: [
-      { name: 'Type',     value: op.type?.replace(/_/g, ' ') || '—', inline: true },
-      { name: 'System',   value: op.system + (op.location ? ` · ${op.location}` : ''), inline: true },
-      { name: 'Access',   value: op.access_type || 'EXCLUSIVE', inline: true },
-      { name: 'Scheduled', value: `${scheduled}\n${relative}`, inline: false },
-      { name: 'Role Slots', value: roleLines, inline: false },
+      { name: 'Type',      value: op.type?.replace(/_/g, ' ') || '—', inline: true },
+      { name: 'System',    value: (op.system_name || op.system || '—') + (op.location ? ` · ${op.location}` : ''), inline: true },
+      { name: 'Access',    value: op.access_type || 'EXCLUSIVE', inline: true },
+      { name: 'Scheduled', value: `${scheduled}${relative ? `\n${relative}` : ''}`, inline: false },
       ...(op.buy_in_cost > 0 ? [{ name: 'Buy-In', value: `${op.buy_in_cost.toLocaleString()} aUEC`, inline: true }] : []),
+      ...roleFields,
     ],
-    footer: { text: 'NEXUSOS · REDSCAR NOMADS' },
+    footer:    { text: 'NEXUSOS · REDSCAR NOMADS' },
     timestamp: new Date().toISOString(),
   };
 }
 
-function liveOpEmbed(op) {
-  const elapsed = op.started_at ? Math.floor((Date.now() - new Date(op.started_at)) / 60000) : 0;
-  return {
-    title: `🟢 LIVE — ${op.name}`,
-    color: 0x27c96a,
-    description: `Phase **${(op.phase_current || 0) + 1}** underway · ${elapsed}m elapsed`,
-    fields: [
-      { name: 'System', value: op.system + (op.location ? ` · ${op.location}` : ''), inline: true },
-    ],
-    footer: { text: 'NEXUSOS · LIVE OP' },
-    timestamp: new Date().toISOString(),
-  };
-}
-
-function wrapUpEmbed(op, cofferEntries) {
+function buildWrapUpEmbed(op: any, cofferEntries: any[]) {
   const totalAuec = cofferEntries.reduce((s, e) => s + (e.amount_aUEC || 0), 0);
-  const duration = op.started_at && op.ended_at
-    ? Math.round((new Date(op.ended_at) - new Date(op.started_at)) / 60000)
+  const duration  = op.started_at && op.ended_at
+    ? Math.round((new Date(op.ended_at).getTime() - new Date(op.started_at).getTime()) / 60000)
     : null;
   return {
-    title: `📋 WRAP-UP — ${op.name}`,
-    color: 0x5a6080,
+    title:       `📋 WRAP-UP — ${op.name}`,
+    color:       0x5a6080,
     description: op.wrap_up_report || 'Op complete.',
     fields: [
-      ...(duration ? [{ name: 'Duration', value: `${duration}m`, inline: true }] : []),
+      ...(duration  ? [{ name: 'Duration',   value: `${duration}m`,              inline: true }] : []),
       ...(totalAuec ? [{ name: 'Gross aUEC', value: totalAuec.toLocaleString(), inline: true }] : []),
     ],
-    footer: { text: 'NEXUSOS · EPIC ARCHIVE' },
+    footer:    { text: 'NEXUSOS · EPIC ARCHIVE' },
     timestamp: new Date().toISOString(),
   };
 }
 
 // ─── Discord Scheduled Events ─────────────────────────────────────────────────
-async function createDiscordEvent(op) {
-  const startTime = op.scheduled_at ? new Date(op.scheduled_at).toISOString() : new Date(Date.now() + 3600000).toISOString();
-  const endTime   = new Date(new Date(startTime).getTime() + 3 * 3600000).toISOString();
-
+async function createDiscordEvent(op: any) {
+  const startTime = op.scheduled_at
+    ? new Date(op.scheduled_at).toISOString()
+    : new Date(Date.now() + 3600000).toISOString();
+  const endTime = new Date(new Date(startTime).getTime() + 3 * 3600000).toISOString();
   const roleDesc = op.role_slots
-    ? Object.entries(op.role_slots).map(([r, s]) => `${r.charAt(0).toUpperCase() + r.slice(1)} ×${typeof s === 'object' ? s.capacity : s}`).join(', ')
+    ? Object.entries(op.role_slots).map(([r, s]) => `${r} ×${typeof s === 'object' ? (s as any).capacity : s}`).join(', ')
     : '';
-
   return discordPost(`/guilds/${GUILD_ID}/scheduled-events`, {
-    name: op.name,
-    description: [
-      `${op.type?.replace(/_/g, ' ')} · ${op.system}${op.location ? ` · ${op.location}` : ''}`,
+    name:                 op.name,
+    description:          [
+      `${op.type?.replace(/_/g, ' ')} · ${op.system_name || op.system}${op.location ? ` · ${op.location}` : ''}`,
       op.access_type ? `Access: ${op.access_type}` : '',
-      roleDesc ? `Roles: ${roleDesc}` : '',
-      `RSVP in #nexusos-ops`,
+      roleDesc           ? `Roles: ${roleDesc}` : '',
+      'RSVP in #nexusos-ops',
     ].filter(Boolean).join('\n'),
     scheduled_start_time: startTime,
     scheduled_end_time:   endTime,
-    privacy_level: 2, // GUILD_ONLY
-    entity_type: 3,   // EXTERNAL
-    entity_metadata: {
-      location: `Verse — ${op.system}${op.location ? ` · ${op.location}` : ''}`,
-    },
+    privacy_level:        2,  // GUILD_ONLY
+    entity_type:          3,  // EXTERNAL
+    entity_metadata:      { location: `Verse — ${op.system_name || op.system}${op.location ? ` · ${op.location}` : ''}` },
   });
 }
 
-async function deleteDiscordEvent(eventId) {
-  return discordDelete(`/guilds/${GUILD_ID}/scheduled-events/${eventId}`);
+// ─── RSVP embed refresh (shared by rsvpUpdate + interaction handler) ──────────
+async function refreshRsvpEmbed(b44: any, op: any): Promise<void> {
+  if (!op.discord_message_id || !CH.nexusOps) return;
+  const rsvps     = await b44.asServiceRole.entities.OpRsvp.filter({ op_id: op.id });
+  const confirmed = (rsvps || []).filter((r: any) => r.status === 'CONFIRMED');
+  await discordPatch(`/channels/${CH.nexusOps}/messages/${op.discord_message_id}`, {
+    embeds:     [buildRsvpEmbed(op, confirmed)],
+    components: buildRsvpButtons(op),
+  });
+}
+
+// ─── Discord interaction: per-role RSVP toggle ────────────────────────────────
+async function handleRsvpToggle(req: Request, interaction: any, opId: string, roleName: string): Promise<Response> {
+  const discordUserId   = interaction.member?.user?.id       || interaction.user?.id;
+  const discordUsername = interaction.member?.user?.username || interaction.user?.username;
+
+  if (!discordUserId) {
+    return Response.json({ type: 4, data: { content: '⚠️ Could not identify your Discord account.', flags: 64 } });
+  }
+
+  // createClientFromRequest reads Authorization header only — safe after body consumed
+  const b44 = createClientFromRequest(req);
+  try {
+    const [ops, allRsvps] = await Promise.all([
+      b44.asServiceRole.entities.Op.filter({ id: opId }),
+      b44.asServiceRole.entities.OpRsvp.filter({ op_id: opId, discord_id: discordUserId }),
+    ]);
+
+    const op = ops?.[0];
+    if (!op) return Response.json({ type: 4, data: { content: '⚠️ Op not found.', flags: 64 } });
+
+    if (op.role_slots && !(roleName in op.role_slots)) {
+      return Response.json({ type: 4, data: { content: `⚠️ Role **${roleName}** is not in this op.`, flags: 64 } });
+    }
+
+    const existingForRole = (allRsvps || []).find((r: any) => r.role === roleName && r.status === 'CONFIRMED');
+    const existingOther   = (allRsvps || []).find((r: any) => r.role !== roleName && r.status === 'CONFIRMED');
+
+    let msg: string;
+    if (existingForRole) {
+      await b44.asServiceRole.entities.OpRsvp.update(existingForRole.id, { status: 'DECLINED' });
+      msg = `❌ RSVP removed — **${roleName.toUpperCase()}** on *${op.name}*`;
+    } else if (existingOther) {
+      await b44.asServiceRole.entities.OpRsvp.update(existingOther.id, { role: roleName });
+      msg = `🔄 Switched to **${roleName.toUpperCase()}** on *${op.name}*`;
+    } else {
+      await b44.asServiceRole.entities.OpRsvp.create({
+        op_id:            opId,
+        discord_id:       discordUserId,
+        discord_username: discordUsername,
+        role:             roleName,
+        status:           'CONFIRMED',
+      });
+      msg = `✅ RSVP confirmed — **${roleName.toUpperCase()}** on *${op.name}*`;
+    }
+
+    // Refresh embed — fire-and-forget, non-fatal
+    refreshRsvpEmbed(b44, op).catch(e => console.warn('[rsvp embed refresh]', e.message));
+
+    return Response.json({ type: 4, data: { content: msg, flags: 64 } });
+  } catch (e) {
+    console.error('[handleRsvpToggle]', e);
+    return Response.json({ type: 4, data: { content: '⚠️ RSVP update failed — please try again.', flags: 64 } });
+  }
+}
+
+async function handleDiscordInteraction(req: Request, sig: string, ts: string): Promise<Response> {
+  if (!DISCORD_PUBLIC_KEY) return new Response('No public key configured', { status: 401 });
+
+  const body  = await req.text();
+  const valid = await verifyDiscordSig(DISCORD_PUBLIC_KEY, sig, ts, body);
+  if (!valid) return new Response('Invalid signature', { status: 401 });
+
+  const interaction = JSON.parse(body);
+
+  // PING
+  if (interaction.type === 1) return Response.json({ type: 1 });
+
+  // MESSAGE_COMPONENT (button click)
+  if (interaction.type === 3) {
+    const customId = interaction.data?.custom_id as string;
+    if (customId?.startsWith('rsvp_')) {
+      const [, opId, ...roleParts] = customId.split('_');
+      // opId = UUID (dashes, no underscores) · roleParts rejoined handles multi-word roles
+      return handleRsvpToggle(req, interaction, opId, roleParts.join('_'));
+    }
+  }
+
+  return Response.json({ type: 1 }); // ACK unknown
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
+  // Discord interactions arrive with signature headers — branch before Base44 auth
+  const discordSig = req.headers.get('X-Signature-Ed25519');
+  const discordTs  = req.headers.get('X-Signature-Timestamp');
+  if (discordSig && discordTs) {
+    return handleDiscordInteraction(req, discordSig, discordTs);
+  }
+
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const b44  = createClientFromRequest(req);
+    const user = await b44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { action, payload } = await req.json();
 
-    // ── Publish Op ──────────────────────────────────────────────────────────
+    // ── 1. Publish Op ─────────────────────────────────────────────────────────
     if (action === 'publishOp') {
       const { op_id } = payload;
-      const ops = await base44.asServiceRole.entities.Op.filter({ id: op_id });
+      const ops = await b44.asServiceRole.entities.Op.filter({ id: op_id });
       const op  = ops?.[0];
       if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
 
-      // Post op embed to #nexusos-ops
       const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, {
-        content: `@here 📡 **New op published** — RSVP below`,
-        embeds: [opEmbed(op)],
-        components: [
-          {
-            type: 1, // ACTION_ROW
-            components: [
-              { type: 2, style: 3, label: '✅ RSVP', custom_id: `rsvp_confirm_${op_id}` },
-              { type: 2, style: 4, label: '❌ Decline', custom_id: `rsvp_decline_${op_id}` },
-              { type: 2, style: 2, label: '⏳ Tentative', custom_id: `rsvp_tentative_${op_id}` },
-            ],
-          },
-        ],
-      });
+        content:    '@here 📡 **New op published** — RSVP below',
+        embeds:     [buildRsvpEmbed(op, [])],
+        components: buildRsvpButtons(op),
+      }) as any;
 
       // Secondary profession channel ping
       const routing = PROFESSION_ROUTING[op.type?.toUpperCase()];
       if (routing?.secondary) {
         await discordPost(`/channels/${routing.secondary}/messages`, {
           embeds: [{
-            title: `📅 Upcoming: ${op.name}`,
-            color: 0x4a8fd0,
-            description: `See [#nexusos-ops] for details and RSVP`,
-            footer: { text: `${op.system}${op.location ? ` · ${op.location}` : ''}` },
+            title:       `📅 Upcoming: ${op.name}`,
+            color:       0x4a8fd0,
+            description: 'RSVP in [#nexusos-ops]',
+            footer:      { text: `${op.system_name || op.system}${op.location ? ` · ${op.location}` : ''}` },
           }],
         });
       }
 
-      // Create Discord Scheduled Event
-      let discordEventId = null;
+      // Discord Scheduled Event — non-fatal
+      let discordEventId: string | null = null;
       try {
-        const event = await createDiscordEvent(op);
+        const event = await createDiscordEvent(op) as any;
         discordEventId = event.id;
       } catch (e) {
-        console.warn('Scheduled event creation failed:', e.message);
+        console.warn('[publishOp] Scheduled event failed:', (e as Error).message);
       }
 
-      // Save Discord message ID + event ID back to op
-      await base44.asServiceRole.entities.Op.update(op_id, {
+      await b44.asServiceRole.entities.Op.update(op_id, {
         discord_message_id: msg.id,
         discord_event_id:   discordEventId,
       });
@@ -247,68 +359,114 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, message_id: msg.id, event_id: discordEventId });
     }
 
-    // ── Go Live ──────────────────────────────────────────────────────────────
-    if (action === 'goLive') {
+    // ── 2. RSVP Update (patch embed to reflect current roster) ───────────────
+    if (action === 'rsvpUpdate') {
       const { op_id } = payload;
-      const ops = await base44.asServiceRole.entities.Op.filter({ id: op_id });
-      const op  = ops?.[0];
+      const [ops, rsvps] = await Promise.all([
+        b44.asServiceRole.entities.Op.filter({ id: op_id }),
+        b44.asServiceRole.entities.OpRsvp.filter({ op_id }),
+      ]);
+      const op = ops?.[0];
       if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
 
-      await discordPost(`/channels/${CH.nexusOps}/messages`, {
-        content: `@here 🟢 **OP IS LIVE** — All crew to stations`,
-        embeds: [liveOpEmbed(op)],
-      });
+      if (op.discord_message_id) {
+        const confirmed = (rsvps || []).filter((r: any) => r.status === 'CONFIRMED');
+        await discordPatch(`/channels/${CH.nexusOps}/messages/${op.discord_message_id}`, {
+          embeds:     [buildRsvpEmbed(op, confirmed)],
+          components: buildRsvpButtons(op),
+        });
+      }
 
       return Response.json({ success: true });
     }
 
-    // ── Phase Advance ────────────────────────────────────────────────────────
+    // ── 3. Op Go (green light — patch embed + optional @here) ────────────────
+    if (action === 'opGo') {
+      const { op_id, at_here } = payload;
+      const [ops, rsvps] = await Promise.all([
+        b44.asServiceRole.entities.Op.filter({ id: op_id }),
+        b44.asServiceRole.entities.OpRsvp.filter({ op_id }),
+      ]);
+      const op = ops?.[0];
+      if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
+
+      if (op.discord_message_id) {
+        const confirmed  = (rsvps || []).filter((r: any) => r.status === 'CONFIRMED');
+        const liveEmbed  = { ...buildRsvpEmbed({ ...op, status: 'LIVE' }, confirmed) };
+        await discordPatch(`/channels/${CH.nexusOps}/messages/${op.discord_message_id}`, {
+          embeds:     [liveEmbed],
+          components: buildRsvpButtons(op),
+        });
+      }
+
+      if (at_here) {
+        await discordPost(`/channels/${CH.nexusOps}/messages`, {
+          content: `@here 🟢 **${op.name} IS LIVE** — All crew to stations`,
+        });
+      }
+
+      return Response.json({ success: true });
+    }
+
+    // ── 4. Phase Advance ──────────────────────────────────────────────────────
     if (action === 'phaseAdvance') {
       const { op_id, phase_name, phase_index } = payload;
       await discordPost(`/channels/${CH.nexusOps}/messages`, {
         embeds: [{
-          title: `⚙️ Phase ${phase_index + 1}: ${phase_name}`,
-          color: 0x4a8fd0,
-          description: `Op phase advanced — all crew acknowledge`,
-          footer: { text: `NEXUSOS · OP ID ${op_id}` },
+          title:       `⚙️ PHASE ${phase_index + 1} — ${(phase_name as string).toUpperCase()}`,
+          color:       0xe8a020,
+          description: 'Phase advanced — all crew acknowledge',
+          footer:      { text: `NEXUSOS · OP ID ${op_id}` },
+          timestamp:   new Date().toISOString(),
+        }],
+      });
+      return Response.json({ success: true });
+    }
+
+    // ── 5. Threat Alert ───────────────────────────────────────────────────────
+    if (action === 'threatAlert') {
+      const { op_id, op_name, threat_type, description, system, callsign } = payload;
+      await discordPost(`/channels/${CH.nexusOps}/messages`, {
+        content: '@here ⚠️ **THREAT ALERT**',
+        embeds: [{
+          title:       `⚠️ ${(threat_type as string)?.toUpperCase() || 'THREAT'} — ${op_name || op_id}`,
+          color:       0xe04848,
+          description: description || '—',
+          fields: [
+            ...(system   ? [{ name: 'System',      value: system,   inline: true }] : []),
+            ...(callsign ? [{ name: 'Reported by', value: callsign, inline: true }] : []),
+          ],
+          footer:    { text: 'NEXUSOS · THREAT ALERT' },
           timestamp: new Date().toISOString(),
         }],
       });
       return Response.json({ success: true });
     }
 
-    // ── Wrap-Up (legacy simple) ───────────────────────────────────────────────
-    if (action === 'wrapUp') {
-      const { op_id } = payload;
-      const [ops, cofferEntries] = await Promise.all([
-        base44.asServiceRole.entities.Op.filter({ id: op_id }),
-        base44.asServiceRole.entities.CofferLog.filter({ op_id }),
-      ]);
-      const op = ops?.[0];
-      if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
-
-      const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, {
-        embeds: [wrapUpEmbed(op, cofferEntries || [])],
-      });
-
-      await discordPost(`/channels/${CH.nexusOps}/messages/${msg.id}/threads`, {
-        name: `📁 ${op.name} — Session Log`,
-        auto_archive_duration: 1440,
-      });
-
-      const totalAuec = (cofferEntries || []).reduce((s, e) => s + (e.amount_aUEC || 0), 0);
-      if (totalAuec > 0 && CH.coffer) {
-        await discordPost(`/channels/${CH.coffer}/messages`, {
+    // ── 6. Deliver Key (DM to member — non-fatal) ─────────────────────────────
+    if (action === 'deliverKey') {
+      const { discord_id, callsign, auth_key, rank } = payload;
+      try {
+        const dmChannelId = await openDM(discord_id);
+        await discordPost(`/channels/${dmChannelId}/messages`, {
           embeds: [{
-            title: `💰 Op Split — ${op.name}`,
-            color: 0x27c96a,
-            description: `Total: **${totalAuec.toLocaleString()} aUEC**`,
-            footer: { text: 'NEXUSOS · COFFER' },
+            title:       '🔑 Your NexusOS Access Key',
+            color:       0x4a5070,
+            description: [
+              `Welcome to NexusOS, **${callsign}** [${rank || 'OPERATIVE'}].`,
+              '',
+              'Your permanent auth key:',
+              `\`\`\`${auth_key}\`\`\``,
+              '**Keep this private.** Use it at the NexusOS login page.',
+              'This key is permanent unless revoked by a Pioneer.',
+            ].join('\n'),
+            footer:    { text: 'NEXUSOS · REDSCAR NOMADS' },
             timestamp: new Date().toISOString(),
           }],
         });
+      } catch (e) {
+        console.warn('[heraldBot] deliverKey DM failed:', (e as Error).message);
       }
-
       return Response.json({ success: true });
     }
 
@@ -356,164 +514,92 @@ Deno.serve(async (req) => {
 
       return Response.json({ success: true });
     }
-
-    // ── Refinery Ready Alert ─────────────────────────────────────────────────
-    if (action === 'refineryReady') {
-      const { material_name, quantity_scu, station, callsign } = payload;
-      await discordPost(`/channels/${CH.nexusLog}/messages`, {
-        embeds: [{
-          title: `⚗️ Refinery READY — ${material_name}`,
-          color: 0xe8a020,
-          fields: [
-            { name: 'Quantity', value: `${quantity_scu} SCU`, inline: true },
-            { name: 'Station', value: station || '—', inline: true },
-            { name: 'Submitted by', value: callsign || '—', inline: true },
-          ],
-          footer: { text: 'NEXUSOS · REFINERY' },
-          timestamp: new Date().toISOString(),
-        }],
-      });
-      return Response.json({ success: true });
-    }
-
-    // ── Craft Complete ───────────────────────────────────────────────────────
-    if (action === 'craftComplete') {
-      const { item_name, quantity, fabricator, requestor, value_est } = payload;
-
-      // Log to #nexusos-log
-      await discordPost(`/channels/${CH.nexusLog}/messages`, {
-        embeds: [{
-          title: `🔧 Craft Complete — ${item_name}`,
-          color: 0x27c96a,
-          fields: [
-            { name: 'Quantity',   value: String(quantity || 1), inline: true },
-            { name: 'Fabricator', value: fabricator || '—', inline: true },
-            { name: 'Requestor',  value: requestor || '—', inline: true },
-            ...(value_est ? [{ name: 'Est. Value', value: `${value_est.toLocaleString()} aUEC`, inline: true }] : []),
-          ],
-          footer: { text: 'NEXUSOS · CRAFT QUEUE' },
-          timestamp: new Date().toISOString(),
-        }],
-      });
-
-      // Invoice to #INVOICES
-      if (CH.invoices) {
-        await discordPost(`/channels/${CH.invoices}/messages`, {
-          embeds: [{
-            title: `🧾 Invoice — ${item_name}`,
-            color: 0x5a6080,
-            fields: [
-              { name: 'Item',      value: item_name, inline: true },
-              { name: 'Qty',       value: String(quantity || 1), inline: true },
-              { name: 'Fabricator', value: fabricator || '—', inline: true },
-              { name: 'Requestor', value: requestor || '—', inline: true },
-              ...(value_est ? [{ name: 'Est. Value', value: `${value_est.toLocaleString()} aUEC`, inline: true }] : []),
-            ],
-            footer: { text: 'NEXUSOS · INVOICES' },
-            timestamp: new Date().toISOString(),
-          }],
-        });
-      }
-
-      return Response.json({ success: true });
-    }
-
-    // ── Scout Intel Ping ─────────────────────────────────────────────────────
-    if (action === 'scoutPing') {
-      const { material_name, quality_pct, system_name, location_detail, callsign } = payload;
-      const highValue = quality_pct >= 88;
-
-      await discordPost(`/channels/${CH.nexusIntel}/messages`, {
-        content: highValue ? `@here 🔥 **High-value deposit detected**` : null,
-        embeds: [{
-          title: `📡 Scout Deposit — ${material_name}`,
-          color: quality_pct >= 88 ? 0x27c96a : quality_pct >= 70 ? 0x4a8fd0 : 0xe8a020,
-          fields: [
-            { name: 'Quality',  value: `${quality_pct}%`, inline: true },
-            { name: 'Location', value: `${system_name}${location_detail ? ` · ${location_detail}` : ''}`, inline: true },
-            { name: 'Scout',    value: callsign || '—', inline: true },
-          ],
-          footer: { text: 'NEXUSOS · SCOUT INTEL' },
-          timestamp: new Date().toISOString(),
-        }],
-      });
-
-      // High-value deposits also ping #INDUSTRY
-      if (highValue && CH.industry) {
-        await discordPost(`/channels/${CH.industry}/messages`, {
-          embeds: [{
-            title: `⛏️ High-Quality Deposit — ${material_name} ${quality_pct}%`,
-            color: 0x27c96a,
-            description: `${system_name}${location_detail ? ` · ${location_detail}` : ''} — scouted by ${callsign || '—'}`,
-            footer: { text: 'NEXUSOS · INDUSTRY' },
-          }],
-        });
-      }
-
-      return Response.json({ success: true });
-    }
-
-    // ── Key Issued / Revoked ─────────────────────────────────────────────────
+    // ── 7. Key Event (audit log — ISSUED / REISSUED / REVOKED) ───────────────
     if (action === 'keyEvent') {
       const { event_type, callsign, issued_by, nexus_rank } = payload;
-      const isIssue = event_type === 'ISSUED';
+      const isRevoked = (event_type as string).toUpperCase() === 'REVOKED';
 
       await discordPost(`/channels/${CH.nexusLog}/messages`, {
         embeds: [{
-          title: isIssue ? `🔑 Key Issued — ${callsign}` : `🚫 Key Revoked — ${callsign}`,
-          color: isIssue ? 0x4a8fd0 : 0xe04848,
+          title:  `🔑 KEY ${(event_type as string).toUpperCase()} — ${callsign}`,
+          color:  isRevoked ? 0xe04848 : 0x4a5070,
           fields: [
-            ...(nexus_rank ? [{ name: 'Rank', value: nexus_rank, inline: true }] : []),
-            ...(issued_by ? [{ name: isIssue ? 'Issued By' : 'Revoked By', value: issued_by, inline: true }] : []),
+            ...(nexus_rank ? [{ name: 'Rank',                                     value: nexus_rank, inline: true }] : []),
+            ...(issued_by  ? [{ name: isRevoked ? 'Revoked By' : 'Issued By',     value: issued_by,  inline: true }] : []),
           ],
-          footer: { text: 'NEXUSOS · KEY AUDIT' },
+          footer:    { text: 'NEXUSOS · KEY AUDIT' },
           timestamp: new Date().toISOString(),
         }],
       });
 
-      // Welcome to #REDSCAR-ONLY for new issuances
-      if (isIssue && CH.redscarOnly) {
+      // Welcome ping for new issuances
+      if ((event_type as string).toUpperCase() === 'ISSUED' && CH.redscarOnly) {
         await discordPost(`/channels/${CH.redscarOnly}/messages`, {
-          content: `👋 **${callsign}** has joined NexusOS — welcome to the Nexus, ${nexus_rank?.toLowerCase() || 'operative'}.`,
+          content: `👋 **${callsign}** has joined NexusOS — welcome, ${nexus_rank?.toLowerCase() || 'operative'}.`,
         });
       }
 
       return Response.json({ success: true });
     }
 
-    // ── Patch Digest Post ────────────────────────────────────────────────────
+    // ── 8. Armory Update ──────────────────────────────────────────────────────
+    if (action === 'armoryUpdate') {
+      const { callsign, material_name, quantity_scu, quality_pct, source_type } = payload;
+      if (CH.armory) {
+        await discordPost(`/channels/${CH.armory}/messages`, {
+          embeds: [{
+            title:       '📦 Armory Updated',
+            color:       0x4a8fd0,
+            description: `**${callsign}** logged **${quantity_scu} SCU ${material_name}** @ ${quality_pct}% via ${source_type}`,
+            footer:      { text: 'NEXUSOS · ARMORY' },
+            timestamp:   new Date().toISOString(),
+          }],
+        });
+      }
+      return Response.json({ success: true });
+    }
+
+    // ── 9. Patch Digest ───────────────────────────────────────────────────────
     if (action === 'patchDigest') {
       const { patch_version, industry_summary, changes_json } = payload;
 
-      // Full digest → #PTU-CHAT
+      const sev = (s: string) => s === 'HIGH' ? '🔴' : s === 'MEDIUM' ? '🟡' : '🟢';
+      const allChanges = (changes_json as any[] || [])
+        .map(c => `${sev(c.severity)} **${c.category?.toUpperCase()}**: ${c.change_summary}`)
+        .join('\n');
+
+      // Full digest → #ptu
       if (CH.ptu) {
         await discordPost(`/channels/${CH.ptu}/messages`, {
           embeds: [{
-            title: `📦 Star Citizen v${patch_version} — Patch Notes`,
-            color: 0x5a6080,
-            description: industry_summary || 'Patch notes received.',
-            footer: { text: 'NEXUSOS · PATCH DIGEST' },
-            timestamp: new Date().toISOString(),
+            title:       `📦 Star Citizen v${patch_version} — Patch Notes`,
+            color:       0x5a6080,
+            description: (allChanges || industry_summary || 'Patch notes received.').slice(0, 4096),
+            footer:      { text: 'NEXUSOS · PATCH DIGEST' },
+            timestamp:   new Date().toISOString(),
           }],
         });
       }
 
-      // Industry-relevant changes → #INDUSTRY
-      const industryChanges = (changes_json || []).filter(c =>
+      // Industry-relevant only → #industry
+      const industryChanges = (changes_json as any[] || []).filter(c =>
         ['mining', 'crafting', 'salvage', 'economy', 'refinery'].includes(c.category?.toLowerCase())
       );
       if (industryChanges.length > 0 && CH.industry) {
+        const industryText = industryChanges
+          .map(c => `${sev(c.severity)} **${c.category?.toUpperCase()}**: ${c.change_summary}`)
+          .join('\n');
         await discordPost(`/channels/${CH.industry}/messages`, {
           embeds: [{
-            title: `⚙️ v${patch_version} — Industry Changes`,
-            color: 0xe8a020,
-            description: industryChanges.map(c => `• **${c.category?.toUpperCase()}**: ${c.change_summary}`).join('\n'),
-            footer: { text: 'NEXUSOS · INDUSTRY' },
+            title:       `⚙️ v${patch_version} — Industry Changes`,
+            color:       0xe8a020,
+            description: industryText.slice(0, 4096),
+            footer:      { text: 'NEXUSOS · INDUSTRY' },
           }],
         });
       }
 
-      // Major patch → #! ANNOUNCEMENTS
+      // Announcement → #announcements
       if (CH.announcements) {
         await discordPost(`/channels/${CH.announcements}/messages`, {
           content: `📣 **Star Citizen ${patch_version} is live.** Full digest in <#${CH.ptu}>.`,
@@ -523,16 +609,172 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
-    // ── Armory Update ────────────────────────────────────────────────────────
-    if (action === 'armoryUpdate') {
-      const { callsign, material_name, quantity_scu, quality_pct, source_type } = payload;
-      if (CH.armory) {
-        await discordPost(`/channels/${CH.armory}/messages`, {
+    // ── 10. Scout Ping ────────────────────────────────────────────────────────
+    if (action === 'scoutPing') {
+      const { material_name, quality_pct, system_name, location_detail, callsign, risk_level } = payload;
+      const t2 = quality_pct >= 80;
+      const ok = quality_pct >= 60;
+
+      await discordPost(`/channels/${CH.nexusIntel}/messages`, {
+        ...(t2 ? { content: '@here 🔥 **T2-eligible deposit detected**' } : {}),
+        embeds: [{
+          title: `📡 Scout Deposit — ${material_name}`,
+          color: t2 ? 0x27c96a : ok ? 0xe8a020 : 0x5a6080,
+          fields: [
+            { name: 'Quality',  value: `${quality_pct}%${t2 ? ' · T2 ELIGIBLE' : ''}`, inline: true },
+            { name: 'Location', value: `${system_name}${location_detail ? ` · ${location_detail}` : ''}`, inline: true },
+            { name: 'Scout',    value: callsign || '—', inline: true },
+            ...(risk_level ? [{ name: 'Risk', value: (risk_level as string).toUpperCase(), inline: true }] : []),
+          ],
+          footer:    { text: 'NEXUSOS · SCOUT INTEL' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+
+      // T2-eligible also pings #industry
+      if (t2 && CH.industry) {
+        await discordPost(`/channels/${CH.industry}/messages`, {
           embeds: [{
-            title: `📦 Armory Updated`,
-            color: 0x4a8fd0,
-            description: `**${callsign}** logged **${quantity_scu} SCU ${material_name}** @ ${quality_pct}% via ${source_type} — armory record updated`,
-            footer: { text: 'NEXUSOS · ARMORY' },
+            title:       `⛏️ T2-Eligible Deposit — ${material_name} ${quality_pct}%`,
+            color:       0x27c96a,
+            description: `${system_name}${location_detail ? ` · ${location_detail}` : ''} — scouted by ${callsign || '—'}`,
+            footer:      { text: 'NEXUSOS · INDUSTRY' },
+          }],
+        });
+      }
+
+      return Response.json({ success: true });
+    }
+
+    // ── 11. Deposit Stale Alert ───────────────────────────────────────────────
+    if (action === 'depositStaleAlert') {
+      const { material_name, system_name, location_detail, reported_by_callsign, stale_votes } = payload;
+      if (CH.nexusIntel) {
+        await discordPost(`/channels/${CH.nexusIntel}/messages`, {
+          embeds: [{
+            title: `🚩 Deposit Flagged Stale — ${material_name}`,
+            color: 0xe8a020,
+            fields: [
+              { name: 'Location',      value: `${system_name}${location_detail ? ` · ${location_detail}` : ''}`, inline: true },
+              { name: 'Original Scout', value: reported_by_callsign || '—', inline: true },
+              { name: 'Stale Votes',   value: String(stale_votes ?? 3), inline: true },
+            ],
+            footer:    { text: 'NEXUSOS · SCOUT INTEL' },
+            timestamp: new Date().toISOString(),
+          }],
+        });
+      }
+      return Response.json({ success: true });
+    }
+
+    // ── 12. Op Wrap-Up (summary embed + archive thread + coffer) ─────────────
+    if (action === 'opWrapUp') {
+      const { op_id } = payload;
+      const [ops, cofferEntries, rsvps] = await Promise.all([
+        b44.asServiceRole.entities.Op.filter({ id: op_id }),
+        b44.asServiceRole.entities.CofferLog.filter({ op_id }),
+        b44.asServiceRole.entities.OpRsvp.filter({ op_id, status: 'CONFIRMED' }),
+      ]);
+      const op = ops?.[0];
+      if (!op) return Response.json({ error: 'Op not found' }, { status: 404 });
+
+      const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, {
+        embeds: [buildWrapUpEmbed(op, cofferEntries || [])],
+      }) as any;
+
+      // Archive thread on the summary message
+      const thread = await discordPost(
+        `/channels/${CH.nexusOps}/messages/${msg.id}/threads`,
+        { name: `📁 ${op.name} — After Action`, auto_archive_duration: 1440 }
+      ) as any;
+
+      // Post full report + crew + session log to thread
+      if (thread?.id) {
+        const crewLines  = (rsvps || []).map((r: any) => `• ${r.discord_username || r.discord_id} (${r.role})`).join('\n');
+        const logEntries = Array.isArray(op.session_log)
+          ? op.session_log.map((e: any) => `**[${e.phase || '—'}]** ${e.note || e.text || JSON.stringify(e)}`).join('\n')
+          : (typeof op.session_log === 'string' ? op.session_log : null);
+
+        const sections = [
+          op.wrap_up_report ? `## After-Action Report\n${op.wrap_up_report}` : null,
+          crewLines          ? `## Crew\n${crewLines}` : null,
+          logEntries         ? `## Session Log\n${logEntries}` : null,
+        ].filter(Boolean).join('\n\n');
+
+        if (sections) {
+          // Chunked to respect Discord 2000-char limit
+          for (let i = 0; i < sections.length; i += 2000) {
+            await discordPost(`/channels/${thread.id}/messages`, { content: sections.slice(i, i + 2000) });
+          }
+        }
+      }
+
+      // aUEC split → #coffer
+      const totalAuec = (cofferEntries || []).reduce((s: number, e: any) => s + (e.amount_aUEC || 0), 0);
+      if (totalAuec > 0 && CH.coffer) {
+        await discordPost(`/channels/${CH.coffer}/messages`, {
+          embeds: [{
+            title:       `💰 Op Split — ${op.name}`,
+            color:       0x27c96a,
+            description: `Total: **${totalAuec.toLocaleString()} aUEC**`,
+            footer:      { text: 'NEXUSOS · COFFER' },
+            timestamp:   new Date().toISOString(),
+          }],
+        });
+      }
+
+      return Response.json({ success: true, thread_id: thread?.id });
+    }
+
+    // ── Refinery Ready (passthrough) ─────────────────────────────────────────
+    if (action === 'refineryReady') {
+      const { material_name, quantity_scu, station, callsign } = payload;
+      await discordPost(`/channels/${CH.nexusLog}/messages`, {
+        embeds: [{
+          title: `⚗️ Refinery READY — ${material_name}`,
+          color: 0xe8a020,
+          fields: [
+            { name: 'Quantity',     value: `${quantity_scu} SCU`, inline: true },
+            { name: 'Station',      value: station  || '—',       inline: true },
+            { name: 'Submitted by', value: callsign || '—',       inline: true },
+          ],
+          footer:    { text: 'NEXUSOS · REFINERY' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+      return Response.json({ success: true });
+    }
+
+    // ── Craft Complete (passthrough) ─────────────────────────────────────────
+    if (action === 'craftComplete') {
+      const { item_name, quantity, fabricator, requestor, value_est } = payload;
+      await discordPost(`/channels/${CH.nexusLog}/messages`, {
+        embeds: [{
+          title: `🔧 Craft Complete — ${item_name}`,
+          color: 0x27c96a,
+          fields: [
+            { name: 'Quantity',   value: String(quantity || 1), inline: true },
+            { name: 'Fabricator', value: fabricator || '—',     inline: true },
+            { name: 'Requestor',  value: requestor  || '—',     inline: true },
+            ...(value_est ? [{ name: 'Est. Value', value: `${(value_est as number).toLocaleString()} aUEC`, inline: true }] : []),
+          ],
+          footer:    { text: 'NEXUSOS · CRAFT QUEUE' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+      if (CH.invoices) {
+        await discordPost(`/channels/${CH.invoices}/messages`, {
+          embeds: [{
+            title: `🧾 Invoice — ${item_name}`,
+            color: 0x5a6080,
+            fields: [
+              { name: 'Item',       value: item_name,             inline: true },
+              { name: 'Qty',        value: String(quantity || 1), inline: true },
+              { name: 'Fabricator', value: fabricator || '—',     inline: true },
+              { name: 'Requestor',  value: requestor  || '—',     inline: true },
+              ...(value_est ? [{ name: 'Est. Value', value: `${(value_est as number).toLocaleString()} aUEC`, inline: true }] : []),
+            ],
+            footer:    { text: 'NEXUSOS · INVOICES' },
             timestamp: new Date().toISOString(),
           }],
         });
@@ -603,7 +845,7 @@ Deno.serve(async (req) => {
     return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
 
   } catch (error) {
-    console.error('heraldBot error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[heraldBot]', error);
+    return Response.json({ error: (error as Error).message }, { status: 500 });
   }
 });

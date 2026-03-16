@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
 
 export default function RescueBoard() {
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
+  const callsign = outletContext.callsign;
   const [calls, setCalls] = useState([]);
   const [form, setForm] = useState({ location: '', system: 'STANTON', situation: '', callsign: '' });
   const [showForm, setShowForm] = useState(false);
@@ -13,7 +16,7 @@ export default function RescueBoard() {
     setCalls(c => [{
       id: Date.now(),
       ...form,
-      callsign: form.callsign || localStorage.getItem('nexus_callsign') || 'UNKNOWN',
+      callsign: form.callsign || callsign || 'UNKNOWN',
       ts: new Date().toISOString(),
       status: 'OPEN',
     }, ...c]);
@@ -21,7 +24,7 @@ export default function RescueBoard() {
     setShowForm(false);
   };
 
-  const respond = (id) => setCalls(c => c.map(call => call.id === id ? { ...call, status: 'RESPONDING', responder: localStorage.getItem('nexus_callsign') } : call));
+  const respond = (id) => setCalls(c => c.map(call => call.id === id ? { ...call, status: 'RESPONDING', responder: callsign || 'UNKNOWN' } : call));
   const resolve = (id) => setCalls(c => c.map(call => call.id === id ? { ...call, status: 'RESOLVED' } : call));
 
   const STATUS_COLORS = { OPEN: 'var(--danger)', RESPONDING: 'var(--warn)', RESOLVED: 'var(--live)' };
@@ -50,7 +53,7 @@ export default function RescueBoard() {
             <div className="flex gap-2">
               <div style={{ flex: 1 }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>CALLSIGN</label>
-                <input className="nexus-input" value={form.callsign} onChange={e => set('callsign', e.target.value)} placeholder={localStorage.getItem('nexus_callsign') || 'YOUR CALLSIGN'} />
+                <input className="nexus-input" value={form.callsign} onChange={e => set('callsign', e.target.value)} placeholder={callsign || 'YOUR CALLSIGN'} />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>SYSTEM</label>

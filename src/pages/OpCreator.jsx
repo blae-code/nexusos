@@ -44,7 +44,14 @@ function FormField({ label, children }) {
   );
 }
 
-function Toggle({ label, checked, onChange, description }) {
+function Toggle(props) {
+  const {
+    label,
+    checked,
+    onChange,
+    description = '',
+  } = props;
+
   return (
     <div
       className="flex items-center justify-between"
@@ -121,7 +128,9 @@ function RoleSlotEditor({ slots, onChange }) {
 }
 
 export default function OpCreator() {
-  const { rank, callsign } = useOutletContext() || {};
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
+  const rank = outletContext.rank;
+  const discordId = outletContext.discordId;
   const navigate = useNavigate();
 
   const canCreate = ['PIONEER', 'FOUNDER', 'VOYAGER'].includes(rank);
@@ -172,8 +181,6 @@ export default function OpCreator() {
     setSaving(true);
     setError('');
 
-    const discord_id = localStorage.getItem('nexus_discord_id') || '';
-
     try {
       const op = await base44.entities.Op.create({
         ...form,
@@ -184,7 +191,7 @@ export default function OpCreator() {
         post_phase_updates: options.post_phase_updates,
         auto_wrap_up: options.auto_wrap_up,
         status: publish ? 'PUBLISHED' : 'DRAFT',
-        created_by: discord_id,
+        created_by: discordId || '',
         phase_current: 0,
         session_log: [],
       });

@@ -1,54 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
+import { useSession } from '@/lib/SessionContext';
+import { getStoredLayoutMode, setStoredLayoutMode } from '@/lib/layout-mode';
+import { useVerseStatus } from '@/lib/useVerseStatus';
 
 export default function NexusShell() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const [layoutMode, setLayoutMode] = useState('alt-tab');
+  const { session, user, source, isAuthenticated, loading } = useSession();
+  const { status: verseStatus } = useVerseStatus();
+  const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
 
-  // Auth gate — allow nexus_session (org members) OR Base44 native admin session
-  useEffect(() => {
-    const nexusSession = localStorage.getItem('nexus_session');
-    if (nexusSession) return; // already authed as org member
+  const updateLayoutMode = (nextMode) => {
+    setLayoutMode(setStoredLayoutMode(nextMode));
+  };
 
-    base44.auth.me().then(user => {
-      if (user) {
-        if (!localStorage.getItem('nexus_callsign')) {
-          localStorage.setItem('nexus_callsign', 'SYS-ADMIN');
-          localStorage.setItem('nexus_rank', 'PIONEER');
-        }
-      } else {
-        navigate('/gate');
-      }
-    }).catch(() => navigate('/gate'));
-  }, []);
+  if (loading) {
+    return (
+      <div
+        style={{
+          height: '100vh',
+          background: 'var(--bg0)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div className="nexus-loading-dots" style={{ color: 'var(--t1)' }}>
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    );
+  }
 
-  const callsign = localStorage.getItem('nexus_callsign') || 'SYS-ADMIN';
-  const rank = localStorage.getItem('nexus_rank') || 'PIONEER';
+  if (!isAuthenticated) {
+    const redirectTo = `/gate?redirect_to=${encodeURIComponent(`${location.pathname}${location.search}`)}`;
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  const isElevated = source === 'admin' || ['PIONEER', 'FOUNDER'].includes(user?.rank);
+  if (location.pathname.startsWith('/app/admin') && !isElevated) {
+    return <Navigate to="/app/industry" replace />;
+  }
+
+  const outletContext = {
+    layoutMode,
+    setLayoutMode: updateLayoutMode,
+    callsign: user?.callsign || 'UNKNOWN',
+    rank: user?.rank || 'AFFILIATE',
+    discordId: user?.discordId || '',
+    source: source || session?.source || 'member',
+    sessionUserId: user?.id || null,
+  };
 
   return (
-    <div
-      className="flex h-screen w-screen overflow-hidden"
-      style={{ background: 'var(--bg0)' }}
-    >
-      <NexusSidebar currentPath={location.pathname} />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+    <div style={{ height: '100vh', background: 'var(--bg0)', padding: 6 }}>
+      <div className="nexus-shell-frame">
         <NexusTopbar
-          callsign={callsign}
-          rank={rank}
           layoutMode={layoutMode}
-          onToggleLayout={() => setLayoutMode(m => m === 'alt-tab' ? '2nd-monitor' : 'alt-tab')}
-          currentPath={location.pathname}
+          onSelectLayout={updateLayoutMode}
+          verseStatus={verseStatus}
         />
-        <main
-          className="flex-1 overflow-auto nexus-fade-in"
-          style={{ background: 'var(--bg0)' }}
-        >
-          <Outlet context={{ layoutMode, callsign, rank }} />
-        </main>
+        <div className="nexus-shell-body">
+          <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
+          <main className="nexus-shell-content nexus-fade-in">
+            <Outlet context={outletContext} />
+          </main>
+        </div>
       </div>
     </div>
   );

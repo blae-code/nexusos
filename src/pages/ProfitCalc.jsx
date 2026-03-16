@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { TrendingUp, RefreshCw } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 const MATERIALS = ['TARANITE', 'BEXALITE', 'BORASE', 'QUANTANIUM', 'LARANITE', 'GOLD', 'AGRICIUM'];
 const REFINERY_METHODS = ['Dinyx Solventation', 'Cormack Method', 'Electrostarolysis', 'Gasification', 'Filtration', 'Pyrometric Chromalysis'];

@@ -1,213 +1,175 @@
-/**
- * ReadinessGate — pre-op checklist with live % counter.
- * Props: { op, rank, onUpdate }
- *
- * readiness_gate JSON format:
- *   { items: [{ id, title, detail, priority, done, assignee, locked }] }
- *   priority: 'high' | 'warn' | 'low'
- *
- * At 100%: header turns green, "GO — PUBLISH TO DISCORD" button appears.
- * GO button invokes heraldBot action 'opGo' (non-fatal).
- * Design decision: GO button does NOT change op.status — it only fires
- * the Discord announcement. Activating the op uses the "ACTIVATE" button
- * in the LiveOp topbar.
- */
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Check, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
-const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
-
+const EDIT_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
 const PRIORITY_BORDER = {
   high: 'var(--danger)',
   warn: 'var(--warn)',
-  low:  'var(--t3)',
+  low: 'var(--t3)',
 };
 
-// ─── Gate item row ────────────────────────────────────────────────────────────
-
 function GateItem({ item, canEdit, onToggle }) {
-  const borderColor = PRIORITY_BORDER[item.priority] || 'var(--t3)';
-  const locked = !!item.locked;
+  const locked = Boolean(item.locked);
+  const isDone = Boolean(item.done);
+  const canInteract = canEdit && !locked;
+  const statusText = isDone ? 'DONE' : locked ? 'LOCKED' : item.priority === 'high' ? 'WARN' : 'OPEN';
+  const statusColor = isDone ? 'var(--live)' : locked ? 'var(--t3)' : item.priority === 'high' ? 'var(--warn)' : 'var(--t3)';
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 10,
-      padding: '9px 12px',
-      borderLeft: `3px solid ${locked ? 'var(--b1)' : borderColor}`,
-      borderBottom: '0.5px solid var(--b0)',
-      opacity: locked ? 0.5 : 1,
-      background: item.done ? 'rgba(39,201,106,0.03)' : 'transparent',
-      transition: 'background 0.15s',
-    }}>
-      {/* Checkbox */}
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        padding: '8px 11px',
+        background: 'var(--bg1)',
+        border: '0.5px solid var(--b0)',
+        borderRadius: 6,
+        cursor: canInteract ? 'pointer' : locked ? 'not-allowed' : 'default',
+        transition: 'all .12s',
+        opacity: locked ? 0.5 : 1,
+      }}
+      onMouseEnter={(event) => {
+        if (canInteract) {
+          event.currentTarget.style.background = 'var(--bg2)';
+          event.currentTarget.style.borderColor = 'var(--b1)';
+        }
+      }}
+      onMouseLeave={(event) => {
+        event.currentTarget.style.background = 'var(--bg1)';
+        event.currentTarget.style.borderColor = 'var(--b0)';
+      }}
+      onClick={() => {
+        if (canInteract) {
+          onToggle(item.id);
+        }
+      }}
+    >
+      <div style={{ width: 3, alignSelf: 'stretch', borderRadius: 2, background: PRIORITY_BORDER[item.priority] || 'var(--t3)', flexShrink: 0 }} />
+
       <div
-        onClick={() => !locked && canEdit && onToggle(item.id)}
         style={{
-          width: 16, height: 16, borderRadius: 3, flexShrink: 0, marginTop: 1,
-          border: `0.5px solid ${item.done ? 'var(--live)' : 'var(--b3)'}`,
-          background: item.done ? 'rgba(39,201,106,0.15)' : 'var(--bg3)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: locked || !canEdit ? 'default' : 'pointer',
+          width: 18,
+          height: 18,
+          borderRadius: 5,
+          border: `0.5px solid ${isDone ? 'var(--live-b)' : 'var(--b2)'}`,
+          background: isDone ? 'var(--live-bg)' : 'var(--bg2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
         }}
       >
-        {item.done && <Check size={10} style={{ color: 'var(--live)' }} />}
+        {isDone ? <span className="nexus-tick" style={{ color: 'var(--live)', fontSize: 10 }}>✓</span> : null}
       </div>
 
-      {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          color: item.done ? 'var(--t2)' : 'var(--t0)',
-          fontSize: 12, fontWeight: item.done ? 400 : 500,
-          textDecoration: item.done ? 'line-through' : 'none',
-        }}>
+        <div style={{ color: isDone ? 'var(--t2)' : 'var(--t1)', fontSize: 11, textDecoration: isDone ? 'line-through' : 'none' }}>
           {item.title}
         </div>
-        {item.detail && (
-          <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 2 }}>
-            {item.detail}
-          </div>
-        )}
+        {item.detail ? <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 1 }}>{item.detail}</div> : null}
       </div>
 
-      {/* Assignee */}
-      {item.assignee && (
-        <span style={{
-          fontSize: 9, padding: '1px 6px', borderRadius: 4, flexShrink: 0,
-          border: '0.5px solid var(--b2)', background: 'var(--bg3)',
-          color: 'var(--acc)', letterSpacing: '0.05em',
-        }}>
-          {item.assignee}
-        </span>
-      )}
+      {item.assignee ? (
+        <div
+          className="nexus-avatar"
+          style={{
+            width: 18,
+            height: 18,
+            fontSize: 8,
+            borderColor: isDone ? 'var(--live)' : 'var(--b2)',
+            color: 'var(--t1)',
+          }}
+        >
+          {String(item.assignee).slice(0, 1).toUpperCase()}
+        </div>
+      ) : null}
 
-      {/* Status */}
-      {locked && (
-        <span style={{ color: 'var(--t3)', fontSize: 9, flexShrink: 0 }}>LOCKED</span>
-      )}
+      <span style={{ color: statusColor, fontSize: 9, whiteSpace: 'nowrap' }}>{statusText}</span>
     </div>
   );
 }
 
-// ─── ReadinessGate ────────────────────────────────────────────────────────────
-
 export default function ReadinessGate({ op, rank, onUpdate }) {
-  const canEdit  = PIONEER_RANKS.includes(rank) || ['VOYAGER'].includes(rank);
+  const canEdit = EDIT_RANKS.includes(rank);
   const [goFired, setGoFired] = useState(false);
-
-  const gate  = op.readiness_gate || {};
+  const gate = op.readiness_gate || {};
   const items = Array.isArray(gate.items) ? gate.items : [];
-
-  const total    = items.length;
-  const done     = items.filter(i => i.done).length;
-  const pct      = total > 0 ? Math.round((done / total) * 100) : 0;
-  const isGo     = pct === 100;
-
-  const headerBg = isGo
-    ? 'rgba(39,201,106,0.07)'
-    : 'rgba(232,160,32,0.05)';
-  const headerBorder = isGo
-    ? 'rgba(39,201,106,0.25)'
-    : 'rgba(232,160,32,0.2)';
-  const pctColor = isGo ? 'var(--live)' : 'var(--warn)';
+  const done = items.filter((item) => item.done).length;
+  const pct = items.length ? Math.round((done / items.length) * 100) : 0;
+  const isGo = pct === 100;
 
   const toggleItem = async (itemId) => {
-    const newItems = items.map(i =>
-      i.id === itemId ? { ...i, done: !i.done } : i
-    );
-    const newGate = { ...gate, items: newItems };
+    const nextGate = {
+      ...gate,
+      items: items.map((item) => (item.id === itemId ? { ...item, done: !item.done } : item)),
+    };
+
     try {
-      await base44.entities.Op.update(op.id, { readiness_gate: newGate });
+      await base44.entities.Op.update(op.id, { readiness_gate: nextGate });
       onUpdate?.();
-    } catch (e) {
-      console.error('[ReadinessGate] toggle failed:', e);
+    } catch (error) {
+      console.error('[ReadinessGate] toggle failed:', error);
     }
   };
 
   const handleGo = () => {
     setGoFired(true);
     base44.functions.invoke('heraldBot', {
-      action:  'opGo',
+      action: 'opGo',
       payload: { op_id: op.id, op_name: op.name },
-    }).catch(e => console.warn('[ReadinessGate] heraldBot opGo failed:', e.message));
+    }).catch((error) => console.warn('[ReadinessGate] heraldBot opGo failed:', error.message));
   };
 
   return (
-    <div style={{
-      border: `0.5px solid ${headerBorder}`,
-      borderRadius: 8, overflow: 'hidden',
-    }}>
-      {/* Header */}
-      <div style={{ background: headerBg, padding: '10px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* % counter */}
-          <span style={{
-            fontSize: 28, fontWeight: 500, color: pctColor,
-            fontVariantNumeric: 'tabular-nums', lineHeight: 1,
-          }}>
-            {pct}%
-          </span>
-          <div style={{ flex: 1 }}>
-            <div style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 500 }}>
-              READINESS GATE
-            </div>
-            <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 1 }}>
-              {done}/{total} items complete
-            </div>
+    <div className="flex flex-col gap-4">
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '12px 14px',
+          borderRadius: 8,
+          border: `0.5px solid ${isGo ? 'var(--live-b)' : 'var(--b2)'}`,
+          background: isGo ? 'var(--live-bg)' : 'color-mix(in srgb, var(--warn) 8%, var(--bg1))',
+          transition: 'all .3s',
+        }}
+      >
+        <div style={{ fontSize: 24, fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: isGo ? 'var(--live)' : 'var(--warn)' }}>
+          {pct}%
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: isGo ? 'var(--live)' : 'var(--t0)', fontSize: 12, fontWeight: 500, marginBottom: 2 }}>READINESS GATE</div>
+          <div style={{ color: 'var(--t2)', fontSize: 9 }}>{done}/{items.length} items complete</div>
+        </div>
+        <div style={{ flex: 1, maxWidth: 120 }}>
+          <div style={{ height: 4, background: 'var(--bg3)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ width: `${pct}%`, height: '100%', background: isGo ? 'var(--live)' : 'var(--warn)', transition: 'width .5s ease-out' }} />
           </div>
-          {/* GO button — only at 100% */}
-          {isGo && !goFired && canEdit && (
-            <button
-              onClick={handleGo}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '6px 14px', borderRadius: 6,
-                background: 'rgba(39,201,106,0.1)',
-                border: '0.5px solid rgba(39,201,106,0.4)',
-                color: 'var(--live)', fontFamily: 'inherit',
-                fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
-                cursor: 'pointer',
-              }}
-            >
-              <Zap size={12} />
-              GO — PUBLISH TO DISCORD
-            </button>
-          )}
-          {isGo && goFired && (
-            <span style={{ color: 'var(--live)', fontSize: 11, letterSpacing: '0.08em' }}>
-              ✓ SENT
-            </span>
-          )}
         </div>
-
-        {/* Progress bar */}
-        <div style={{ marginTop: 10, height: 2, background: 'var(--b1)', borderRadius: 1, overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', borderRadius: 1,
-            width: `${pct}%`,
-            background: pctColor,
-            transition: 'width 0.4s ease',
-          }} />
-        </div>
+        {isGo && canEdit && !goFired ? (
+          <button
+            onClick={handleGo}
+            className="nexus-btn live-btn"
+            style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}
+          >
+            <Zap size={12} />
+            GO — PUBLISH TO DISCORD
+          </button>
+        ) : null}
+        {isGo && goFired ? <span style={{ color: 'var(--live)', fontSize: 11 }}>✓ SENT</span> : null}
       </div>
 
-      {/* Items list */}
-      {items.length === 0 ? (
-        <div style={{ padding: '14px', color: 'var(--t2)', fontSize: 11, textAlign: 'center' }}>
-          No gate items defined.
-        </div>
-      ) : (
-        <div style={{ background: 'var(--bg1)' }}>
-          {items.map(item => (
-            <GateItem
-              key={item.id}
-              item={item}
-              canEdit={canEdit}
-              onToggle={toggleItem}
-            />
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col gap-4">
+        {items.length === 0 ? (
+          <div style={{ color: 'var(--t2)', fontSize: 11, padding: '8px 0' }}>No gate items defined.</div>
+        ) : (
+          items.map((item) => (
+            <GateItem key={item.id} item={item} canEdit={canEdit} onToggle={toggleItem} />
+          ))
+        )}
+      </div>
     </div>
   );
 }

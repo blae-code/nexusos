@@ -92,7 +92,7 @@ function SlotRow({ slot, component, onEdit }) {
   );
 }
 
-function ShipFitting({ builds, vehicles, callsign }) {
+function ShipFitting({ vehicles, callsign, discordId }) {
   const [selectedShip, setSelectedShip] = useState('');
   const [buildName, setBuildName] = useState('My Build');
   const [components, setComponents] = useState({});
@@ -106,13 +106,12 @@ function ShipFitting({ builds, vehicles, callsign }) {
   const saveBuild = async () => {
     if (!selectedShip || !buildName) return;
     setSaving(true);
-    const discord_id = localStorage.getItem('nexus_discord_id') || '';
     await base44.entities.FleetBuild.create({
       ship_name: selectedShip,
       build_name: buildName,
       hardpoints: components,
       power_allocation: power,
-      created_by: discord_id,
+      created_by: discordId || '',
       created_by_callsign: callsign,
       patch_locked: patchLocked,
       stats_snapshot: { build_score: buildScore },
@@ -291,7 +290,9 @@ function FleetView({ builds }) {
 }
 
 export default function FleetForge() {
-  const { callsign } = useOutletContext() || {};
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
+  const callsign = outletContext.callsign;
+  const discordId = outletContext.discordId;
   const [tab, setTab] = useState('SHIP FITTING');
   const [builds, setBuilds] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -338,7 +339,7 @@ export default function FleetForge() {
 
       {/* Tab content */}
       <div className="flex-1 overflow-hidden nexus-fade-in">
-        {tab === 'SHIP FITTING' && <ShipFitting builds={builds} vehicles={vehicles} callsign={callsign} />}
+        {tab === 'SHIP FITTING' && <ShipFitting vehicles={vehicles} callsign={callsign} discordId={discordId} />}
         {tab === 'FLEET VIEW' && <FleetView builds={builds} />}
         {tab === 'BUILD LIBRARY' && (
           <div className="p-4">

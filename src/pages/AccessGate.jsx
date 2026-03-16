@@ -1,35 +1,67 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Eye, EyeOff, AlertTriangle, Wifi, WifiOff, ExternalLink } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
+import { AlertTriangle, ExternalLink } from 'lucide-react';
+import { authApi } from '@/lib/auth-api';
+import { useSession } from '@/lib/SessionContext';
+import { VERSE_BUILD_LABEL, useVerseStatus } from '@/lib/useVerseStatus';
+import { CompassMark } from '@/components/shell/NexusIcons';
 
-// ─── Star Field ─────────────────────────────────────────
 const STAR_COUNT = 80;
+const STAR_ZONE = {
+  minX: 34,
+  maxX: 66,
+  minY: 22,
+  maxY: 78,
+};
+
+const ERROR_MESSAGES = {
+  not_in_guild: 'REDSCAR MEMBERSHIP REQUIRED',
+  role_not_allowed: 'DISCORD ROLE NOT AUTHORIZED',
+  expired_state: 'LOGIN WINDOW EXPIRED — TRY AGAIN',
+  auth_failed: 'DISCORD AUTH FAILED — TRY AGAIN',
+};
+
+function generateStar(index) {
+  const size = index < 48 ? 1 : index < 72 ? 1.5 : 2;
+  let x = 0;
+  let y = 0;
+
+  do {
+    x = Math.random() * 100;
+    y = Math.random() * 100;
+  } while (x > STAR_ZONE.minX && x < STAR_ZONE.maxX && y > STAR_ZONE.minY && y < STAR_ZONE.maxY);
+
+  const durations = [3, 5, 7];
+
+  return {
+    id: index,
+    x,
+    y,
+    size,
+    duration: durations[Math.floor(Math.random() * durations.length)],
+    delay: (Math.random() * 5).toFixed(2),
+  };
+}
 
 function StarField() {
-  const stars = React.useMemo(() => {
-    return Array.from({ length: STAR_COUNT }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 1.8 + 0.4,
-      duration: (Math.random() * 4 + 2).toFixed(1),
-      delay: (Math.random() * 5).toFixed(1),
-    }));
-  }, []);
+  const stars = useMemo(
+    () => Array.from({ length: STAR_COUNT }, (_, index) => generateStar(index)),
+    [],
+  );
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {stars.map((s) => (
+      {stars.map((star) => (
         <div
-          key={s.id}
+          key={star.id}
           className="star"
           style={{
-            left: `${s.x}%`,
-            top: `${s.y}%`,
-            width: `${s.size}px`,
-            height: `${s.size}px`,
-            '--duration': `${s.duration}s`,
-            '--delay': `${s.delay}s`,
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: star.size,
+            height: star.size,
+            animationDuration: `${star.duration}s`,
+            animationDelay: `${star.delay}s`,
           }}
         />
       ))}
@@ -37,313 +69,238 @@ function StarField() {
   );
 }
 
-// ─── Compass Emblem SVG ──────────────────────────────────
-function CompassEmblem() {
-  return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="30" stroke="#272b3c" strokeWidth="0.5"/>
-      <circle cx="32" cy="32" r="24" stroke="#1e2130" strokeWidth="0.5"/>
-      <circle cx="32" cy="32" r="3" fill="#5a6080"/>
-      {/* N */}
-      <polygon points="32,4 29,16 32,14 35,16" fill="#7a8098" opacity="0.9"/>
-      {/* S */}
-      <polygon points="32,60 35,48 32,50 29,48" fill="#4a5068" opacity="0.6"/>
-      {/* E */}
-      <polygon points="60,32 48,29 50,32 48,35" fill="#4a5068" opacity="0.6"/>
-      {/* W */}
-      <polygon points="4,32 16,35 14,32 16,29" fill="#4a5068" opacity="0.6"/>
-      {/* Cross hairs */}
-      <line x1="32" y1="18" x2="32" y2="46" stroke="#272b3c" strokeWidth="0.5" strokeDasharray="2 3"/>
-      <line x1="18" y1="32" x2="46" y2="32" stroke="#272b3c" strokeWidth="0.5" strokeDasharray="2 3"/>
-      {/* Outer tick marks */}
-      {[0,45,90,135,180,225,270,315].map((deg, i) => {
-        const rad = (deg * Math.PI) / 180;
-        const x1 = 32 + 27 * Math.cos(rad);
-        const y1 = 32 + 27 * Math.sin(rad);
-        const x2 = 32 + 30 * Math.cos(rad);
-        const y2 = 32 + 30 * Math.sin(rad);
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#272b3c" strokeWidth="0.5"/>;
-      })}
-    </svg>
-  );
-}
+function StatusBar({ status }) {
+  const palette = status === 'offline'
+    ? { color: 'var(--danger)', label: 'OFFLINE' }
+    : status === 'degraded'
+      ? { color: 'var(--warn)', label: 'DEGRADED' }
+      : { color: 'var(--live)', label: 'ONLINE' };
 
-// ─── Server Status Bar ───────────────────────────────────
-function StatusBar({ verseStatus }) {
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 flex items-center justify-between px-6 py-2"
-      style={{ background: 'rgba(7,8,11,0.95)', borderTop: '0.5px solid var(--b1)' }}
+    <footer
+      style={{
+        position: 'sticky',
+        bottom: 0,
+        height: 32,
+        background: 'var(--bg1)',
+        borderTop: '0.5px solid var(--b0)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 16px',
+        flexShrink: 0,
+      }}
     >
-      <div className="flex items-center gap-3">
-        {verseStatus === 'online' ? (
-          <>
-            <div className="pulse-live"/>
-            <span style={{ color: 'var(--live)', fontSize: 11, letterSpacing: '0.08em' }}>VERSE ONLINE</span>
-          </>
-        ) : verseStatus === 'degraded' ? (
-          <>
-            <div style={{ width: 6, height: 6, background: 'var(--warn)', borderRadius: '50%' }}/>
-            <span style={{ color: 'var(--warn)', fontSize: 11, letterSpacing: '0.08em' }}>VERSE DEGRADED</span>
-          </>
-        ) : verseStatus === 'offline' ? (
-          <>
-            <div style={{ width: 6, height: 6, background: 'var(--danger)', borderRadius: '50%' }}/>
-            <span style={{ color: 'var(--danger)', fontSize: 11, letterSpacing: '0.08em' }}>VERSE OFFLINE</span>
-          </>
-        ) : (
-          <>
-            <div style={{ width: 6, height: 6, background: 'var(--t2)', borderRadius: '50%' }}/>
-            <span style={{ color: 'var(--t2)', fontSize: 11, letterSpacing: '0.08em' }}>CHECKING STATUS...</span>
-          </>
-        )}
+      <div style={{ display: 'flex', alignItems: 'center', fontSize: 9 }}>
+        <div style={{ width: 5, height: 5, borderRadius: '50%', background: palette.color }} />
+        <span style={{ color: 'var(--t2)', marginLeft: 6 }}>VERSE {VERSE_BUILD_LABEL}</span>
+        <span style={{ color: 'var(--t3)', margin: '0 6px' }}>·</span>
+        <span style={{ color: palette.color }}>{palette.label}</span>
       </div>
-      <span style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.12em' }}>
+      <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.1em' }}>
         NEXUSOS · REDSCAR NOMADS · PRIVATE
       </span>
-    </div>
+    </footer>
   );
 }
 
-// ─── Access Gate ─────────────────────────────────────────
 export default function AccessGate() {
-  const [callsign, setCallsign] = useState('');
-  const [authKey, setAuthKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [verseStatus, setVerseStatus] = useState('checking');
+  const [searchParams] = useSearchParams();
+  const { isAuthenticated, loading, source } = useSession();
+  const { status: verseStatus } = useVerseStatus();
+  const [starting, setStarting] = useState(false);
+  const [localError, setLocalError] = useState('');
+  const [shakeKey, setShakeKey] = useState(0);
 
-  // Format auth key input as RSN-XXXX-XXXX-XXXX
-  const handleAuthKeyChange = (e) => {
-    let raw = e.target.value.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();
-    setAuthKey(raw);
-    setError('');
-  };
+  const redirectTo = searchParams.get('redirect_to') || '/app/industry';
+  const errorCode = searchParams.get('error');
+  const errorMessage = localError || ERROR_MESSAGES[errorCode] || '';
+  const showOnboarding = searchParams.get('new') === '1';
 
-  const handleCallsignChange = (e) => {
-    setCallsign(e.target.value);
-    setError('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!callsign.trim()) { setError('CALLSIGN REQUIRED'); return; }
-    if (!authKey.trim()) { setError('AUTH KEY REQUIRED'); return; }
-
-    const keyPattern = /^RSN-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
-    if (!keyPattern.test(authKey)) {
-      setError('INVALID KEY FORMAT — RSN-XXXX-XXXX-XXXX');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const result = await base44.functions.invoke('authGate', {
-        callsign: callsign.trim().toUpperCase(),
-        auth_key: authKey.trim(),
-      });
-
-      if (result.data?.success) {
-        // Store session
-        localStorage.setItem('nexus_session', result.data.session_token);
-        localStorage.setItem('nexus_discord_id', result.data.discord_id);
-        localStorage.setItem('nexus_callsign', result.data.callsign);
-        localStorage.setItem('nexus_rank', result.data.nexus_rank);
-        window.location.href = '/app';
-      } else {
-        setError(result.data?.error || 'AUTHENTICATION FAILED');
-      }
-    } catch {
-      setError('SYSTEM ERROR — TRY AGAIN');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Poll verse status
   useEffect(() => {
-    const check = async () => {
-      try {
-        const r = await base44.functions.invoke('verseStatus', {});
-        setVerseStatus(r.data?.status || 'unknown');
-      } catch {
-        setVerseStatus('unknown');
-      }
-    };
-    check();
-    const interval = setInterval(check, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    if (errorMessage) {
+      setShakeKey((key) => key + 1);
+      setStarting(false);
+    }
+  }, [errorMessage]);
+
+  if (!loading && isAuthenticated) {
+    const target = searchParams.get('redirect_to')
+      || (source === 'admin' ? '/app/admin/todo' : '/app/industry');
+    return <Navigate to={target} replace />;
+  }
+
+  const startDiscordAuth = () => {
+    try {
+      setStarting(true);
+      setLocalError('');
+      window.location.assign(authApi.getDiscordStartUrl(redirectTo));
+    } catch (error) {
+      console.warn('[AccessGate] failed to start Discord OAuth:', error?.message || error);
+      setStarting(false);
+      setLocalError('DISCORD AUTH UNAVAILABLE');
+    }
+  };
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center min-h-screen scanlines"
-      style={{ background: 'var(--bg0)', overflow: 'hidden' }}
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg0)',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
     >
       <StarField />
 
-      {/* Radial glow behind card */}
       <div
-        className="absolute"
         style={{
-          width: 600,
-          height: 600,
-          background: 'radial-gradient(ellipse at center, rgba(90,96,128,0.06) 0%, transparent 70%)',
-          pointerEvents: 'none',
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          zIndex: 1,
+          padding: '24px 16px',
         }}
-      />
-
-      {/* Auth Card */}
-      <form
-        onSubmit={handleSubmit}
-        className="relative z-10 flex flex-col items-center gap-6 w-full max-w-sm px-4"
-        style={{ marginBottom: 40 }}
       >
-        {/* Emblem */}
-        <div className="flex flex-col items-center gap-3">
-          <CompassEmblem />
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>
-              REDSCAR NOMADS
-            </div>
-            <div style={{ color: 'var(--t0)', fontSize: 28, letterSpacing: '0.12em', fontWeight: 700, lineHeight: 1 }}>
-              NEXUSOS
-            </div>
-            <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 6 }}>
-              ACCESS GATE
-            </div>
-          </div>
-        </div>
-
-        {/* Card */}
         <div
-          className="w-full nexus-card"
-          style={{ borderColor: 'var(--b1)', gap: 0, padding: '24px' }}
+          key={shakeKey}
+          className={`gate-card${errorMessage ? ' nexus-shake' : ''}`}
+          style={{
+            width: 360,
+            background: 'var(--bg1)',
+            border: '0.5px solid var(--b2)',
+            borderRadius: 12,
+            padding: '36px 32px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'relative',
+          }}
         >
-          {/* Separator line */}
-          <div style={{ borderBottom: '0.5px solid var(--b1)', marginBottom: 20, paddingBottom: 0 }}/>
+          <div style={{ color: 'var(--acc2)' }}>
+            <CompassMark size={44} />
+          </div>
 
-          {/* Error */}
-          {error && (
+          <div style={{ marginTop: 8, color: 'var(--t3)', fontSize: 9, letterSpacing: '0.25em', textAlign: 'center' }}>
+            REDSCAR NOMADS
+          </div>
+          <div style={{ marginTop: 4, color: 'var(--t0)', fontSize: 24, fontWeight: 500, letterSpacing: '0.22em', textAlign: 'center' }}>
+            NEXUSOS
+          </div>
+          <div style={{ marginTop: 2, color: 'var(--t2)', fontSize: 10, letterSpacing: '0.18em', textAlign: 'center' }}>
+            ACCESS GATE
+          </div>
+
+          <div style={{ marginTop: 28, width: '100%' }}>
             <div
-              className="flex items-center gap-2 mb-4 p-2"
               style={{
-                background: 'rgba(224,72,72,0.08)',
-                border: '0.5px solid rgba(224,72,72,0.3)',
-                borderRadius: 5,
-                color: 'var(--warn)',
-                fontSize: 11,
-                letterSpacing: '0.06em',
+                color: 'var(--t2)',
+                fontSize: 10,
+                lineHeight: 1.6,
+                textAlign: 'center',
+                marginBottom: 18,
               }}
             >
-              <AlertTriangle size={12} style={{ flexShrink: 0 }}/>
-              <span>{error}</span>
+              Member access now uses Discord OAuth with Redscar role verification.
             </div>
-          )}
 
-          {/* Callsign */}
-          <div className="mb-3">
-            <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.12em', display: 'block', marginBottom: 6 }}>
-              CALLSIGN
-            </label>
-            <input
-              className="nexus-input"
-              type="text"
-              placeholder="NOMAD-01"
-              value={callsign}
-              onChange={handleCallsignChange}
-              autoComplete="off"
-              spellCheck="false"
-              disabled={loading}
-              style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
-            />
-          </div>
+            <button
+              type="button"
+              onClick={startDiscordAuth}
+              disabled={starting || loading}
+              className="nexus-btn"
+              style={{
+                width: '100%',
+                height: 40,
+                background: 'var(--bg3)',
+                border: `0.5px solid ${errorMessage ? 'var(--warn)' : 'var(--b2)'}`,
+                borderRadius: 'var(--r-md)',
+                fontSize: 12,
+                color: 'var(--t0)',
+                letterSpacing: '0.14em',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
+            >
+              {starting || loading ? (
+                <span className="nexus-loading-dots" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              ) : (
+                'CONTINUE WITH DISCORD →'
+              )}
+            </button>
 
-          {/* Auth Key */}
-          <div className="mb-5">
-            <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.12em', display: 'block', marginBottom: 6 }}>
-              AUTH KEY
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                className="nexus-input"
-                type={showKey ? 'text' : 'password'}
-                placeholder="RSN-XXXX-XXXX-XXXX"
-                value={authKey}
-                onChange={handleAuthKeyChange}
-                autoComplete="off"
-                spellCheck="false"
-                disabled={loading}
-                style={{ paddingRight: 40, letterSpacing: showKey ? '0.08em' : '0.18em' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
+            <div
+              style={{
+                minHeight: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 5,
+                marginTop: 12,
+                color: errorMessage ? 'var(--warn)' : 'transparent',
+                fontSize: 10,
+              }}
+            >
+              {errorMessage ? <AlertTriangle size={10} /> : null}
+              <span>{errorMessage || '.'}</span>
+            </div>
+
+            <div style={{ marginTop: 14, textAlign: 'center' }}>
+              <a
+                href="https://discord.gg/redscar"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--t2)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  padding: 2,
+                  fontSize: 10,
+                  color: 'var(--acc)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
                 }}
               >
-                {showKey ? <EyeOff size={14}/> : <Eye size={14}/>}
-              </button>
+                Request access via #nexusos-ops
+                <ExternalLink size={11} />
+              </a>
             </div>
-          </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="nexus-btn primary w-full justify-center"
-            style={{
-              padding: '10px 0',
-              letterSpacing: '0.1em',
-              fontSize: 12,
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? (
-              <>
-                <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite', fontSize: 14 }}>◌</span>
-                AUTHENTICATING...
-              </>
-            ) : (
-              'AUTHENTICATE →'
+            {showOnboarding && (
+              <div style={{ marginTop: 6, textAlign: 'center' }}>
+                <a
+                  href="https://discord.gg/redscar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 9, color: 'var(--t3)' }}
+                >
+                  First time here? View onboarding →
+                </a>
+              </div>
             )}
-          </button>
-        </div>
-
-        {/* Footer link */}
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ borderTop: '0.5px solid var(--b1)', paddingTop: 16, color: 'var(--t2)', fontSize: 11 }}>
-            New to NexusOS?&nbsp;
-            <a
-              href="https://discord.gg/redscar"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--acc2)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-            >
-              Request access via Discord
-              <ExternalLink size={11}/>
-            </a>
           </div>
         </div>
-      </form>
+      </div>
 
-      <StatusBar verseStatus={verseStatus} />
+      <StatusBar status={verseStatus} />
 
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .gate-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 10%;
+          width: 80%;
+          height: 1px;
+          background: var(--b3);
+        }
       `}</style>
     </div>
   );

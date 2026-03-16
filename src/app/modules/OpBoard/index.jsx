@@ -269,7 +269,6 @@ function LiveOpCard({ op, rsvps, onEnter }) {
     <div style={{
       background: 'var(--bg1)', border: '0.5px solid rgba(39,201,106,0.25)',
       borderRadius: 10, padding: '16px 18px',
-      boxShadow: '0 0 0 1px rgba(39,201,106,0.06)',
     }}>
       {/* Row 1: indicator + name + type */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -640,7 +639,7 @@ export default function OpBoardModule({ rank, callsign, discordId: discordIdProp
               {tabBadge[t] > 0 && (
                 <span style={{
                   fontSize: 9, background: t === 'LIVE' ? 'var(--live)' : 'var(--bg4)',
-                  color: t === 'LIVE' ? '#07080b' : 'var(--t1)',
+                  color: t === 'LIVE' ? 'var(--bg0)' : 'var(--t1)',
                   borderRadius: 10, padding: '0 5px', fontWeight: 700,
                   minWidth: 16, textAlign: 'center',
                 }}>

@@ -35,11 +35,10 @@ const DEFAULT_FILTERS = {
 // ─── ScoutIntel ───────────────────────────────────────────────────────────────
 
 export default function ScoutIntel() {
-  const ctx      = useOutletContext() || {};
+  const ctx = /** @type {any} */ (useOutletContext() || {});
   const rank     = ctx.rank     || 'VAGRANT';
   const callsign = ctx.callsign || 'UNKNOWN';
-  // discordId from context or fallback to localStorage (auth sets this at login)
-  const discordId = localStorage.getItem('nexus_discord_id') || '';
+  const discordId = ctx.discordId || '';
 
   const [deposits,   setDeposits]   = useState([]);
   const [materials,  setMaterials]  = useState([]);
