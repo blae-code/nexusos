@@ -1,60 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
-import { safeLocalStorage } from '@/lib/safe-storage';
-
-const STORAGE_KEY = 'nexus_rescue_calls';
+import { getActiveRescueCount, loadRescueCalls, saveRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
 
 export default function RescueBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const callsign = outletContext.callsign;
-  const [calls, setCalls] = useState(() => {
-    try {
-      return JSON.parse(safeLocalStorage.getItem(STORAGE_KEY) || '[]');
-    } catch {
-      return [];
-    }
-  });
+  const [calls, setCalls] = useState(() => loadRescueCalls());
   const [form, setForm] = useState({ location: '', system: 'STANTON', situation: '', callsign: '' });
   const [showForm, setShowForm] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(calls));
-  }, [calls]);
-
-  useEffect(() => {
-    const handleStorage = (event) => {
-      if (event.key !== STORAGE_KEY) return;
-      try {
-        setCalls(JSON.parse(event.newValue || '[]'));
-      } catch {
-        setCalls([]);
-      }
-    };
-
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    return subscribeToRescueCalls(setCalls);
   }, []);
 
   const submit = () => {
     if (!form.location || !form.situation) return;
-    setCalls(c => [{
+    const nextCalls = [{
       id: Date.now(),
       ...form,
       callsign: form.callsign || callsign || 'UNKNOWN',
       ts: new Date().toISOString(),
       status: 'OPEN',
-    }, ...c]);
+    }, ...calls];
+    setCalls(saveRescueCalls(nextCalls));
     setForm({ location: '', system: 'STANTON', situation: '', callsign: '' });
     setShowForm(false);
   };
 
-  const respond = (id) => setCalls(c => c.map(call => call.id === id ? { ...call, status: 'RESPONDING', responder: callsign || 'UNKNOWN' } : call));
-  const resolve = (id) => setCalls(c => c.map(call => call.id === id ? { ...call, status: 'RESOLVED' } : call));
+  const respond = (id) => {
+    const nextCalls = calls.map((call) => (
+      call.id === id ? { ...call, status: 'RESPONDING', responder: callsign || 'UNKNOWN' } : call
+    ));
+    setCalls(saveRescueCalls(nextCalls));
+  };
+
+  const resolve = (id) => {
+    const nextCalls = calls.map((call) => (
+      call.id === id ? { ...call, status: 'RESOLVED' } : call
+    ));
+    setCalls(saveRescueCalls(nextCalls));
+  };
 
   const STATUS_COLORS = { OPEN: 'var(--danger)', RESPONDING: 'var(--warn)', RESOLVED: 'var(--live)' };
+  const openCount = getActiveRescueCount(calls);
 
   return (
     <div className="flex flex-col h-full overflow-auto p-4 gap-4">
@@ -62,9 +53,9 @@ export default function RescueBoard() {
         <div className="flex items-center gap-2">
           <AlertTriangle size={16} style={{ color: 'var(--danger)' }} />
           <span style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 600 }}>RESCUE BOARD</span>
-          {calls.filter(c => c.status === 'OPEN').length > 0 && (
+          {openCount > 0 && (
             <span className="nexus-tag" style={{ color: 'var(--danger)', borderColor: 'rgba(224,72,72,0.4)', background: 'rgba(224,72,72,0.08)' }}>
-              {calls.filter(c => c.status === 'OPEN').length} OPEN
+              {openCount} ACTIVE
             </span>
           )}
         </div>

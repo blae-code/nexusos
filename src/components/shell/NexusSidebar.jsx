@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { getActiveRescueCount, loadRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
 import {
   BlueprintIcon,
   CofferIcon,
@@ -22,7 +23,7 @@ const NAV_ITEMS = [
   { icon: BlueprintIcon, label: 'Blueprint Registry', path: '/app/industry?tab=blueprints', badge: 'blueprints' },
   null,
   { icon: CofferIcon, label: 'Coffer', path: '/app/coffer' },
-  { icon: RescueIcon, label: 'Rescue', path: '/app/rescue' },
+  { icon: RescueIcon, label: 'Rescue', path: '/app/rescue', badge: 'rescue' },
   { icon: RosterIcon, label: 'Roster', path: '/app/roster' },
   { icon: RosterIcon, label: 'Armory', path: '/app/armory' },
   null,
@@ -35,6 +36,7 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
     craft: false,
     live: false,
     blueprints: false,
+    rescue: false,
   });
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
           craft: (craftQueue || []).some((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)),
           live: Array.isArray(liveOps) && liveOps.length > 0,
           blueprints: (priorityBlueprints || []).some((item) => !(item.owned_by || item.owned_by_callsign)),
+          rescue: getActiveRescueCount(loadRescueCalls()) > 0,
         });
       } catch (error) {
         if (!cancelled) {
@@ -66,9 +69,20 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
 
     loadBadges();
     const intervalId = window.setInterval(loadBadges, 45000);
+    const unsubscribeRescue = subscribeToRescueCalls((calls) => {
+      if (cancelled) {
+        return;
+      }
+
+      setBadges((current) => ({
+        ...current,
+        rescue: getActiveRescueCount(calls) > 0,
+      }));
+    });
 
     return () => {
       cancelled = true;
+      unsubscribeRescue();
       window.clearInterval(intervalId);
     };
   }, []);
@@ -120,7 +134,11 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
         const Icon = item.icon;
         const isActive = isActiveRoute(item.path);
         const badgeActive = item.badge ? badges[item.badge] : false;
-        const badgeColor = item.badge === 'live' ? 'var(--live)' : 'var(--warn)';
+        const badgeColor = item.badge === 'live'
+          ? 'var(--live)'
+          : item.badge === 'rescue'
+            ? 'var(--danger)'
+            : 'var(--warn)';
 
         return (
           <Link

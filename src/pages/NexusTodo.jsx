@@ -1,6 +1,19 @@
-import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle, ChevronDown, ChevronRight, Circle, ExternalLink } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  ExternalLink,
+  RefreshCw,
+  ScanSearch,
+} from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { appParams } from '@/lib/app-params';
 import { safeLocalStorage } from '@/lib/safe-storage';
+
+const MANUAL_STORAGE_KEY = 'nexus_todo_checked';
 
 const TODOS = [
   {
@@ -155,18 +168,58 @@ const PRIORITY_STYLES = {
   FUTURE: { color: 'var(--acc2)', bg: 'transparent', border: 'var(--b2)' },
 };
 
-function TodoItem({ item, checked, onToggle }) {
+const STATUS_TAGS = {
+  auto_ready: { label: 'AUTO', color: 'var(--live)', border: 'var(--live-b)', bg: 'var(--live-bg)' },
+  auto_missing: { label: 'MISSING', color: 'var(--warn)', border: 'var(--warn-b)', bg: 'var(--warn-bg)' },
+  manual_done: { label: 'MANUAL', color: 'var(--info)', border: 'var(--info-b)', bg: 'var(--info-bg)' },
+  future: { label: 'FUTURE', color: 'var(--acc2)', border: 'var(--b2)', bg: 'var(--bg2)' },
+  unverified: { label: 'CHECK', color: 'var(--t2)', border: 'var(--b1)', bg: 'var(--bg2)' },
+};
+
+function loadManualChecks() {
+  try {
+    return JSON.parse(safeLocalStorage.getItem(MANUAL_STORAGE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function buildLocalAutoStatus() {
+  return {
+    VITE_BASE44_APP_ID: Boolean(appParams.appId && appParams.serverUrl && appParams.functionsVersion),
+  };
+}
+
+function getItemState(itemId, manualChecked, autoChecked) {
+  const auto = autoChecked[itemId];
+  if (typeof auto === 'boolean') {
+    return {
+      checked: auto,
+      source: auto ? 'auto_ready' : 'auto_missing',
+      locked: true,
+    };
+  }
+
+  return {
+    checked: Boolean(manualChecked[itemId]),
+    source: manualChecked[itemId] ? 'manual_done' : 'unverified',
+    locked: false,
+  };
+}
+
+function TodoItem({ item, state, onToggle }) {
   const [expanded, setExpanded] = useState(false);
   const priorityStyle = PRIORITY_STYLES[item.priority] || PRIORITY_STYLES.LOW;
+  const statusTag = STATUS_TAGS[item.priority === 'FUTURE' ? 'future' : state.source] || STATUS_TAGS.unverified;
 
   return (
     <div
       style={{
-        background: checked ? 'transparent' : priorityStyle.bg,
-        border: `0.5px solid ${checked ? 'var(--b0)' : priorityStyle.border}`,
+        background: state.checked ? 'transparent' : priorityStyle.bg,
+        border: `0.5px solid ${state.checked ? 'var(--b0)' : priorityStyle.border}`,
         borderRadius: 6,
         overflow: 'hidden',
-        opacity: checked ? 0.45 : 1,
+        opacity: state.checked ? 0.55 : 1,
         transition: 'opacity 0.2s',
       }}
     >
@@ -176,19 +229,42 @@ function TodoItem({ item, checked, onToggle }) {
         onClick={() => setExpanded((open) => !open)}
       >
         <button
+          type="button"
           onClick={(event) => {
             event.stopPropagation();
-            onToggle(item.id);
+            onToggle(item.id, state.locked);
           }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, color: checked ? 'var(--live)' : 'var(--t2)', display: 'flex' }}
+          disabled={state.locked || item.priority === 'FUTURE'}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: state.locked || item.priority === 'FUTURE' ? 'default' : 'pointer',
+            padding: 0,
+            flexShrink: 0,
+            color: state.checked ? 'var(--live)' : state.locked ? 'var(--warn)' : 'var(--t2)',
+            display: 'flex',
+            opacity: state.locked || item.priority === 'FUTURE' ? 0.9 : 1,
+          }}
         >
-          {checked ? <CheckCircle size={15} /> : <Circle size={15} />}
+          {state.checked ? <CheckCircle size={15} /> : state.locked ? <AlertTriangle size={15} /> : <Circle size={15} />}
         </button>
-        <span style={{ flex: 1, color: checked ? 'var(--t2)' : 'var(--t0)', fontSize: 12, textDecoration: checked ? 'line-through' : 'none' }}>
+        <span style={{ flex: 1, color: state.checked ? 'var(--t2)' : 'var(--t0)', fontSize: 12, textDecoration: state.checked ? 'line-through' : 'none' }}>
           {item.label}
         </span>
         <span className="nexus-tag" style={{ color: priorityStyle.color, borderColor: priorityStyle.border, background: 'transparent', fontSize: 9, flexShrink: 0 }}>
           {item.priority}
+        </span>
+        <span
+          className="nexus-tag"
+          style={{
+            color: statusTag.color,
+            borderColor: statusTag.border,
+            background: statusTag.bg,
+            fontSize: 9,
+            flexShrink: 0,
+          }}
+        >
+          {statusTag.label}
         </span>
         {expanded ? <ChevronDown size={12} style={{ color: 'var(--t2)', flexShrink: 0 }} /> : <ChevronRight size={12} style={{ color: 'var(--t2)', flexShrink: 0 }} />}
       </div>
@@ -211,47 +287,108 @@ function TodoItem({ item, checked, onToggle }) {
 }
 
 export default function NexusTodo() {
-  const [checked, setChecked] = useState(() => {
-    try {
-      return JSON.parse(safeLocalStorage.getItem('nexus_todo_checked') || '{}');
-    } catch {
-      return {};
-    }
-  });
+  const [manualChecked, setManualChecked] = useState(loadManualChecks);
+  const [remoteAutoChecked, setRemoteAutoChecked] = useState({});
+  const [loadingStatus, setLoadingStatus] = useState(true);
+  const [statusError, setStatusError] = useState('');
+  const [lastCheckedAt, setLastCheckedAt] = useState('');
 
-  const toggle = (id) => {
-    setChecked((previous) => {
+  const autoChecked = useMemo(() => ({
+    ...remoteAutoChecked,
+    ...buildLocalAutoStatus(),
+  }), [remoteAutoChecked]);
+
+  const refreshStatus = useCallback(async () => {
+    setLoadingStatus(true);
+    setStatusError('');
+
+    try {
+      const response = await base44.functions.invoke('setupStatus', {});
+      const payload = response?.data || response || {};
+      setRemoteAutoChecked(payload.items || {});
+      setLastCheckedAt(payload.checked_at || new Date().toISOString());
+    } catch (error) {
+      console.warn('[NexusTodo] setup status lookup failed:', error?.message || error);
+      setStatusError('Automatic setup detection is unavailable in this runtime.');
+      setRemoteAutoChecked({});
+      setLastCheckedAt('');
+    } finally {
+      setLoadingStatus(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshStatus();
+  }, [refreshStatus]);
+
+  const toggle = useCallback((id, locked) => {
+    if (locked) {
+      return;
+    }
+
+    setManualChecked((previous) => {
       const next = { ...previous, [id]: !previous[id] };
-      safeLocalStorage.setItem('nexus_todo_checked', JSON.stringify(next));
+      safeLocalStorage.setItem(MANUAL_STORAGE_KEY, JSON.stringify(next));
       return next;
     });
-  };
+  }, []);
 
-  const totalItems = TODOS.flatMap((category) => category.items).length;
-  const doneCount = Object.values(checked).filter(Boolean).length;
-  const criticalLeft = TODOS.flatMap((category) => category.items).filter((item) => item.priority === 'CRITICAL' && !checked[item.id]).length;
+  const allItems = useMemo(() => TODOS.flatMap((category) => category.items), []);
+  const itemStates = useMemo(() => {
+    return allItems.reduce((acc, item) => {
+      acc[item.id] = getItemState(item.id, manualChecked, autoChecked);
+      return acc;
+    }, {});
+  }, [allItems, autoChecked, manualChecked]);
+
+  const totalItems = allItems.length;
+  const doneCount = allItems.filter((item) => itemStates[item.id]?.checked).length;
+  const criticalLeft = allItems.filter((item) => item.priority === 'CRITICAL' && !itemStates[item.id]?.checked).length;
+  const autoReadyCount = allItems.filter((item) => itemStates[item.id]?.source === 'auto_ready').length;
+  const manualCount = allItems.filter((item) => itemStates[item.id]?.source === 'manual_done').length;
 
   return (
-    <div className="flex flex-col h-full overflow-auto p-5 gap-5" style={{ maxWidth: 860 }}>
+    <div className="flex flex-col h-full overflow-auto p-5 gap-5" style={{ maxWidth: 900 }}>
       <div>
         <div style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 6 }}>
           NEXUSOS — SETUP TODO
         </div>
-        <div className="flex items-center gap-4" style={{ color: 'var(--t1)', fontSize: 12 }}>
+        <div className="flex items-center gap-4 flex-wrap" style={{ color: 'var(--t1)', fontSize: 12 }}>
           <span>{doneCount}/{totalItems} complete</span>
+          <span>{autoReadyCount} auto-detected</span>
+          <span>{manualCount} manual</span>
           {criticalLeft > 0 ? (
             <span className="flex items-center gap-1" style={{ color: 'var(--danger)' }}>
               <AlertTriangle size={11} /> {criticalLeft} critical item{criticalLeft !== 1 ? 's' : ''} outstanding
             </span>
           ) : null}
+          <button
+            type="button"
+            onClick={refreshStatus}
+            className="nexus-btn"
+            style={{ padding: '5px 10px', fontSize: 10, marginLeft: 'auto' }}
+            disabled={loadingStatus}
+          >
+            <RefreshCw size={11} style={{ animation: loadingStatus ? 'spin 1s linear infinite' : 'none' }} />
+            {loadingStatus ? 'CHECKING' : 'REFRESH STATUS'}
+          </button>
         </div>
         <div className="nexus-bar-bg" style={{ marginTop: 10, height: 4 }}>
           <div className="nexus-bar-fill" style={{ width: `${(doneCount / totalItems) * 100}%`, background: criticalLeft > 0 ? 'var(--warn)' : 'var(--live)', height: 4 }} />
         </div>
+        <div style={{ color: 'var(--t3)', fontSize: 10, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <ScanSearch size={11} />
+          {lastCheckedAt ? `Automatic checks refreshed ${new Date(lastCheckedAt).toLocaleString()}` : 'Automatic checks use backend env status plus frontend app boot config.'}
+        </div>
+        {statusError ? (
+          <div style={{ marginTop: 10, color: 'var(--warn)', fontSize: 11, background: 'var(--warn-bg)', border: '0.5px solid var(--warn-b)', borderRadius: 6, padding: '8px 10px' }}>
+            {statusError}
+          </div>
+        ) : null}
       </div>
 
       {TODOS.map((category) => {
-        const categoryDone = category.items.filter((item) => checked[item.id]).length;
+        const categoryDone = category.items.filter((item) => itemStates[item.id]?.checked).length;
         return (
           <div key={category.category}>
             <div className="flex items-center justify-between mb-3">
@@ -260,7 +397,12 @@ export default function NexusTodo() {
             </div>
             <div className="flex flex-col gap-2">
               {category.items.map((item) => (
-                <TodoItem key={item.id} item={item} checked={!!checked[item.id]} onToggle={toggle} />
+                <TodoItem
+                  key={item.id}
+                  item={item}
+                  state={itemStates[item.id]}
+                  onToggle={toggle}
+                />
               ))}
             </div>
           </div>
@@ -268,7 +410,7 @@ export default function NexusTodo() {
       })}
 
       <div style={{ color: 'var(--t3)', fontSize: 10, textAlign: 'center', paddingBottom: 20 }}>
-        Check state is saved locally in this browser · This page is intended for setup owners and officers
+        Auto-detected items are read-only · Manual checks stay in this browser for setup operators · Future work stays intentionally unchecked
       </div>
     </div>
   );

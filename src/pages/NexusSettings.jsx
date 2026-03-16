@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Columns, LogOut, Monitor, Save } from 'lucide-react';
+import { Bell, Columns, LogOut, Monitor, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useOutletContext } from 'react-router-dom';
+import { useNotificationPreferences } from '@/lib/notification-preferences';
 import { useSession } from '@/lib/SessionContext';
 
 const RANK_COLORS = {
@@ -50,10 +51,17 @@ export default function NexusSettings() {
   const layoutMode = outletContext.layoutMode;
   const setLayoutMode = outletContext.setLayoutMode;
   const isAdmin = source === 'admin';
+  const {
+    preferences: notifications,
+    permission: notificationPermission,
+    browserSupported,
+    setPreference,
+    requestPermission,
+  } = useNotificationPreferences();
   const [draftCallsign, setDraftCallsign] = useState(isAdmin ? '' : (user?.callsign || ''));
   const [savingCallsign, setSavingCallsign] = useState(false);
   const [callsignSaved, setCallsignSaved] = useState(false);
-  const [notifications, setNotifications] = useState({ ops: true, rescue: true, scout: false });
+  const [requestingPermission, setRequestingPermission] = useState(false);
 
   useEffect(() => {
     setDraftCallsign(isAdmin ? '' : (user?.callsign || ''));
@@ -62,7 +70,16 @@ export default function NexusSettings() {
   const rankColor = RANK_COLORS[isAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')];
   const canEditCallsign = !isAdmin && Boolean(user?.id);
 
-  const toggleNotif = (key) => setNotifications((current) => ({ ...current, [key]: !current[key] }));
+  const toggleNotif = (key) => setPreference(key, (current) => !current);
+
+  const enableBrowserAlerts = async () => {
+    setRequestingPermission(true);
+    try {
+      await requestPermission();
+    } finally {
+      setRequestingPermission(false);
+    }
+  };
 
   const saveCallsign = async () => {
     const nextCallsign = normalizeCallsign(draftCallsign);
@@ -153,10 +170,48 @@ export default function NexusSettings() {
       </Section>
 
       <Section title="NOTIFICATIONS">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            padding: '8px 10px',
+            background: 'var(--bg2)',
+            border: '0.5px solid var(--b1)',
+            borderRadius: 6,
+          }}
+        >
+          <div>
+            <div style={{ color: 'var(--t0)', fontSize: 12 }}>Browser Alerts</div>
+            <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 2 }}>
+              {!browserSupported
+                ? 'This runtime does not expose the browser Notification API.'
+                : notificationPermission === 'granted'
+                  ? 'Allowed — NexusOS can raise alerts when the app is in the background.'
+                  : notificationPermission === 'denied'
+                    ? 'Blocked in this browser. Re-enable notifications in browser site settings.'
+                    : 'Optional — enable browser permission to receive background alerts.'}
+            </div>
+          </div>
+          {browserSupported && notificationPermission !== 'granted' ? (
+            <button
+              type="button"
+              onClick={enableBrowserAlerts}
+              disabled={requestingPermission}
+              className="nexus-btn"
+              style={{ padding: '5px 12px', fontSize: 10 }}
+            >
+              <Bell size={11} />
+              {requestingPermission ? 'REQUESTING' : 'ENABLE'}
+            </button>
+          ) : null}
+        </div>
+
         {[
-          { key: 'ops', label: 'Op Announcements', description: 'New ops published and live alerts' },
-          { key: 'rescue', label: 'Distress Calls', description: 'MAYDAY broadcasts from org members' },
-          { key: 'scout', label: 'Scout Deposits', description: 'High-value deposit reports' },
+          { key: 'ops', label: 'Op Announcements', description: 'New live ops and command alerts' },
+          { key: 'rescue', label: 'Distress Calls', description: 'Local rescue-board MAYDAY activity and active-call badges' },
+          { key: 'scout', label: 'Scout Deposits', description: 'High-value deposit reports when the app is backgrounded' },
         ].map((item) => (
           <Row key={item.key} label={item.label} description={item.description}>
             <button

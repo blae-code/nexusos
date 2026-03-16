@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 const RANK_COLORS = {
   PIONEER: { color: 'var(--warn)', label: 'The Pioneer' },
@@ -10,10 +11,17 @@ const RANK_COLORS = {
   AFFILIATE: { color: 'var(--t2)', label: 'Affiliate' },
 };
 
-function Section({ title, children, defaultOpen = false }) {
-  const [open, setOpen] = useState(defaultOpen);
+function Section({ title, children, defaultOpen = false, forceOpen = false, sectionId, sectionRef }) {
+  const [open, setOpen] = useState(defaultOpen || forceOpen);
+
+  useEffect(() => {
+    if (forceOpen) {
+      setOpen(true);
+    }
+  }, [forceOpen]);
+
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div id={sectionId} ref={sectionRef} style={{ marginBottom: 20 }}>
       <button
         onClick={() => setOpen(!open)}
         style={{
@@ -49,6 +57,16 @@ function Section({ title, children, defaultOpen = false }) {
 }
 
 export default function RedscarHandbook() {
+  const [searchParams] = useSearchParams();
+  const tacticalRef = useRef(null);
+  const highlightedSection = searchParams.get('section');
+
+  useEffect(() => {
+    if (highlightedSection === 'tactical-comms' && tacticalRef.current) {
+      tacticalRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [highlightedSection]);
+
   return (
     <div style={{ padding: '24px', maxWidth: 900, margin: '0 auto', color: 'var(--t0)' }}>
       {/* Header */}
@@ -184,7 +202,12 @@ export default function RedscarHandbook() {
       </Section>
 
       {/* Tactical Comms */}
-      <Section title="Tactical Brevity Words">
+      <Section
+        title="Tactical Brevity Words"
+        sectionId="tactical-comms"
+        sectionRef={tacticalRef}
+        forceOpen={highlightedSection === 'tactical-comms'}
+      >
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {[
             { word: 'KISS', meaning: 'Keep it Simple Stupid' },
@@ -205,7 +228,7 @@ export default function RedscarHandbook() {
             { word: 'CHECK FIRE', meaning: 'Stop friendly fire' },
           ].map(({ word, meaning }) => (
             <div key={word} style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 5 }}>
-              <div style={{ color: 'var(--cyan)', fontSize: 10, letterSpacing: '0.1em', fontWeight: 500 }}>{word}</div>
+              <div style={{ color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.1em', fontWeight: 500 }}>{word}</div>
               <div style={{ fontSize: 9, color: 'var(--t2)' }}>{meaning}</div>
             </div>
           ))}
