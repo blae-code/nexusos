@@ -8,7 +8,14 @@ const SYSTEM_COORDS = {
 };
 
 export default function RouteOverlay({ route, onClose }) {
-  const { route: waypoints = [], estimated_yield_scu = 0, estimated_total_minutes = 0, efficiency_note = '' } = route;
+  const {
+    deposit_sequence = [],
+    total_yield_scu = 0,
+    total_session_minutes = 0,
+    route_summary = '',
+  } = route;
+
+  const waypoints = deposit_sequence || [];
 
   if (!waypoints || waypoints.length === 0) {
     return (
@@ -176,7 +183,7 @@ export default function RouteOverlay({ route, onClose }) {
                 YIELD
               </div>
               <div style={{ color: 'var(--live)', fontSize: 12, fontWeight: 500, fontFamily: 'monospace' }}>
-                {estimated_yield_scu.toFixed(0)} SCU
+                {total_yield_scu.toFixed(0)} SCU
               </div>
             </div>
             <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 6, padding: '8px 10px' }}>
@@ -184,15 +191,15 @@ export default function RouteOverlay({ route, onClose }) {
                 TIME
               </div>
               <div style={{ color: 'var(--info)', fontSize: 12, fontWeight: 500, fontFamily: 'monospace' }}>
-                {estimated_total_minutes}m
+                {total_session_minutes}m
               </div>
             </div>
           </div>
 
-          {/* Efficiency note */}
-          {efficiency_note && (
+          {/* Route summary */}
+          {route_summary && (
             <div style={{ fontSize: 9, color: 'var(--t2)', lineHeight: 1.5, paddingLeft: 8, borderLeft: '2px solid var(--warn)' }}>
-              {efficiency_note}
+              {route_summary}
             </div>
           )}
 

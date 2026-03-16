@@ -28,6 +28,12 @@ export default function RoutePlannerPanel({ materials, onRouteGenerated, onClose
       return;
     }
 
+    const filteredDeposits = deposits.filter(d => !d.is_stale);
+    if (filteredDeposits.length === 0) {
+      setError('No active deposits available');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -36,7 +42,7 @@ export default function RoutePlannerPanel({ materials, onRouteGenerated, onClose
         target_material: targetMaterial,
         quality_threshold: qualityThreshold,
         risk_tolerance: riskTolerance,
-        deposits,
+        deposits: filteredDeposits,
       });
 
       if (response.data.error) {
