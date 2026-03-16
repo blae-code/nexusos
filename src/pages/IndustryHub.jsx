@@ -9,6 +9,7 @@ import {
 import MaterialsModule from '@/app/modules/IndustryHub/Materials';
 import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
 import PatchDigestCard from '@/components/industry/PatchDigestCard';
+import CraftQueueTab from '@/components/industry/CraftQueueTab';
 
 const TABS = [
   { id: 'overview',   label: 'OVERVIEW' },
