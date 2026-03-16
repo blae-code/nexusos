@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, ScrollText, User, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import NexusCompass from '@/components/ui/NexusCompass';
-import changelogRaw from '../../../CHANGELOG.md?raw';
+
 import versionData from '../../../version.json';
 import { useSession } from '@/lib/SessionContext';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
@@ -25,7 +25,7 @@ const EXTRA_LINKS = [
 ];
 
 function ChangelogDialog({ onClose }) {
-  const lines = changelogRaw.split('\n');
+  const lines = '';
 
   return (
     <div
