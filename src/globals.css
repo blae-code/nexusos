@@ -535,12 +535,18 @@ select.nexus-input option {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, var(--cyan-bg), var(--cyan-b), transparent);
+  background: linear-gradient(90deg, rgba(16,185,129,0.2), rgba(16,185,129,0.1), transparent);
 }
 
 .nexus-stat-card:hover {
   border-color: var(--b2);
-  box-shadow: 0 0 16px rgba(0, 200, 232, 0.06);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.1);
+}
+
+.nexus-stat-card-value {
+  color: var(--live);
+  font-size: 22px;
+  font-weight: 500;
 }
 
 /* ─── Misc helpers ───────────────────────────────────────────────────────────── */
@@ -551,8 +557,60 @@ select.nexus-input option {
 .text-warn      { color: var(--warn); }
 .text-danger    { color: var(--danger); }
 .text-info      { color: var(--info); }
-.glow-cyan      { text-shadow: 0 0 8px rgba(0, 200, 232, 0.5); }
-.glow-live      { text-shadow: 0 0 8px rgba(0, 212, 168, 0.5); }
+.text-numeric   { color: #A8C7FF; font-variant-numeric: tabular-nums; }
+.glow-cyan      { text-shadow: 0 0 8px rgba(0, 191, 255, 0.6); }
+.glow-live      { text-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+
+/* ─── Table enhancements ────────────────────────────────────────────────────── */
+.nexus-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nexus-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nexus-table thead th {
+  color: var(--t1);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.nexus-table tbody td {
+  color: var(--t0);
+  font-size: 11px;
+}
+
+/* ─── Form inputs ───────────────────────────────────────────────────────── */
+input::placeholder,
+textarea::placeholder,
+select option {
+  color: var(--t2);
+}
+
+input,
+textarea,
+select {
+  color: var(--t0);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--live);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.15);
+}
+
+/* ─── Icon defaults ──────────────────────────────────────────────────────── */
+svg {
+  color: var(--t1);
+}
+
+button svg {
+  color: inherit;
+}
 
 /* ─── Topbar accent line ─────────────────────────────────────────────────────── */
 .nexus-topbar-accent::after {
