@@ -9,9 +9,9 @@
 :root {
   /* Deep space backgrounds */
   --bg0: #07090e;
-  --bg1: #0c0f17;
-  --bg2: #111520;
-  --bg3: #171c2b;
+  --bg1: #0f1219;
+  --bg2: #131720;
+  --bg3: #1a202d;
   --bg4: #1d2235;
   --bg5: #232840;
 
@@ -22,38 +22,38 @@
   --b3: #2e3650;
 
   /* Text */
-  --t0: #dde4f5;
-  --t1: #8a93b0;
-  --t2: #4a5270;
-  --t3: #2a2f48;
+  --t0: #F0F4FF;
+  --t1: #8B9DC3;
+  --t2: #4E5F82;
+  --t3: #4E5F82;
 
   /* Accent neutrals */
-  --acc:  #5a6285;
-  --acc2: #7a84a8;
+  --acc:  #64748B;
+  --acc2: #94A3B8;
 
   /* Status — semantic meaning only */
-  --live:     #00d4a8;
-  --live-b:   rgba(0, 212, 168, 0.25);
-  --live-bg:  rgba(0, 212, 168, 0.06);
+  --live:     #10B981;
+  --live-b:   rgba(16, 185, 129, 0.3);
+  --live-bg:  rgba(16, 185, 129, 0.15);
 
-  --warn:     #e8a020;
-  --warn-b:   rgba(232, 160, 32, 0.25);
-  --warn-bg:  rgba(232, 160, 32, 0.06);
+  --warn:     #F59E0B;
+  --warn-b:   rgba(245, 158, 11, 0.25);
+  --warn-bg:  rgba(245, 158, 11, 0.12);
 
-  --danger:   #e04848;
-  --danger-b: rgba(224, 72, 72, 0.25);
-  --danger-bg:rgba(224, 72, 72, 0.06);
+  --danger:   #F87171;
+  --danger-b: rgba(248, 113, 113, 0.3);
+  --danger-bg:rgba(248, 113, 113, 0.12);
 
-  --info:     #4a9fd0;
-  --info-b:   rgba(74, 159, 208, 0.25);
-  --info-bg:  rgba(74, 159, 208, 0.06);
+  --info:     #60A5FA;
+  --info-b:   rgba(96, 165, 250, 0.3);
+  --info-bg:  rgba(96, 165, 250, 0.12);
 
   /* Cyan primary accent */
-  --cyan:     #00c8e8;
-  --cyan-dim: #007a9a;
-  --cyan-bg:  rgba(0, 200, 232, 0.07);
-  --cyan-b:   rgba(0, 200, 232, 0.22);
-  --cyan-glow:0 0 14px rgba(0, 200, 232, 0.2);
+  --cyan:     #00BFFF;
+  --cyan-dim: #0099CC;
+  --cyan-bg:  rgba(0, 191, 255, 0.12);
+  --cyan-b:   rgba(0, 191, 255, 0.3);
+  --cyan-glow:0 0 14px rgba(0, 191, 255, 0.25);
 
   /* Amber secondary */
   --amber:    #ff7b2b;
