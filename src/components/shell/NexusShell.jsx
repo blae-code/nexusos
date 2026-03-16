@@ -27,7 +27,7 @@ export default function NexusShell() {
           justifyContent: 'center',
         }}
       >
-        <div className="nexus-loading-dots" style={{ color: 'var(--t1)' }}>
+        <div className="nexus-loading-dots" style={{ color: 'var(--cyan)' }}>
           <span />
           <span />
           <span />
