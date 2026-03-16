@@ -297,7 +297,10 @@ export default function OpBoard() {
 
   const endOp = async () => {
     if (!selectedOp) return;
-    await base44.entities.Op.update(selectedOp.id, { status: 'COMPLETE', ended_at: new Date().toISOString() });
+    const endedAt = new Date().toISOString();
+    await base44.entities.Op.update(selectedOp.id, { status: 'COMPLETE', ended_at: endedAt });
+    // Fire-and-forget: Claude debrief + Discord post (non-blocking)
+    base44.functions.invoke('opWrapUp', { op_id: selectedOp.id }).catch(e => console.warn('[opWrapUp]', e));
     setSelectedOp(null);
     setView('list');
     load();
