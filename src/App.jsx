@@ -50,6 +50,7 @@ function App() {
             <Route path="settings" element={<NexusSettings />} />
             <Route path="admin/keys" element={<KeyManagement />} />
             <Route path="admin/todo" element={<NexusTodo />} />
+            <Route path="ledger" element={<MaterialLedger />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/gate" replace />} />
