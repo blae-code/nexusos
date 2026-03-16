@@ -208,12 +208,18 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
             {stats.top5.map((m, i) => {
               const q = m.quality_pct || 0;
               const qColor = q >= 80 ? 'var(--live)' : q >= 60 ? 'var(--info)' : q >= 40 ? 'var(--warn)' : 'var(--danger)';
+              const UNITS_PER_SCU = 100;
+              const priceByName = {};
+              commodities.forEach(c => { if (c.sell_price_uex > 0) priceByName[(c.name || '').toLowerCase()] = c.sell_price_uex; });
+              const price = priceByName[(m.material_name || '').toLowerCase()];
+              const val = price ? Math.round((m.quantity_scu || 0) * UNITS_PER_SCU * price) : null;
               return (
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderBottom: '0.5px solid var(--b0)' }}>
                   <span style={{ color: 'var(--t3)', fontSize: 10, minWidth: 16 }}>{i + 1}</span>
                   <span style={{ flex: 1, color: 'var(--t0)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.material_name}</span>
                   <span style={{ color: 'var(--t1)', fontSize: 11 }}>{(m.quantity_scu || 0).toFixed(1)}</span>
                   <span style={{ color: qColor, fontSize: 10, minWidth: 32, textAlign: 'right' }}>{q.toFixed(0)}%</span>
+                  {val !== null && <span style={{ color: 'var(--t2)', fontSize: 9, minWidth: 44, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{val > 999 ? `${Math.round(val/1000)}k` : val}</span>}
                 </div>
               );
             })}
