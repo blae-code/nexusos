@@ -222,6 +222,8 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           padding: '0 16px',
           flexShrink: 0,
           gap: 12,
+          boxShadow: 'inset 0 1px 0 rgba(0,200,232,0.06)',
+          position: 'relative',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
@@ -233,7 +235,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 fontWeight: 500,
                 color: 'var(--t0)',
                 letterSpacing: '0.2em',
-                fontFamily: 'var(--font)',
+                fontFamily: "'SF Mono', ui-monospace, monospace",
                 whiteSpace: 'nowrap',
               }}
             >
@@ -284,17 +286,17 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 100 }}>
             <div
               style={{
                 width: 5,
                 height: 5,
                 borderRadius: '50%',
                 background: 'var(--live)',
-                animation: 'pulse-dot 2.5s ease-in-out infinite',
+                animation: 'pulse-live 2.5s ease-in-out infinite',
               }}
             />
-            <span style={{ color: 'var(--t2)', fontSize: 10 }}>
+            <span style={{ color: 'var(--t2)', fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
               {onlineCount !== null ? `${onlineCount} online` : 'online'}
             </span>
           </div>
