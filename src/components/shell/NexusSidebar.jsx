@@ -7,6 +7,7 @@ import {
   CofferIcon,
   FleetIcon,
   IndustryIcon,
+  KeyIcon,
   OpBoardIcon,
   RescueIcon,
   RosterIcon,
@@ -15,7 +16,7 @@ import {
 } from './NexusIcons';
 import { BookOpen } from 'lucide-react';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { icon: IndustryIcon, label: 'Industry Hub', path: '/app/industry', badge: 'craft' },
   { icon: OpBoardIcon, label: 'Op Board', path: '/app/ops', badge: 'live' },
   { icon: ScoutIcon, label: 'Scout Intel', path: '/app/scout' },
@@ -31,7 +32,11 @@ const NAV_ITEMS = [
   { icon: SettingsIcon, label: 'Profile Settings', path: '/app/profile' },
 ];
 
-export default function NexusSidebar({ currentPath, currentSearch }) {
+const ADMIN_NAV_ITEMS = [
+  { icon: KeyIcon, label: 'Key Management', path: '/app/admin/keys' },
+];
+
+export default function NexusSidebar({ currentPath, currentSearch, rank }) {
   const [badges, setBadges] = useState({
     craft: false,
     live: false,
@@ -88,6 +93,12 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
     };
   }, []);
 
+  const isElevated = ['PIONEER', 'FOUNDER', 'SYSTEM_ADMIN'].includes(rank || '');
+  const navItems = useMemo(
+    () => isElevated ? [...BASE_NAV_ITEMS, null, ...ADMIN_NAV_ITEMS] : BASE_NAV_ITEMS,
+    [isElevated],
+  );
+
   const searchParams = useMemo(() => new URLSearchParams(currentSearch || ''), [currentSearch]);
 
   const isActiveRoute = (path) => {
@@ -117,7 +128,7 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
         flexShrink: 0,
       }}
     >
-      {NAV_ITEMS.map((item, index) => {
+      {navItems.map((item, index) => {
         if (item === null) {
           return (
             <div

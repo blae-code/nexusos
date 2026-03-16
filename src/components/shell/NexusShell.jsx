@@ -241,7 +241,7 @@ export default function NexusShell() {
           verseStatus={verseStatus}
         />
         <div className="nexus-shell-body">
-          <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
+          <NexusSidebar currentPath={location.pathname} currentSearch={location.search} rank={outletContext.rank} />
           <main className="nexus-shell-content nexus-fade-in">
             <Outlet context={outletContext} />
           </main>

@@ -22,6 +22,7 @@ import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/pages/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
+import KeyManagement from '@/pages/KeyManagement';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
               <Route path="settings" element={<NexusSettings />} />
               <Route path="profile" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
+              <Route path="admin/keys" element={<KeyManagement />} />
               <Route path="ledger" element={<MaterialLedger />} />
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="armory" element={<Armory />} />

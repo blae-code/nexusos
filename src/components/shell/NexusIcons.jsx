@@ -132,3 +132,15 @@ export function MoreIcon({ size = 16 }) {
     </svg>
   );
 }
+
+export function KeyIcon({ size = 16 }) {
+  return (
+    <svg {...iconProps(size)}>
+      <circle cx="5.5" cy="8" r="3" stroke="currentColor" strokeWidth="1" />
+      <circle cx="5.5" cy="8" r="1.2" fill="currentColor" />
+      <path d="M8.5 8H13.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+      <path d="M11.5 8V10" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+      <path d="M13.5 8V10" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    </svg>
+  );
+}
