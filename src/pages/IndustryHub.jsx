@@ -6,6 +6,7 @@ import MaterialsModule from '@/app/modules/IndustryHub/Materials';
 import IndustryOverview from '@/components/industry/IndustryOverview';
 import CraftQueueTab from '@/components/industry/CraftQueueTab';
 import PatchDigestCard from '@/components/industry/PatchDigestCard';
+import OcrUploadPanel from '@/components/industry/OcrUploadPanel';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
