@@ -435,7 +435,17 @@ export default function OpBoard() {
       {/* Right — detail / live view */}
       <div className="flex-1 overflow-auto">
         {view === 'live' && selectedOp ? (
-          <LiveOpView op={selectedOp} rsvps={rsvps} rank={rank} callsign={callsign} onAdvancePhase={advancePhase} onEndOp={endOp} />
+          <LiveOpView
+            op={selectedOp}
+            rsvps={rsvps}
+            rank={rank}
+            callsign={callsign}
+            onAdvancePhase={advancePhase}
+            onEndOp={endOp}
+            refineryOrders={refineryOrders}
+            craftQueue={craftQueue}
+            onOpUpdate={updated => setSelectedOp(updated)}
+          />
         ) : selectedOp ? (
           <OpDetail op={selectedOp} rsvps={rsvps} rank={rank} callsign={callsign} onActivate={async () => {
             await base44.entities.Op.update(selectedOp.id, { status: 'LIVE', started_at: new Date().toISOString() });
