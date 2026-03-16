@@ -295,11 +295,13 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 alignItems: 'center',
                 gap: 5,
                 padding: '3px 9px',
-                background: 'var(--bg2)',
-                border: `0.5px solid ${userMenuOpen ? 'var(--b2)' : 'var(--b1)'}`,
-                borderRadius: 4,
+                background: userMenuOpen ? 'var(--bg3)' : 'var(--bg2)',
+                border: `0.5px solid ${userMenuOpen ? 'var(--cyan-b)' : 'var(--b2)'}`,
+                borderRadius: 5,
                 cursor: 'pointer',
                 color: 'var(--t1)',
+                transition: 'all 0.12s',
+                boxShadow: userMenuOpen ? '0 0 8px rgba(0,200,232,0.1)' : 'none',
               }}
             >
               <div
