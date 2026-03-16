@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
 import MaterialsModule from '@/app/modules/IndustryHub/Materials';
 import CraftQueueTab from '@/components/industry/CraftQueueTab';
+import RefineryManagement from '@/components/industry/RefineryManagement';
 import IndustryOverview from '@/components/industry/IndustryOverview';
 
 const TABS = [
@@ -14,7 +15,9 @@ const TABS = [
   { id: 'refinery', label: 'REFINERY' },
 ];
 
-function RefineryTab({ refineryOrders }) {
+function RefineryTab({ refineryOrders, materials }) {
+  const [showInput, setShowInput] = React.useState(false);
+
   function timeLeft(isoStr) {
     if (!isoStr) return '—';
     const diff = new Date(isoStr) - Date.now();
@@ -25,7 +28,34 @@ function RefineryTab({ refineryOrders }) {
   }
 
   return (
-    <div style={{ padding: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '12px' }}>
+      {/* Input Section */}
+      {showInput ? (
+        <div>
+          <RefineryManagement materials={materials} />
+          <div style={{ padding: '0 16px 12px' }}>
+            <button
+              onClick={() => setShowInput(false)}
+              className="nexus-btn"
+              style={{ padding: '6px 14px', fontSize: 10 }}
+            >
+              ← CLOSE INPUT
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: '0 12px' }}>
+          <button
+            onClick={() => setShowInput(true)}
+            className="nexus-btn primary"
+            style={{ width: '100%', padding: '8px 12px', fontSize: 10 }}
+          >
+            + NEW REFINERY BATCH
+          </button>
+        </div>
+      )}
+
+      {/* Orders List */}
       <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -77,7 +107,7 @@ function RefineryTab({ refineryOrders }) {
             {refineryOrders.length === 0 ? (
               <tr>
                 <td colSpan={9} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>
-                  No refinery orders have been logged.
+                  No refinery orders active.
                 </td>
               </tr>
             ) : null}
@@ -197,7 +227,7 @@ export default function IndustryHub() {
         {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} discordId={discordId} onRefresh={load} /> : null}
         {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} materials={materials} blueprints={blueprints} /> : null}
-        {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} /> : null}
+        {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} /> : null}
       </div>
     </div>
   );
