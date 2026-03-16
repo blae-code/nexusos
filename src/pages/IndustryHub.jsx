@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import MaterialsModule from '@/app/modules/IndustryHub/Materials';
 import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
+import PatchDigestCard from '@/components/industry/PatchDigestCard';
 
 const TABS = [
   { id: 'overview',   label: 'OVERVIEW' },
