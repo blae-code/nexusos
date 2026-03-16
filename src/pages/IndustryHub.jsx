@@ -171,7 +171,43 @@ export default function IndustryHub() {
             scoutDeposits={scoutDeposits}
           />
         ) : null}
-        {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
+        {tab === 'materials' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            {/* OCR toolbar */}
+            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderBottom: '0.5px solid var(--b0)', background: 'var(--bg1)' }}>
+              <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.15em' }}>STOCKPILE</span>
+              <div style={{ flex: 1 }} />
+              <button
+                onClick={() => setShowOcr(v => !v)}
+                style={{
+                  padding: '4px 12px', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit', fontSize: 9,
+                  letterSpacing: '0.1em',
+                  background: showOcr ? 'var(--bg4)' : 'var(--bg2)',
+                  border: `0.5px solid ${showOcr ? 'var(--b3)' : 'var(--b2)'}`,
+                  color: showOcr ? 'var(--t0)' : 'var(--t1)',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                }}
+              >
+                ⬆ OCR UPLOAD
+              </button>
+            </div>
+
+            {/* OCR panel — slides in below toolbar */}
+            {showOcr && (
+              <div style={{ flexShrink: 0, padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg0)' }}>
+                <OcrUploadPanel
+                  callsign={callsign}
+                  discordId={discordId}
+                  onComplete={() => { setShowOcr(false); load(); }}
+                />
+              </div>
+            )}
+
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              <MaterialsModule materials={materials} onRefresh={load} />
+            </div>
+          </div>
+        ) : null}
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} discordId={discordId} onRefresh={load} /> : null}
         {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} /> : null}
         {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} /> : null}
