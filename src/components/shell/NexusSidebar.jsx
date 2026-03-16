@@ -103,8 +103,9 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--acc2)',
+          color: 'var(--cyan)',
           marginBottom: 2,
+          filter: 'drop-shadow(0 0 4px rgba(0,200,232,0.35))',
         }}
       >
         <CompassMark size={22} />
