@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 export default function OcrPreview({ result, onConfirm, onCancel }) {
   const [saving, setSaving] = useState(false);

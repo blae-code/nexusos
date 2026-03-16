@@ -79,7 +79,7 @@ function PatchCard({ patch, isPtu }) {
       {/* Affected systems */}
       {patch.affectedSystems?.length > 0 && (
         <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
-          {patch.affectedSystems.slice(0, 4).map((sys: string) => (
+          {patch.affectedSystems.slice(0, 4).map((sys) => (
             <span
               key={sys}
               style={{
@@ -128,10 +128,10 @@ function PatchCard({ patch, isPtu }) {
 }
 
 export default function LivePatchIntel() {
-  const [livePatches, setLivePatches] = useState<any[]>([]);
-  const [ptuPatches, setPtuPatches] = useState<any[]>([]);
+  const [livePatches, setLivePatches] = useState([]);
+  const [ptuPatches, setPtuPatches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   const load = async () => {
     try {
@@ -144,7 +144,8 @@ export default function LivePatchIntel() {
       setPtuPatches(ptu.data?.patches || []);
       setLastUpdated(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' }));
     } catch (e) {
-      console.warn('Patch data fetch failed:', (e as Error).message);
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn('Patch data fetch failed:', message);
     }
     setLoading(false);
   };
