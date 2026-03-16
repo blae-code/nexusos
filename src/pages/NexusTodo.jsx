@@ -147,9 +147,9 @@ const TODOS = [
 ];
 
 const PRIORITY_STYLES = {
-  CRITICAL: { color: 'var(--danger)', bg: 'color-mix(in srgb, var(--danger) 12%, transparent)', border: 'var(--danger)' },
-  HIGH: { color: 'var(--warn)', bg: 'color-mix(in srgb, var(--warn) 12%, transparent)', border: 'var(--warn)' },
-  MEDIUM: { color: 'var(--info)', bg: 'color-mix(in srgb, var(--info) 12%, transparent)', border: 'var(--info)' },
+  CRITICAL: { color: 'var(--danger)', bg: 'var(--danger-bg)', border: 'var(--danger-b)' },
+  HIGH: { color: 'var(--warn)', bg: 'var(--warn-bg)', border: 'var(--warn-b)' },
+  MEDIUM: { color: 'var(--info)', bg: 'var(--info-bg)', border: 'var(--info-b)' },
   LOW: { color: 'var(--t2)', bg: 'transparent', border: 'var(--b1)' },
   FUTURE: { color: 'var(--acc2)', bg: 'transparent', border: 'var(--b2)' },
 };
@@ -244,7 +244,7 @@ export default function NexusTodo() {
             </span>
           ) : null}
         </div>
-        <div className="nexus-bar" style={{ marginTop: 10 }}>
+        <div className="nexus-bar-bg" style={{ marginTop: 10, height: 4 }}>
           <div className="nexus-bar-fill" style={{ width: `${(doneCount / totalItems) * 100}%`, background: criticalLeft > 0 ? 'var(--warn)' : 'var(--live)', height: 4 }} />
         </div>
       </div>

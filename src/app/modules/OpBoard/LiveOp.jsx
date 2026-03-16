@@ -43,7 +43,7 @@ function ElapsedTimer({ startedAt }) {
     ? `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
     : `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-  return <span style={{ color: 'var(--warn)', fontVariantNumeric: 'tabular-nums' }}>{value}</span>;
+  return <span className="nexus-timer">{value}</span>;
 }
 
 function Panel({ title, children, style }) {
@@ -231,12 +231,12 @@ export default function LiveOp() {
       <div style={{ position: 'relative', width: 48, height: 48, flexShrink: 0 }}>
         {isLive ? (
           <div
-            className="nexus-ring"
             style={{
               position: 'absolute',
               inset: 0,
               borderRadius: '50%',
               border: '1px solid var(--live)',
+              animation: 'ring 2.2s ease-out infinite',
             }}
           />
         ) : null}
@@ -297,13 +297,13 @@ export default function LiveOp() {
             2ND MONITOR
           </button>
           {isPublished && isPioneer ? (
-            <button onClick={handleActivate} disabled={activating} className="nexus-btn live-btn" style={{ padding: '5px 12px', fontSize: 10 }}>
+            <button onClick={handleActivate} disabled={activating} className="nexus-btn nexus-btn-go" style={{ padding: '5px 12px', fontSize: 10 }}>
               <Play size={10} />
               {activating ? 'ACTIVATING' : 'ACTIVATE'}
             </button>
           ) : null}
           {isLive && isPioneer ? (
-            <button onClick={handleEndOp} disabled={ending} className="nexus-btn danger" style={{ padding: '5px 12px', fontSize: 10 }}>
+            <button onClick={handleEndOp} disabled={ending} className="nexus-btn nexus-btn-danger" style={{ padding: '5px 12px', fontSize: 10 }}>
               <Square size={10} />
               {ending ? 'ENDING' : 'END OP'}
             </button>

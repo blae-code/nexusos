@@ -2,43 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, ScrollText, User, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import NexusCompass from '@/components/ui/NexusCompass';
+import changelogRaw from '../../../CHANGELOG.md?raw';
 import versionData from '../../../version.json';
-
-// Inline changelog — edit this to add new entries
-const changelogRaw = `# NexusOS Changelog
-
-## v0.9 — 4.7 Launch Prep
-- Blueprint Registry with material readiness tracking
-- T2 quality threshold enforcement across all modules
-- Supply chain visualizer in Live Op
-- Phase briefing generator (Claude-powered)
-- Op wrap-up debrief with auto Discord thread
-- Crafting optimiser in Craft Queue tab
-- Material Ledger with refinery efficiency tracking
-
-## v0.8 — Live Op Command
-- Live Op management screen with phase tracker
-- Crew roster with role-grouped display
-- Threat alert system with Discord broadcast
-- Session log with real-time entries
-- Supply chain pipeline view
-
-## v0.7 — Industry Hub
-- Materials module with OCR upload
-- Refinery order tracker with countdown timers
-- Craft queue with claim/complete workflow
-- Scout Intel deposits with T2 quality flags
-- Patch digest card for SC update notes
-
-## v0.6 — Foundation
-- Op Board with RSVP system
-- Discord Herald Bot integration
-- RSN auth key system
-- Rank sync from Discord roles
-`;
 import { useSession } from '@/lib/SessionContext';
 import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
-import { AltTabIcon, CompassMark, MoreIcon, SecondMonitorIcon } from './NexusIcons';
+import { AltTabIcon, MoreIcon, SecondMonitorIcon } from './NexusIcons';
 
 const RANK_COLOURS = {
   PIONEER: 'var(--warn)',
@@ -61,13 +30,14 @@ function ChangelogDialog({ onClose }) {
   return (
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         zIndex: 200,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'color-mix(in srgb, var(--bg0) 88%, transparent)',
+        background: 'rgba(7,8,11,0.88)',
+        padding: 18,
       }}
     >
       <div
@@ -98,7 +68,14 @@ function ChangelogDialog({ onClose }) {
           </span>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: 2, display: 'flex' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--t2)',
+              padding: 2,
+              display: 'flex',
+            }}
           >
             <X size={13} />
           </button>
@@ -186,6 +163,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   );
 
   const rankColor = RANK_COLOURS[user?.rank] || 'var(--t1)';
+  const showPtuPill = VERSE_BUILD_LABEL.toUpperCase().includes('PTU');
 
   useEffect(() => {
     let cancelled = false;
@@ -234,25 +212,33 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   return (
     <>
       <header
-        className="nexus-topbar-accent"
         style={{
           height: 44,
           background: 'var(--bg1)',
-          borderBottom: '0.5px solid var(--b1)',
-          padding: '0 16px',
+          borderBottom: '0.5px solid var(--b0)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 12,
+          padding: '0 16px',
           flexShrink: 0,
-          position: 'relative',
+          gap: 12,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--cyan)', flexShrink: 0 }}>
-            <CompassMark size={22} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--t0)', letterSpacing: '0.2em', fontFamily: "'Rajdhani', 'SF Mono', monospace" }}>
-              NEXUS<span style={{ color: 'var(--cyan)', textShadow: '0 0 8px rgba(0,200,232,0.4)' }}>OS</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <NexusCompass />
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: 'var(--t0)',
+                letterSpacing: '0.2em',
+                fontFamily: 'var(--font)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ color: 'var(--t0)' }}>NEXUS</span>
+              <span style={{ color: 'var(--t2)' }}>OS</span>
             </span>
           </div>
 
@@ -266,13 +252,23 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
           <StatusPill verseStatus={verseStatus} />
-          <OrgPill label="REDSCAR NOMADS" />
+          {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
+          <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div>
           <VersionPill version={versionData.version} full={versionData.full} date={versionData.date} />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 10, color: 'var(--t2)', flexShrink: 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            fontSize: 10,
+            color: 'var(--t2)',
+            flexShrink: 0,
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <LayoutButton
               active={layoutMode === 'ALT-TAB'}
@@ -288,19 +284,23 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             />
           </div>
 
-          {onlineCount !== null && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div className="pulse-live" />
-              <span style={{ color: 'var(--t2)', fontSize: 10 }}>{onlineCount} online</span>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div
+              style={{
+                width: 5,
+                height: 5,
+                borderRadius: '50%',
+                background: 'var(--live)',
+                animation: 'pulse-dot 2.5s ease-in-out infinite',
+              }}
+            />
+            <span style={{ color: 'var(--t2)', fontSize: 10 }}>
+              {onlineCount !== null ? `${onlineCount} online` : 'online'}
+            </span>
+          </div>
 
           <div ref={moreMenuRef} style={{ position: 'relative' }}>
-            <button
-              onClick={() => setMoreMenuOpen((open) => !open)}
-              style={menuButtonStyle(moreMenuOpen)}
-              title="More destinations"
-            >
+            <button onClick={() => setMoreMenuOpen((open) => !open)} style={menuButtonStyle(moreMenuOpen)} title="More destinations">
               <MoreIcon size={16} />
             </button>
             {moreMenuOpen && (
@@ -328,12 +328,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 gap: 5,
                 padding: '3px 9px',
                 background: userMenuOpen ? 'var(--bg3)' : 'var(--bg2)',
-                border: `0.5px solid ${userMenuOpen ? 'var(--cyan-b)' : 'var(--b2)'}`,
-                borderRadius: 5,
+                border: `0.5px solid ${userMenuOpen ? 'var(--b2)' : 'var(--b1)'}`,
+                borderRadius: 4,
                 cursor: 'pointer',
                 color: 'var(--t1)',
-                transition: 'all 0.12s',
-                boxShadow: userMenuOpen ? '0 0 8px rgba(0,200,232,0.1)' : 'none',
+                transition: 'border-color 0.12s',
               }}
             >
               <div
@@ -352,7 +351,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             {userMenuOpen && (
               <DropdownContainer width={180}>
                 <div style={{ padding: '8px 14px' }}>
-                  <div style={{ color: 'var(--t0)', fontSize: 10, fontWeight: 500 }}>{user?.callsign || 'UNKNOWN'}</div>
+                  <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 500 }}>{user?.callsign || 'UNKNOWN'}</div>
                   <div style={{ marginTop: 5 }}>
                     <span className="nexus-pill nexus-pill-neu" style={{ color: rankColor, borderColor: 'var(--b2)' }}>
                       {user?.rank || 'AFFILIATE'}
@@ -398,45 +397,39 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
 }
 
 function StatusPill({ verseStatus }) {
-  const pillClass = verseStatus === 'offline'
-    ? 'nexus-pill-danger'
-    : verseStatus === 'degraded'
-      ? 'nexus-pill-warn'
-      : 'nexus-pill-live';
-
-  const label = verseStatus === 'offline'
-    ? 'OFFLINE'
-    : verseStatus === 'degraded'
-      ? 'DEGRADED'
-      : `LIVE ${VERSE_BUILD_LABEL}`;
+  const palette = verseStatus === 'offline'
+    ? { className: 'nexus-pill-danger', dot: 'var(--danger)', label: 'VERSE OFFLINE' }
+    : verseStatus === 'degraded' || verseStatus === 'unknown'
+      ? { className: 'nexus-pill-warn', dot: 'var(--warn)', label: verseStatus === 'unknown' ? 'VERSE UNKNOWN' : 'VERSE DEGRADED' }
+      : { className: 'nexus-pill-live', dot: 'var(--live)', label: `VERSE LIVE ${VERSE_BUILD_LABEL}` };
 
   return (
-    <div className={`nexus-pill ${pillClass}`} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+    <div className={`nexus-pill ${palette.className}`} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
       <div
         style={{
           width: 5,
           height: 5,
           borderRadius: '50%',
-          background: verseStatus === 'offline' ? 'var(--danger)' : verseStatus === 'degraded' ? 'var(--warn)' : 'var(--live)',
+          background: palette.dot,
         }}
       />
-      {label}
+      {palette.label}
     </div>
   );
 }
 
 function VersionPill({ version, full, date }) {
   const [hovered, setHovered] = useState(false);
+  const tooltip = `${full} - ${date}`;
 
   return (
     <div
       style={{ position: 'relative', display: 'inline-flex' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      title={tooltip}
     >
-      <div className="nexus-pill nexus-pill-neu" style={{ cursor: 'default' }}>
-        v{version}
-      </div>
+      <div className="nexus-pill nexus-pill-neu">v{version}</div>
       {hovered && (
         <div
           style={{
@@ -461,30 +454,23 @@ function VersionPill({ version, full, date }) {
   );
 }
 
-function OrgPill({ label }) {
-  return (
-    <div className="nexus-pill nexus-pill-neu" style={{ color: 'var(--t1)' }}>
-      {label}
-    </div>
-  );
-}
-
 function LayoutButton({ active, title, onClick, icon }) {
   return (
     <button
       onClick={onClick}
       title={title}
       style={{
-        width: 28,
-        height: 24,
+        width: 30,
+        height: 28,
+        borderRadius: 'var(--r-md)',
+        border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
+        cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        transition: 'all 0.12s',
         background: active ? 'var(--bg3)' : 'transparent',
-        border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
-        borderRadius: 4,
         color: active ? 'var(--t1)' : 'var(--t2)',
-        cursor: 'pointer',
       }}
       onMouseEnter={(event) => {
         if (!active) {
@@ -509,14 +495,14 @@ function DropdownContainer({ children, width }) {
     <div
       style={{
         position: 'absolute',
+        top: '100%',
         right: 0,
-        top: 'calc(100% + 6px)',
         background: 'var(--bg2)',
         border: '0.5px solid var(--b2)',
         borderRadius: 8,
         minWidth: width,
-        zIndex: 100,
         padding: '6px 0',
+        zIndex: 100,
       }}
     >
       {children}
@@ -525,7 +511,7 @@ function DropdownContainer({ children, width }) {
 }
 
 function Divider() {
-  return <div style={{ borderTop: '0.5px solid var(--b1)', margin: '4px 0' }} />;
+  return <div style={{ height: '0.5px', background: 'var(--b1)', margin: '4px 0' }} />;
 }
 
 function MenuLink({ icon: Icon, label, onClick, danger }) {
@@ -537,18 +523,18 @@ function MenuLink({ icon: Icon, label, onClick, danger }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        width: '100%',
+        padding: '8px 14px',
+        fontSize: 10,
+        color: danger ? 'var(--danger)' : 'var(--t1)',
+        cursor: 'pointer',
+        transition: 'background 0.1s',
+        background: hovered ? 'var(--bg3)' : 'transparent',
+        border: 'none',
+        textAlign: 'left',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        width: '100%',
-        padding: '8px 14px',
-        background: hovered ? 'var(--bg3)' : 'transparent',
-        border: 'none',
-        cursor: 'pointer',
-        color: danger ? 'var(--danger)' : 'var(--t1)',
-        fontSize: 10,
-        textAlign: 'left',
-        transition: 'background 0.1s',
       }}
     >
       {Icon ? <Icon size={13} /> : null}
@@ -559,15 +545,16 @@ function MenuLink({ icon: Icon, label, onClick, danger }) {
 
 function menuButtonStyle(active) {
   return {
-    width: 28,
-    height: 24,
+    width: 30,
+    height: 28,
+    borderRadius: 'var(--r-md)',
+    border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
+    cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    transition: 'all 0.12s',
     background: active ? 'var(--bg3)' : 'transparent',
-    border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
-    borderRadius: 4,
     color: active ? 'var(--t1)' : 'var(--t2)',
-    cursor: 'pointer',
   };
 }

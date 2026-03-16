@@ -3,8 +3,12 @@ import { base44 } from '@/api/base44Client';
 import { Search, Users } from 'lucide-react';
 
 const RANK_COLORS = {
-  PIONEER: '#c8a84b', FOUNDER: '#9b6fd6', VOYAGER: '#4a8fd0',
-  SCOUT: '#27c96a', VAGRANT: '#8890a8', AFFILIATE: '#4a5068',
+  PIONEER: 'var(--warn)',
+  FOUNDER: 'var(--acc2)',
+  VOYAGER: 'var(--info)',
+  SCOUT: 'var(--live)',
+  VAGRANT: 'var(--t1)',
+  AFFILIATE: 'var(--t2)',
 };
 
 const RANK_ORDER = ['PIONEER','FOUNDER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];

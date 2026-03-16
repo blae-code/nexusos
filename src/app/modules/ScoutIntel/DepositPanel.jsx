@@ -37,7 +37,7 @@ function qColor(pct) {
 const RISK_COLORS = {
   LOW:     'var(--live)',
   MEDIUM:  'var(--warn)',
-  HIGH:    '#e88020',
+  HIGH:    'var(--warn)',
   EXTREME: 'var(--danger)',
 };
 

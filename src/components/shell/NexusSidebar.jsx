@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import NexusCompass from '@/components/ui/NexusCompass';
 import {
   BlueprintIcon,
   CofferIcon,
-  CompassMark,
   FleetIcon,
   IndustryIcon,
   OpBoardIcon,
@@ -84,16 +84,15 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
   return (
     <nav
       style={{
-        width: 52,
-        background: 'var(--bg1)',
-        borderRight: '0.5px solid var(--b1)',
+        width: 50,
+        background: 'var(--bg0)',
+        borderRight: '0.5px solid var(--b0)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '8px 0',
         gap: 2,
         flexShrink: 0,
-        position: 'relative',
       }}
     >
       <div
@@ -103,28 +102,21 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--cyan)',
           marginBottom: 2,
-          filter: 'drop-shadow(0 0 4px rgba(0,200,232,0.35))',
         }}
       >
-        <CompassMark size={22} />
+        <NexusCompass size={22} />
       </div>
 
       {NAV_ITEMS.map((item, index) => {
         if (item === null) {
-          return (
-            <div
-              key={`divider-${index}`}
-              style={{ width: 26, height: '0.5px', background: 'var(--b1)', margin: '4px 0' }}
-            />
-          );
+          return <div key={`divider-${index}`} style={{ width: 22, height: '0.5px', background: 'var(--b0)', margin: '3px 0' }} />;
         }
 
         const Icon = item.icon;
         const isActive = isActiveRoute(item.path);
         const badgeActive = item.badge ? badges[item.badge] : false;
-        const badgeColor = item.badge === 'live' ? 'var(--live)' : item.badge === 'craft' ? 'var(--cyan)' : 'var(--warn)';
+        const badgeColor = item.badge === 'live' ? 'var(--live)' : 'var(--warn)';
 
         return (
           <Link
@@ -133,33 +125,29 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
             className="nexus-tooltip"
             data-tip={item.label}
             style={{
-              position: 'relative',
+              width: 36,
+              height: 36,
+              borderRadius: 8,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 36,
-              height: 36,
-              borderRadius: 6,
               cursor: 'pointer',
-              border: `0.5px solid ${isActive ? 'rgba(0,200,232,0.25)' : 'transparent'}`,
-              background: isActive ? 'rgba(0,200,232,0.08)' : 'transparent',
-              color: isActive ? 'var(--cyan)' : 'var(--t2)',
-              boxShadow: isActive ? '0 0 10px rgba(0,200,232,0.12)' : 'none',
+              border: `0.5px solid ${isActive ? 'var(--b2)' : 'transparent'}`,
               transition: 'all 0.12s',
-              textDecoration: 'none',
+              position: 'relative',
+              background: isActive ? 'var(--bg3)' : 'transparent',
+              color: isActive ? 'var(--acc2)' : 'var(--t2)',
             }}
             onMouseEnter={(event) => {
               if (!isActive) {
-                event.currentTarget.style.background = 'var(--bg3)';
-                event.currentTarget.style.borderColor = 'var(--b2)';
-                event.currentTarget.style.color = 'var(--t1)';
+                event.currentTarget.style.background = 'var(--bg2)';
+                event.currentTarget.style.borderColor = 'var(--b1)';
               }
             }}
             onMouseLeave={(event) => {
               if (!isActive) {
                 event.currentTarget.style.background = 'transparent';
                 event.currentTarget.style.borderColor = 'transparent';
-                event.currentTarget.style.color = 'var(--t2)';
               }
             }}
           >
@@ -173,8 +161,8 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
                   width: 5,
                   height: 5,
                   borderRadius: '50%',
-                  background: badgeColor,
                   border: '1.5px solid var(--bg0)',
+                  background: badgeColor,
                 }}
               />
             )}

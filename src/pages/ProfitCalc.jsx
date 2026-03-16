@@ -26,7 +26,7 @@ const CUSTOM_TOOLTIP_STYLE = {
   background: 'var(--bg4)',
   border: '0.5px solid var(--b3)',
   borderRadius: 6,
-  fontFamily: 'monospace',
+  fontFamily: 'var(--font)',
   fontSize: 11,
   color: 'var(--t0)',
   padding: '8px 12px',
@@ -198,13 +198,13 @@ export default function ProfitCalc() {
               style={{
                 padding: '14px',
                 opacity: s.disabled ? 0.35 : 1,
-                borderColor: recommendation === s.label ? 'rgba(39,201,106,0.4)' : 'var(--b1)',
+                borderColor: recommendation === s.label ? 'var(--live-b)' : 'var(--b1)',
                 position: 'relative',
               }}
             >
               {recommendation === s.label && (
                 <div style={{ position: 'absolute', top: 8, right: 10 }}>
-                  <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.08)', fontSize: 8 }}>BEST</span>
+                  <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'var(--live-b)', background: 'var(--live-bg)', fontSize: 8 }}>BEST</span>
                 </div>
               )}
               <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em', marginBottom: 6 }}>{s.label}</div>
@@ -231,8 +231,8 @@ export default function ProfitCalc() {
           <div style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', marginBottom: 14 }}>STRATEGY COMPARISON</div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, left: 10, bottom: 0 }}>
-              <XAxis dataKey="name" tick={{ fill: 'var(--t2)', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false}/>
-              <YAxis tick={{ fill: 'var(--t2)', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`}/>
+              <XAxis dataKey="name" tick={{ fill: 'var(--t2)', fontSize: 10, fontFamily: 'var(--font)' }} axisLine={false} tickLine={false}/>
+              <YAxis tick={{ fill: 'var(--t2)', fontSize: 10, fontFamily: 'var(--font)' }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`}/>
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="net" name="Net aUEC" radius={[3,3,0,0]}>
                 {chartData.map((entry, i) => (
@@ -244,7 +244,7 @@ export default function ProfitCalc() {
         </div>
 
         {/* Recommendation strip */}
-        <div style={{ background: 'rgba(39,201,106,0.06)', border: '0.5px solid rgba(39,201,106,0.2)', borderRadius: 8, padding: '12px 16px' }}>
+        <div style={{ background: 'var(--live-bg)', border: '0.5px solid var(--live-b)', borderRadius: 8, padding: '12px 16px' }}>
           <div className="flex items-center gap-2">
             <TrendingUp size={13} style={{ color: 'var(--live)' }} />
             <span style={{ color: 'var(--live)', fontSize: 10, letterSpacing: '0.1em' }}>RECOMMENDED STRATEGY</span>

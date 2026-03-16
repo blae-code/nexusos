@@ -13,7 +13,7 @@ function GateItem({ item, canEdit, onToggle }) {
   const locked = Boolean(item.locked);
   const isDone = Boolean(item.done);
   const canInteract = canEdit && !locked;
-  const statusText = isDone ? 'DONE' : locked ? 'LOCKED' : item.priority === 'high' ? 'WARN' : 'OPEN';
+  const statusText = isDone ? 'DONE' : item.priority === 'high' ? 'WARN' : 'OPEN';
   const statusColor = isDone ? 'var(--live)' : locked ? 'var(--t3)' : item.priority === 'high' ? 'var(--warn)' : 'var(--t3)';
 
   return (
@@ -29,6 +29,8 @@ function GateItem({ item, canEdit, onToggle }) {
         cursor: canInteract ? 'pointer' : locked ? 'not-allowed' : 'default',
         transition: 'all .12s',
         opacity: locked ? 0.5 : 1,
+        userSelect: 'none',
+        pointerEvents: locked ? 'none' : 'auto',
       }}
       onMouseEnter={(event) => {
         if (canInteract) {
@@ -132,8 +134,9 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
           padding: '12px 14px',
           borderRadius: 8,
           border: `0.5px solid ${isGo ? 'var(--live-b)' : 'var(--b2)'}`,
-          background: isGo ? 'var(--live-bg)' : 'color-mix(in srgb, var(--warn) 8%, var(--bg1))',
+          background: isGo ? 'var(--live-bg)' : 'var(--bg1)',
           transition: 'all .3s',
+          marginBottom: 10,
         }}
       >
         <div style={{ fontSize: 24, fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: isGo ? 'var(--live)' : 'var(--warn)' }}>
@@ -151,11 +154,11 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
         {isGo && canEdit && !goFired ? (
           <button
             onClick={handleGo}
-            className="nexus-btn live-btn"
+            className="nexus-btn nexus-btn-go"
             style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}
           >
             <Zap size={12} />
-            GO — PUBLISH TO DISCORD
+            GO - PUBLISH TO DISCORD
           </button>
         ) : null}
         {isGo && goFired ? <span style={{ color: 'var(--live)', fontSize: 11 }}>✓ SENT</span> : null}

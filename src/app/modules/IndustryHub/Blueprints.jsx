@@ -6,6 +6,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Star, ChevronDown, ChevronUp, Plus, X, Search, Wrench } from 'lucide-react';
+import {
+  BlueprintHolderChip,
+  BlueprintPriorityTag,
+  BlueprintStatusDot,
+} from '@/components/industry/IndustryVisuals';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -123,8 +128,8 @@ function TierBadge({ tier }) {
   return (
     <span style={{
       fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 10,
-      border: `0.5px solid ${isT2 ? 'rgba(39,201,106,0.4)' : 'var(--b2)'}`,
-      background: isT2 ? 'rgba(39,201,106,0.1)' : 'var(--bg3)',
+      border: `0.5px solid ${isT2 ? 'var(--live-b)' : 'var(--b2)'}`,
+      background: isT2 ? 'var(--live-bg)' : 'var(--bg3)',
       color: isT2 ? 'var(--live)' : 'var(--t2)',
       letterSpacing: '0.05em',
     }}>{tier || 'T1'}</span>
@@ -133,11 +138,7 @@ function TierBadge({ tier }) {
 
 function CategoryTag({ category }) {
   return (
-    <span style={{
-      fontSize: 9, padding: '1px 6px', borderRadius: 4,
-      border: '0.5px solid var(--b1)', background: 'var(--bg3)',
-      color: 'var(--t2)', letterSpacing: '0.06em',
-    }}>{category}</span>
+    <span className="nexus-tag" style={{ letterSpacing: '0.06em' }}>{category}</span>
   );
 }
 
@@ -275,11 +276,9 @@ function RecipePanel({ blueprint, materials, callsign, onCraftQueued }) {
             <button
               onClick={handleCraft}
               disabled={crafting}
-              className="nexus-btn"
+              className="nexus-btn nexus-btn-go"
               style={{
                 padding: '4px 12px', fontSize: 10,
-                background: 'rgba(39,201,106,0.08)', borderColor: 'rgba(39,201,106,0.3)',
-                color: 'var(--live)',
               }}
             >
               <Wrench size={11} />
@@ -301,26 +300,25 @@ function BlueprintRow({ blueprint, isPioneer, materials, callsign, onTogglePrior
   const isPriority = !!blueprint.is_priority;
 
   // Dot colour: warn=priority, acc2=owned (not priority), t3=unowned
-  const dotColor = isPriority ? 'var(--warn)' : owned ? 'var(--acc2)' : 'var(--t3)';
-
   return (
     <>
       <div
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
-          padding: '7px 12px',
+          padding: '6px 7px',
           borderBottom: '0.5px solid var(--b0)',
+          borderRadius: 5,
           transition: 'background 0.12s',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         {/* 6px status dot */}
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+        <BlueprintStatusDot isPriority={isPriority} owned={owned} />
 
         {/* Item name */}
         <span style={{
-          flex: 1, fontSize: 12, fontWeight: owned ? 500 : 400,
+          flex: 1, fontSize: 11, fontWeight: owned ? 500 : 400,
           color: owned ? 'var(--t0)' : 'var(--t2)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
@@ -335,16 +333,12 @@ function BlueprintRow({ blueprint, isPioneer, materials, callsign, onTogglePrior
 
         {/* Holder callsign chip or "Unowned" dim text */}
         {owned ? (
-          <span style={{
-            fontSize: 10, padding: '1px 6px', borderRadius: 4,
-            background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-            color: 'var(--acc)', letterSpacing: '0.04em', flexShrink: 0,
-          }}>
-            {blueprint.owned_by_callsign || '—'}
-          </span>
+          <BlueprintHolderChip holder={blueprint.owned_by_callsign || '—'} />
         ) : (
-          <span style={{ color: 'var(--t3)', fontSize: 10, flexShrink: 0 }}>Unowned</span>
+          <span style={{ color: 'var(--t3)', fontSize: 9, flexShrink: 0 }}>unowned</span>
         )}
+
+        {isPriority ? <BlueprintPriorityTag /> : null}
 
         {/* Priority toggle — Pioneer+ only */}
         {isPioneer && (
@@ -395,13 +389,13 @@ function PriorityPanel({ blueprints, materials, onClearPriority }) {
   if (priorityBPs.length === 0) return null;
 
   return (
-    <div style={{ border: '0.5px solid rgba(232,160,32,0.3)', borderRadius: 7, overflow: 'hidden', marginBottom: 0 }}>
+    <div style={{ border: '0.5px solid var(--warn-b)', borderRadius: 8, overflow: 'hidden', marginBottom: 0, background: 'var(--bg1)' }}>
       {/* Toggle header */}
       <button
         onClick={() => setOpen(v => !v)}
         style={{
-          width: '100%', background: 'rgba(232,160,32,0.06)', border: 'none',
-          borderBottom: open ? '0.5px solid rgba(232,160,32,0.2)' : 'none',
+          width: '100%', background: 'var(--warn-bg)', border: 'none',
+          borderBottom: open ? '0.5px solid var(--warn-b)' : 'none',
           color: 'var(--warn)', fontFamily: 'inherit', fontSize: 10,
           padding: '8px 12px', textAlign: 'left', cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 6, letterSpacing: '0.1em',
@@ -432,13 +426,15 @@ function PriorityPanel({ blueprints, materials, onClearPriority }) {
             }
             return (
               <div key={bp.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '0.5px solid var(--b0)' }}>
+                <BlueprintStatusDot isPriority owned={owned} />
                 <span style={{ flex: 1, color: 'var(--t0)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {bp.item_name}
                 </span>
                 <CategoryTag category={bp.category} />
                 <span style={{
                   fontSize: 9, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
-                  background: `${gapColor}12`, border: `0.5px solid ${gapColor}40`,
+                  background: gapColor === 'var(--live)' ? 'var(--live-bg)' : gapColor === 'var(--warn)' ? 'var(--warn-bg)' : 'var(--danger-bg)',
+                  border: `0.5px solid ${gapColor === 'var(--live)' ? 'var(--live-b)' : gapColor === 'var(--warn)' ? 'var(--warn-b)' : 'var(--danger-b)'}`,
                   color: gapColor, letterSpacing: '0.05em', flexShrink: 0,
                 }}>{gapLabel}</span>
                 <button
@@ -483,7 +479,7 @@ function GapSidebar({ blueprints, materials }) {
   return (
     <div style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Coverage stats */}
-      <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 8, padding: '12px 14px' }}>
+      <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b0)', borderRadius: 8, padding: '11px 12px' }}>
         <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.15em', marginBottom: 12 }}>CRAFTING GAPS</div>
         <CoverageStat label="COVERAGE"    num={owned}   denom={blueprints.length} />
         <CoverageStat label="T2 COVERAGE" num={t2Owned} denom={t2Total} />
@@ -491,7 +487,7 @@ function GapSidebar({ blueprints, materials }) {
 
       {/* Priority gaps */}
       {priorityGaps.length > 0 && (
-        <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 8, padding: '12px 14px' }}>
+        <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b0)', borderRadius: 8, padding: '11px 12px' }}>
           <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.15em', marginBottom: 10 }}>UNOWNED PRIORITY</div>
           {priorityGaps.map(bp => {
             const missing = countMissingIngredients(bp, materials);
@@ -616,7 +612,7 @@ function AddBlueprintDialog({ onClose, onCreated }) {
         <DialogHeader title="ADD BLUEPRINT" onClose={onClose} />
 
         {error && (
-          <div style={{ background: 'rgba(224,72,72,0.08)', border: '0.5px solid rgba(224,72,72,0.3)', borderRadius: 5, padding: '7px 10px', color: 'var(--danger)', fontSize: 11, marginBottom: 14 }}>
+          <div style={{ background: 'var(--danger-bg)', border: '0.5px solid var(--danger-b)', borderRadius: 5, padding: '7px 10px', color: 'var(--danger)', fontSize: 11, marginBottom: 14 }}>
             {error}
           </div>
         )}
@@ -748,7 +744,7 @@ function AddBlueprintDialog({ onClose, onCreated }) {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="nexus-btn primary"
+            className="nexus-btn nexus-btn-solid"
             style={{ flex: 2, justifyContent: 'center', padding: '9px 0', fontSize: 11, opacity: loading ? 0.6 : 1 }}
           >
             {loading ? 'SAVING...' : 'ADD BLUEPRINT →'}
@@ -810,13 +806,15 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
           <div style={{ position: 'relative', minWidth: 180 }}>
             <Search size={11} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--t2)', pointerEvents: 'none' }} />
             <input
+              className="nexus-input"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search blueprints..."
               style={{
-                background: 'var(--bg2)', border: '0.5px solid var(--b2)',
-                color: 'var(--t0)', fontFamily: 'inherit', fontSize: 11,
-                padding: '5px 10px 5px 26px', borderRadius: 5, outline: 'none', width: '100%',
+                width: '100%',
+                height: 30,
+                padding: '0 10px 0 26px',
+                fontSize: 11,
               }}
             />
           </div>
@@ -839,7 +837,7 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
           {isPioneer && (
             <button
               onClick={() => setShowAddDialog(true)}
-              className="nexus-btn primary"
+              className="nexus-btn nexus-btn-solid"
               style={{ padding: '4px 12px', fontSize: 10, marginLeft: 'auto', flexShrink: 0 }}
             >
               <Plus size={11} /> ADD BLUEPRINT

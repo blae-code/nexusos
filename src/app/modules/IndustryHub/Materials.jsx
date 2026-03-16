@@ -6,6 +6,7 @@
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Upload, ChevronDown, ChevronUp, Search, MessageSquare, X, Check } from 'lucide-react';
+import { MaterialGlyph, MaterialStatusPill } from '@/components/industry/IndustryVisuals';
 
 // ─── Shared style constants ────────────────────────────────────────────────────
 
@@ -33,49 +34,6 @@ function relativeTime(isoStr) {
   const hr = Math.floor(min / 60);
   if (hr < 24) return `${hr}h ago`;
   return `${Math.floor(hr / 24)}d ago`;
-}
-
-function MaterialIcon({ type, size = 14 }) {
-  const s = String(size);
-  const c = 'var(--t2)';
-  if (type === 'RAW') return (
-    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
-      <polygon points="7,1 13,13 1,13" stroke={c} strokeWidth="0.8" fill="none" />
-    </svg>
-  );
-  if (type === 'REFINED') return (
-    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
-      <polygon points="7,1 12,4 12,10 7,13 2,10 2,4" stroke={c} strokeWidth="0.8" fill="none" />
-    </svg>
-  );
-  if (type === 'SALVAGE') return (
-    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
-      <polygon points="7,1 11,4 12,10 4,12 2,5" stroke={c} strokeWidth="0.8" fill="none" />
-    </svg>
-  );
-  if (type === 'CRAFTED') return (
-    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
-      <rect x="1" y="1" width="12" height="12" stroke={c} strokeWidth="0.8" fill="none" />
-    </svg>
-  );
-  return (
-    <svg width={s} height={s} viewBox="0 0 14 14" fill="none">
-      <circle cx="7" cy="7" r="5" stroke={c} strokeWidth="0.8" fill="none" />
-    </svg>
-  );
-}
-
-function StatusFlag({ material }) {
-  const { t2_eligible, material_type } = material;
-  if (t2_eligible) return (
-    <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.08)' }}>CRAFT-READY</span>
-  );
-  if (material_type === 'RAW') return (
-    <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.3)', background: 'rgba(74,143,208,0.08)' }}>REFINE FIRST</span>
-  );
-  return (
-    <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.08)' }}>BELOW T2</span>
-  );
 }
 
 function T2Badge({ t2_eligible }) {
@@ -160,7 +118,7 @@ function EditRow({ material, onSave, onCancel }) {
   return (
     <tr style={{ background: 'rgba(90,96,128,0.08)', borderBottom: '0.5px solid var(--b1)' }}>
       {/* icon */}
-      <td style={TD}><MaterialIcon type={type} /></td>
+      <td style={TD}><MaterialGlyph type={type} size={14} /></td>
       {/* name + type selector */}
       <td colSpan={2} style={TD}>
         <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{material.material_name}</div>
@@ -769,7 +727,7 @@ export default function Materials({ materials, onRefresh }) {
                   >
                     {/* Icon */}
                     <td style={{ padding: '8px 8px 8px 12px', width: 28 }}>
-                      <MaterialIcon type={m.material_type} />
+                      <MaterialGlyph type={m.material_type} size={14} />
                     </td>
 
                     {/* Material name + source */}
@@ -794,7 +752,7 @@ export default function Materials({ materials, onRefresh }) {
                     {/* Quality bar (3px) + % label */}
                     <td style={{ padding: '8px 12px', minWidth: 110 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div className="nexus-bar" style={{ flex: 1 }}>
+                        <div className="nexus-bar-bg" style={{ flex: 1 }}>
                           <div className="nexus-bar-fill" style={{ width: `${m.quality_pct || 0}%`, background: 'var(--acc2)' }} />
                         </div>
                         <span style={{ color: 'var(--t1)', fontSize: 11, minWidth: 28, textAlign: 'right' }}>
@@ -815,7 +773,7 @@ export default function Materials({ materials, onRefresh }) {
 
                     {/* Status flag */}
                     <td style={{ padding: '8px 12px' }}>
-                      <StatusFlag material={m} />
+                      <MaterialStatusPill material={m} />
                     </td>
 
                     {/* Logged by + relative timestamp */}
