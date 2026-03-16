@@ -202,10 +202,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   return (
     <>
       <header
+        className="nexus-topbar-accent"
         style={{
           height: 44,
           background: 'var(--bg1)',
-          borderBottom: '0.5px solid var(--b0)',
+          borderBottom: '0.5px solid var(--b1)',
           padding: '0 16px',
           display: 'flex',
           alignItems: 'center',
