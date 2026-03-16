@@ -13,6 +13,7 @@ import {
   ScoutIcon,
   SettingsIcon,
 } from './NexusIcons';
+import { BookOpen } from 'lucide-react';
 
 const NAV_ITEMS = [
   { icon: IndustryIcon, label: 'Industry Hub', path: '/app/industry', badge: 'craft' },
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { icon: RescueIcon, label: 'Rescue', path: '/app/rescue' },
   { icon: RosterIcon, label: 'Roster', path: '/app/roster' },
   null,
+  { icon: BookOpen, label: 'Org Handbook', path: '/app/handbook' },
   { icon: SettingsIcon, label: 'Profile Settings', path: '/app/profile' },
 ];
 
