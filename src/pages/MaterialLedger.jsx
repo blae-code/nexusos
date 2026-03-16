@@ -80,7 +80,7 @@ export default function MaterialLedger() {
 
       {/* Tab content */}
       <div className="flex-1 overflow-auto nexus-fade-in">
-        {tab === 'dashboard'  && <LedgerDashboard materials={materials} refineryOrders={refineryOrders} loading={loading} />}
+        {tab === 'dashboard'  && <LedgerDashboard materials={materials} refineryOrders={refineryOrders} commodities={commodities} loading={loading} />}
         {tab === 'flow'       && <LedgerFlowTable materials={materials} refineryOrders={refineryOrders} onRefresh={load} />}
         {tab === 'refinery'   && <RefineryEfficiency refineryOrders={refineryOrders} onRefresh={load} />}
         {tab === 'alerts'     && <LowStockAlerts materials={materials} onRefresh={load} />}
