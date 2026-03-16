@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import {
   Package, Layers, Wrench, FlaskConical, Coins,
   Upload, TrendingUp, AlertCircle, ChevronRight,
-  CheckCircle, Clock, Zap, RefreshCw
+  CheckCircle, Clock, RefreshCw
 } from 'lucide-react';
 import MaterialsModule from '@/app/modules/IndustryHub/Materials';
 import BlueprintsModule from '@/app/modules/IndustryHub/Blueprints';
