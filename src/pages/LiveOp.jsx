@@ -13,7 +13,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Radio, Square, Radio as Radio
 import LiveOpCrewTab from '@/components/ops/LiveOpCrewTab';
 import SupplyChainView from '@/components/ops/SupplyChainView';
 import LiveOpSessionLog from '@/components/ops/LiveOpSessionLog';
-import PhaseBriefPanel from '@/components/ops/PhaseBriefPanel';
+import PhaseTracker from '@/components/ops/PhaseTracker';
 
 const STATUS_CONFIG = {
   DRAFT:     { label: 'DRAFT',     color: 'var(--warn)',  bg: 'var(--warn-bg)',  border: 'var(--warn-b)' },
@@ -385,14 +385,7 @@ export default function LiveOp() {
                 <AlertTriangle size={10} /> THREAT
               </button>
             )}
-            {canEdit && (
-              <button onClick={() => setShowPhaseBrief(true)} className="nexus-btn" style={{
-                padding: '4px 10px', fontSize: 9,
-                borderColor: 'rgba(74,143,208,0.35)', color: 'var(--info)', background: 'rgba(74,143,208,0.06)',
-              }}>
-                <Radio size={10} /> PHASE BRIEF
-              </button>
-            )}
+
             {isMyOp && op.status === 'PUBLISHED' && (
               <button onClick={handleGoLive} disabled={goLoading} className="nexus-btn live-btn" style={{ padding: '4px 12px', fontSize: 9 }}>
                 {goLoading ? 'GOING LIVE...' : '▶ GO LIVE'}
@@ -406,10 +399,14 @@ export default function LiveOp() {
           </div>
         </div>
 
-        {/* Phase bar */}
+        {/* Phase tracker */}
         {(op.phases || []).length > 0 && (
           <div style={{ paddingBottom: 8 }}>
-            <PhaseBar op={op} canEdit={canEdit} onPhaseChange={handlePhaseChange} />
+            <PhaseTracker 
+              op={op} 
+              canEdit={canEdit} 
+              onPhaseChange={handlePhaseChange}
+            />
           </div>
         )}
 
@@ -447,9 +444,6 @@ export default function LiveOp() {
       {/* Modals */}
       {showThreat && (
         <ThreatAlertModal op={op} callsign={callsign} onClose={() => { setShowThreat(false); load(); }} />
-      )}
-      {showPhaseBrief && (
-        <PhaseBriefPanel op={op} onClose={() => setShowPhaseBrief(false)} onLogEntry={handleLogEntry} />
       )}
     </div>
   );
