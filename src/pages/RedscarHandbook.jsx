@@ -201,6 +201,38 @@ export default function RedscarHandbook() {
         </div>
       </Section>
 
+      <Section title="Rockbreaker Operation Flow">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[
+            {
+              title: '1. Preflight',
+              detail: 'Check Industry readiness, current Scout deposit intel, and the admin setup dashboard before publishing a Rockbreaker op.',
+            },
+            {
+              title: '2. Publish',
+              detail: 'Create the op from Op Board with a clear location, access type, rank gate, and the core Rockbreaker role mix: mining, escort, fabricator, scout, and hauling support.',
+            },
+            {
+              title: '3. Go Live',
+              detail: 'Move the op live only when crew, route, and supply chain are actually ready. Herald should mirror the transition into Discord when configured.',
+            },
+            {
+              title: '4. Run Phases',
+              detail: 'Use the live op phase tracker deliberately. Threats, refinery flow, craft blockers, and material logging should stay current throughout the session.',
+            },
+            {
+              title: '5. Wrap',
+              detail: 'End the op from the live surface, generate the debrief, and confirm the archive and Discord summary reflect what actually happened.',
+            },
+          ].map(({ title, detail }) => (
+            <div key={title} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 6, borderLeft: '2px solid var(--warn)' }}>
+              <div style={{ color: 'var(--warn)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 4 }}>{title}</div>
+              <div style={{ fontSize: 10, color: 'var(--t2)' }}>{detail}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
       {/* Tactical Comms */}
       <Section
         title="Tactical Brevity Words"

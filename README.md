@@ -1,48 +1,37 @@
-**Welcome to your Base44 project** 
+# NexusOS
 
-**About**
+NexusOS is the Redscar Nomads operations console for Industry, Scout Intel, Op Board, Rescue, and org readiness workflows, deployed through Base44 and integrated with Discord via Herald Bot.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## Local Development
+1. Clone the repository.
+2. Run `npm install`.
+3. Create `.env.local` with the frontend Base44 variables:
 
-This project contains everything you need to run your app locally.
-
-**Edit the code in your local development environment**
-
-Any change pushed to the repo will also be reflected in the Base44 Builder.
-
-**Prerequisites:** 
-
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
-```
+```env
 VITE_BASE44_APP_ID=your_app_id
 VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
 ```
 
-Run the app: `npm run dev`
+4. Start the client with `npm run dev`.
 
-**Versioning**
+Any change pushed to the repo is also reflected in the Base44 builder.
 
-- `version.json` is the canonical release metadata.
-- `CHANGELOG.md`, `package.json`, `package-lock.json`, and `docs/versioning.md` are kept in sync automatically.
-- Run `npm run version:sync` to normalize and regenerate versioning files.
-- Run `npm run version:check` to verify that nothing drifted.
-- Use `.\version-bump.ps1 patch|minor|major "release note"` for releases.
-- `npm install` configures the repo-managed Git hooks automatically.
+## Operational Docs
+- [Architecture](./docs/architecture.md)
+- [Design System](./docs/design-system.md)
+- [Discord Bot](./docs/discord-bot.md)
+- [Rockbreaker Live Runbook](./docs/rockbreaker-live-runbook.md)
+- [Versioning](./docs/versioning.md)
 
-**Publish your changes**
+## Release and Verification
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+- `npm run version:check`
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+Use `.\version-bump.ps1 patch|minor|major "release note"` for releases. Version metadata is kept in sync automatically from `version.json`.
 
-**Docs & Support**
+## Deployment
+Publish from Base44 after the branch is green and the required Discord/Base44 environment is configured.
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+Base44 docs: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)

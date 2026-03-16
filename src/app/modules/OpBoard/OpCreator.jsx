@@ -105,7 +105,7 @@ function FormField({ label, children }) {
 
 // ─── Segmented control ────────────────────────────────────────────────────────
 
-function SegmentedControl({ options, value, onChange, tokenFn }) {
+function SegmentedControl({ options, value, onChange, tokenFn = null }) {
   return (
     <div style={{
       display: 'flex', flexWrap: 'wrap', gap: 3,
@@ -145,7 +145,7 @@ function SegmentedControl({ options, value, onChange, tokenFn }) {
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 
-function Toggle({ label, description, checked, onChange }) {
+function Toggle({ label, description = '', checked, onChange }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
