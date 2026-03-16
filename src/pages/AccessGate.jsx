@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { AlertTriangle, Eye } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
 import NexusCompass from '@/components/ui/NexusCompass';
-import { authApi } from '@/lib/auth-api';
+import { base44 } from '@/api/base44Client';
 import { useSession } from '@/lib/SessionContext';
 import { VERSE_BUILD_LABEL, useVerseStatus } from '@/lib/useVerseStatus';
 
@@ -13,27 +13,6 @@ const STAR_SIZES = [
   ...Array(8).fill(2),
 ];
 const STAR_DURATIONS = [3, 5, 7];
-
-const ERROR_MESSAGES = {
-  not_in_guild: 'REDSCAR MEMBERSHIP REQUIRED',
-  role_not_allowed: 'DISCORD ROLE NOT AUTHORIZED',
-  expired_state: 'LOGIN WINDOW EXPIRED - TRY AGAIN',
-  auth_failed: 'DISCORD AUTH FAILED - TRY AGAIN',
-};
-
-const ERROR_DETAILS = {
-  not_in_guild: 'Join the Redscar Discord first, then come back once you are in the server.',
-  role_not_allowed: 'Your Discord account is in the server, but it does not yet have a Redscar member role that can launch NexusOS.',
-  expired_state: 'The Discord login handoff took too long or was interrupted. Start the sign-in flow again from this page.',
-  auth_failed: 'The Discord callback did not complete successfully. Retry once, then contact ops if the issue persists.',
-};
-
-const FALLBACK_ONBOARDING_STEPS = [
-  'Join the Redscar Discord server.',
-  'Make sure you have a Redscar member role in Discord.',
-  'Return here and continue with Discord to launch NexusOS.',
-  'After first login, confirm or edit your seeded callsign in Profile Settings.',
-];
 
 function buildStars() {
   if (typeof window === 'undefined') {
