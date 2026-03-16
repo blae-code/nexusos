@@ -480,6 +480,37 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
+    // ── Wrap-Up Debrief (Claude-generated) ──────────────────────────────────
+    if (action === 'wrapUpDebrief') {
+      const { op_name, op_type, system, location, duration_min, crew_count, total_auec, total_scu, report } = payload;
+
+      const embed = {
+        title: `📋 DEBRIEF — ${op_name}`,
+        color: 0x5a6080,
+        description: report,
+        fields: [
+          { name: 'Type',     value: op_type?.replace(/_/g, ' ') || '—', inline: true },
+          { name: 'System',   value: system + (location ? ` · ${location}` : ''), inline: true },
+          ...(duration_min != null ? [{ name: 'Duration', value: `${duration_min}m`, inline: true }] : []),
+          ...(crew_count   ? [{ name: 'Crew',     value: String(crew_count), inline: true }] : []),
+          ...(total_scu    ? [{ name: 'Yield',    value: `${total_scu.toFixed(1)} SCU`, inline: true }] : []),
+          ...(total_auec   ? [{ name: 'Gross',    value: `${total_auec.toLocaleString()} aUEC`, inline: true }] : []),
+        ],
+        footer: { text: 'NEXUSOS · EPIC ARCHIVE' },
+        timestamp: new Date().toISOString(),
+      };
+
+      const msg = await discordPost(`/channels/${CH.nexusOps}/messages`, { embeds: [embed] });
+
+      // Auto-thread for debrief discussion
+      await discordPost(`/channels/${CH.nexusOps}/messages/${msg.id}/threads`, {
+        name: `📁 ${op_name} — Debrief`,
+        auto_archive_duration: 1440,
+      });
+
+      return Response.json({ success: true, message_id: msg.id });
+    }
+
     // ── Armory Update ────────────────────────────────────────────────────────
     if (action === 'armoryUpdate') {
       const { callsign, material_name, quantity_scu, quality_pct, source_type } = payload;
