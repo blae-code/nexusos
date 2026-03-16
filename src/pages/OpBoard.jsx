@@ -327,10 +327,20 @@ export default function OpBoard() {
   const [selectedOp, setSelectedOp] = useState(null);
   const [rsvps, setRsvps] = useState([]);
   const [view, setView] = useState('list');
+  const [refineryOrders, setRefineryOrders] = useState([]);
+  const [craftQueue, setCraftQueue] = useState([]);
 
   const load = async () => {
-    const data = await base44.entities.Op.list('-scheduled_at', 50);
+    const [data, ro, cq] = await Promise.all([
+      base44.entities.Op.list('-scheduled_at', 50),
+      base44.entities.RefineryOrder.filter({ status: 'ACTIVE' }, '-started_at', 50).catch(() =>
+        base44.entities.RefineryOrder.list('-started_at', 50)
+      ),
+      base44.entities.CraftQueue.list('-created_date', 50),
+    ]);
     setOps(data || []);
+    setRefineryOrders(ro || []);
+    setCraftQueue(cq || []);
   };
 
   useEffect(() => { load(); }, []);
