@@ -84,15 +84,16 @@ export default function NexusSidebar({ currentPath, currentSearch }) {
   return (
     <nav
       style={{
-        width: 50,
-        background: 'var(--bg0)',
-        borderRight: '0.5px solid var(--b0)',
+        width: 52,
+        background: 'var(--bg1)',
+        borderRight: '0.5px solid var(--b1)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '8px 0',
         gap: 2,
         flexShrink: 0,
+        position: 'relative',
       }}
     >
       <div
