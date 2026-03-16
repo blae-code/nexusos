@@ -87,6 +87,7 @@ export default function IndustryHub() {
   const [scoutDeposits, setScoutDeposits] = useState([]);
   const [latestPatch, setLatestPatch] = useState(null);
   const [patchDismissed, setPatchDismissed] = useState(null);
+  const [showOcr, setShowOcr] = useState(false);
 
   const load = async () => {
     const [mats, bps, queue, refinery, deposits, patches] = await Promise.all([
