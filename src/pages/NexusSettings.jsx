@@ -11,6 +11,7 @@ const RANK_COLORS = {
   SCOUT: 'var(--live)',
   VAGRANT: 'var(--t1)',
   AFFILIATE: 'var(--t2)',
+  SYSTEM_ADMIN: 'var(--info)',
 };
 
 function Section({ title, children }) {
@@ -48,17 +49,18 @@ export default function NexusSettings() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const layoutMode = outletContext.layoutMode;
   const setLayoutMode = outletContext.setLayoutMode;
-  const [draftCallsign, setDraftCallsign] = useState(user?.callsign || '');
+  const isAdmin = source === 'admin';
+  const [draftCallsign, setDraftCallsign] = useState(isAdmin ? '' : (user?.callsign || ''));
   const [savingCallsign, setSavingCallsign] = useState(false);
   const [callsignSaved, setCallsignSaved] = useState(false);
   const [notifications, setNotifications] = useState({ ops: true, rescue: true, scout: false });
 
   useEffect(() => {
-    setDraftCallsign(user?.callsign || '');
-  }, [user?.callsign]);
+    setDraftCallsign(isAdmin ? '' : (user?.callsign || ''));
+  }, [user?.callsign, isAdmin]);
 
-  const rankColor = RANK_COLORS[user?.rank] || 'var(--t2)';
-  const canEditCallsign = source !== 'admin' && Boolean(user?.id);
+  const rankColor = RANK_COLORS[isAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')];
+  const canEditCallsign = !isAdmin && Boolean(user?.id);
 
   const toggleNotif = (key) => setNotifications((current) => ({ ...current, [key]: !current[key] }));
 
@@ -87,38 +89,44 @@ export default function NexusSettings() {
         >
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: rankColor }} />
           <div>
-            <div style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600 }}>{user?.callsign || '—'}</div>
-            <div style={{ color: rankColor, fontSize: 10, letterSpacing: '0.08em' }}>{user?.rank || '—'}</div>
+            <div style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600 }}>
+              {isAdmin ? 'System Administrator' : (user?.callsign || '—')}
+            </div>
+            <div style={{ color: rankColor, fontSize: 10, letterSpacing: '0.08em' }}>
+              {isAdmin ? 'SUDO' : (user?.rank || '—')}
+            </div>
           </div>
         </div>
 
 
 
-        <div>
-          <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 8 }}>Callsign</div>
-          <div className="flex items-center gap-2">
-            <input
-              className="nexus-input"
-              value={draftCallsign}
-              onChange={(event) => setDraftCallsign(event.target.value)}
-              disabled={!canEditCallsign || savingCallsign}
-              placeholder="NOMAD-01"
-              style={{ textTransform: 'uppercase' }}
-            />
-            <button
-              onClick={saveCallsign}
-              disabled={!canEditCallsign || savingCallsign || normalizeCallsign(draftCallsign) === (user?.callsign || '')}
-              className="nexus-btn primary"
-              style={{ padding: '6px 12px', fontSize: 10 }}
-            >
-              <Save size={11} />
-              {savingCallsign ? 'SAVING' : callsignSaved ? 'SAVED' : 'SAVE'}
-            </button>
+        {!isAdmin && (
+          <div>
+            <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 8 }}>Callsign</div>
+            <div className="flex items-center gap-2">
+              <input
+                className="nexus-input"
+                value={draftCallsign}
+                onChange={(event) => setDraftCallsign(event.target.value)}
+                disabled={!canEditCallsign || savingCallsign}
+                placeholder="NOMAD-01"
+                style={{ textTransform: 'uppercase' }}
+              />
+              <button
+                onClick={saveCallsign}
+                disabled={!canEditCallsign || savingCallsign || normalizeCallsign(draftCallsign) === (user?.callsign || '')}
+                className="nexus-btn primary"
+                style={{ padding: '6px 12px', fontSize: 10 }}
+              >
+                <Save size={11} />
+                {savingCallsign ? 'SAVING' : callsignSaved ? 'SAVED' : 'SAVE'}
+              </button>
+            </div>
+            <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
+              First login seeds this from your Discord server nickname. After that, NexusOS keeps the saved callsign.
+            </div>
           </div>
-          <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
-            First login seeds this from your Discord server nickname. After that, NexusOS keeps the saved callsign.
-          </div>
-        </div>
+        )}
       </Section>
 
       <Section title="DISPLAY">
