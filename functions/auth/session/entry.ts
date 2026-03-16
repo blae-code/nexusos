@@ -56,28 +56,31 @@ function toAdminSession(adminUser: any) {
   };
 }
 
-async function resolveAdminFromCookies(req: Request) {
+async function resolveAdminFromBase44Request(req: Request) {
   const appId = req.headers.get('Base44-App-Id') || req.headers.get('X-App-Id');
   const cookie = req.headers.get('cookie');
+  const authorization = req.headers.get('Authorization');
 
-  if (!appId || !cookie) {
+  if (!appId || (!cookie && !authorization)) {
     return null;
   }
 
   const serverUrl = req.headers.get('Base44-Api-Url') || new URL(req.url).origin;
   const headers = new Headers({
     Accept: 'application/json',
-    Cookie: cookie,
     'X-App-Id': appId,
     'Base44-App-Id': appId,
   });
+
+  if (cookie) {
+    headers.set('Cookie', cookie);
+  }
 
   const originUrl = req.headers.get('X-Origin-URL');
   if (originUrl) {
     headers.set('X-Origin-URL', originUrl);
   }
 
-  const authorization = req.headers.get('Authorization');
   if (authorization) {
     headers.set('Authorization', authorization);
   }
@@ -101,24 +104,39 @@ async function resolveAdminFromCookies(req: Request) {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== 'GET') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+    return Response.json({ error: 'Method not allowed' }, {
+      status: 405,
+      headers: sessionNoStoreHeaders(),
+    });
+  }
+
+  let memberSession = null;
+  try {
+    memberSession = await resolveMemberSession(req);
+  } catch (error) {
+    console.warn('[auth/session] member session lookup unavailable', error);
+  }
+
+  if (memberSession) {
+    return Response.json(memberSession, {
+      headers: sessionNoStoreHeaders(),
+    });
+  }
+
+  let previewAdmin = null;
+  try {
+    previewAdmin = await resolveAdminFromBase44Request(req);
+  } catch (error) {
+    console.warn('[auth/session] preview admin lookup unavailable', error);
+  }
+
+  if (isBase44Admin(previewAdmin)) {
+    return Response.json(toAdminSession(previewAdmin), {
+      headers: sessionNoStoreHeaders(),
+    });
   }
 
   try {
-    const memberSession = await resolveMemberSession(req);
-    if (memberSession) {
-      return Response.json(memberSession, {
-        headers: sessionNoStoreHeaders(),
-      });
-    }
-
-    const previewAdmin = await resolveAdminFromCookies(req);
-    if (isBase44Admin(previewAdmin)) {
-      return Response.json(toAdminSession(previewAdmin), {
-        headers: sessionNoStoreHeaders(),
-      });
-    }
-
     const base44 = createClientFromRequest(req);
     const adminUser = await base44.auth.me().catch(() => null);
     if (isBase44Admin(adminUser)) {
@@ -126,7 +144,11 @@ Deno.serve(async (req: Request) => {
         headers: sessionNoStoreHeaders(),
       });
     }
+  } catch (error) {
+    console.warn('[auth/session] base44 auth fallback unavailable', error);
+  }
 
+  try {
     return Response.json({ authenticated: false }, {
       status: 401,
       headers: sessionNoStoreHeaders(),

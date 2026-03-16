@@ -1,11 +1,12 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { withAppBase } from '@/lib/app-base-path';
 import { appParams } from '@/lib/app-params';
-import { authApi } from '@/lib/auth-api';
+import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/lib/auth-api';
 
 const SessionContext = createContext(null);
 const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
+const SESSION_REFRESH_TIMEOUT_MS = AUTH_REQUEST_TIMEOUT_MS;
 
 function normalizeAdminValue(value) {
   return String(value || '')
@@ -60,22 +61,52 @@ function toAdminSession(adminUser) {
   };
 }
 
-async function fetchPreviewAdminUser() {
+function isAbortError(error) {
+  return error?.name === 'AbortError';
+}
+
+function withTimeout(task, timeoutMs, label) {
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    Promise.resolve()
+      .then(task)
+      .then(resolve, reject)
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+      });
+  });
+}
+
+async function fetchPreviewAdminUser(timeoutMs = SESSION_REFRESH_TIMEOUT_MS) {
   if (!appParams.serverUrl || !appParams.appId) {
     return null;
   }
 
+  const controller = new AbortController();
   const url = new URL(`/api/apps/${appParams.appId}/entities/User/me`, appParams.serverUrl);
-  const response = await fetch(url, {
-    method: 'GET',
-    credentials: 'include',
-    cache: 'no-store',
-    headers: {
-      Accept: 'application/json',
-      'X-App-Id': appParams.appId,
-      'Base44-App-Id': appParams.appId,
-    },
-  });
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+        'X-App-Id': appParams.appId,
+        'Base44-App-Id': appParams.appId,
+        ...(appParams.serverUrl ? { 'Base44-Api-Url': appParams.serverUrl } : {}),
+        ...(appParams.functionsVersion ? { 'Base44-Functions-Version': appParams.functionsVersion } : {}),
+      },
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     return null;
@@ -87,54 +118,104 @@ async function fetchPreviewAdminUser() {
 export function SessionProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [startupIssue, setStartupIssue] = useState('');
+  const isMountedRef = useRef(true);
+  const refreshRequestIdRef = useRef(0);
+  const sessionRef = useRef(null);
 
-  const refreshSession = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  useEffect(() => () => {
+    isMountedRef.current = false;
+  }, []);
+
+  const refreshSession = useCallback(async ({ silent = false } = {}) => {
+    const requestId = refreshRequestIdRef.current + 1;
+    refreshRequestIdRef.current = requestId;
+    const previousSession = sessionRef.current;
+    const shouldShowBlockingLoader = !silent || !previousSession?.authenticated;
+
+    if (shouldShowBlockingLoader) {
+      setLoading(true);
+    }
+
     let nextSession = null;
+    let transportIssue = '';
 
     try {
-      const data = await authApi.getSession();
+      const data = await authApi.getSession({ timeoutMs: SESSION_REFRESH_TIMEOUT_MS });
       if (data?.authenticated) {
         nextSession = data;
+      } else if (data?.status >= 500 && data?.error) {
+        transportIssue = data.error;
       }
     } catch (error) {
-      console.error('[SessionProvider] refresh failed:', error);
+      transportIssue = isAbortError(error) ? 'Session check timed out' : 'Session check unavailable';
+      console.warn('[SessionProvider] refresh failed:', error);
     }
 
     if (!nextSession) {
       try {
-        const adminUser = await fetchPreviewAdminUser();
+        const adminUser = await fetchPreviewAdminUser(SESSION_REFRESH_TIMEOUT_MS);
         if (isBase44Admin(adminUser)) {
           nextSession = toAdminSession(adminUser);
         }
       } catch (error) {
+        if (!transportIssue) {
+          transportIssue = isAbortError(error) ? 'Admin preview lookup timed out' : 'Admin preview lookup unavailable';
+        }
         console.warn('[SessionProvider] Base44 preview admin lookup unavailable:', error?.message || error);
       }
     }
 
     if (!nextSession) {
       try {
-        const adminUser = await base44.auth.me();
+        const adminUser = await withTimeout(
+          () => base44.auth.me(),
+          SESSION_REFRESH_TIMEOUT_MS,
+          'Base44 admin lookup',
+        );
         if (isBase44Admin(adminUser)) {
           nextSession = toAdminSession(adminUser);
         }
       } catch (error) {
+        if (!transportIssue) {
+          transportIssue = isAbortError(error) ? 'Base44 admin lookup timed out' : 'Base44 admin lookup unavailable';
+        }
         console.warn('[SessionProvider] Base44 admin fallback unavailable:', error?.message || error);
       }
     }
 
-    try {
-      setSession(nextSession);
-    } finally {
-      setLoading(false);
+    if (!isMountedRef.current || requestId !== refreshRequestIdRef.current) {
+      return;
     }
+
+    if (nextSession) {
+      setSession(nextSession);
+      setStartupIssue('');
+      setLoading(false);
+      return;
+    }
+
+    if (transportIssue && previousSession?.authenticated) {
+      setSession(previousSession);
+      setStartupIssue(transportIssue);
+      setLoading(false);
+      return;
+    }
+
+    setSession(null);
+    setStartupIssue(transportIssue);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     refreshSession();
 
     const handleFocus = () => {
-      refreshSession();
+      refreshSession({ silent: true });
     };
 
     window.addEventListener('focus', handleFocus);
@@ -145,7 +226,11 @@ export function SessionProvider({ children }) {
     const destination = withAppBase(redirectTo);
 
     if (session?.source === 'admin') {
-      base44.auth.logout(new URL(destination, window.location.origin).toString());
+      try {
+        base44.auth.logout(new URL(destination, window.location.origin).toString());
+      } catch {
+        window.location.assign(destination);
+      }
       return;
     }
 
@@ -178,10 +263,11 @@ export function SessionProvider({ children }) {
     source: session?.source || null,
     isAuthenticated: Boolean(session?.authenticated),
     loading,
+    startupIssue,
     refreshSession,
     logout,
     patchUser,
-  }), [loading, logout, patchUser, refreshSession, session]);
+  }), [loading, logout, patchUser, refreshSession, session, startupIssue]);
 
   return (
     <SessionContext.Provider value={value}>

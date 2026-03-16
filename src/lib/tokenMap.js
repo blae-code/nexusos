@@ -398,7 +398,7 @@ export function preloadCriticalTokens(userRank, maxPhases = 6) {
     T('objective-green'), T('objective-red'),
     // Common threat tokens
     T('target-red'), T('target-alt-orange'), T('target-grey'),
-  ]
+  ];
 
   // Deduplicate and create link preload hints
   [...new Set(paths)].forEach(path => {

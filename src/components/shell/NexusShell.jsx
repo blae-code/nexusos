@@ -19,6 +19,12 @@ export default function NexusShell() {
     setLayoutMode(setStoredLayoutMode(nextMode));
   };
 
+  useEffect(() => {
+    if (user?.rank) {
+      preloadCriticalTokens(user.rank, 6);
+    }
+  }, [user?.rank]);
+
   if (loading) {
     return (
       <div
@@ -49,10 +55,6 @@ export default function NexusShell() {
   if (location.pathname.startsWith('/app/admin') && !isElevated) {
     return <Navigate to="/app/industry" replace />;
   }
-
-  useEffect(() => {
-    if (user?.rank) preloadCriticalTokens(user.rank, 6);
-  }, [user?.rank]);
 
   const outletContext = {
     layoutMode,

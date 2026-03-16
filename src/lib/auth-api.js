@@ -3,6 +3,7 @@ import { appParams } from '@/lib/app-params';
 import { safeLocalStorage } from '@/lib/safe-storage';
 
 const AUTH_BASE = '/functions/auth';
+export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
 function buildUrl(path, searchParams) {
   const origin = appParams.serverUrl || window.location.origin;
@@ -22,6 +23,20 @@ async function parseJson(response) {
     return await response.json();
   } catch {
     return null;
+  }
+}
+
+async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 
@@ -59,29 +74,36 @@ export const authApi = {
     }).toString();
   },
 
-  async getSession() {
-    const response = await fetch(buildUrl('session'), {
+  async getSession({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildUrl('session'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
       headers: getAuthHeaders(),
-    });
+    }, timeoutMs);
 
     const data = await parseJson(response);
     if (!response.ok) {
-      return data || { authenticated: false };
+      return {
+        authenticated: false,
+        ...(data || {}),
+        status: response.status,
+      };
     }
 
-    return data;
+    return {
+      ...(data || {}),
+      status: response.status,
+    };
   },
 
-  async logout() {
-    const response = await fetch(buildUrl('logout'), {
+  async logout({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildUrl('logout'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
       headers: getAuthHeaders(),
-    });
+    }, timeoutMs);
 
     return parseJson(response);
   },
