@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
+import PortraitNavDrawer from './PortraitNavDrawer';
 import { useSession } from '@/lib/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/lib/layout-mode';
 import { useVerseStatus } from '@/lib/useVerseStatus';
@@ -11,6 +12,7 @@ export default function NexusShell() {
   const { session, user, source, isAuthenticated, loading } = useSession();
   const { status: verseStatus } = useVerseStatus();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
+  const [portraitNavOpen, setPortraitNavOpen] = useState(false);
 
   const updateLayoutMode = (nextMode) => {
     setLayoutMode(setStoredLayoutMode(nextMode));
@@ -63,7 +65,9 @@ export default function NexusShell() {
           layoutMode={layoutMode}
           onSelectLayout={updateLayoutMode}
           verseStatus={verseStatus}
+          onTogglePortraitNav={() => setPortraitNavOpen(!portraitNavOpen)}
         />
+        <PortraitNavDrawer isOpen={portraitNavOpen} onClose={() => setPortraitNavOpen(false)} />
         <div className="nexus-shell-body">
           <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
           <main className="nexus-shell-content nexus-fade-in">
