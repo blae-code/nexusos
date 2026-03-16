@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Monitor, Columns, ChevronDown, LogOut, Key, User, ScrollText, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import versionData    from '../../../version.json';
-import changelogRaw  from '../../../CHANGELOG.md?raw';
+
+const changelogRaw = `# NexusOS Changelog\n\n## Latest\n- App initialised and stabilised\n- Access Gate authentication flow\n- Industry Hub: materials, blueprints, craft queue, refinery\n- Op Board with phase tracker and live op view\n- Scout Intel system\n- Fleet Forge ship fitting\n- Profit Calculator\n- Coffer Ledger\n- Rescue Board\n- Org Roster\n- Epic Archive\n`;
 
 const RANK_COLOURS = {
   PIONEER: '#c8a84b',
