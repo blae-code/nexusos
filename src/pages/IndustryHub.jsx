@@ -463,67 +463,7 @@ function InsightStrip() {
   );
 }
 
-// ─── Craft Queue Tab ─────────────────────────────────────
-function CraftQueueTab({ craftQueue, callsign }) {
-  const statusOrder = { IN_PROGRESS: 0, CLAIMED: 1, OPEN: 2, COMPLETE: 3, CANCELLED: 4 };
-  const sorted = [...craftQueue].sort((a, b) => {
-    if (b.priority_flag !== a.priority_flag) return b.priority_flag ? 1 : -1;
-    return (statusOrder[a.status] || 5) - (statusOrder[b.status] || 5);
-  });
-
-  const handleClaim = async (id) => {
-    await base44.entities.CraftQueue.update(id, { status: 'CLAIMED', claimed_by_callsign: callsign });
-  };
-
-  const STATUS_COLORS = {
-    OPEN: 'var(--info)', CLAIMED: 'var(--warn)', IN_PROGRESS: 'var(--live)',
-    COMPLETE: 'var(--t2)', CANCELLED: 'var(--danger)',
-  };
-
-  return (
-    <div className="p-4">
-      <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: 'var(--bg2)' }}>
-              {['', 'ITEM', 'REQUESTED BY', 'CLAIMED BY', 'QTY', 'EST. VALUE', 'STATUS', 'ACTION'].map(h => (
-                <th key={h} style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', fontWeight: 600, borderBottom: '0.5px solid var(--b1)' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map(c => (
-              <tr key={c.id} style={{ borderBottom: '0.5px solid var(--b0)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <td style={{ padding: '8px 10px' }}>
-                  {c.priority_flag && <div style={{ width: 4, height: 16, background: 'var(--warn)', borderRadius: 2 }} />}
-                </td>
-                <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12, fontWeight: c.priority_flag ? 600 : 400 }}>{c.blueprint_name}</td>
-                <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{c.requested_by_callsign}</td>
-                <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{c.claimed_by_callsign || '—'}</td>
-                <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{c.quantity}</td>
-                <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{c.aUEC_value_est ? `${c.aUEC_value_est.toLocaleString()} aUEC` : '—'}</td>
-                <td style={{ padding: '8px 14px' }}>
-                  <span className="nexus-tag" style={{ color: STATUS_COLORS[c.status], borderColor: 'transparent', background: 'transparent' }}>{c.status}</span>
-                </td>
-                <td style={{ padding: '8px 14px' }}>
-                  {c.status === 'OPEN' && (
-                    <button onClick={() => handleClaim(c.id)} className="nexus-btn" style={{ padding: '3px 8px', fontSize: 10 }}>CLAIM</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {sorted.length === 0 && (
-              <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>Craft queue is empty</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+// CraftQueueTab is now in components/industry/CraftQueueTab.jsx
 
 // ─── Refinery Tab ────────────────────────────────────────
 function RefineryTab({ refineryOrders }) {
