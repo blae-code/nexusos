@@ -288,33 +288,41 @@ select.nexus-input option {
 
 /* ─── Buttons ────────────────────────────────────────────────────────────────── */
 .nexus-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background: var(--bg3);
+  padding: 8px 14px;
+  background: var(--bg2);
   border: 0.5px solid var(--b2);
   border-radius: 5px;
-  color: var(--t1);
-  font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  color: var(--t0);
+  cursor: pointer;
   font-size: 10px;
   letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
+  font-family: inherit;
+  transition: all 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  user-select: none;
   white-space: nowrap;
   text-decoration: none;
 }
 
 .nexus-btn:hover {
-  background: var(--bg4);
-  border-color: var(--live);
-  color: var(--live);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+  background: var(--bg3);
+  border-color: var(--b3);
+  color: var(--t0);
+  transform: translateY(-1px);
+}
+
+.nexus-btn:active {
+  transform: scale(0.97);
+  transition: all 80ms ease;
 }
 
 .nexus-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.45;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Primary cyan CTA */
