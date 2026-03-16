@@ -9,7 +9,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { AlertTriangle, ChevronLeft, ChevronRight, Radio, Square } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Square } from 'lucide-react';
 import LiveOpCrewTab from '@/components/ops/LiveOpCrewTab';
 import SupplyChainView from '@/components/ops/SupplyChainView';
 import LiveOpSessionLog from '@/components/ops/LiveOpSessionLog';

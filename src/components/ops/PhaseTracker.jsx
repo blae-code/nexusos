@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Radio } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function PhaseTracker({ op, canEdit, onPhaseChange }) {
   const phases = op.phases || [];
