@@ -1,17 +1,87 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { withAppBase } from '@/lib/app-base-path';
+import { appParams } from '@/lib/app-params';
 import { authApi } from '@/lib/auth-api';
 
 const SessionContext = createContext(null);
+const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
+
+function normalizeAdminValue(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+}
 
 function isBase44Admin(user) {
   if (!user) return false;
 
-  return user.role === 'admin'
-    || user.role === 'system_admin'
-    || user.access_level === 'admin'
-    || user.is_admin === true;
+  if (user.is_admin === true || user.isAdmin === true || user.is_system_admin === true || user.isSystemAdmin === true) {
+    return true;
+  }
+
+  const scalarFields = [
+    user.role,
+    user.access_level,
+    user.accessLevel,
+    user.app_role,
+    user.appRole,
+    user.user_role,
+    user.userRole,
+    user.permission_level,
+    user.permissionLevel,
+    user.level,
+    user.type,
+  ];
+
+  if (scalarFields.some((value) => ADMIN_MARKERS.has(normalizeAdminValue(value)))) {
+    return true;
+  }
+
+  const roleCollections = [user.roles, user.permissions, user.access];
+  return roleCollections.some((collection) =>
+    Array.isArray(collection) && collection.some((value) => ADMIN_MARKERS.has(normalizeAdminValue(value))),
+  );
+}
+
+function toAdminSession(adminUser) {
+  return {
+    authenticated: true,
+    source: 'admin',
+    user: {
+      id: adminUser.id || 'admin',
+      discordId: 'SYSTEM_ADMIN',
+      callsign: adminUser.full_name || adminUser.name || adminUser.email || 'SYS-ADMIN',
+      rank: 'PIONEER',
+      discordRoles: ['Base44 Admin'],
+      joinedAt: null,
+    },
+  };
+}
+
+async function fetchPreviewAdminUser() {
+  if (!appParams.serverUrl || !appParams.appId) {
+    return null;
+  }
+
+  const url = new URL(`/api/apps/${appParams.appId}/entities/User/me`, appParams.serverUrl);
+  const response = await fetch(url, {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/json',
+      'X-App-Id': appParams.appId,
+      'Base44-App-Id': appParams.appId,
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
 }
 
 export function SessionProvider({ children }) {
@@ -33,20 +103,20 @@ export function SessionProvider({ children }) {
 
     if (!nextSession) {
       try {
+        const adminUser = await fetchPreviewAdminUser();
+        if (isBase44Admin(adminUser)) {
+          nextSession = toAdminSession(adminUser);
+        }
+      } catch (error) {
+        console.warn('[SessionProvider] Base44 preview admin lookup unavailable:', error?.message || error);
+      }
+    }
+
+    if (!nextSession) {
+      try {
         const adminUser = await base44.auth.me();
         if (isBase44Admin(adminUser)) {
-          nextSession = {
-            authenticated: true,
-            source: 'admin',
-            user: {
-              id: adminUser.id || 'admin',
-              discordId: 'SYSTEM_ADMIN',
-              callsign: adminUser.full_name || adminUser.name || 'SYS-ADMIN',
-              rank: 'PIONEER',
-              discordRoles: ['Base44 Admin'],
-              joinedAt: null,
-            },
-          };
+          nextSession = toAdminSession(adminUser);
         }
       } catch (error) {
         console.warn('[SessionProvider] Base44 admin fallback unavailable:', error?.message || error);
