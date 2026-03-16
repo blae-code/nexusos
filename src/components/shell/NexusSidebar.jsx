@@ -3,17 +3,18 @@ import { Link } from 'react-router-dom';
 import {
   Factory, Map, Crosshair, Wrench, Calculator,
   Coins, ShieldAlert, Users, BookOpen,
-  Settings, ClipboardList
+  Settings, ClipboardList, Archive
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { icon: Factory,       label: 'Industry Hub',   path: '/app/industry',    badge: null },
-  { icon: Map,           label: 'Scout Intel',     path: '/app/scout',       badge: null },
-  { icon: Crosshair,     label: 'Op Board',        path: '/app/ops',         badge: null },
-  { icon: Wrench,        label: 'Fleet Forge',     path: '/app/fleet',       badge: null },
-  { icon: Calculator,    label: 'Profit Calc',     path: '/app/profit',      badge: null },
+  { icon: Factory,       label: 'Industry Hub',     path: '/app/industry',    badge: null },
+  { icon: Archive,       label: 'Material Ledger',  path: '/app/ledger',      badge: null },
+  { icon: Map,           label: 'Scout Intel',       path: '/app/scout',       badge: null },
+  { icon: Crosshair,     label: 'Op Board',          path: '/app/ops',         badge: null },
+  { icon: Wrench,        label: 'Fleet Forge',       path: '/app/fleet',       badge: null },
+  { icon: Calculator,    label: 'Profit Calc',       path: '/app/profit',      badge: null },
   null, // divider
-  { icon: Coins,         label: 'Coffer',          path: '/app/coffer',      badge: null },
+  { icon: Coins,         label: 'Coffer',            path: '/app/coffer',      badge: null },
   { icon: ShieldAlert,   label: 'Rescue',          path: '/app/rescue',      badge: null },
   { icon: Users,         label: 'Roster',          path: '/app/roster',      badge: null },
   { icon: BookOpen,      label: 'Epic Archive',    path: '/app/archive',     badge: null },
