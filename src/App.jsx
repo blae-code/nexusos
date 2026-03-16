@@ -21,6 +21,7 @@ import EpicArchive from '@/pages/EpicArchive';
 import NexusSettings from '@/pages/NexusSettings';
 import KeyManagement from '@/pages/KeyManagement';
 import NexusTodo from '@/pages/NexusTodo';
+import MaterialLedger from '@/pages/MaterialLedger';
 
 
 function App() {

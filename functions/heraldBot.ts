@@ -540,6 +540,32 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
+    // ── Low Stock Alert ───────────────────────────────────────────────────────
+    if (action === 'lowStockAlert') {
+      const { material, current_scu, min_scu, current_quality, min_quality, status, critical, callsign } = payload;
+      const isCritical = critical && (status === 'CRITICAL' || status === 'MISSING');
+      const color = isCritical ? 0xe04848 : status === 'LOW' ? 0xe8a020 : 0x4a8fd0;
+
+      await discordPost(`/channels/${CH.nexusLog || CH.nexusOps}/messages`, {
+        content: isCritical ? `@here ⚠️ **CRITICAL STOCK ALERT**` : null,
+        embeds: [{
+          title: `📦 Low Stock — ${material}`,
+          color,
+          fields: [
+            { name: 'Status',     value: status, inline: true },
+            { name: 'Have',       value: `${current_scu.toFixed(1)} SCU`, inline: true },
+            { name: 'Need',       value: `${min_scu} SCU`, inline: true },
+            { name: 'Quality',    value: `${current_quality.toFixed(0)}% / ${min_quality}% min`, inline: true },
+            { name: 'Reported By', value: callsign || '—', inline: true },
+          ],
+          footer: { text: 'NEXUSOS · MATERIAL LEDGER' },
+          timestamp: new Date().toISOString(),
+        }],
+      });
+
+      return Response.json({ success: true });
+    }
+
     return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
 
   } catch (error) {
