@@ -92,9 +92,7 @@ export default function NexusSettings() {
           </div>
         </div>
 
-        <Row label="Discord ID" description="Linked Discord account used for role verification">
-          <span style={{ color: 'var(--t1)', fontSize: 11, fontFamily: 'inherit' }}>{user?.discordId || '—'}</span>
-        </Row>
+
 
         <div>
           <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 8 }}>Callsign</div>
