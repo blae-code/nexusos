@@ -52,16 +52,17 @@ export default function CraftQueueTabV2({ craftQueue, callsign, onRefresh }) {
     return (
       <div key={status} style={{ marginBottom: 20 }}>
         <div style={{
-          color: STATUS_COLOURS[status],
-          fontSize: 10,
-          letterSpacing: '0.12em',
-          marginBottom: 10,
-          fontWeight: 500,
+          color: 'var(--t2)',
+          fontSize: 9,
+          letterSpacing: '0.15em',
           textTransform: 'uppercase',
+          paddingBottom: 8,
+          borderBottom: '0.5px solid var(--b1)',
+          marginBottom: 8,
         }}>
           {status} ({count})
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {grouped[status].map(item => (
             <div
               key={item.id}
