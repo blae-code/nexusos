@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Archive } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Plus, Archive, Layers } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 const TYPE_BADGES = {
   RAW:     { color: 'var(--warn)',  label: 'RAW' },
