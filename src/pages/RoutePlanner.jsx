@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { MapPin, Plus, X, TrendingUp, Fuel, Clock, Package } from 'lucide-react';
+import ProfitableRoutes from './components/ProfitableRoutes';
+import CommodityDemandChart from './components/CommodityDemandChart';
 
 const STATIONS = [
   'New Babbage',
@@ -266,8 +268,16 @@ export default function RoutePlanner() {
 
       {/* Results */}
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        {route ? (
-          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Demand & Routes Visualizations */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <CommodityDemandChart />
+            <ProfitableRoutes />
+          </div>
+
+          {/* Route Results */}
+          {route ? (
+          <div>
             {/* Summary Cards */}
             <div
               style={{
@@ -382,12 +392,13 @@ export default function RoutePlanner() {
               </div>
             </div>
           </div>
-        ) : (
-          <div style={{ textAlign: 'center', color: 'var(--t2)', paddingTop: 60 }}>
-            <MapPin size={32} style={{ marginBottom: 16, opacity: 0.3 }} />
-            <div>Select stations and calculate a route to see profit projections</div>
-          </div>
-        )}
+          ) : (
+            <div style={{ textAlign: 'center', color: 'var(--t2)', paddingTop: 40 }}>
+              <MapPin size={28} style={{ marginBottom: 12, opacity: 0.3 }} />
+              <div>Select stations and calculate a route to see profit projections</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
