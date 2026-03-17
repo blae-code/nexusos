@@ -133,3 +133,11 @@ export function MoreIcon({ size = 16 }) {
   );
 }
 
+export function PricesIcon({ size = 16 }) {
+  return (
+    <svg {...iconProps(size)}>
+      <path d="M3.5 11.5L5 8L7.5 6L10 8L12.5 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 14H14" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    </svg>
+  );
+}

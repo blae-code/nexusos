@@ -8,6 +8,7 @@ import {
   OpBoardIcon,
   ScoutIcon,
   SettingsIcon,
+  PricesIcon,
 } from './NexusIcons';
 import { Archive, Coins, Truck } from 'lucide-react';
 
@@ -20,6 +21,7 @@ const NAV_GROUPS = [
   [
     { icon: IndustryIcon, label: 'INDUSTRY', path: '/app/industry', badge: 'craft' },
     { icon: FleetIcon, label: 'ARMORY', path: '/app/armory' },
+    { icon: PricesIcon, label: 'PRICES', path: '/app/prices' },
     { icon: Coins, label: 'COMMERCE', path: '/app/commerce' },
     { icon: Truck, label: 'LOGISTICS', path: '/app/logistics' },
   ],
