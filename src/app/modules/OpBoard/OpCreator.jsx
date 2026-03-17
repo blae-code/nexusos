@@ -141,12 +141,18 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
   // ── Publish / draft ────────────────────────────────
 
   const submit = async (publish) => {
-    if (!form.name.trim())  { setError('OP NAME IS REQUIRED'); return; }
-    if (!form.type)         { setError('OP TYPE IS REQUIRED'); return; }
-    if (!form.scheduled_at) { setError('SCHEDULED TIME IS REQUIRED'); return; }
+    const errors = getValidationErrors();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    if (!form.name.trim()) {
+      setValidationErrors(e => ({ ...e, name: 'OP NAME IS REQUIRED' }));
+      return;
+    }
 
     setSaving(true);
-    setError('');
 
     try {
       const payload = {
