@@ -217,7 +217,8 @@ export default function NexusShell() {
   }
 
   const isAdmin = source === 'admin';
-  const isElevated = isAdmin || ['PIONEER', 'FOUNDER'].includes(user?.rank);
+  const isPreview = source === 'preview';
+  const isElevated = isAdmin || isPreview || ['PIONEER', 'FOUNDER'].includes(user?.rank);
   if (location.pathname.startsWith('/app/admin') && !isElevated) {
     return <Navigate to="/app/industry" replace />;
   }
@@ -254,6 +255,26 @@ export default function NexusShell() {
               SIMULATION ENVIRONMENT · SYNTHETIC DATA · ALL CHANGES RESET ON TAB CLOSE
             </span>
             <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
+          </div>
+        ) : null}
+        {isPreview ? (
+          <div
+            style={{
+              height: 22,
+              background: 'rgba(210, 180, 0, 0.08)',
+              borderBottom: '0.5px solid rgba(210, 180, 0, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgb(210, 180, 0)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
+            <span style={{ fontSize: 9, color: 'rgb(210, 180, 0)', letterSpacing: '0.18em', userSelect: 'none' }}>
+              PREVIEW MODE — AUTH BYPASSED · MOCK PIONEER USER
+            </span>
+            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgb(210, 180, 0)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
           </div>
         ) : null}
         <NexusTopbar
