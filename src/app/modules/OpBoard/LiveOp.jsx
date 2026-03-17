@@ -301,7 +301,6 @@ export default function LiveOp() {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', color: 'var(--t2)', fontSize: 10 }}>
           <span>{[op.type, op.system_name || op.system, op.location].filter(Boolean).join(' · ')}</span>
-          <span><ElapsedTimer startedAt={op.started_at} /></span>
           <span>{phaseLabel}</span>
         </div>
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
@@ -321,20 +320,6 @@ export default function LiveOp() {
           <HeroStat label="STATUS" value={isLive ? 'LIVE' : op.status} />
         </div>
         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-          <button
-            onClick={() => setLayoutMode?.('ALT-TAB')}
-            className="nexus-btn"
-            style={{ padding: '5px 10px', fontSize: 9, background: layoutMode === 'ALT-TAB' ? 'var(--bg4)' : 'var(--bg2)', borderColor: layoutMode === 'ALT-TAB' ? 'var(--b3)' : 'var(--b1)' }}
-          >
-            ALT-TAB
-          </button>
-          <button
-            onClick={() => setLayoutMode?.('2ND MONITOR')}
-            className="nexus-btn"
-            style={{ padding: '5px 10px', fontSize: 9, background: layoutMode === '2ND MONITOR' ? 'var(--bg4)' : 'var(--bg2)', borderColor: layoutMode === '2ND MONITOR' ? 'var(--b3)' : 'var(--b1)' }}
-          >
-            2ND MONITOR
-          </button>
           {canPublish ? (
             <button onClick={handlePublish} disabled={publishing} className="nexus-btn" style={{ padding: '5px 12px', fontSize: 10 }}>
               <Upload size={10} />
