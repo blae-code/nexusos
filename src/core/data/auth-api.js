@@ -1,20 +1,12 @@
-import { getAppBasePath } from '@/core/data/app-base-path';
-import { buildBase44Url, getBase44Headers } from '@/core/data/base44-host';
 import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/core/data/dev';
 
-const AUTH_BASE = '/functions/auth';
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
+const DISCORD_CLIENT_ID = '1483421250301989057';
+const DISCORD_REDIRECT_URI = 'https://nomadnexus.space/functions/auth/discord/callback';
 
-function buildUrl(path, searchParams) {
-  const url = buildBase44Url(`${AUTH_BASE}/${path}`);
-  if (searchParams) {
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value != null && value !== '') {
-        url.searchParams.set(key, value);
-      }
-    });
-  }
-  return url;
+function buildFunctionUrl(functionPath) {
+  const base = 'https://nexus-nomad-core.base44.app/api/functions';
+  return `${base}/${functionPath}`;
 }
 
 async function parseJson(response) {
