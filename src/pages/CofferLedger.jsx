@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Plus, TrendingUp, TrendingDown, Coins } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Coins, BookOpen } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 const ENTRY_PILL = {
   SALE:       { color: 'var(--live)',   bg: 'rgba(39,201,106,0.10)' },
