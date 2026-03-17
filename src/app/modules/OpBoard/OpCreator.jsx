@@ -153,7 +153,14 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         }).catch(e => console.warn('[OpCreator] heraldBot publishOp failed:', e.message));
       }
 
-      navigate(`/app/ops/${op.id}`);
+      // Show success flash on publish, then navigate to op detail
+      if (publish) {
+        setShowSuccessFlash(true);
+        setTimeout(() => navigate(`/app/ops/${op.id}`), 800);
+      } else {
+        // Direct navigation on draft save
+        navigate('/app/ops');
+      }
     } catch {
       setError('Failed to save op. Please try again.');
     }
