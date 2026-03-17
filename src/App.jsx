@@ -26,6 +26,7 @@ import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
 import AdminSettings from '@/pages/AdminSettings';
+import CommodityPriceDashboard from '@/pages/CommodityPriceDashboard';
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
               <Route path="ledger" element={<MaterialLedger />} />
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="armory" element={<Armory />} />
+              <Route path="prices" element={<CommodityPriceDashboard />} />
               <Route path="admin/settings" element={<AdminSettings />} />
             </Route>
 
