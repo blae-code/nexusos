@@ -230,7 +230,7 @@ body {
 .nexus-input::placeholder { color: var(--t2); }
 .nexus-input:focus {
   border-color: var(--acc);
-  box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.15);
 }
 
 select {
@@ -253,7 +253,7 @@ select {
 }
 select:focus {
   border-color: var(--acc);
-  box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.15);
 }
 
 .nexus-input.error,
@@ -264,7 +264,7 @@ select.error {
 .nexus-input.error:focus,
 select.error:focus {
   border-color: var(--warn);
-  box-shadow: 0 0 0 3px rgba(var(--warn-rgb), 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--warn-rgb), 0.15);
 }
 
 .nexus-error-message {
