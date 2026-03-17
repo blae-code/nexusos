@@ -154,7 +154,15 @@ export default function CofferLedger() {
               </tr>
             ))}
             {entries.length === 0 && (
-              <tr><td colSpan={7} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>No entries yet. Log your first sale or expense.</td></tr>
+              <tr>
+                <td colSpan={7} style={{ padding: 0 }}>
+                  <EmptyState
+                    icon={BookOpen}
+                    title="No transactions yet"
+                    detail="Coffer entries will appear here after ops are settled."
+                  />
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
