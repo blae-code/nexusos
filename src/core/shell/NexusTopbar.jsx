@@ -166,8 +166,8 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
       <header
         style={{
           height: 'var(--topbar-h)',
-          background: 'var(--bg0)',
-          borderBottom: '0.5px solid var(--b1)',
+          background: '#0A0908',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -195,12 +195,12 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, fontFamily: 'monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            <span style={{ color: 'var(--t2)', whiteSpace: 'nowrap' }}>{breadcrumb.module}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <span style={{ color: '#C8A84B', whiteSpace: 'nowrap', fontWeight: 600 }}>{breadcrumb.module}</span>
             {breadcrumb.tab && (
               <>
-                <span style={{ color: 'var(--t2)' }}>/</span>
-                <span style={{ color: 'var(--t0)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ color: '#9A9488' }}>/</span>
+                <span style={{ color: '#E8E4DC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {breadcrumb.tab}
                 </span>
               </>
@@ -300,8 +300,8 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 alignItems: 'center',
                 gap: 6,
                 padding: '4px 10px',
-                background: userMenuOpen ? 'var(--bg3)' : 'var(--bg2)',
-                border: `0.5px solid ${userMenuOpen ? 'var(--b2)' : 'var(--b1)'}`,
+                background: userMenuOpen ? '#141410' : '#0F0F0D',
+                border: `0.5px solid ${userMenuOpen ? '#C0392B' : 'rgba(200,170,100,0.15)'}`,
                 borderRadius: 6,
                 cursor: 'pointer',
                 transition: 'background 150ms ease, border-color 150ms ease',
@@ -312,10 +312,10 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 size={16}
               />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-                <span style={{ fontSize: 11, color: 'var(--t0)', lineHeight: 1, fontFamily: 'inherit' }}>
+                <span style={{ fontSize: 11, color: '#E8E4DC', lineHeight: 1, fontFamily: 'inherit' }}>
                   {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
                 </span>
-                <span style={{ fontSize: 9, color: 'var(--t3)', lineHeight: 1, letterSpacing: '0.08em' }}>
+                <span style={{ fontSize: 9, color: '#9A9488', lineHeight: 1, letterSpacing: '0.08em' }}>
                   {source === 'admin' ? 'SUDO' : (user?.rank || 'AFFILIATE')}
                 </span>
               </div>
