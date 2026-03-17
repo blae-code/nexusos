@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSession } from '@/lib/SessionContext';
 import { useVerseStatus } from '@/lib/useVerseStatus';
