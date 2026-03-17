@@ -52,10 +52,9 @@ function App() {
               <Route path="settings" element={<NexusSettings />} />
               <Route path="profile" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
-              <Route path="admin/keys" element={<KeyManagement />} />
               <Route path="ledger" element={<MaterialLedger />} />
               <Route path="handbook" element={<RedscarHandbook />} />
-              <Route path="armory" element={<Armory />} />
+              <Route path="armory" element={<ComingSoon />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
