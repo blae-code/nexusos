@@ -127,49 +127,56 @@ function Step1Welcome({ callsign, onContinue }) {
 
 function Step2HowItWorks({ onContinue }) {
   const bullets = [
-    'Coordinates ops and tracks org resources like blueprints, materials, and inventory.',
-    "Does not read Discord messages or act on your behalf — it's a separate system.",
-    'All data is private to Redscar Nomads and never shared with external parties.',
+    'Coordinates ops and tracks org resources across Industry, Scout Intel, and the Op Board.',
+    'Does not read your Discord messages or act on your behalf in any way.',
+    'All data is private to Redscar Nomads and is never shared outside the org.',
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ fontSize: 14, color: 'var(--t1)', lineHeight: 1.8 }}>
-        <div style={{ marginBottom: 20, color: 'var(--t0)', fontWeight: 500 }}>What NexusOS Does</div>
-        <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 24,
+        animation: 'onboarding-fade-in 200ms ease-out both',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 480, margin: '0 auto' }}>
+        <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
+          How It Works
+        </div>
+        <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {bullets.map((bullet, i) => (
             <li
               key={i}
               style={{
                 display: 'flex',
                 gap: 12,
-                marginBottom: 12,
                 alignItems: 'flex-start',
               }}
             >
               <div
                 style={{
-                  width: 4,
-                  height: 4,
+                  width: 6,
+                  height: 6,
                   borderRadius: '50%',
                   background: 'var(--acc)',
-                  marginTop: 6,
+                  marginTop: 5,
                   flexShrink: 0,
                 }}
               />
-              <span>{bullet}</span>
+              <span style={{ fontSize: 12, color: 'var(--t1)', lineHeight: 1.6, maxWidth: 360, fontFamily: 'inherit' }}>
+                {bullet}
+              </span>
             </li>
           ))}
         </ul>
       </div>
       <button
         onClick={onContinue}
+        className="nexus-btn primary"
         style={{
           padding: '10px 24px',
-          background: 'var(--bg3)',
-          border: '0.5px solid var(--b2)',
-          borderRadius: 6,
-          color: 'var(--t0)',
           fontSize: 11,
           letterSpacing: '0.12em',
           fontWeight: 500,
