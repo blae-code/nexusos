@@ -110,42 +110,45 @@ export default function ScoutIntel() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)', flexShrink: 0 }}>
-        <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-          Intel
-        </span>
-      </div>
-      {/* Left: map + toolbar */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 12 }}>
-        {/* Top action row — Log Deposit button sits top-right of map area */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <button
-            onClick={() => setPanelMode(panelMode === 'log' ? 'default' : 'log')}
-            className="nexus-btn primary"
-            style={{
-              padding: '5px 12px', fontSize: 10, letterSpacing: '0.07em',
-              background: panelMode === 'log' ? 'rgba(var(--live-rgb), 0.08)' : undefined,
-              borderColor: panelMode === 'log' ? 'rgba(var(--live-rgb), 0.3)' : undefined,
-              color: panelMode === 'log' ? 'var(--live)' : undefined,
-            }}
-          >
-            <Plus size={11} />
-            {panelMode === 'log' ? 'CANCEL LOG' : '+ LOG DEPOSIT'}
-          </button>
+    <div className="nexus-page-enter" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)', flexShrink: 0 }}>
+          <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+            Intel
+          </span>
         </div>
+        {/* Map area with action button */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 12 }}>
+          {/* Top action row — Log Deposit button sits top-right of map area */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <button
+              onClick={() => setPanelMode(panelMode === 'log' ? 'default' : 'log')}
+              className="nexus-btn primary"
+              style={{
+                padding: '5px 12px', fontSize: 10, letterSpacing: '0.07em',
+                background: panelMode === 'log' ? 'rgba(var(--live-rgb), 0.08)' : undefined,
+                borderColor: panelMode === 'log' ? 'rgba(var(--live-rgb), 0.3)' : undefined,
+                color: panelMode === 'log' ? 'var(--live)' : undefined,
+              }}
+            >
+              <Plus size={11} />
+              {panelMode === 'log' ? 'CANCEL LOG' : '+ LOG DEPOSIT'}
+            </button>
+          </div>
 
-        {/* Map (includes toolbar) */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          <SystemMap
-            deposits={deposits}
-            blueprints={blueprints}
-            liveOp={liveOp}
-            filterState={filterState}
-            onFilterChange={handleFilterChange}
-            onSelectDeposit={handleSelectDeposit}
-            selectedDepositId={selectedDeposit?.id}
-          />
+          {/* Map (includes toolbar) */}
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            <SystemMap
+              deposits={deposits}
+              blueprints={blueprints}
+              liveOp={liveOp}
+              filterState={filterState}
+              onFilterChange={handleFilterChange}
+              onSelectDeposit={handleSelectDeposit}
+              selectedDepositId={selectedDeposit?.id}
+            />
+          </div>
         </div>
       </div>
 
