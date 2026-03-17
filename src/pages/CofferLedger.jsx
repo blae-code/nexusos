@@ -5,11 +5,11 @@ import { Plus, TrendingUp, TrendingDown, Coins, BookOpen } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
 
 const ENTRY_PILL = {
-  SALE:       { color: 'var(--live)',   bg: 'rgba(39,201,106,0.10)' },
-  CRAFT_SALE: { color: 'var(--live)',   bg: 'rgba(39,201,106,0.10)' },
-  OP_SPLIT:   { color: 'var(--acc)',    bg: 'rgba(74,143,208,0.10)' },
-  EXPENSE:    { color: 'var(--danger)', bg: 'rgba(224,72,72,0.10)'  },
-  DEPOSIT:    { color: 'var(--warn)',   bg: 'rgba(232,160,32,0.10)' },
+  SALE:       { color: 'var(--live)',   bg: 'rgba(var(--live-rgb), 0.1)' },
+  CRAFT_SALE: { color: 'var(--live)',   bg: 'rgba(var(--live-rgb), 0.1)' },
+  OP_SPLIT:   { color: 'var(--acc)',    bg: 'rgba(var(--acc-rgb), 0.1)' },
+  EXPENSE:    { color: 'var(--danger)', bg: 'rgba(var(--danger-rgb), 0.1)' },
+  DEPOSIT:    { color: 'var(--warn)',   bg: 'rgba(var(--warn-rgb), 0.1)' },
 };
 
 function LogEntryForm({ onSubmit, onCancel }) {
