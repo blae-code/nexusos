@@ -14,6 +14,7 @@ const TABS = [
   { id: 'blueprints', label: 'BLUEPRINTS' },
   { id: 'craft', label: 'CRAFT QUEUE' },
   { id: 'refinery', label: 'REFINERY' },
+  { id: 'prices', label: 'PRICE TRACKER' },
 ];
 
 function RefineryTab({ refineryOrders, materials, callsign }) {
