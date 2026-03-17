@@ -4,6 +4,7 @@ import { ChevronLeft, Play, Square, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import CrewGrid from './CrewGrid';
 import LootTally from './LootTally';
+import OpRsvpSection from './OpRsvpSection';
 import PhaseTracker from './PhaseTracker';
 import ReadinessGate from './ReadinessGate';
 import SessionLog from './SessionLog';
