@@ -253,6 +253,7 @@ export default function IndustryHub() {
             {item.label}
           </button>
         ))}
+        </div>
       </div>
 
       <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
