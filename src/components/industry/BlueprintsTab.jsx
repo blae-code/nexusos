@@ -212,8 +212,12 @@ export default function BlueprintsTab({ blueprints, materials, onRefresh }) {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={9} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)' }}>
-                  No blueprints found.
+                <td colSpan={9} style={{ padding: 0 }}>
+                  <EmptyState
+                    icon={FileText}
+                    title="No blueprints registered"
+                    detail="Add blueprints to track org crafting coverage."
+                  />
                 </td>
               </tr>
             )}
