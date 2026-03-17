@@ -8,13 +8,15 @@ import { useVerseStatus } from '@/core/data/useVerseStatus';
 
 const COLORS = {
   void: '#08080A',
+  voidFooter: '#0A0908',
   panel: '#0F0F0D',
   accentRed: '#C8391A',
   accentAmber: '#C47A1A',
   textPrimary: '#E8E4DC',
   textSecondary: '#8A8478',
-  borderDefault: 'rgba(200, 170, 100, 0.10)',
-  borderAccent: 'rgba(200, 170, 100, 0.15)',
+  borderDefault: 'rgba(200, 170, 100, 0.08)',
+  borderAccent: 'rgba(200, 170, 100, 0.12)',
+  borderTop: 'rgba(200, 170, 100, 0.12)',
 };
 
 function buildStars() {
@@ -58,15 +60,15 @@ function StatusBar() {
         position: 'fixed',
         bottom: 0,
         left: 0,
-        right: 0,
+        width: '100%',
         height: 32,
-        background: COLORS.void,
-        borderTop: `0.5px solid ${COLORS.borderAccent}`,
+        background: COLORS.voidFooter,
+        borderTop: `0.5px solid ${COLORS.borderTop}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
-        zIndex: 10,
+        zIndex: 100,
         fontFamily: "'Barlow Condensed', sans-serif",
       }}
     >
@@ -226,13 +228,8 @@ export default function AccessGate() {
           <div
             style={{
               position: 'absolute',
-              bottom: '-30%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '80%',
-              height: '150%',
-              borderRadius: '50%',
-              background: 'radial-gradient(ellipse at center, rgba(180, 90, 20, 0.12) 0%, transparent 70%)',
+              inset: 0,
+              background: 'radial-gradient(ellipse at 50% 85%, rgba(180, 90, 20, 0.14) 0%, transparent 60%)',
               pointerEvents: 'none',
             }}
           />
@@ -241,16 +238,18 @@ export default function AccessGate() {
         {/* Left-anchored terminal panel */}
         <div
           style={{
-            position: 'relative',
-            zIndex: 1,
+            position: 'absolute',
+            left: '10vw',
+            top: '50%',
+            transform: 'translateY(-50%)',
             width: 400,
-            marginLeft: '10vw',
+            zIndex: 1,
             background: COLORS.panel,
             borderLeft: `2px solid ${COLORS.accentRed}`,
-            borderTop: `0.5px solid ${COLORS.borderAccent}`,
+            borderTop: `0.5px solid ${COLORS.borderTop}`,
             borderRight: `0.5px solid ${COLORS.borderDefault}`,
             borderBottom: `0.5px solid ${COLORS.borderDefault}`,
-            borderRadius: 2,
+            borderRadius: 0,
             padding: 40,
             display: 'flex',
             flexDirection: 'column',
@@ -264,8 +263,8 @@ export default function AccessGate() {
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: COLORS.accentRed, marginBottom: 12 }} />
+          {/* Red divider rule */}
+          <div style={{ height: 1, background: COLORS.accentRed, width: '100%', marginBottom: 12 }} />
 
           {/* Label */}
           <div
@@ -339,7 +338,7 @@ export default function AccessGate() {
                   }}
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
+                    padding: '14px 24px',
                     background: COLORS.accentRed,
                     border: 'none',
                     borderRadius: 2,
@@ -347,8 +346,8 @@ export default function AccessGate() {
                     color: COLORS.textPrimary,
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontWeight: 600,
-                    fontSize: 13,
-                    letterSpacing: '0.1em',
+                    fontSize: 14,
+                    letterSpacing: '0.15em',
                     textTransform: 'uppercase',
                     transition: 'background 0.2s',
                   }}
@@ -367,7 +366,7 @@ export default function AccessGate() {
               style={{
                 width: '100%',
                 padding: '14px 24px',
-                background: !health?.oauth_ready || healthLoading ? COLORS.textSecondary : COLORS.accentRed,
+                background: COLORS.accentRed,
                 border: 'none',
                 borderRadius: 2,
                 cursor: health?.oauth_ready && !launching && !healthLoading ? 'pointer' : 'not-allowed',
@@ -378,8 +377,8 @@ export default function AccessGate() {
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
                 transition: 'background 0.2s',
-                opacity: health?.oauth_ready ? 1 : 0.6,
                 marginBottom: 20,
+                opacity: health?.oauth_ready && !launching && !healthLoading ? 1 : 0.5,
               }}
               onMouseEnter={(e) => {
                 if (health?.oauth_ready && !launching && !healthLoading) {
