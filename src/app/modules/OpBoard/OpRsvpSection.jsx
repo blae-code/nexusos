@@ -222,6 +222,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
 
                 {/* Filled/Total count */}
                 <div
+                  className={popSlot === slot.name ? 'number-pop' : ''}
                   style={{
                     fontSize: 9,
                     color: 'var(--t3)',
