@@ -108,9 +108,8 @@ export default function AccessGate() {
     }
 
     setLaunching(true);
-    const redirectTo = searchParams.get('redirect_to') || '/app/industry';
     try {
-      const url = authApi.getDiscordStartUrl(redirectTo);
+      const url = authApi.getDiscordOAuthUrl('/app/industry');
       window.location.href = url;
     } catch (error) {
       console.error('[AccessGate] Discord redirect failed:', error);
