@@ -40,7 +40,7 @@ export default function EditRow({ material, onSave, onCancel }) {
   };
 
   return (
-    <tr style={{ background: 'rgba(90,96,128,0.08)', borderBottom: '0.5px solid var(--b1)' }}>
+    <tr style={{ background: 'rgba(104,120,192,0.1)', borderBottom: '0.5px solid var(--b1)' }}>
       {/* icon */}
       <td style={TD}>
         <NexusToken src={materialToken(matCategory(type), 'neutral')} size={24} alt={type} />

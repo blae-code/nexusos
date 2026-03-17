@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { IS_DEV_MODE } from '@/lib/dev';
 import { getActiveRescueCount, loadRescueCalls, refreshRescueCalls, subscribeToRescueCalls } from '@/lib/rescue-board-store';
 import {
   BlueprintIcon,
@@ -128,6 +129,7 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
         flexShrink: 0,
       }}
     >
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
       {navItems.map((item, index) => {
         if (item === null) {
           return (
@@ -171,13 +173,12 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
               justifyContent: 'center',
               transition: 'background 150ms ease, border-left-color 150ms ease, color 150ms ease',
               position: 'relative',
-              background: isActive ? 'rgba(var(--acc-rgb, 90,96,208), 0.08)' : 'transparent',
-              color: isActive ? 'var(--acc)' : 'var(--t3)',
+              background: isActive ? 'rgba(104,120,192,0.12)' : 'transparent',
+              color: isActive ? 'var(--acc)' : 'var(--t2)',
             }}
             onMouseEnter={(event) => {
               if (!isActive) {
-                event.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                event.currentTarget.style.color = 'var(--t1)';
+                event.currentTarget.style.background = 'rgba(104,120,192,0.07)';
               }
             }}
             onMouseLeave={(event) => {
@@ -205,6 +206,26 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
           </Link>
         );
       })}
+      </div>
+
+      {IS_DEV_MODE ? (
+        <div
+          style={{
+            width: '100%',
+            borderTop: '0.5px solid rgba(240,168,36,0.18)',
+            paddingTop: 8,
+            paddingBottom: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 3,
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
+          <span style={{ fontSize: 8, color: 'rgba(240,168,36,0.6)', letterSpacing: '0.18em', userSelect: 'none' }}>SIM</span>
+        </div>
+      ) : null}
     </nav>
   );
 }

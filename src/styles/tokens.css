@@ -1,43 +1,43 @@
 :root {
   /* ── Backgrounds ─────────────────────────────────── */
-  --bg0: #07080b;
-  --bg1: #0c0e13;
-  --bg2: #10121a;
-  --bg3: #161921;
-  --bg4: #1c1f2a;
-  --bg5: #222535;
+  --bg0: #080a12;
+  --bg1: #0c1020;
+  --bg2: #111528;
+  --bg3: #171c34;
+  --bg4: #1e2440;
+  --bg5: #252c50;
 
   /* ── Borders ─────────────────────────────────────── */
-  --b0: #161820;
-  --b1: #1e2130;
-  --b2: #272b3c;
-  --b3: #323648;
+  --b0: #1a1f34;
+  --b1: #242a4a;
+  --b2: #303860;
+  --b3: #3e4572;
 
   /* ── Text ────────────────────────────────────────── */
-  --t0: #dde1f0;
-  --t1: #8890a8;
-  --t2: #4a5068;
-  --t3: #2a2e40;
+  --t0: #eaedff;
+  --t1: #aab4d8;
+  --t2: #6870a4;
+  --t3: #3e456a;
 
   /* ── Accent ──────────────────────────────────────── */
-  --acc:  #5a6080;
-  --acc2: #7a8098;
+  --acc:  #6878c0;
+  --acc2: #8898d8;
 
   /* ── Status (semantic only — never decorative) ───── */
-  --live:   #27c96a;
-  --warn:   #e8a020;
-  --danger: #e04848;
-  --info:   #4a8fd0;
+  --live:   #2edb7a;
+  --warn:   #f0aa24;
+  --danger: #e85252;
+  --info:   #5aa2e8;
 
   /* ── Status backgrounds (for status-bearing cards) ── */
-  --live-bg:   #081510;
-  --live-b:    #1a4428;
-  --warn-bg:   #140e00;
-  --warn-b:    #3a2800;
-  --danger-bg: #1a0808;
-  --danger-b:  #3a1414;
-  --info-bg:   #0a1220;
-  --info-b:    #1a3050;
+  --live-bg:   #071612;
+  --live-b:    #1a4c30;
+  --warn-bg:   #150f00;
+  --warn-b:    #3e2c00;
+  --danger-bg: #1c0808;
+  --danger-b:  #401618;
+  --info-bg:   #091228;
+  --info-b:    #1a3660;
 
   /* ── Typography ──────────────────────────────────── */
   --font: 'SF Mono', ui-monospace, 'Cascadia Code',
@@ -98,7 +98,7 @@ body {
   transition: border-color 150ms, transform 150ms;
 }
 .nexus-card-clickable:hover {
-  border-color: rgba(90,96,128,0.3);
+  border-color: rgba(104,120,192,0.4);
   transform: translateY(-2px);
 }
 
@@ -223,7 +223,7 @@ body {
 .nexus-input::placeholder { color: var(--t3); }
 .nexus-input:focus {
   border-color: var(--b3);
-  box-shadow: 0 0 0 3px rgba(90,96,128,0.15);
+  box-shadow: 0 0 0 3px rgba(104,120,192,0.2);
 }
 
 .nexus-tag {

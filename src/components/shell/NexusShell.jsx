@@ -10,6 +10,7 @@ import { useSession } from '@/lib/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/lib/layout-mode';
 import { useVerseStatus } from '@/lib/useVerseStatus';
 import { preloadCriticalTokens } from '@/lib/tokenMap';
+import { IS_DEV_MODE } from '@/lib/dev';
 
 export default function NexusShell() {
   const location = useLocation();
@@ -235,6 +236,26 @@ export default function NexusShell() {
   return (
     <div style={{ height: '100vh', background: 'var(--bg0)', padding: 5 }}>
       <div className="nexus-shell-frame">
+        {IS_DEV_MODE ? (
+          <div
+            style={{
+              height: 22,
+              background: 'rgba(240,168,36,0.07)',
+              borderBottom: '0.5px solid rgba(240,168,36,0.22)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
+            <span style={{ fontSize: 9, color: 'var(--warn)', letterSpacing: '0.18em', userSelect: 'none' }}>
+              SIMULATION ENVIRONMENT · SYNTHETIC DATA · ALL CHANGES RESET ON TAB CLOSE
+            </span>
+            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
+          </div>
+        ) : null}
         <NexusTopbar
           layoutMode={layoutMode}
           onSelectLayout={updateLayoutMode}
@@ -242,7 +263,29 @@ export default function NexusShell() {
         />
         <div className="nexus-shell-body">
           <NexusSidebar currentPath={location.pathname} currentSearch={location.search} rank={outletContext.rank} />
-          <main className="nexus-shell-content nexus-fade-in">
+          <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative' }}>
+            {IS_DEV_MODE ? (
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'fixed',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%) rotate(-25deg)',
+                  fontSize: 110,
+                  fontWeight: 700,
+                  color: 'rgba(240,168,36,0.028)',
+                  letterSpacing: '0.45em',
+                  pointerEvents: 'none',
+                  whiteSpace: 'nowrap',
+                  userSelect: 'none',
+                  zIndex: 0,
+                  fontFamily: 'var(--font)',
+                }}
+              >
+                SIMULATION
+              </div>
+            ) : null}
             <Outlet context={outletContext} />
           </main>
         </div>

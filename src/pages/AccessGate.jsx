@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useSession } from '@/lib/SessionContext';
 import { useVerseStatus } from '@/lib/useVerseStatus';
-
-// ── Star field ────────────────────────────────────────────────────────────────
+import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/lib/dev';
 
 const STAR_SIZES = [
   ...Array(48).fill(1),
@@ -86,7 +85,7 @@ function LoadingDots() {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AccessGate() {
-  const { isAuthenticated, loading, user } = useSession();
+  const { isAuthenticated, loading, user, refreshSession } = useSession();
   const { status: verseStatus } = useVerseStatus();
 
   const [authKey, setAuthKey]           = useState('');
@@ -257,7 +256,7 @@ export default function AccessGate() {
             width: 400,
             maxWidth: 'calc(100vw - 32px)',
             background: 'var(--bg1)',
-            border: `0.5px solid rgba(90,96,128,0.15)`,
+            border: `0.5px solid ${IS_DEV_MODE ? 'rgba(240,168,36,0.3)' : 'rgba(90,96,128,0.15)'}`,
             borderRadius: 12,
             padding: '36px 32px 28px',
             display: 'flex',
@@ -290,128 +289,179 @@ export default function AccessGate() {
                 NEXUS OS
               </div>
             </div>
-            {/* Online status dot */}
-            <div style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: 'var(--live)',
-              flexShrink: 0,
-              animation: 'gate-status-pulse 3s ease-in-out infinite',
-              marginTop: 24,
-            }} />
+            {/* Online status dot / SIM indicator */}
+            {IS_DEV_MODE ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, marginTop: 20 }}>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
+                <span style={{ fontSize: 7, color: 'rgba(240,168,36,0.7)', letterSpacing: '0.18em' }}>SIM</span>
+              </div>
+            ) : (
+              <div style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: 'var(--live)',
+                flexShrink: 0,
+                animation: 'gate-status-pulse 3s ease-in-out infinite',
+                marginTop: 24,
+              }} />
+            )}
           </div>
 
           {/* Divider */}
           <div style={{ height: '0.5px', background: 'var(--b1)', margin: '16px 0 24px' }} />
 
-          {/* ── Input section ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            <label style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.15em', marginBottom: 8, display: 'block' }}>
-              AUTHENTICATION KEY
-            </label>
-
-            <div style={{ position: 'relative' }}>
-              <input
-                type={revealing ? 'text' : 'password'}
-                value={authKey}
-                onChange={e => handleKeyChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={authenticating}
-                placeholder="RSN-XXXX-XXXX-XXXX"
-                style={{
-                  width: '100%',
-                  padding: '10px 40px 10px 12px',
-                  background: 'var(--bg2)',
-                  border: `0.5px solid ${authError ? 'var(--warn)' : 'var(--b1)'}`,
-                  borderRadius: 6,
-                  color: 'var(--t0)',
-                  fontSize: 11,
-                  fontFamily: 'monospace',
-                  letterSpacing: '0.08em',
-                  outline: 'none',
-                  transition: 'border-color 0.15s',
-                  boxSizing: 'border-box',
-                  opacity: authenticating ? 0.6 : 1,
-                }}
-              />
-              {/* Hold-to-reveal eye */}
-              <button
-                type="button"
-                onMouseDown={() => setRevealing(true)}
-                onMouseUp={() => setRevealing(false)}
-                onMouseLeave={() => { setRevealing(false); setEyeHover(false); }}
-                onMouseEnter={() => setEyeHover(true)}
-                onTouchStart={() => setRevealing(true)}
-                onTouchEnd={() => setRevealing(false)}
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  userSelect: 'none',
-                }}
-              >
-                <EyeIcon color={eyeHover ? 'var(--t1)' : 'var(--t3)'} />
-              </button>
-            </div>
-
-            {/* Error message */}
-            {authError && (
-              <div className="gate-error-fade" style={{ color: 'var(--warn)', fontSize: 9, marginTop: 7, letterSpacing: '0.04em' }}>
-                {authError}
+          {IS_DEV_MODE ? (
+            /* ── Demo persona picker ── */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <div style={{ fontSize: 9, color: 'var(--t2)', letterSpacing: '0.15em', marginBottom: 4 }}>
+                EXPLORE THE APP
               </div>
-            )}
-
-            {/* Help text */}
-            <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: authError ? 6 : 8, lineHeight: 1.5 }}>
-              Keys are issued by org Pioneers. Contact your recruiter if you have not received one.
+              <div style={{ fontSize: 10, color: 'var(--t3)', marginBottom: 14, lineHeight: 1.5 }}>
+                Launch a demo session as any org rank to explore the full interface.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {DEV_PERSONAS.map(persona => (
+                  <button
+                    key={persona.id}
+                    type="button"
+                    onClick={() => { setDevPersona(persona.id); refreshSession(); }}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      background: 'var(--bg2)',
+                      border: '0.5px solid var(--b1)',
+                      borderRadius: 6,
+                      color: 'var(--t0)',
+                      fontSize: 11,
+                      fontFamily: 'inherit',
+                      letterSpacing: '0.06em',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      transition: 'background 0.12s, border-color 0.12s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg3)'; e.currentTarget.style.borderColor = 'var(--b2)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg2)'; e.currentTarget.style.borderColor = 'var(--b1)'; }}
+                  >
+                    <span>{persona.callsign}</span>
+                    <span style={{ color: 'var(--acc)', fontSize: 9, letterSpacing: '0.1em' }}>{persona.rank}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* ── Key auth ── */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <label style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.15em', marginBottom: 8, display: 'block' }}>
+                AUTHENTICATION KEY
+              </label>
 
-          {/* ── Authenticate button ── */}
-          <button
-            type="button"
-            onClick={handleAuthenticate}
-            disabled={!canSubmit}
-            onMouseEnter={() => setArrowHover(true)}
-            onMouseLeave={() => setArrowHover(false)}
-            style={{
-              marginTop: 20,
-              width: '100%',
-              padding: '11px 16px',
-              background: canSubmit ? 'var(--bg3)' : 'var(--bg2)',
-              border: `0.5px solid ${canSubmit ? 'var(--b2)' : 'var(--b1)'}`,
-              borderRadius: 6,
-              color: canSubmit ? 'var(--t0)' : 'var(--t2)',
-              fontSize: 11,
-              letterSpacing: '0.12em',
-              fontWeight: 500,
-              fontFamily: 'inherit',
-              cursor: canSubmit ? 'pointer' : 'not-allowed',
-              opacity: !authKey ? 0.4 : 1,
-              transition: 'background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
-          >
-            {authenticating ? (
-              <LoadingDots />
-            ) : (
-              <>
-                <span>AUTHENTICATE</span>
-                <span className={`gate-arrow ${arrowHover && canSubmit ? 'gate-arrow-hover' : ''}`}>→</span>
-              </>
-            )}
-          </button>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={revealing ? 'text' : 'password'}
+                  value={authKey}
+                  onChange={e => handleKeyChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={authenticating}
+                  placeholder="RSN-XXXX-XXXX-XXXX"
+                  style={{
+                    width: '100%',
+                    padding: '10px 40px 10px 12px',
+                    background: 'var(--bg2)',
+                    border: `0.5px solid ${authError ? 'var(--warn)' : 'var(--b1)'}`,
+                    borderRadius: 6,
+                    color: 'var(--t0)',
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    letterSpacing: '0.08em',
+                    outline: 'none',
+                    transition: 'border-color 0.15s',
+                    boxSizing: 'border-box',
+                    opacity: authenticating ? 0.6 : 1,
+                  }}
+                />
+                {/* Hold-to-reveal eye */}
+                <button
+                  type="button"
+                  onMouseDown={() => setRevealing(true)}
+                  onMouseUp={() => setRevealing(false)}
+                  onMouseLeave={() => { setRevealing(false); setEyeHover(false); }}
+                  onMouseEnter={() => setEyeHover(true)}
+                  onTouchStart={() => setRevealing(true)}
+                  onTouchEnd={() => setRevealing(false)}
+                  style={{
+                    position: 'absolute',
+                    right: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    userSelect: 'none',
+                  }}
+                >
+                  <EyeIcon color={eyeHover ? 'var(--t1)' : 'var(--t3)'} />
+                </button>
+              </div>
+
+              {/* Error message */}
+              {authError && (
+                <div className="gate-error-fade" style={{ color: 'var(--warn)', fontSize: 9, marginTop: 7, letterSpacing: '0.04em' }}>
+                  {authError}
+                </div>
+              )}
+
+              {/* Help text */}
+              <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: authError ? 6 : 8, lineHeight: 1.5 }}>
+                Keys are issued by org Pioneers. Contact your recruiter if you have not received one.
+              </div>
+            </div>
+          )}
+
+          {/* ── Authenticate button (key auth mode only) ── */}
+          {!IS_DEV_MODE && (
+            <button
+              type="button"
+              onClick={handleAuthenticate}
+              disabled={!canSubmit}
+              onMouseEnter={() => setArrowHover(true)}
+              onMouseLeave={() => setArrowHover(false)}
+              style={{
+                marginTop: 20,
+                width: '100%',
+                padding: '11px 16px',
+                background: canSubmit ? 'var(--bg3)' : 'var(--bg2)',
+                border: `0.5px solid ${canSubmit ? 'var(--b2)' : 'var(--b1)'}`,
+                borderRadius: 6,
+                color: canSubmit ? 'var(--t0)' : 'var(--t2)',
+                fontSize: 11,
+                letterSpacing: '0.12em',
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                cursor: canSubmit ? 'pointer' : 'not-allowed',
+                opacity: !authKey ? 0.4 : 1,
+                transition: 'background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
+            >
+              {authenticating ? (
+                <LoadingDots />
+              ) : (
+                <>
+                  <span>AUTHENTICATE</span>
+                  <span className={`gate-arrow ${arrowHover && canSubmit ? 'gate-arrow-hover' : ''}`}>→</span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* ── Status bar ── */}
           <div style={{ marginTop: 24 }}>

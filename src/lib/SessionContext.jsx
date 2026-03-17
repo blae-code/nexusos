@@ -4,6 +4,7 @@ import { withAppBase } from '@/lib/app-base-path';
 import { getAppParams } from '@/lib/app-params';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/lib/auth-api';
 import { buildBase44Url, getBase44Headers } from '@/lib/base44-host';
+import { IS_DEV_MODE } from '@/lib/dev';
 
 const SessionContext = createContext(null);
 const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
@@ -151,7 +152,7 @@ export function SessionProvider({ children }) {
       console.warn('[SessionProvider] refresh failed:', error);
     }
 
-    if (!nextSession) {
+    if (!nextSession && !IS_DEV_MODE) {
       try {
         const adminUser = await fetchPreviewAdminUser(SESSION_REFRESH_TIMEOUT_MS);
         if (isBase44Admin(adminUser)) {
@@ -165,7 +166,7 @@ export function SessionProvider({ children }) {
       }
     }
 
-    if (!nextSession) {
+    if (!nextSession && !IS_DEV_MODE) {
       try {
         const adminUser = await withTimeout(
           () => base44.auth.me(),

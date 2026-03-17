@@ -11,6 +11,7 @@ import { VERSE_BUILD_LABEL } from '@/lib/useVerseStatus';
 import { AltTabIcon, MoreIcon, SecondMonitorIcon } from './NexusIcons';
 import { StatusPill, VersionPill } from './TopbarPills';
 import { LayoutButton, DropdownContainer, Divider, MenuLink, ChangelogPanel } from './TopbarMenu';
+import { IS_DEV_MODE } from '@/lib/dev';
 
 const RANK_COLOURS = {
   PIONEER: 'var(--warn)',
@@ -216,6 +217,16 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
           <StatusPill verseStatus={verseStatus} />
+          {IS_DEV_MODE ? (
+            <div
+              className="nexus-pill nexus-pill-warn"
+              title="Simulation environment — data is synthetic"
+              style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+            >
+              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
+              SIM
+            </div>
+          ) : null}
           {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
           <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div>
           <VersionPill version={appVersion.version} full={appVersion.full} date={appVersion.date} />

@@ -1,5 +1,6 @@
 import { getAppBasePath } from '@/lib/app-base-path';
 import { buildBase44Url, getBase44Headers } from '@/lib/base44-host';
+import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/lib/dev';
 
 const AUTH_BASE = '/functions/auth';
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
@@ -47,6 +48,10 @@ export const authApi = {
   },
 
   async getHealth({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    if (IS_DEV_MODE) {
+      return { ok: true, status: 200, oauth_ready: true, guild_label: 'REDSCAR NOMADS', support_channel_label: '#nexusos-ops', invite_url: '#' };
+    }
+
     const response = await fetchWithTimeout(buildUrl('health'), {
       method: 'GET',
       credentials: 'include',
@@ -63,6 +68,12 @@ export const authApi = {
   },
 
   async getSession({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    if (IS_DEV_MODE) {
+      const persona = getDevPersona();
+      if (persona) return buildDevSession(persona);
+      return { authenticated: false, status: 401 };
+    }
+
     const response = await fetchWithTimeout(buildUrl('session'), {
       method: 'GET',
       credentials: 'include',
@@ -86,6 +97,11 @@ export const authApi = {
   },
 
   async logout({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    if (IS_DEV_MODE) {
+      clearDevPersona();
+      return { ok: true };
+    }
+
     const response = await fetchWithTimeout(buildUrl('logout'), {
       method: 'POST',
       credentials: 'include',

@@ -1,5 +1,7 @@
 import { createClient } from '@base44/sdk';
 import { getAppParams } from '@/lib/app-params';
+import { IS_DEV_MODE } from '@/lib/dev';
+import { createMockBase44Client } from '@/lib/dev/mockBase44Client';
 
 /** @typedef {ReturnType<typeof createClient>} Base44Client */
 
@@ -8,6 +10,10 @@ let cachedClient = null;
 
 /** @returns {Base44Client} */
 function createBase44Client() {
+  if (IS_DEV_MODE) {
+    return /** @type {Base44Client} */ (createMockBase44Client());
+  }
+
   const { appId, token, functionsVersion, appBaseUrl, serverUrl } = getAppParams();
 
   return createClient({
