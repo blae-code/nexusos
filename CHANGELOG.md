@@ -1,5 +1,8 @@
 # NexusOS Changelog
 
+## 0.10.0 — 2026-03-16
+
+
 ## 0.9.0 — 2026-03-17
 - Commerce, Logistics, integrations, data model — NexusOS v2 architecture complete
 
