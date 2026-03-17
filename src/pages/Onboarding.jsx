@@ -540,6 +540,36 @@ export default function Onboarding() {
         padding: '24px 16px',
       }}
     >
+      <style>{`
+        @keyframes step-enter {
+          from {
+            opacity: 0;
+            transform: translateX(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes step-exit {
+          from {
+            opacity: 1;
+            transform: translateX(0);
+          }
+          to {
+            opacity: 0;
+            transform: translateX(-12px);
+          }
+        }
+        .step-container {
+          animation: step-enter 150ms ease-out both;
+          min-height: 300px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+      `}</style>
+
       <div
         style={{
           width: '100%',
@@ -551,14 +581,7 @@ export default function Onboarding() {
       >
         <StepIndicator currentStep={step} totalSteps={4} />
 
-        <div
-          style={{
-            minHeight: 300,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
+        <div className="step-container">
           {step === 0 && (
             <Step1Welcome callsign={user.callsign} onContinue={() => setStep(1)} />
           )}
