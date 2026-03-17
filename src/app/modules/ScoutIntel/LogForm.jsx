@@ -295,29 +295,20 @@ export default function LogForm({ callsign, discordId, onSubmit, onCancel }) {
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button
-          onClick={onCancel}
-          className="nexus-btn"
-          style={{ flex: 1, justifyContent: 'center', padding: '8px 0', fontSize: 11 }}
-        >
-          CANCEL
-        </button>
-        <button
-          onClick={submit}
-          disabled={saving || saved || !form.material_name.trim() || !form.location_detail.trim()}
-          className="nexus-btn primary"
-          style={{
-            flex: 2, justifyContent: 'center', padding: '8px 0', fontSize: 11,
-            opacity: saving ? 0.6 : 1,
-            background: saved ? 'rgba(39,201,106,0.06)' : undefined,
-            borderColor: saved ? 'rgba(39,201,106,0.3)' : undefined,
-            color: saved ? 'var(--live)' : undefined,
-          }}
-        >
-          {saved ? '✓ DEPOSIT LOGGED' : saving ? 'LOGGING...' : 'LOG DEPOSIT →'}
-        </button>
-      </div>
+      <button
+        onClick={submit}
+        disabled={saving || saved || !form.material_name.trim() || !form.location_detail.trim()}
+        className="nexus-btn primary"
+        style={{
+          width: '100%', justifyContent: 'center', padding: '9px 0', fontSize: 11,
+          opacity: saving ? 0.6 : 1,
+          background: saved ? 'rgba(39,201,106,0.06)' : undefined,
+          borderColor: saved ? 'rgba(39,201,106,0.3)' : undefined,
+          color: saved ? 'var(--live)' : undefined,
+        }}
+      >
+        {saved ? '✓ DEPOSIT LOGGED' : saving ? 'LOGGING...' : 'LOG DEPOSIT →'}
+      </button>
     </div>
   );
 }
