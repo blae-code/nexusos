@@ -320,7 +320,7 @@ export function PhaseEditor({ phases, onChange }) {
   const add    = () => onChange([...phases, '']);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {phases.map((phase, i) => (
         <div
           key={i}
@@ -330,32 +330,44 @@ export function PhaseEditor({ phases, onChange }) {
           onDrop={e => handleDrop(e, i)}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: dragging === i ? 'var(--bg3)' : 'var(--bg2)',
-            border: '0.5px solid var(--b1)', borderRadius: 6,
-            padding: '5px 10px', cursor: 'grab',
-            opacity: dragging === i ? 0.6 : 1,
-            transition: 'opacity 0.1s',
+            padding: '6px 0', borderBottom: '0.5px solid var(--b0)',
+            background: dragging === i ? 'var(--bg3)' : 'transparent',
+            border: dragging === i ? '0.5px solid var(--b2)' : 'none',
+            borderRadius: dragging === i ? 6 : 0,
+            opacity: dragging === i ? 0.9 : 1,
+            cursor: 'grab',
+            transition: 'all 120ms',
           }}
         >
-          <GripVertical size={11} style={{ color: 'var(--t3)', flexShrink: 0 }} />
-          <span style={{ color: 'var(--t2)', fontSize: 9, minWidth: 18, textAlign: 'center' }}>{i + 1}</span>
+          {/* Drag handle */}
+          <div style={{ color: 'var(--t3)', fontSize: 12, flexShrink: 0, cursor: 'grab', marginRight: 4, fontFamily: 'inherit', userSelect: 'none' }}>
+            ⠿
+          </div>
+
+          {/* Phase name input */}
           <input
             className="nexus-input"
             value={phase}
             onChange={e => updateName(i, e.target.value)}
-            style={{ flex: 1, border: 'none', background: 'transparent', padding: '2px 4px', fontSize: 12 }}
+            style={{ flex: 1, height: 28, fontSize: 11 }}
             placeholder="Phase name"
           />
+
+          {/* Delete button */}
           <button
             type="button"
             onClick={() => remove(i)}
             disabled={phases.length === 1}
             style={{
               background: 'none', border: 'none', cursor: phases.length > 1 ? 'pointer' : 'not-allowed',
-              color: 'var(--t2)', padding: 2, opacity: phases.length === 1 ? 0.3 : 1,
+              color: 'var(--t3)', padding: 0, opacity: phases.length === 1 ? 0.4 : 1,
+              fontFamily: 'inherit', fontSize: 14,
+              transition: 'color 120ms',
             }}
+            onMouseEnter={e => { if (phases.length > 1) e.currentTarget.style.color = 'var(--danger)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--t3)'; }}
           >
-            <X size={11} />
+            ×
           </button>
         </div>
       ))}
@@ -363,12 +375,16 @@ export function PhaseEditor({ phases, onChange }) {
         type="button"
         onClick={add}
         style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: 'var(--acc)', fontSize: 11, fontFamily: 'inherit',
-          letterSpacing: '0.06em', textAlign: 'left', padding: '3px 2px',
+          width: '100%', background: 'none', border: '0.5px dashed var(--b1)',
+          cursor: 'pointer', color: 'var(--t2)', fontSize: 10, fontFamily: 'inherit',
+          letterSpacing: '0.08em', padding: '8px 0', borderRadius: 4,
+          transition: 'border-color 120ms',
+          textTransform: 'uppercase',
         }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--acc-rgb), 0.4)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--b1)'; }}
       >
-        + Add phase
+        + Add Phase
       </button>
     </div>
   );
