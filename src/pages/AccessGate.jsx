@@ -192,7 +192,7 @@ export default function AccessGate() {
         {/* ORG LABEL */}
         <div
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
+            fontFamily: "'Earth Orbiter', 'EarthOrbiter', 'Barlow Condensed', sans-serif",
             fontWeight: 500,
             fontSize: '11px',
             color: '#C8A84B',
@@ -207,7 +207,7 @@ export default function AccessGate() {
         {/* MAIN TITLE */}
         <div
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
+            fontFamily: "'Beyond Mars', 'Barlow Condensed', sans-serif",
             fontWeight: 700,
             fontSize: '62px',
             color: '#E8E4DC',
@@ -222,7 +222,7 @@ export default function AccessGate() {
         {/* SUBTITLE */}
         <div
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
+            fontFamily: "'Earth Orbiter', 'EarthOrbiter', 'Barlow Condensed', sans-serif",
             fontWeight: 400,
             fontSize: '13px',
             color: '#8A8478',
@@ -422,6 +422,8 @@ export default function AccessGate() {
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.cdnfonts.com/css/beyond-mars');
+        @import url('https://fonts.cdnfonts.com/css/earth-orbiter');
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
       `}</style>
     </div>
