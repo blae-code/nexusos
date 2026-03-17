@@ -1,4 +1,5 @@
 import React from 'react';
+import { Package, FlaskConical, BookMarked, Hammer } from 'lucide-react';
 import {
   StatCard,
   InsightStrip,
