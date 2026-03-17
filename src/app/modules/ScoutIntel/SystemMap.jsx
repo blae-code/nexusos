@@ -312,7 +312,7 @@ export default function SystemMap({
         <div style={{ width: 1, height: 16, background: 'var(--b1)', flexShrink: 0 }} />
 
         {/* Staleness filter */}
-        <div style={{ display: 'flex', gap: 2 }}>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
           {['ALL', 'FRESH', 'WEEK'].map(s => (
             <Chip
               key={s}
