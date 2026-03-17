@@ -92,7 +92,7 @@ export default function CofferLedger() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-auto p-4 gap-4">
+    <div className="nexus-page-enter flex flex-col h-full overflow-auto p-4 gap-4">
       {/* Stats */}
       <div className="flex gap-3">
         {[
