@@ -10,6 +10,7 @@ import ReadinessGate from './ReadinessGate';
 import SessionLog from './SessionLog';
 import SplitCalc from './SplitCalc';
 import ThreatPanel from './ThreatPanel';
+import LiveOpTopbar from './LiveOpTopbar';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
