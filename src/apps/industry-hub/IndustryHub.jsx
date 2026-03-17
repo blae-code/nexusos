@@ -235,24 +235,24 @@ export default function IndustryHub() {
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {TABS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setTab(item.id)}
-            style={{
-              padding: '11px 14px',
-              background: 'transparent',
-              border: 'none',
-              borderBottom: tab === item.id ? '2px solid var(--t0)' : '2px solid transparent',
-              color: tab === item.id ? 'var(--t0)' : 'var(--t2)',
-              fontSize: 10,
-              letterSpacing: '0.1em',
-              cursor: 'pointer',
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setTab(item.id)}
+              style={{
+                padding: '11px 14px',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: tab === item.id ? '2px solid var(--t0)' : '2px solid transparent',
+                color: tab === item.id ? 'var(--t0)' : 'var(--t2)',
+                fontSize: 10,
+                letterSpacing: '0.1em',
+                cursor: 'pointer',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 

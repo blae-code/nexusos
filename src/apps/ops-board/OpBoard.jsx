@@ -275,9 +275,9 @@ export default function OpBoard() {
           </button>
         )}
         </div>
-      </div>
+        </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px' }}>
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
             <div className="nexus-loading-dots"><span /><span /><span /></div>
