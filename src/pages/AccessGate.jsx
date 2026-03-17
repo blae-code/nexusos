@@ -180,264 +180,305 @@ export default function AccessGate() {
   }
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
-
-        @keyframes pulse-verse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-
-        @keyframes pulse-dot {
-          0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
-          40% { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
-
-      <div
-        style={{
-          background: COLORS.void,
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          position: 'relative',
-          overflow: 'hidden',
-          paddingBottom: 32,
-        }}
-      >
-        {/* Starfield background */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-          {stars.map((star) => (
-            <div
-              key={star.id}
-              style={{
-                position: 'absolute',
-                top: `${star.top}%`,
-                left: `${star.left}%`,
-                width: `${star.size}px`,
-                height: `${star.size}px`,
-                borderRadius: '50%',
-                background: COLORS.textPrimary,
-                opacity: star.opacity,
-              }}
-            />
-          ))}
-          {/* Faint radial amber bloom low on screen */}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: '#08080A',
+        overflow: 'hidden',
+        fontFamily: "'Barlow Condensed', 'Barlow', sans-serif",
+      }}
+    >
+      {/* STARFIELD */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        {stars.map((star) => (
           <div
+            key={star.id}
             style={{
               position: 'absolute',
-              inset: 0,
-              background: 'radial-gradient(ellipse at 50% 85%, rgba(180, 90, 20, 0.14) 0%, transparent 60%)',
-              pointerEvents: 'none',
+              top: `${star.top}%`,
+              left: `${star.left}%`,
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              borderRadius: '50%',
+              background: '#E8E4DC',
+              opacity: star.opacity,
             }}
           />
+        ))}
+      </div>
+
+      {/* AMBER BLOOM */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 60% 40% at 50% 90%, rgba(180,90,20,0.13) 0%, transparent 70%)',
+        }}
+      />
+
+      {/* LEFT-ANCHORED PANEL */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '10vw',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: '400px',
+          background: '#0F0F0D',
+          borderLeft: '2px solid #C8391A',
+          borderTop: '0.5px solid rgba(200,170,100,0.14)',
+          borderRight: '0.5px solid rgba(200,170,100,0.10)',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+          padding: '40px',
+          boxSizing: 'border-box',
+          zIndex: 1,
+        }}
+      >
+        {/* EMBLEM */}
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+          <NexusCompass size={36} />
         </div>
 
-        {/* Left-anchored terminal panel */}
+        {/* RED RULE */}
+        <div style={{ height: '1px', background: '#C8391A', marginBottom: '14px' }} />
+
+        {/* ORG LABEL */}
         <div
           style={{
-            position: 'absolute',
-            left: '10vw',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: 400,
-            zIndex: 1,
-            background: COLORS.panel,
-            borderLeft: `2px solid ${COLORS.accentRed}`,
-            borderTop: `0.5px solid ${COLORS.borderTop}`,
-            borderRight: `0.5px solid ${COLORS.borderDefault}`,
-            borderBottom: `0.5px solid ${COLORS.borderDefault}`,
-            borderRadius: 0,
-            padding: 40,
-            display: 'flex',
-            flexDirection: 'column',
-            fontFamily: "'Barlow', sans-serif",
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 500,
+            fontSize: '11px',
+            color: '#C47A1A',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            marginBottom: '6px',
           }}
         >
-          {/* Compass icon */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-            <div style={{ filter: 'invert(1) sepia(1) hue-rotate(325deg) brightness(1.1)' }}>
-              <NexusCompass size={36} />
-            </div>
-          </div>
-
-          {/* Red divider rule */}
-          <div style={{ height: 1, background: COLORS.accentRed, width: '100%', marginBottom: 12 }} />
-
-          {/* Label */}
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: COLORS.accentAmber,
-              letterSpacing: '0.25em',
-              textTransform: 'uppercase',
-              fontFamily: "'Barlow Condensed', sans-serif",
-              marginBottom: 8,
-            }}
-          >
-            REDSCAR NOMADS
-          </div>
-
-          {/* Title */}
-          <div
-            style={{
-              fontSize: 52,
-              fontWeight: 700,
-              color: COLORS.textPrimary,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              fontFamily: "'Barlow Condensed', sans-serif",
-              lineHeight: 1,
-              marginBottom: 4,
-            }}
-          >
-            NEXUSOS
-          </div>
-
-          {/* Subtitle */}
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 400,
-              color: COLORS.textSecondary,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              fontFamily: "'Barlow Condensed', sans-serif",
-              marginBottom: 24,
-            }}
-          >
-            ACCESS GATE
-          </div>
-
-          {/* Body copy */}
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 400,
-              color: COLORS.textSecondary,
-              lineHeight: 1.6,
-              marginBottom: 28,
-            }}
-          >
-            Continue with Discord to verify your Redscar Nomads membership and launch the app.
-          </div>
-
-          {/* Dev persona selector or Discord button */}
-          {IS_DEV_MODE ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
-              {DEV_PERSONAS.map((persona) => (
-                <button
-                  key={persona.id}
-                  type="button"
-                  onClick={() => {
-                    setDevPersona(persona.id);
-                    refreshSession();
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '14px 24px',
-                    background: COLORS.accentRed,
-                    border: 'none',
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                    color: COLORS.textPrimary,
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 600,
-                    fontSize: 14,
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                    transition: 'background 0.2s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#A82D14'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = COLORS.accentRed; }}
-                >
-                  {persona.callsign} — {persona.rank}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleDiscordContinue}
-              disabled={!health?.oauth_ready || launching || healthLoading}
-              style={{
-                width: '100%',
-                padding: '14px 24px',
-                background: COLORS.accentRed,
-                border: 'none',
-                borderRadius: 2,
-                cursor: health?.oauth_ready && !launching && !healthLoading ? 'pointer' : 'not-allowed',
-                color: COLORS.textPrimary,
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 600,
-                fontSize: 14,
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                transition: 'background 0.2s',
-                marginBottom: 20,
-                opacity: health?.oauth_ready && !launching && !healthLoading ? 1 : 0.5,
-              }}
-              onMouseEnter={(e) => {
-                if (health?.oauth_ready && !launching && !healthLoading) {
-                  e.currentTarget.style.background = '#A82D14';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (health?.oauth_ready && !launching && !healthLoading) {
-                  e.currentTarget.style.background = COLORS.accentRed;
-                }
-              }}
-            >
-              {launching ? <LoadingDots /> : 'CONTINUE WITH DISCORD →'}
-            </button>
-          )}
-
-          {/* Error messages */}
-          {(authError || healthError || (!IS_DEV_MODE && health && !health.oauth_ready)) && (
-            <div
-              style={{
-                color: COLORS.accentAmber,
-                fontSize: 13,
-                fontWeight: 400,
-                lineHeight: 1.6,
-                marginBottom: 20,
-                fontFamily: "'Barlow', sans-serif",
-              }}
-            >
-              {authError || healthError || (
-                <span>
-                  Discord sign-in is not fully configured. Contact leadership in {health?.support_channel_label || '#nexusos-ops'}.
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Footer link */}
-          {!IS_DEV_MODE && (
-            <a
-              href={health?.invite_url || 'https://discord.gg/redscar'}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                fontSize: 12,
-                color: COLORS.textSecondary,
-                textDecoration: 'none',
-                transition: 'color 0.2s',
-                fontFamily: "'Barlow', sans-serif",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.accentAmber; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.textSecondary; }}
-            >
-              Request access via #nexusos-ops
-            </a>
-          )}
+          REDSCAR NOMADS
         </div>
 
-        <StatusBar />
+        {/* MAIN TITLE */}
+        <div
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 700,
+            fontSize: '52px',
+            color: '#E8E4DC',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            lineHeight: 1,
+          }}
+        >
+          NEXUSOS
+        </div>
+
+        {/* SUBTITLE */}
+        <div
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 400,
+            fontSize: '13px',
+            color: '#8A8478',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            marginTop: '4px',
+            marginBottom: '24px',
+          }}
+        >
+          ACCESS GATE
+        </div>
+
+        {/* BODY */}
+        <div
+          style={{
+            fontFamily: "'Barlow', sans-serif",
+            fontWeight: 400,
+            fontSize: '14px',
+            color: '#8A8478',
+            lineHeight: 1.6,
+            marginBottom: '28px',
+          }}
+        >
+          Continue with Discord to verify your Redscar Nomads membership and launch the app.
+        </div>
+
+        {/* CTA BUTTON */}
+        {IS_DEV_MODE ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+            {DEV_PERSONAS.map((persona) => (
+              <button
+                key={persona.id}
+                type="button"
+                onClick={() => {
+                  setDevPersona(persona.id);
+                  refreshSession();
+                }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  background: '#C8391A',
+                  color: '#E8E4DC',
+                  border: 'none',
+                  borderRadius: '2px',
+                  padding: '14px 24px',
+                  cursor: 'pointer',
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#A82D14';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#C8391A';
+                }}
+              >
+                {persona.callsign} — {persona.rank}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <button
+            onClick={handleDiscordContinue}
+            disabled={!health?.oauth_ready || launching || healthLoading}
+            style={{
+              display: 'block',
+              width: '100%',
+              background: launching || healthLoading ? '#7A2010' : '#C8391A',
+              color: '#E8E4DC',
+              border: 'none',
+              borderRadius: '2px',
+              padding: '14px 24px',
+              cursor:
+                health?.oauth_ready && !launching && !healthLoading
+                  ? 'pointer'
+                  : 'not-allowed',
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              fontSize: '14px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              marginBottom: '16px',
+              transition: 'background 0.15s',
+              opacity:
+                health?.oauth_ready && !launching && !healthLoading ? 1 : 0.5,
+            }}
+            onMouseEnter={(e) => {
+              if (
+                health?.oauth_ready &&
+                !launching &&
+                !healthLoading
+              ) {
+                e.currentTarget.style.background = '#A82D14';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (
+                health?.oauth_ready &&
+                !launching &&
+                !healthLoading
+              ) {
+                e.currentTarget.style.background = '#C8391A';
+              }
+            }}
+          >
+            {launching || healthLoading ? 'CONNECTING...' : 'CONTINUE WITH DISCORD →'}
+          </button>
+        )}
+
+        {/* ERROR STATE */}
+        {(authError || healthError) && (
+          <div
+            style={{
+              fontFamily: "'Barlow', sans-serif",
+              fontSize: '13px',
+              color: '#C47A1A',
+              marginBottom: '16px',
+              lineHeight: 1.5,
+            }}
+          >
+            {authError || healthError}
+          </div>
+        )}
+
+        {/* FOOTER LINK */}
+        {!IS_DEV_MODE && (
+          <div
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: '12px',
+              color: '#8A8478',
+              letterSpacing: '0.05em',
+              textAlign: 'center',
+              cursor: 'pointer',
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#C47A1A';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#8A8478';
+            }}
+          >
+            Request access via #nexusos-ops
+          </div>
+        )}
       </div>
-    </>
+
+      {/* FIXED FOOTER */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '32px',
+          background: '#0A0908',
+          borderTop: '0.5px solid rgba(200,170,100,0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          zIndex: 100,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '11px',
+            color: '#C47A1A',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span style={{ animation: 'pulse 2s ease-in-out infinite' }}>●</span>
+          VERSE 4.7.0
+        </div>
+        <div
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '11px',
+            color: '#8A8478',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+          }}
+        >
+          REDSCAR · NOMADS · ETERNAL VOYAGE
+        </div>
+      </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+      `}</style>
+    </div>
   );
 }
