@@ -67,31 +67,53 @@ export function Divider() {
   return <div style={{ height: '0.5px', background: 'var(--b1)', margin: '4px 0' }} />;
 }
 
-export function MenuLink({ icon: Icon, label, onClick, danger }) {
+export function MenuLink({ icon: Icon, label, onClick, danger, disabled, spinner }) {
   const [hovered, setHovered] = useState(false);
 
   return (
     <button
       type="button"
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => !disabled && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      disabled={disabled}
       style={{
         width: '100%',
-        padding: '8px 14px',
-        fontSize: 10,
+        height: 32,
+        padding: '0 12px',
+        fontSize: 11,
         color: danger ? 'var(--danger)' : 'var(--t1)',
-        cursor: 'pointer',
-        background: hovered ? 'var(--bg3)' : 'transparent',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        background: hovered && !disabled ? 'rgba(255,255,255,0.04)' : 'transparent',
         border: 'none',
         textAlign: 'left',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
+        opacity: disabled ? 0.5 : 1,
+        transition: 'background 150ms ease, opacity 150ms ease',
+        fontFamily: 'inherit',
       }}
     >
       {Icon ? <Icon size={13} /> : null}
       {label}
+      {spinner ? (
+        <span style={{ marginLeft: 4, display: 'inline-flex', gap: 2 }}>
+          {[0, 1, 2].map(i => (
+            <span
+              key={i}
+              style={{
+                width: 3,
+                height: 3,
+                borderRadius: '50%',
+                background: 'var(--danger)',
+                animation: `loading-dot 1s ease-in-out ${i * 0.15}s infinite`,
+                display: 'inline-block',
+              }}
+            />
+          ))}
+        </span>
+      ) : null}
     </button>
   );
 }
