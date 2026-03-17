@@ -36,7 +36,25 @@ function qualityBarColour(value) {
   return 'var(--t3)';
 }
 
-export function StatCard({ label, value, unit, detail, indicator, barPercent, barColor }) {
+const STAT_CARD_SHIMMER = `
+  @keyframes stat-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+`;
+
+function StatSkeleton() {
+  return (
+    <>
+      <style>{STAT_CARD_SHIMMER}</style>
+      <div style={{ width: 20, height: 20, borderRadius: 4, marginBottom: 12, background: 'var(--bg3)', backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'stat-shimmer 1.5s ease-in-out infinite' }} />
+      <div style={{ width: '55%', height: 22, borderRadius: 4, marginBottom: 8, background: 'var(--bg3)', backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'stat-shimmer 1.5s ease-in-out infinite' }} />
+      <div style={{ width: '75%', height: 10, borderRadius: 3, background: 'var(--bg3)', backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)', backgroundSize: '200% 100%', animation: 'stat-shimmer 1.5s ease-in-out infinite' }} />
+    </>
+  );
+}
+
+export function StatCard({ icon: Icon, label, value, unit, detail, indicator, barPercent, barColor, loading }) {
   const indicatorSymbol = indicator === 'up' ? '↑' : indicator === 'down' ? '↓' : '•';
   const indicatorColor = indicator === 'up' ? 'var(--live)' : indicator === 'down' ? 'var(--warn)' : 'var(--info)';
 
@@ -46,32 +64,46 @@ export function StatCard({ label, value, unit, detail, indicator, barPercent, ba
         background: 'var(--bg2)',
         border: '0.5px solid var(--b1)',
         borderRadius: 8,
-        padding: '12px 13px',
+        padding: '14px 14px 12px',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'var(--b2)' }} />
-      <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.14em', marginBottom: 6 }}>{label}</div>
-      <div style={{ color: 'var(--t0)', fontSize: 22, fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-        {value}
-        {unit ? <span style={{ color: 'var(--t2)', fontSize: 11, fontWeight: 400, marginLeft: 4 }}>{unit}</span> : null}
-      </div>
-      <div style={{ fontSize: 9, marginTop: 5, color: 'var(--t3)' }}>
-        <span style={{ color: indicatorColor, marginRight: 4 }}>{indicatorSymbol}</span>
-        <span>{detail}</span>
-      </div>
-      <div style={{ height: 2, background: 'var(--b1)', borderRadius: 1, marginTop: 8, overflow: 'hidden' }}>
-        <div
-          style={{
-            height: '100%',
-            borderRadius: 1,
-            width: `${Math.max(0, Math.min(100, barPercent))}%`,
-            background: barColor,
-            transition: 'width .4s ease-out',
-          }}
-        />
-      </div>
+
+      {loading ? (
+        <StatSkeleton />
+      ) : (
+        <div style={{ animation: 'nexus-fade-in 150ms ease-out both' }}>
+          {Icon ? (
+            <div style={{ marginBottom: 10 }}>
+              <Icon size={20} style={{ color: 'var(--acc)' }} />
+            </div>
+          ) : null}
+          <div style={{ color: 'var(--t0)', fontSize: 28, fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums', marginBottom: 6 }}>
+            {value}
+            {unit ? <span style={{ color: 'var(--t2)', fontSize: 13, fontWeight: 400, marginLeft: 5 }}>{unit}</span> : null}
+          </div>
+          <div style={{ color: 'var(--t2)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+            {label}
+          </div>
+          <div style={{ fontSize: 9, color: 'var(--t3)' }}>
+            <span style={{ color: indicatorColor, marginRight: 4 }}>{indicatorSymbol}</span>
+            <span>{detail}</span>
+          </div>
+          <div style={{ height: 2, background: 'var(--b1)', borderRadius: 1, marginTop: 8, overflow: 'hidden' }}>
+            <div
+              style={{
+                height: '100%',
+                borderRadius: 1,
+                width: `${Math.max(0, Math.min(100, barPercent))}%`,
+                background: barColor,
+                transition: 'width .4s ease-out',
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
