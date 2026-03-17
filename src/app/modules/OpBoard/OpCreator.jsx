@@ -554,7 +554,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
               type="button"
               onClick={() => submit(true)}
               disabled={!isValid || saving}
-              className={`nexus-btn primary ${showSuccessFlash ? 'publish-btn-success' : ''}`}
+              className="nexus-btn primary"
               style={{
                 width: '100%', padding: '12px 0', fontSize: 12,
                 fontWeight: 600, letterSpacing: '0.1em',
