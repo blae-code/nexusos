@@ -143,13 +143,23 @@ export default function AccessGate() {
         ))}
       </div>
 
+      {/* RED BLOOM — upper-right distant sun glow */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 40% 30% at 65% 15%, rgba(192,57,43,0.06) 0%, transparent 70%)',
+        }}
+      />
+
       {/* AMBER BLOOM */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 60% 40% at 50% 90%, rgba(180,90,20,0.13) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 60% 40% at 50% 90%, rgba(180,90,20,0.10) 0%, transparent 70%)',
         }}
       />
 
@@ -166,24 +176,19 @@ export default function AccessGate() {
           borderTop: '0.5px solid rgba(200,170,100,0.14)',
           borderRight: '0.5px solid rgba(200,170,100,0.10)',
           borderBottom: '0.5px solid rgba(200,170,100,0.10)',
-          padding: '52px 40px 40px 40px',
+          padding: '48px 40px 44px 40px',
           boxSizing: 'border-box',
           zIndex: 1,
         }}
       >
         {/* EMBLEM */}
-        <div style={{ marginBottom: '14px' }}>
-          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="26" cy="26" r="24" stroke="#E8E4DC" strokeWidth="0.75" opacity="0.5"/>
-            <circle cx="26" cy="26" r="18" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="26" y1="2" x2="26" y2="9" stroke="#E8E4DC" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
-            <line x1="26" y1="43" x2="26" y2="50" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-            <line x1="2" y1="26" x2="9" y2="26" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-            <line x1="43" y1="26" x2="50" y2="26" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-            <circle cx="26" cy="26" r="5" fill="#C0392B"/>
-            <circle cx="26" cy="26" r="2.5" fill="#E8E4DC"/>
-            <polygon points="26,9 24.2,21 26,19.5 27.8,21" fill="#C0392B" opacity="0.95"/>
-          </svg>
+        <div style={{ marginBottom: '14px', textAlign: 'center' }}>
+          <img 
+            src="https://www.redscar.org/images/2223.png"
+            alt="Redscar Nomads"
+            style={{ width: '56px', height: '56px', objectFit: 'contain', opacity: 0.92 }}
+            crossOrigin="anonymous"
+          />
         </div>
 
         {/* RED RULE */}
@@ -193,12 +198,13 @@ export default function AccessGate() {
         <div
           style={{
             fontFamily: "'Earth Orbiter', 'EarthOrbiter', 'Barlow Condensed', sans-serif",
-            fontWeight: 500,
+            fontWeight: 600,
             fontSize: '11px',
             color: '#C8A84B',
-            letterSpacing: '0.25em',
+            letterSpacing: '0.3em',
             textTransform: 'uppercase',
             marginBottom: '6px',
+            marginTop: '8px',
           }}
         >
           REDSCAR NOMADS
@@ -211,7 +217,7 @@ export default function AccessGate() {
             fontWeight: 700,
             fontSize: '62px',
             color: '#E8E4DC',
-            letterSpacing: '0.05em',
+            letterSpacing: '0.06em',
             textTransform: 'uppercase',
             lineHeight: 1,
           }}
@@ -224,12 +230,12 @@ export default function AccessGate() {
           style={{
             fontFamily: "'Earth Orbiter', 'EarthOrbiter', 'Barlow Condensed', sans-serif",
             fontWeight: 400,
-            fontSize: '13px',
-            color: '#8A8478',
-            letterSpacing: '0.2em',
+            fontSize: '12px',
+            color: '#C8A84B',
+            letterSpacing: '0.25em',
             textTransform: 'uppercase',
-            marginTop: '4px',
-            marginBottom: '24px',
+            marginTop: '6px',
+            marginBottom: '28px',
           }}
         >
           ACCESS GATE
@@ -240,10 +246,10 @@ export default function AccessGate() {
           style={{
             fontFamily: "'Barlow', sans-serif",
             fontWeight: 400,
-            fontSize: '14px',
-            color: '#8A8478',
-            lineHeight: 1.6,
-            marginBottom: '28px',
+            fontSize: '13px',
+            color: '#9A9488',
+            lineHeight: 1.7,
+            marginBottom: '32px',
           }}
         >
           Continue with Discord to verify your Redscar Nomads membership and launch the app.
