@@ -14,6 +14,7 @@ export default function IndustryOverview({
   craftQueue,
   refineryOrders,
   scoutDeposits,
+  loading,
 }) {
   const totalSCU = materials.reduce((sum, material) => sum + (material.quantity_scu || 0), 0);
   const avgQuality = materials.length
