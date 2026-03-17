@@ -110,19 +110,27 @@ function Step1Welcome({ callsign, onContinue }) {
         onMouseLeave={() => setArrowShift(false)}
         className="nexus-btn primary"
         style={{
-          padding: '10px 24px',
-          fontSize: 11,
-          letterSpacing: '0.12em',
-          fontWeight: 500,
+          padding: '12px 28px',
+          fontSize: 12,
+          letterSpacing: '0.14em',
+          fontWeight: 600,
           fontFamily: 'inherit',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: 6,
+          gap: 8,
+          background: 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)',
+          border: '1px solid rgba(192, 57, 43, 0.6)',
+          color: '#F0EDE5',
+          borderRadius: '3px',
+          boxShadow: '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+          transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}
+        onMouseEnter2={() => {}}
+        onMouseLeave2={() => {}}
       >
         CONTINUE
-        <span style={{ display: 'inline-block', transform: arrowShift ? 'translateX(3px)' : 'translateX(0)', transition: 'transform 150ms ease' }}>
+        <span style={{ display: 'inline-block', transform: arrowShift ? 'translateX(4px)' : 'translateX(0)', transition: 'transform 150ms ease' }}>
           →
         </span>
       </button>
