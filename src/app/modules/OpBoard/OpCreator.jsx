@@ -96,6 +96,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
 
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
+  const [showSuccessFlash, setShowSuccessFlash] = useState(false);
 
   // Re-seed roles + phases when op type changes
   const prevType = useRef(form.type);
