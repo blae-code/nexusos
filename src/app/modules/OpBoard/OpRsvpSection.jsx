@@ -50,7 +50,7 @@ function formatTimestamp(isoStr) {
   return new Date(isoStr).toLocaleDateString();
 }
 
-export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, rank }) {
+export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedShip, setSelectedShip] = useState('');
