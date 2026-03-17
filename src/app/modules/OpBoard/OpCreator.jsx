@@ -187,13 +187,18 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         }).catch(e => console.warn('[OpCreator] heraldBot publishOp failed:', e.message));
       }
 
-      // Show success flash on publish, then navigate to op detail
+      // Show success overlay on publish, then route to op detail with readiness gate
       if (publish) {
-        setShowSuccessFlash(true);
-        setTimeout(() => navigate(`/app/ops/${op.id}`), 800);
+        setPublishedOpId(op.id);
+        setShowSuccessOverlay(true);
+        // Route after overlay completes (1200ms total)
+        setTimeout(() => {
+          navigate(`/app/ops/${op.id}?scrollTo=readinessGate&expandReadiness=true`);
+        }, 1200);
       } else {
-        // Direct navigation on draft save
-        navigate('/app/ops');
+        // Draft save - show inline confirmation
+        setDraftSaved(true);
+        setTimeout(() => setDraftSaved(false), 2000);
       }
     } catch {
       setError('Failed to save op. Please try again.');
