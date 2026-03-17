@@ -247,15 +247,16 @@ export default function SystemMap({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {/* ── Toolbar ────────────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
         {/* System filter */}
-        <div style={{ display: 'flex', gap: 2 }}>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
           {['ALL', 'STANTON', 'PYRO', 'NYX'].map(s => (
             <Chip
               key={s}
               label={s}
               active={system === s}
               onClick={() => onFilterChange({ system: s })}
+              systemChip={s !== 'ALL'}
             />
           ))}
         </div>
