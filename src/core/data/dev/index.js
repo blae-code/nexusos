@@ -1,5 +1,7 @@
 // Active in Vite dev server OR when VITE_DEMO_MODE=true is baked into the build.
-export const IS_DEV_MODE = import.meta.env.DEV === true || import.meta.env.VITE_DEMO_MODE === 'true';
+const meta = /** @type {{ env?: { DEV?: boolean; VITE_DEMO_MODE?: string } }} */ (import.meta);
+
+export const IS_DEV_MODE = meta.env?.DEV === true || meta.env?.VITE_DEMO_MODE === 'true';
 
 const DEV_SESSION_KEY = 'nexus_dev_persona';
 

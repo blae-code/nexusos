@@ -402,8 +402,8 @@ Do not commit. Report PASS/FAIL per check.
 
 ```
 Read #NEXUSOS_AI_HANDOFF.md, #CLAUDE.md.
-Read src/app/Shell.jsx (NexusTopbar section), src/app/KeyManagement.jsx,
-src/app/ProfileSettings.jsx, and any roster/member-list component.
+Read src/app/Shell.jsx (NexusTopbar section), src/app/ProfileSettings.jsx,
+and any roster/member-list component.
 Read src/lib/tokenMap.js.
 
 Replace rank text labels and rank pip elements with penta tokens across all
@@ -758,7 +758,7 @@ Commit all token integration work:
   git add src/app/modules/OpBoard/LiveOp.jsx
   git add src/app/modules/IndustryHub/
   git add src/app/modules/OpBoard/OpCreator.jsx
-  git add src/app/KeyManagement.jsx src/app/ProfileSettings.jsx src/app/Shell.jsx
+  git add src/app/ProfileSettings.jsx src/app/Shell.jsx
   git add functions/heraldBot.ts
   git commit -m "feat: tactical token library integration — SystemMap deposits, phase nodes, threat markers, crew roles, rank indicators, material icons, op types, herald embeds"
 

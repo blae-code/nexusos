@@ -53,7 +53,7 @@ if (versioningDoc !== expectedVersioningDoc) {
 const appVersionModule = readText(paths.appVersionModule);
 const expectedAppVersionModule = renderAppVersionModule(versionMeta, expectedChangelog);
 if (appVersionModule !== expectedAppVersionModule) {
-  failures.push('src/lib/generated/versioning.js is out of date. Run `npm run version:sync`.');
+  failures.push('src/core/data/generated/versioning.js is out of date. Run `npm run version:sync`.');
 }
 
 if (failures.length > 0) {

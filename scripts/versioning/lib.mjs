@@ -15,7 +15,7 @@ export const paths = {
   packageJson: path.join(repoRoot, 'package.json'),
   packageLock: path.join(repoRoot, 'package-lock.json'),
   versioningDoc: path.join(repoRoot, 'docs', 'versioning.md'),
-  appVersionModule: path.join(repoRoot, 'src', 'lib', 'generated', 'versioning.js'),
+  appVersionModule: path.join(repoRoot, 'src', 'core', 'data', 'generated', 'versioning.js'),
 };
 
 export function normaliseNewlines(value) {
@@ -102,7 +102,7 @@ ${noteLines.join('\n')}
 - [version.json](../version.json) is the canonical release metadata.
 - [CHANGELOG.md](../CHANGELOG.md) stores release notes in descending order.
 - [package.json](../package.json) and [package-lock.json](../package-lock.json) are synced automatically from \`version.json\`.
-- [src/lib/generated/versioning.js](../src/lib/generated/versioning.js) is the frontend-safe generated metadata module consumed by the app shell.
+- [src/core/data/generated/versioning.js](../src/core/data/generated/versioning.js) is the frontend-safe generated metadata module consumed by the app shell.
 - [docs/versioning.md](./versioning.md) is regenerated automatically from the current release metadata and changelog.
 
 ## Automatic Enforcement

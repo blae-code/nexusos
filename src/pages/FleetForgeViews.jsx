@@ -313,12 +313,6 @@ export function ShipFitting({ vehicles, componentCatalog, callsign, discordId, o
 }
 
 export function FleetView({ builds }) {
-  const grouped = builds.reduce((acc, b) => {
-    if (!acc[b.ship_name]) acc[b.ship_name] = [];
-    acc[b.ship_name].push(b);
-    return acc;
-  }, {});
-
   return (
     <div className="p-4 flex flex-col gap-4">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>

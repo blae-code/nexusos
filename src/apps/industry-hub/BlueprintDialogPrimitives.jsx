@@ -6,7 +6,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 
 // ─── Dialog overlay — position:absolute, scoped to positioned container ───────
-// Same pattern as KeyManagement. No position:fixed.
+// Shell-scoped overlay pattern only. No position:fixed.
 export function Overlay({ onDismiss, children }) {
   return (
     <div

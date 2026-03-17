@@ -15,7 +15,7 @@
 - [version.json](../version.json) is the canonical release metadata.
 - [CHANGELOG.md](../CHANGELOG.md) stores release notes in descending order.
 - [package.json](../package.json) and [package-lock.json](../package-lock.json) are synced automatically from `version.json`.
-- [src/lib/generated/versioning.js](../src/lib/generated/versioning.js) is the frontend-safe generated metadata module consumed by the app shell.
+- [src/core/data/generated/versioning.js](../src/core/data/generated/versioning.js) is the frontend-safe generated metadata module consumed by the app shell.
 - [docs/versioning.md](./versioning.md) is regenerated automatically from the current release metadata and changelog.
 
 ## Automatic Enforcement

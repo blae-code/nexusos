@@ -11,7 +11,7 @@ let cachedClient = null;
 /** @returns {Base44Client} */
 function createBase44Client() {
   if (IS_DEV_MODE) {
-    return /** @type {Base44Client} */ (createMockBase44Client());
+    return /** @type {Base44Client} */ (/** @type {unknown} */ (createMockBase44Client()));
   }
 
   const { appId, token, functionsVersion, appBaseUrl, serverUrl } = getAppParams();
