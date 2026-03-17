@@ -32,11 +32,15 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
 }
 
 export const authApi = {
-  getDiscordStartUrl(redirectTo) {
-    return buildUrl('discord/start', {
-      redirect_to: redirectTo,
-      app_base: getAppBasePath(),
-    }).toString();
+  getDiscordOAuthUrl(redirectTo = '/app/industry') {
+    const params = new URLSearchParams({
+      client_id: DISCORD_CLIENT_ID,
+      redirect_uri: DISCORD_REDIRECT_URI,
+      response_type: 'code',
+      scope: 'identify guilds guilds.members.read',
+      state: btoa(JSON.stringify({ redirectTo, timestamp: Date.now() })),
+    });
+    return `https://discord.com/oauth2/authorize?${params.toString()}`;
   },
 
   async getHealth({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
@@ -44,11 +48,10 @@ export const authApi = {
       return { ok: true, status: 200, oauth_ready: true, guild_label: 'REDSCAR NOMADS', support_channel_label: '#nexusos-ops', invite_url: '#' };
     }
 
-    const response = await fetchWithTimeout(buildUrl('health'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/health/entry'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
-      headers: getBase44Headers({ includeAuth: false }),
     }, timeoutMs);
 
     const data = await parseJson(response);
@@ -66,11 +69,10 @@ export const authApi = {
       return { authenticated: false, status: 401 };
     }
 
-    const response = await fetchWithTimeout(buildUrl('session'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/session/entry'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
-      headers: getBase44Headers(),
     }, timeoutMs);
 
     const data = await parseJson(response);
@@ -94,11 +96,10 @@ export const authApi = {
       return { ok: true };
     }
 
-    const response = await fetchWithTimeout(buildUrl('logout'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout/entry'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: getBase44Headers(),
     }, timeoutMs);
 
     return parseJson(response);
