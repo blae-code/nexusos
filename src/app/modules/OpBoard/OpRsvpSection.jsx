@@ -138,6 +138,22 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <style>{`
+        @keyframes rsvp-highlight {
+          0% { border-color: var(--live); background: rgba(var(--live-rgb), 0.08); }
+          100% { border-color: var(--b0); background: transparent; }
+        }
+        @keyframes number-pop {
+          0% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+        .rsvp-slot-highlight {
+          animation: rsvp-highlight 900ms ease-out forwards;
+        }
+        .number-pop {
+          animation: number-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+      `}</style>
       {/* Role Slots List */}
       <div>
         <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10, fontFamily: 'var(--font)' }}>
