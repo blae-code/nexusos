@@ -406,31 +406,14 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
 
         {/* SETTINGS */}
         <div style={{ marginBottom: 28 }}>
-          <SectionHeader label="SETTINGS" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <Toggle label="24h Discord Reminder" checked={settings.reminder24h} onChange={v => setSetting('reminder24h', v)} />
-            <Toggle label="1h Discord Reminder" checked={settings.reminder1h} onChange={v => setSetting('reminder1h', v)} />
-            <Toggle
-              label="Create Discord Scheduled Event"
-              description="Posts op embed to #nexusos-ops with RSVP buttons"
-              checked={settings.createDiscordEvent}
-              onChange={v => setSetting('createDiscordEvent', v)}
-            />
-            <Toggle label="Post Phase Updates to Discord" checked={settings.postPhaseUpdates} onChange={v => setSetting('postPhaseUpdates', v)} />
-            <Toggle
-              label="Auto Wrap-Up on End Op"
-              description="Generates and posts session summary when op ends"
-              checked={settings.autoWrapUp}
-              onChange={v => setSetting('autoWrapUp', v)}
-            />
-            {isPioneer && (
-              <Toggle
-                label="@here on GO"
-                description="Pings @here in #nexusos-ops when op goes live"
-                checked={settings.atHereOnGo}
-                onChange={v => setSetting('atHereOnGo', v)}
-              />
-            )}
+          <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12, fontFamily: 'inherit' }}>Settings</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <SettingsToggle label="Require Discord RSVP" checked={settings.requireDiscordRsvp} onChange={v => setSetting('requireDiscordRsvp', v)} />
+            <SettingsToggle label="Post to #ops-board" checked={settings.postToOpsBoard} onChange={v => setSetting('postToOpsBoard', v)} />
+            <SettingsToggle label="Allow late joins" checked={settings.allowLateJoins} onChange={v => setSetting('allowLateJoins', v)} />
+            <SettingsToggle label="Hide from non-members" checked={settings.hideFromNonMembers} onChange={v => setSetting('hideFromNonMembers', v)} />
+            <SettingsToggle label="Log loot tally" checked={settings.logLootTally} onChange={v => setSetting('logLootTally', v)} />
+            <SettingsToggle label="Calculate split on close" checked={settings.calcSplitOnClose} onChange={v => setSetting('calcSplitOnClose', v)} />
           </div>
         </div>
 
