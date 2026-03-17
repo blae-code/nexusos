@@ -1,85 +1,77 @@
 /**
  * SessionLog — scrollable op event feed with manual entry.
  * Props: { op, callsign, onUpdate }
- *
- * session_log entries: { t, type, author, text, severity?, location? }
- * Entry types: MANUAL, PHASE_ADVANCE, THREAT, THREAT_RESOLVED,
- *              MATERIAL, CRAFT, PING
- * Auto-scrolls to bottom on new entry.
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
-// ─── Type icons (text-based to avoid SVG complexity) ─────────────────────────
-
-const TYPE_ICON = {
-  PHASE_ADVANCE:    '▶',
-  THREAT:           '⚠',
-  THREAT_RESOLVED:  '✓',
-  MATERIAL:         '◈',
-  CRAFT:            '⚙',
-  PING:             '◉',
-  MANUAL:           '·',
-};
-
-const TYPE_COLOR = {
-  PHASE_ADVANCE:    'var(--info)',
+const TYPE_DOT_COLORS = {
+  PHASE_ADVANCE:    'var(--acc)',
   THREAT:           'var(--danger)',
   THREAT_RESOLVED:  'var(--live)',
-  MATERIAL:         'var(--acc2)',
-  CRAFT:            'var(--acc)',
-  PING:             'var(--warn)',
-  MANUAL:           'var(--t2)',
+  MATERIAL:         'var(--live)',
+  CRAFT:            'var(--live)',
+  PING:             'var(--live)',
+  MANUAL:           'var(--b2)',
 };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';
   const diff = Date.now() - new Date(isoStr).getTime();
-  const min  = Math.floor(diff / 60000);
-  if (min < 1)  return 'just now';
-  if (min < 60) return `${min}m`;
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
   const h = Math.floor(min / 60);
-  if (h < 24)   return `${h}h`;
-  return `${Math.floor(h / 24)}d`;
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
-// ─── Single log entry ─────────────────────────────────────────────────────────
-
-function LogEntry({ entry }) {
-  const type  = entry.type || 'MANUAL';
-  const icon  = TYPE_ICON[type]  || '·';
-  const color = TYPE_COLOR[type] || 'var(--t2)';
+function LogEntry({ entry, index }) {
+  const type = entry.type || 'MANUAL';
+  const dotColor = TYPE_DOT_COLORS[type] || 'var(--b2)';
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'baseline', gap: 7,
-      padding: '5px 0', borderBottom: '0.5px solid var(--b0)',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 8,
+        padding: '6px 0',
+        borderBottom: '0.5px solid var(--b0)',
+        animation: `log-entry-in 200ms ease-out both`,
+        animationDelay: `${index * 30}ms`,
+      }}
+    >
+      {/* Type dot */}
+      <div
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: dotColor,
+          flexShrink: 0,
+          marginTop: 4,
+        }}
+      />
+
       {/* Timestamp */}
-      <span style={{
-        color: 'var(--t3)', fontSize: 9, flexShrink: 0,
-        fontVariantNumeric: 'tabular-nums', minWidth: 28,
-      }}>
+      <span
+        style={{
+          fontSize: 9,
+          color: 'var(--t3)',
+          fontFamily: 'monospace',
+          fontVariantNumeric: 'tabular-nums',
+          whiteSpace: 'nowrap',
+          minWidth: 48,
+          flexShrink: 0,
+        }}
+      >
         {relativeTime(entry.t)}
       </span>
 
-      {/* Type icon */}
-      <span style={{ color, fontSize: 10, flexShrink: 0, width: 12, textAlign: 'center' }}>
-        {icon}
-      </span>
-
-      {/* Author */}
-      {entry.author && (
-        <span style={{ color: 'var(--acc)', fontSize: 10, flexShrink: 0, letterSpacing: '0.04em' }}>
-          {entry.author}
-        </span>
-      )}
-
-      {/* Text */}
-      <span style={{ color: 'var(--t1)', fontSize: 11, flex: 1, lineHeight: 1.4 }}>
+      {/* Entry text */}
+      <span style={{ fontSize: 11, color: 'var(--t1)', fontFamily: 'var(--font)', flex: 1, lineHeight: 1.5 }}>
         {entry.text}
       </span>
     </div>
