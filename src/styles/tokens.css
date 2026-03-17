@@ -77,13 +77,23 @@ body {
 }
 
 /* ── Scrollbars ──────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg1);
+}
 ::-webkit-scrollbar-thumb {
   background: var(--b2);
-  border-radius: 2px;
+  border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--b3); }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--b3);
+}
+
+scrollbar-width: thin;
+scrollbar-color: var(--b2) var(--bg1);
 
 /* ── Utility classes ─────────────────────────────── */
 .nexus-card {
