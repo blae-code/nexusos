@@ -3,9 +3,12 @@ import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Plus, TrendingUp, TrendingDown, Coins } from 'lucide-react';
 
-const ENTRY_COLORS = {
-  SALE: 'var(--live)', CRAFT_SALE: 'var(--live)', OP_SPLIT: 'var(--info)',
-  EXPENSE: 'var(--danger)', DEPOSIT: 'var(--warn)',
+const ENTRY_PILL = {
+  SALE:       { color: 'var(--live)',   bg: 'rgba(39,201,106,0.10)' },
+  CRAFT_SALE: { color: 'var(--live)',   bg: 'rgba(39,201,106,0.10)' },
+  OP_SPLIT:   { color: 'var(--acc)',    bg: 'rgba(74,143,208,0.10)' },
+  EXPENSE:    { color: 'var(--danger)', bg: 'rgba(224,72,72,0.10)'  },
+  DEPOSIT:    { color: 'var(--warn)',   bg: 'rgba(232,160,32,0.10)' },
 };
 
 function LogEntryForm({ onSubmit, onCancel }) {
@@ -133,9 +136,11 @@ export default function CofferLedger() {
                 onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
               >
                 <td style={{ padding: '8px 14px' }}>
-                  <span className="nexus-tag" style={{ color: ENTRY_COLORS[e.entry_type] || 'var(--t1)', borderColor: 'transparent', background: 'transparent' }}>{e.entry_type}</span>
+                  {(() => { const p = ENTRY_PILL[e.entry_type] || { color: 'var(--t1)', bg: 'transparent' }; return (
+                    <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 3, color: p.color, background: p.bg, letterSpacing: '0.06em', fontWeight: 600, whiteSpace: 'nowrap' }}>{e.entry_type}</span>
+                  ); })()}
                 </td>
-                <td style={{ padding: '8px 14px', color: ENTRY_COLORS[e.entry_type] || 'var(--t0)', fontSize: 12, fontWeight: 600 }}>
+                <td style={{ padding: '8px 14px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', fontSize: 12, fontWeight: 600, color: e.entry_type === 'EXPENSE' ? 'var(--danger)' : 'var(--t0)' }}>
                   {e.entry_type === 'EXPENSE' ? '-' : '+'}{(e.amount_aUEC || 0).toLocaleString()}
                 </td>
                 <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{e.commodity || '—'}</td>
