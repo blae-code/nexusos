@@ -150,7 +150,9 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
           ? 'var(--live)'
           : item.badge === 'rescue'
             ? 'var(--danger)'
-            : 'var(--warn)';
+            : item.badge === 'blueprints' || item.badge === 'craft'
+              ? 'var(--warn)'
+              : 'var(--t2)';
 
         return (
           <Link
