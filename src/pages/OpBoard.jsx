@@ -10,11 +10,11 @@ import { Plus, RefreshCw } from 'lucide-react';
 const STATUS_ORDER = ['LIVE', 'PUBLISHED', 'DRAFT', 'COMPLETE', 'ARCHIVED'];
 
 const STATUS_CONFIG = {
-  LIVE:      { label: 'LIVE',      color: 'var(--live)',  bg: 'var(--live-bg)',  border: 'var(--live-b)',  stripe: 'op-stripe-live' },
-  PUBLISHED: { label: 'PUBLISHED', color: 'var(--info)',  bg: 'var(--info-bg)',  border: 'var(--info-b)',  stripe: 'op-stripe-published' },
-  DRAFT:     { label: 'DRAFT',     color: 'var(--warn)',  bg: 'var(--warn-bg)',  border: 'var(--warn-b)',  stripe: 'op-stripe-draft' },
-  COMPLETE:  { label: 'COMPLETE',  color: 'var(--t1)',    bg: 'var(--bg2)',      border: 'var(--b2)',      stripe: 'op-stripe-complete' },
-  ARCHIVED:  { label: 'ARCHIVED',  color: 'var(--t2)',    bg: 'var(--bg2)',      border: 'var(--b1)',      stripe: 'op-stripe-archived' },
+  LIVE:      { label: 'LIVE',      color: 'var(--live)',  bg: 'var(--live-bg)',  border: 'var(--live-b)',  stripe: '#27c96a',           stripeHover: '#4ddc88' },
+  PUBLISHED: { label: 'PUBLISHED', color: 'var(--info)',  bg: 'var(--info-bg)',  border: 'var(--info-b)',  stripe: 'var(--acc)',         stripeHover: 'var(--acc2)' },
+  DRAFT:     { label: 'DRAFT',     color: 'var(--warn)',  bg: 'var(--warn-bg)',  border: 'var(--warn-b)',  stripe: '#e8a020',           stripeHover: '#f0b840' },
+  COMPLETE:  { label: 'COMPLETE',  color: 'var(--t1)',    bg: 'var(--bg2)',      border: 'var(--b2)',      stripe: '#4a5070',           stripeHover: '#6a7090' },
+  ARCHIVED:  { label: 'ARCHIVED',  color: 'var(--t2)',    bg: 'var(--bg2)',      border: 'var(--b1)',      stripe: '#2e3248',           stripeHover: '#4a5070' },
 };
 
 const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
