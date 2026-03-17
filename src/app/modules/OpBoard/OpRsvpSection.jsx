@@ -165,16 +165,23 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
             const isFull = filled >= slot.capacity;
             const fillPct = (filled / slot.capacity) * 100;
             const barColor = isFull ? 'var(--live)' : 'var(--acc)';
+            const isHighlighted = highlightRole === slot.name;
 
             return (
               <div
                 key={i}
+                className={isHighlighted ? 'rsvp-slot-highlight' : ''}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
                   padding: '8px 0',
                   borderBottom: i < normalizedSlots.length - 1 ? '0.5px solid var(--b0)' : 'none',
+                  border: isHighlighted ? `0.5px solid var(--live)` : undefined,
+                  background: isHighlighted ? 'rgba(var(--live-rgb), 0.08)' : 'transparent',
+                  borderRadius: 4,
+                  paddingLeft: 4,
+                  paddingRight: 4,
                 }}
               >
                 {/* Colour dot */}
