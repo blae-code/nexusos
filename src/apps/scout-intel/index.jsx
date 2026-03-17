@@ -110,7 +110,12 @@ export default function ScoutIntel() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="nexus-page-enter" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)', flexShrink: 0 }}>
+        <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+          Intel
+        </span>
+      </div>
       {/* Left: map + toolbar */}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 12 }}>
         {/* Top action row — Log Deposit button sits top-right of map area */}
