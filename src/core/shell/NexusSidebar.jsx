@@ -29,7 +29,7 @@ const NAV_GROUPS = [
   ],
 ];
 
-export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
+export default function NexusSidebar({ currentPath }) {
   const [badges, setBadges] = useState({
     craft: false,
     live: false,

@@ -1,6 +1,4 @@
 // Active in Vite dev server OR when VITE_DEMO_MODE=true is baked into the build.
-import { safeSessionStorage } from '@/lib/safe-storage';
-
 const meta = /** @type {{ env?: { DEV?: boolean; VITE_DEMO_MODE?: string } }} */ (import.meta);
 
 export const IS_DEV_MODE = meta.env?.DEV === true || meta.env?.VITE_DEMO_MODE === 'true';
@@ -17,17 +15,21 @@ export const DEV_PERSONAS = [
 ];
 
 export function getDevPersona() {
-  if (!IS_DEV_MODE) return null;
-  const id = safeSessionStorage.getItem(DEV_SESSION_KEY);
+  if (!IS_DEV_MODE || typeof sessionStorage === 'undefined') return null;
+  const id = sessionStorage.getItem(DEV_SESSION_KEY);
   return DEV_PERSONAS.find(p => p.id === id) || null;
 }
 
 export function setDevPersona(id) {
-  safeSessionStorage.setItem(DEV_SESSION_KEY, id);
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem(DEV_SESSION_KEY, id);
+  }
 }
 
 export function clearDevPersona() {
-  safeSessionStorage.removeItem(DEV_SESSION_KEY);
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem(DEV_SESSION_KEY);
+  }
 }
 
 export function buildDevSession(persona) {

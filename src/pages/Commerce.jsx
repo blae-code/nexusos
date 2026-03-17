@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Coins, FileText, Package, TrendingUp } from 'lucide-react';
-import { RankGuard } from '@/core/shell/guards';
 
 const MODULES = [
   {
@@ -79,25 +78,6 @@ export default function Commerce() {
             <div key={item.title}>{body}</div>
           );
         })}
-      </div>
-
-      <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div className="nexus-section-header">COFFER CONTROLS</div>
-        <RankGuard requiredRank="PIONEER">
-          <div className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Expenditure Approval Queue</div>
-            <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>
-              Approval controls for treasury spend, vendor payouts, and exceptional coffer disbursements are restricted to
-              Pioneer leadership. The live approval workflow continues in the Coffer module.
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span className="nexus-pill nexus-pill-info">PIONEER ONLY</span>
-              <Link to="/app/coffer" style={{ color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.08em', textDecoration: 'none' }}>
-                OPEN COFFER →
-              </Link>
-            </div>
-          </div>
-        </RankGuard>
       </div>
     </div>
   );

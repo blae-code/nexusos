@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { ChevronLeft, Play, Square, Upload } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
-import { getStoredLayoutMode, setStoredLayoutMode } from '@/core/data/layout-mode';
 import CrewGrid from './CrewGrid';
 import LootTally from './LootTally';
 import OpRsvpSection from './OpRsvpSection';
@@ -84,10 +83,21 @@ export default function LiveOp() {
   const callsign = ctx.callsign || 'UNKNOWN';
   const discordId = ctx.discordId || null;
 
-  const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
+  const [layoutMode, setLayoutMode] = useState(() => {
+    try {
+      return localStorage.getItem('nexusos_layout_mode') || 'ALT-TAB';
+    } catch {
+      return 'ALT-TAB';
+    }
+  });
 
   const handleLayoutChange = (mode) => {
-    setLayoutMode(setStoredLayoutMode(mode));
+    setLayoutMode(mode);
+    try {
+      localStorage.setItem('nexusos_layout_mode', mode);
+    } catch {
+      // localStorage unavailable
+    }
   };
 
   const [op, setOp] = useState(null);
@@ -230,13 +240,7 @@ export default function LiveOp() {
   const phaseLabel = phases[currentPhase] || 'Awaiting phase';
   const isSecondMonitor = layoutMode === '2ND MONITOR';
 
-  const phaseTrackerProps = {
-    phases,
-    currentPhase,
-    opId: op.id,
-    isOpCreator: String(op.created_by) === String(discordId),
-    onAdvance: handlePhaseAdvance,
-  };
+  const phaseTrackerProps = { phases, currentPhase, opId: op.id, rank, onAdvance: handlePhaseAdvance };
   const readinessGateProps = { op, rank, onUpdate: handleGateUpdate };
   const crewGridProps = { rsvps, op, layoutMode };
   const opRsvpProps = { op, rsvps, callsign, discordId, rank };

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import ArmoryCheckoutForm from '@/components/armory/ArmoryCheckoutForm';
-import { RankGuard } from '@/core/shell/guards';
 import { RotateCcw } from 'lucide-react';
 import { CategorySection } from './ArmoryWidgets';
 
@@ -77,7 +76,6 @@ export default function Armory() {
           { id: 'inventory', label: 'INVENTORY' },
           { id: 'checkout', label: 'CHECKOUT' },
           { id: 'activity', label: 'ACTIVITY' },
-          { id: 'dispatch', label: 'DISPATCH' },
         ].map(tab => (
           <button
             key={tab.id}
@@ -225,46 +223,6 @@ export default function Armory() {
                   </div>
                 )}
               </div>
-            </section>
-          )}
-
-          {activeTab === 'dispatch' && (
-            <section>
-              <div className="nexus-section-header">DISPATCH</div>
-              <RankGuard requiredRank="FOUNDER">
-                <div className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Armory Dispatch Coordination</div>
-                    <span className="nexus-pill nexus-pill-info">FOUNDER+</span>
-                  </div>
-                  <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7, maxWidth: 720 }}>
-                    Dispatch planning will coordinate ship availability, crew assignments, and cargo-support readiness for live
-                    org work. This surface is rank-gated now so the eventual dispatch module inherits the correct access policy.
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                    {[
-                      'Assign cargo escorts to active jobs',
-                      'Reserve heavy lift hulls for ops support',
-                      'Stage crew rotations against checkout state',
-                    ].map((item) => (
-                      <div
-                        key={item}
-                        style={{
-                          background: 'var(--bg1)',
-                          border: '0.5px solid var(--b0)',
-                          borderRadius: 6,
-                          padding: '10px 12px',
-                          color: 'var(--t2)',
-                          fontSize: 10,
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </RankGuard>
             </section>
           )}
         </div>

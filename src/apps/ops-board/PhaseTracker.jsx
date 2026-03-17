@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { RankGuard } from '@/core/shell/guards';
+
+const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
 function PhaseNode({ label, index, status, totalPhases }) {
   const isDone = status === 'done';
@@ -77,7 +78,8 @@ function PhaseNode({ label, index, status, totalPhases }) {
   );
 }
 
-export default function PhaseTracker({ phases = [], currentPhase = 0, opId, isOpCreator = false, onAdvance }) {
+export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank, onAdvance }) {
+  const canAdvance = SCOUT_RANKS.includes(rank);
   const [confirmingPhase, setConfirmingPhase] = useState(false);
   const [advancingIndex, setAdvancingIndex] = useState(null);
 
@@ -218,28 +220,25 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, isOp
           )}
         </div>
 
-        {!isComplete ? (
-          <div style={{ marginLeft: 'auto', maxWidth: 320 }}>
-            <RankGuard requiredRank="PIONEER" isOpCreator={isOpCreator}>
-              <button
-                onClick={handleAdvanceClick}
-                onBlur={() => setConfirmingPhase(false)}
-                className="nexus-btn primary"
-                style={{
-                  padding: '6px 12px',
-                  fontSize: 10,
-                  letterSpacing: '0.08em',
-                  background: confirmingPhase ? 'rgba(var(--warn-rgb), 0.08)' : undefined,
-                  borderColor: confirmingPhase ? 'rgba(var(--warn-rgb), 0.3)' : undefined,
-                  color: confirmingPhase ? 'var(--warn)' : undefined,
-                  transition: 'all 150ms ease',
-                }}
-              >
-                {confirmingPhase ? 'CONFIRM ADVANCE →' : 'ADVANCE PHASE →'}
-              </button>
-            </RankGuard>
-          </div>
-        ) : null}
+        {canAdvance && !isComplete && (
+          <button
+            onClick={handleAdvanceClick}
+            onBlur={() => setConfirmingPhase(false)}
+            className="nexus-btn primary"
+            style={{
+              marginLeft: 'auto',
+              padding: '6px 12px',
+              fontSize: 10,
+              letterSpacing: '0.08em',
+              background: confirmingPhase ? 'rgba(var(--warn-rgb), 0.08)' : undefined,
+              borderColor: confirmingPhase ? 'rgba(var(--warn-rgb), 0.3)' : undefined,
+              color: confirmingPhase ? 'var(--warn)' : undefined,
+              transition: 'all 150ms ease',
+            }}
+          >
+            {confirmingPhase ? 'CONFIRM ADVANCE →' : 'ADVANCE PHASE →'}
+          </button>
+        )}
       </div>
     </div>
   );
