@@ -381,7 +381,7 @@ export default function NexusTodo() {
   const manualCount = allItems.filter((item) => itemStates[item.id]?.source === 'manual_done').length;
 
   return (
-    <div className="flex flex-col h-full overflow-auto p-5 gap-5" style={{ maxWidth: 900 }}>
+    <div className="nexus-page-enter flex flex-col h-full overflow-auto p-5 gap-5" style={{ maxWidth: 900 }}>
       <div>
         <div style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 6 }}>
           NEXUSOS — SETUP TODO
