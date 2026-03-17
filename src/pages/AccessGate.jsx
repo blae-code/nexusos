@@ -338,41 +338,41 @@ export default function AccessGate() {
             style={{
               display: 'block',
               width: '100%',
-              background: launching || healthLoading ? '#7B2218' : '#C0392B',
-              color: '#E8E4DC',
-              border: 'none',
-              borderRadius: '2px',
-              padding: '14px 24px',
+              background: launching || healthLoading ? 'linear-gradient(135deg, #7B2218 0%, #5A1810 100%)' : 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)',
+              color: '#F0EDE5',
+              border: '1px solid rgba(192, 57, 43, 0.6)',
+              borderRadius: '3px',
+              padding: '16px 24px',
               cursor: launching || healthLoading ? 'not-allowed' : 'pointer',
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
-              fontSize: '14px',
-              letterSpacing: '0.15em',
+              fontSize: '13px',
+              letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              marginBottom: '16px',
-              transition: 'background 0.15s',
-              opacity: launching || healthLoading ? 0.5 : 1,
+              marginBottom: '20px',
+              transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              boxShadow: launching || healthLoading 
+                ? 'inset 0 2px 4px rgba(0,0,0,0.3)' 
+                : '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              opacity: launching || healthLoading ? 0.65 : 1,
+              textShadow: '0 1px 2px rgba(0,0,0,0.3)',
             }}
             onMouseEnter={(e) => {
-              if (
-                health?.oauth_ready &&
-                !launching &&
-                !healthLoading
-              ) {
-                e.currentTarget.style.background = '#9B2D20';
+              if (!launching && !healthLoading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #E84C3D 0%, #C0392B 100%)';
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(192, 57, 43, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
               }
             }}
             onMouseLeave={(e) => {
-              if (
-                health?.oauth_ready &&
-                !launching &&
-                !healthLoading
-              ) {
-                e.currentTarget.style.background = '#C0392B';
+              if (!launching && !healthLoading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.transform = 'translateY(0)';
               }
             }}
           >
-            {launching || healthLoading ? 'CONNECTING...' : 'CONTINUE WITH DISCORD →'}
+            {launching || healthLoading ? 'CONNECTING...' : 'CONTINUE WITH DISCORD'}
           </button>
         )}
 
