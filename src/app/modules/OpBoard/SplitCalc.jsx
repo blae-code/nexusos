@@ -1,20 +1,11 @@
 /**
  * SplitCalc — post-op aUEC split calculator.
- * Props: { op, rsvps }
- *
- * Modes: EVEN | BY_ROLE | BY_CONTRIBUTION
- * EXCLUSIVE ops: buy-in (buy_in_cost × crew) deducted from total first.
- * BY_CONTRIBUTION: sliders must sum to 100; last slider auto-adjusts.
- * "Log split to coffer" → CofferLog.create per member (entry_type OP_SPLIT).
- * Design decision: Pioneer lead bonus applies to all Pioneer/Founder crew
- * in BY_ROLE mode, not just the op creator.
+ * Props: { op, rsvps, callsign }
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatAUEC(n) {
   if (!n || isNaN(n)) return '0';
