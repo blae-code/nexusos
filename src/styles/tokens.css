@@ -184,12 +184,23 @@ body {
   pointer-events: none;
 }
 
+.nexus-btn[data-loading="true"] {
+  pointer-events: none;
+}
+
+.nexus-btn-arrow-shift {
+  transition: transform 150ms ease;
+}
+.nexus-btn:hover:not(:disabled) .nexus-btn-arrow-shift {
+  transform: translateX(3px);
+}
+
 .nexus-btn-solid {
   background: var(--bg3);
   border-color: var(--b2);
   color: var(--t0);
 }
-.nexus-btn-solid:hover {
+.nexus-btn-solid:hover:not(:disabled) {
   background: var(--bg4);
   border-color: var(--b3);
 }
