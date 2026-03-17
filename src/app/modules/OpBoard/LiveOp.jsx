@@ -343,16 +343,26 @@ export default function LiveOp() {
     </div>
   );
 
-  if (!isSecondMonitor) {
-    return (
-      <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {hero}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 960, margin: '0 auto' }}>
+  return (
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <LiveOpTopbar
+        op={op}
+        isLive={isLive}
+        phases={phases}
+        currentPhase={currentPhase}
+        startedAt={op.started_at}
+        layoutMode={layoutMode}
+        onLayoutChange={handleLayoutChange}
+      />
+
+      {layoutMode === 'ALT-TAB' ? (
+        // Standard 2-column layout
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '60% 40%', gap: 16, padding: 24, overflow: 'hidden', minHeight: 0 }}>
+          {/* Left column: Phase tracker + Crew grid */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0, overflow: 'auto' }}>
             <Panel title="PHASE TRACKER">
               <PhaseTracker {...phaseTrackerProps} />
             </Panel>
-            <ReadinessGate {...readinessGateProps} />
             <Panel title="CREW & RSVP">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <OpRsvpSection {...opRsvpProps} />
@@ -360,13 +370,46 @@ export default function LiveOp() {
                 <CrewGrid {...crewGridProps} />
               </div>
             </Panel>
-            <Panel>
-              <ThreatPanel {...threatPanelProps} />
+          </div>
+
+          {/* Right column: Session log */}
+          <div style={{ minHeight: 0, overflow: 'auto' }}>
+            <Panel title="SESSION LOG" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <SessionLog {...sessionLogProps} />
+              </div>
             </Panel>
-            <Panel title="SESSION LOG" style={{ minHeight: 220 }}>
-              <SessionLog {...sessionLogProps} />
+          </div>
+        </div>
+      ) : (
+        // 2nd monitor 3-column layout
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, padding: 12, overflow: 'hidden', height: `calc(100vh - 88px)`, minHeight: 0 }}>
+          {/* Column 1: Phase tracker + Crew */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0, overflow: 'auto' }}>
+            <Panel title="PHASE TRACKER">
+              <PhaseTracker {...phaseTrackerProps} />
             </Panel>
-            <Panel>
+            <Panel title="CREW & RSVP">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <OpRsvpSection {...opRsvpProps} />
+                <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+                <CrewGrid {...crewGridProps} />
+              </div>
+            </Panel>
+          </div>
+
+          {/* Column 2: Session log */}
+          <div style={{ minHeight: 0, overflow: 'auto' }}>
+            <Panel title="SESSION LOG" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <SessionLog {...sessionLogProps} />
+              </div>
+            </Panel>
+          </div>
+
+          {/* Column 3: Loot tally + Split calc */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0, overflow: 'auto' }}>
+            <Panel title="LOOT TALLY">
               <LootTally {...lootTallyProps} />
             </Panel>
             <Panel title="SPLIT CALCULATOR">
@@ -374,54 +417,7 @@ export default function LiveOp() {
             </Panel>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {hero}
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, padding: 10, minHeight: 0, overflow: 'hidden' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0 }}>
-          <Panel title="PHASE TRACKER">
-            <PhaseTracker {...phaseTrackerProps} />
-          </Panel>
-          <div style={{ flex: 1, overflow: 'auto' }}>
-            <ReadinessGate {...readinessGateProps} />
-          </div>
-        </div>
-
-        <div style={{ minHeight: 0, overflow: 'auto' }}>
-          <Panel title="CREW & RSVP" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <OpRsvpSection {...opRsvpProps} />
-              <div style={{ height: '0.5px', background: 'var(--b0)' }} />
-              <CrewGrid {...crewGridProps} />
-            </div>
-          </Panel>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0 }}>
-          <Panel title="SESSION LOG" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <SessionLog {...sessionLogProps} />
-            </div>
-          </Panel>
-          <Panel>
-            <ThreatPanel {...threatPanelProps} />
-          </Panel>
-        </div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: currentPhase >= 4 ? '1fr 1fr' : '1fr', gap: 10, padding: '0 10px 10px', borderTop: '0.5px solid var(--b1)' }}>
-        {currentPhase >= 4 ? (
-          <Panel>
-            <LootTally {...lootTallyProps} />
-          </Panel>
-        ) : null}
-        <Panel title="SPLIT CALCULATOR">
-          <SplitCalc {...splitCalcProps} />
-        </Panel>
-      </div>
+      )}
     </div>
   );
 }
