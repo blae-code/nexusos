@@ -189,22 +189,29 @@ export default function AccessGate() {
         }}
       />
 
-      {/* LEFT-ANCHORED PANEL */}
+      {/* LEFT-ANCHORED PANEL — Premium cinema-grade glass morphism */}
       <div
         style={{
           position: 'absolute',
           left: '10vw',
           top: '50%',
           transform: 'translateY(-50%)',
-          width: '400px',
-          background: '#0F0F0D',
-          borderLeft: '2px solid #C0392B',
-          borderTop: '0.5px solid rgba(200,170,100,0.14)',
-          borderRight: '0.5px solid rgba(200,170,100,0.10)',
-          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
-          padding: '48px 40px 44px 40px',
+          width: '420px',
+          background: 'rgba(15, 15, 13, 0.92)',
+          backdropFilter: 'blur(12px)',
+          borderLeft: '2.5px solid #C0392B',
+          borderTop: '1px solid rgba(232, 228, 220, 0.08)',
+          borderRight: '1px solid rgba(232, 228, 220, 0.04)',
+          borderBottom: '1px solid rgba(232, 228, 220, 0.04)',
+          boxShadow: `
+            0 0 60px rgba(192, 57, 43, 0.2),
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(232, 228, 220, 0.1)
+          `,
+          padding: '56px 44px 48px 44px',
           boxSizing: 'border-box',
           zIndex: 1,
+          animation: 'panel-fade-in 0.8s ease-out',
         }}
       >
         <div style={{ marginBottom: '16px' }}>
