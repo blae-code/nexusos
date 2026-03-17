@@ -58,20 +58,35 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
 
       {/* Orders List */}
       <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '7%' }} />
+            <col style={{ width: '10%' }} />
+            <col style={{ width: '7%' }} />
+            <col style={{ width: '10%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '11%' }} />
+            <col style={{ width: '15%' }} />
+          </colgroup>
           <thead>
-            <tr style={{ background: 'var(--bg2)' }}>
+            <tr style={{ background: 'var(--bg3)' }}>
               {['MATERIAL', 'SCU', 'METHOD', 'YIELD', 'COST', 'STATION', 'SUBMITTED BY', 'TIME LEFT', 'STATUS'].map((heading) => (
                 <th
                   key={heading}
                   style={{
-                    padding: '8px 14px',
+                    padding: '12px 14px',
                     textAlign: 'left',
                     color: 'var(--t2)',
-                    fontSize: 10,
-                    letterSpacing: '0.1em',
-                    fontWeight: 600,
+                    fontSize: 11,
+                    letterSpacing: '0.08em',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
                     borderBottom: '0.5px solid var(--b1)',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {heading}
@@ -80,27 +95,49 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
             </tr>
           </thead>
           <tbody>
-            {refineryOrders.map((order) => {
+            {refineryOrders.map((order, idx) => {
               const isReady = order.status === 'READY' || timeLeft(order.completes_at) === 'READY';
+              const isActive = order.status === 'ACTIVE';
+              const isEven = idx % 2 === 1;
 
               return (
                 <tr
                   key={order.id}
                   style={{
+                    height: 44,
                     borderBottom: '0.5px solid var(--b0)',
-                    background: isReady ? 'var(--live-bg)' : 'transparent',
+                    background: isEven ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    transition: 'background 0.1s',
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = isEven ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
                 >
-                  <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{order.material_name}</td>
-                  <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{order.quantity_scu}</td>
-                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.method || '—'}</td>
-                  <td style={{ padding: '8px 14px', color: 'var(--live)', fontSize: 11 }}>{order.yield_pct ? `${order.yield_pct}%` : '—'}</td>
-                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.cost_aUEC ? `${order.cost_aUEC.toLocaleString()}` : '—'}</td>
-                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.station || '—'}</td>
-                  <td style={{ padding: '8px 14px', color: 'var(--t1)', fontSize: 11 }}>{order.submitted_by_callsign || '—'}</td>
-                  <td style={{ padding: '8px 14px', color: isReady ? 'var(--live)' : 'var(--info)', fontSize: 11 }}>{timeLeft(order.completes_at)}</td>
-                  <td style={{ padding: '8px 14px' }}>
-                    {isReady ? <span className="nexus-pill nexus-pill-live">READY</span> : <span className="nexus-tag">{order.status}</span>}
+                  <td style={{ padding: '0 14px', color: 'var(--t0)', fontSize: 11, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.material_name}</td>
+                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 11, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.quantity_scu}</td>
+                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.method || '—'}</td>
+                  <td style={{ padding: '0 14px', color: 'var(--live)', fontSize: 10, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.yield_pct ? `${order.yield_pct}%` : '—'}</td>
+                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.cost_aUEC ? order.cost_aUEC.toLocaleString() : '—'}</td>
+                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.station || '—'}</td>
+                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.submitted_by_callsign || '—'}</td>
+                  <td style={{
+                    padding: '0 14px', fontSize: 10, fontFamily: 'monospace',
+                    fontVariantNumeric: 'tabular-nums',
+                    color: (isActive || isReady) ? 'var(--warn)' : 'var(--t2)',
+                    overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0,
+                  }}>
+                    {timeLeft(order.completes_at)}
+                  </td>
+                  <td style={{ padding: '0 14px', maxWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                      <div style={{
+                        width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                        background: isReady ? 'var(--live)' : isActive ? 'var(--warn)' : 'var(--b2)',
+                        animation: isReady ? 'refinery-pulse-fast 1.2s ease-in-out infinite' : isActive ? 'refinery-pulse-slow 2.5s ease-in-out infinite' : 'none',
+                      }} />
+                      <span style={{ fontSize: 9, color: 'var(--t2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {order.status}
+                      </span>
+                    </div>
                   </td>
                 </tr>
               );
