@@ -9,13 +9,13 @@ function buildStars() {
   const width = Math.max(window.innerWidth, 1);
   const height = Math.max(window.innerHeight, 1);
 
-  // ~80 small stars scattered across entire viewport, avoiding nothing (full void)
-  const starCount = 80;
+  // ~120 stars with varied sizes scattered across entire viewport
+  const starCount = 120;
   return Array.from({ length: starCount }, (_, id) => ({
     id,
     top: Math.random() * 100,
     left: Math.random() * 100,
-    size: Math.random() * 1.2 + 0.6,
+    size: Math.random() * 1.4 + 0.8,
     opacity: Math.random() * 0.4 + 0.3,
   }));
 }
