@@ -127,24 +127,26 @@ export default function AccessGate() {
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#08080A',
+        background: '#0A0908',
         overflow: 'hidden',
         fontFamily: "'Barlow Condensed', 'Barlow', sans-serif",
       }}
     >
-      {/* ANIMATED BACKGROUND */}
+      {/* CINEMATIC BACKGROUND — Deep space with subtle nebula */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(135deg, #08080A 0%, #1a0f0a 25%, #08080A 50%, #0f0a15 75%, #08080A 100%)',
-          backgroundSize: '400% 400%',
-          animation: 'nexus-gradient-shift 15s ease infinite',
+          background: `
+            radial-gradient(ellipse 150% 80% at 30% 20%, rgba(139,40,40,0.15) 0%, transparent 40%),
+            radial-gradient(ellipse 100% 100% at 70% 70%, rgba(50,30,60,0.08) 0%, transparent 50%),
+            linear-gradient(180deg, #0A0908 0%, #12090D 50%, #0A0908 100%)
+          `,
           zIndex: 0,
         }}
       />
 
-      {/* STARFIELD */}
+      {/* STARFIELD — High-quality stars with variable opacity */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
         {stars.map((star) => (
           <div
@@ -156,31 +158,34 @@ export default function AccessGate() {
               width: `${star.size}px`,
               height: `${star.size}px`,
               borderRadius: '50%',
-              background: '#E8E4DC',
+              background: '#F0EDE5',
+              boxShadow: `0 0 ${star.size * 1.5}px rgba(240,237,229,${star.opacity * 0.6})`,
               opacity: star.opacity,
-              animation: 'twinkle 3s ease-in-out infinite',
+              animation: `twinkle ${2 + Math.random() * 2}s ease-in-out infinite`,
             }}
           />
         ))}
       </div>
 
-      {/* RED BLOOM — upper-right distant sun glow */}
+      {/* RED NEBULA — Primary accent bloom */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 40% 30% at 65% 15%, rgba(192,57,43,0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 50% 40% at 65% 15%, rgba(192,57,43,0.12) 0%, transparent 65%)',
+          filter: 'blur(40px)',
         }}
       />
 
-      {/* AMBER BLOOM */}
+      {/* AMBER CORE — Warm accent at bottom */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 60% 40% at 50% 90%, rgba(180,90,20,0.10) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 70% 50% at 50% 85%, rgba(200,168,75,0.08) 0%, transparent 60%)',
+          filter: 'blur(50px)',
         }}
       />
 
