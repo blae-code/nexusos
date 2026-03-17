@@ -604,6 +604,7 @@ export default function SystemMap({
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }
