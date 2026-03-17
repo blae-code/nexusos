@@ -25,25 +25,40 @@ function qualityFeedback(pct) {
 
 // ─── Segmented control ────────────────────────────────────────────────────────
 
-function SegCtrl({ options, value, onChange }) {
+const RISK_ACTIVE_BG = {
+  High:     'rgba(var(--danger-rgb), 0.10)',
+  Extreme:  'rgba(var(--danger-rgb), 0.10)',
+};
+
+const RISK_ACTIVE_BORDER = {
+  High:     'var(--danger)',
+  Extreme:  'var(--danger)',
+};
+
+function SegCtrl({ options, value, onChange, riskColors }) {
   return (
     <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-      {options.map(opt => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          style={{
-            padding: '3px 9px', fontSize: 10, letterSpacing: '0.06em',
-            borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
-            border: value === opt ? '0.5px solid var(--b3)' : '0.5px solid var(--b1)',
-            background: value === opt ? 'var(--bg4)' : 'var(--bg2)',
-            color: value === opt ? 'var(--t0)' : 'var(--t2)',
-            fontWeight: value === opt ? 600 : 400,
-          }}
-        >
-          {opt}
-        </button>
-      ))}
+      {options.map(opt => {
+        const isActive = value === opt;
+        const riskBg = riskColors && isActive ? RISK_ACTIVE_BG[opt] : null;
+        const riskBorder = riskColors && isActive ? RISK_ACTIVE_BORDER[opt] : null;
+        return (
+          <button
+            key={opt}
+            onClick={() => onChange(opt)}
+            style={{
+              padding: '3px 9px', fontSize: 10, letterSpacing: '0.06em',
+              borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
+              border: isActive ? `0.5px solid ${riskBorder || 'var(--b3)'}` : '0.5px solid var(--b1)',
+              background: isActive ? (riskBg || 'var(--bg4)') : 'var(--bg2)',
+              color: isActive ? 'var(--t0)' : 'var(--t2)',
+              fontWeight: isActive ? 600 : 400,
+            }}
+          >
+            {opt}
+          </button>
+        );
+      })}
     </div>
   );
 }
