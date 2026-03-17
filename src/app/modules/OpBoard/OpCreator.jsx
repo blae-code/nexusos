@@ -528,20 +528,37 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
               }
               .publish-btn-success { animation: success-flash 800ms ease-out forwards; }
             `}</style>
+            {hasValidationAttempted && !isValid && (
+              <div style={{
+                border: '0.5px solid var(--warn)',
+                background: 'rgba(var(--warn-rgb), 0.06)',
+                borderRadius: 6,
+                padding: '10px 14px',
+                color: 'var(--warn)',
+                fontSize: 10,
+                fontFamily: 'inherit',
+                opacity: 0,
+                animation: 'nexus-fade-in 150ms ease-out forwards',
+              }}>
+                Some required fields are incomplete. Check the highlighted fields above.
+              </div>
+            )}
             <button
               type="button"
               onClick={() => submit(true)}
-              disabled={saving}
+              disabled={!isValid || saving}
               className={`nexus-btn primary ${showSuccessFlash ? 'publish-btn-success' : ''}`}
               style={{
                 width: '100%', padding: '12px 0', fontSize: 12,
                 fontWeight: 600, letterSpacing: '0.1em',
-                pointerEvents: saving ? 'none' : 'auto',
-                opacity: saving ? 0.6 : 1,
+                pointerEvents: !isValid || saving ? 'none' : 'auto',
+                opacity: !isValid || saving ? 0.4 : 1,
+                cursor: !isValid || saving ? 'not-allowed' : 'pointer',
+                transition: 'opacity 300ms',
               }}
               onMouseEnter={e => {
                 const arrow = e.currentTarget.querySelector('.publish-arrow');
-                if (arrow && !saving) arrow.style.transform = 'translateX(3px)';
+                if (arrow && isValid && !saving) arrow.style.transform = 'translateX(3px)';
               }}
               onMouseLeave={e => {
                 const arrow = e.currentTarget.querySelector('.publish-arrow');
