@@ -70,7 +70,7 @@ node (Join-Path $PSScriptRoot "scripts\versioning\sync-versioning.mjs")
 
 # ── Git commit ────────────────────────────────────────────────────────────────
 
-git add version.json CHANGELOG.md package.json package-lock.json docs/versioning.md
+git add version.json CHANGELOG.md package.json package-lock.json docs/versioning.md src/core/data/generated/versioning.js
 git commit -m "chore($BumpType): v$newVersion — $Message"
 
 Write-Host ""
