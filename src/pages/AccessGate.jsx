@@ -108,21 +108,15 @@ function LoadingDots() {
   );
 }
 
-function isBase44Preview() {
-  if (typeof window === 'undefined') return false;
-  return window.location.hostname.includes('base44.com') || window.location.hostname === 'localhost';
-}
-
 export default function AccessGate() {
   const location = useLocation();
-  const { isAuthenticated, loading, user, refreshSession, setPreviewMode } = useSession();
+  const { isAuthenticated, loading, user, refreshSession } = useSession();
   const { status: verseStatus } = useVerseStatus();
   const [stars, setStars] = useState([]);
   const [health, setHealth] = useState(null);
   const [healthLoading, setHealthLoading] = useState(!IS_DEV_MODE);
   const [launching, setLaunching] = useState(false);
   const [healthError, setHealthError] = useState('');
-  const isPreview = isBase44Preview();
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const authError = useMemo(
@@ -188,11 +182,6 @@ export default function AccessGate() {
 
   if (!loading && isAuthenticated) {
     return <Navigate to={user?.onboarding_complete === false ? '/onboarding' : '/app/industry'} replace />;
-  }
-
-  // In Base44 preview, bypass auth and show app with mock Pioneer user
-  if (isPreview && !IS_DEV_MODE) {
-    return <Navigate to="/app/industry" replace />;
   }
 
   return (
