@@ -451,6 +451,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
         {/* Total capacity pill */}
         <div style={{ marginBottom: 12 }}>
           <div
+            className={popCrew ? 'number-pop' : ''}
             style={{
               display: 'inline-block',
               padding: '4px 10px',
