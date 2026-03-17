@@ -4,7 +4,8 @@
  *
  * Shows role slots, RSVP button (if not RSVPd and op is PUBLISHED),
  * or "Already RSVPd" pill + "Leave op" link.
- * Inline role selector panel that slides down when RSVP is clicked.
+ * Inline role selector panel with ship selection.
+ * Roster section showing confirmed crew with timestamps.
  */
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -26,6 +27,27 @@ function normalizeRoleSlots(slots) {
     name,
     capacity: typeof value === 'number' ? value : (value?.capacity || 1),
   }));
+}
+
+function formatTimestamp(isoStr) {
+  if (!isoStr) return '—';
+  const now = Date.now();
+  const then = new Date(isoStr).getTime();
+  const diff = now - then;
+
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w ago`;
+
+  return new Date(isoStr).toLocaleDateString();
 }
 
 export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, rank }) {
@@ -52,6 +74,9 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
   // Can only RSVP if op is PUBLISHED and not already RSVPd
   const canRsvp = op.status === 'PUBLISHED' && !myRsvp;
 
+  const totalCapacity = normalizedSlots.reduce((sum, slot) => sum + slot.capacity, 0);
+  const isFull = confirmedRsvps.length === totalCapacity && totalCapacity > 0;
+
   const handleConfirmRsvp = async () => {
     if (!selectedRole || !discordId) return;
     setConfirming(true);
@@ -67,7 +92,6 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
       setShowRoleSelector(false);
       setSelectedRole(null);
       setSelectedShip('');
-      // Trigger refresh via parent callback if needed
       window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
     } catch {
       // Handle error
@@ -81,7 +105,6 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
     setLeaveConfirming(false);
     try {
       await base44.entities.OpRsvp.update(myRsvp.id, { status: 'DECLINED' });
-      // Trigger refresh
       window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
     } catch {
       // Handle error
@@ -94,9 +117,6 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
       setLeaveConfirming(false);
     }, 4000);
   };
-
-  const totalCapacity = normalizedSlots.reduce((sum, slot) => sum + slot.capacity, 0);
-  const isFull = confirmedRsvps.length === totalCapacity && totalCapacity > 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -315,6 +335,73 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
             </div>
           )}
         </div>
+      ) : myRsvp ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '8px 12px',
+            background: 'rgba(var(--live-rgb), 0.04)',
+            border: '0.5px solid var(--live)',
+            borderLeft: '3px solid var(--live)',
+            borderRadius: 4,
+          }}
+        >
+          {/* Live dot */}
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: 'var(--live)',
+              flexShrink: 0,
+            }}
+          />
+
+          {/* Role name */}
+          <span style={{ color: 'var(--t0)', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 500 }}>
+            {myRsvp.role || 'Role TBD'}
+          </span>
+
+          {/* Ship name (if provided) */}
+          {myRsvp.ship && (
+            <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)' }}>
+              {myRsvp.ship}
+            </span>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* Leave op link with confirmation state */}
+          <button
+            onClick={leaveConfirming ? handleLeaveOp : handleLeaveClick}
+            onBlur={() => setLeaveConfirming(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: leaveConfirming ? 'var(--warn)' : 'var(--t3)',
+              fontSize: 9,
+              fontFamily: 'var(--font)',
+              textDecoration: 'none',
+              transition: 'color 150ms',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => {
+              if (!leaveConfirming) {
+                e.currentTarget.style.color = 'var(--danger)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!leaveConfirming) {
+                e.currentTarget.style.color = 'var(--t3)';
+              }
+            }}
+          >
+            {leaveConfirming ? 'Are you sure? Confirm →' : 'Leave op'}
+          </button>
+        </div>
       ) : null}
 
       {/* Roster Section */}
@@ -421,187 +508,6 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function formatTimestamp(isoStr) {
-  if (!isoStr) return '—';
-  const now = Date.now();
-  const then = new Date(isoStr).getTime();
-  const diff = now - then;
-
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 60) return `${minutes}m ago`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-
-  const weeks = Math.floor(days / 7);
-  if (weeks < 4) return `${weeks}w ago`;
-
-  return new Date(isoStr).toLocaleDateString();
-}
-
-const OpRsvpSectionWithLeave = (props) => (
-  <OpRsvpSection {...props} />
-);
-
-export default OpRsvpSectionWithLeave;
-
-export function RenderWithLeaveOp({ op, rsvps, callsign, discordId, rank }) {
-  const [myRsvp, setMyRsvp] = React.useState(rsvps.find(r => r.discord_id === discordId && r.status === 'CONFIRMED'));
-  const [leaveConfirming, setLeaveConfirming] = React.useState(false);
-
-  const handleLeaveClick = () => {
-    setLeaveConfirming(true);
-    setTimeout(() => {
-      setLeaveConfirming(false);
-    }, 4000);
-  };
-
-  const handleLeaveOp = async () => {
-    if (!myRsvp) return;
-    setLeaveConfirming(false);
-    try {
-      await base44.entities.OpRsvp.update(myRsvp.id, { status: 'DECLINED' });
-      window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
-    } catch {
-      // Handle error
-    }
-  };
-
-  return myRsvp ? (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '8px 12px',
-        background: 'rgba(var(--live-rgb), 0.04)',
-        border: '0.5px solid var(--live)',
-        borderLeft: '3px solid var(--live)',
-        borderRadius: 4,
-      }}
-    >
-      <div
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: 'var(--live)',
-          flexShrink: 0,
-        }}
-      />
-      <span style={{ color: 'var(--t0)', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 500 }}>
-        {myRsvp.role || 'Role TBD'}
-      </span>
-      {myRsvp.ship && (
-        <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)' }}>
-          {myRsvp.ship}
-        </span>
-      )}
-      <div style={{ flex: 1 }} />
-      <button
-        onClick={leaveConfirming ? handleLeaveOp : handleLeaveClick}
-        onBlur={() => setLeaveConfirming(false)}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: leaveConfirming ? 'var(--warn)' : 'var(--t3)',
-          fontSize: 9,
-          fontFamily: 'var(--font)',
-          textDecoration: 'none',
-          transition: 'color 150ms',
-          whiteSpace: 'nowrap',
-        }}
-        onMouseEnter={e => {
-          if (!leaveConfirming) {
-            e.currentTarget.style.color = 'var(--danger)';
-          }
-        }}
-        onMouseLeave={e => {
-          if (!leaveConfirming) {
-            e.currentTarget.style.color = 'var(--t3)';
-          }
-        }}
-      >
-        {leaveConfirming ? 'Are you sure? Confirm →' : 'Leave op'}
-      </button>
-    </div>
-  ) : null;
-}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '8px 12px',
-            background: 'rgba(var(--live-rgb), 0.04)',
-            border: '0.5px solid var(--live)',
-            borderLeft: '3px solid var(--live)',
-            borderRadius: 4,
-          }}
-        >
-          {/* Live dot */}
-          <div
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: 'var(--live)',
-              flexShrink: 0,
-            }}
-          />
-
-          {/* Role name */}
-          <span style={{ color: 'var(--t0)', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 500 }}>
-            {myRsvp.role || 'Role TBD'}
-          </span>
-
-          {/* Ship name (if provided) */}
-          {myRsvp.ship && (
-            <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)' }}>
-              {myRsvp.ship}
-            </span>
-          )}
-
-          <div style={{ flex: 1 }} />
-
-          {/* Leave op link with confirmation state */}
-          <button
-            onClick={leaveConfirming ? handleLeaveOp : handleLeaveClick}
-            onBlur={() => setLeaveConfirming(false)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: leaveConfirming ? 'var(--warn)' : 'var(--t3)',
-              fontSize: 9,
-              fontFamily: 'var(--font)',
-              textDecoration: 'none',
-              transition: 'color 150ms',
-              whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => {
-              if (!leaveConfirming) {
-                e.currentTarget.style.color = 'var(--danger)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!leaveConfirming) {
-                e.currentTarget.style.color = 'var(--t3)';
-              }
-            }}
-          >
-            {leaveConfirming ? 'Are you sure? Confirm →' : 'Leave op'}
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
