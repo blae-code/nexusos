@@ -167,15 +167,22 @@ body {
   font-family: var(--font);
   letter-spacing: .08em;
   cursor: pointer;
-  transition: background .12s, border-color .12s, color .12s;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
   white-space: nowrap;
 }
-.nexus-btn:hover {
+.nexus-btn:hover:not(:disabled) {
   background: var(--bg3);
   color: var(--t0);
   border-color: var(--b3);
 }
-.nexus-btn:active { transform: scale(0.99); }
+.nexus-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.nexus-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 .nexus-btn-solid {
   background: var(--bg3);
