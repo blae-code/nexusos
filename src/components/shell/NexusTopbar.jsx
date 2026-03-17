@@ -293,13 +293,13 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 5,
-                padding: '3px 9px',
-                background: 'var(--bg2)',
+                gap: 6,
+                padding: '4px 10px',
+                background: userMenuOpen ? 'var(--bg3)' : 'var(--bg2)',
                 border: `0.5px solid ${userMenuOpen ? 'var(--b2)' : 'var(--b1)'}`,
-                borderRadius: 4,
+                borderRadius: 6,
                 cursor: 'pointer',
-                color: 'var(--t1)',
+                transition: 'background 150ms ease, border-color 150ms ease',
               }}
             >
               <NexusToken
@@ -307,41 +307,41 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 size={16}
                 alt={source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}
               />
-              <span style={{ fontSize: 10 }}>
-                {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
-              </span>
-              <ChevronDown size={11} style={{ color: 'var(--t3)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+                <span style={{ fontSize: 11, color: 'var(--t0)', lineHeight: 1, fontFamily: 'inherit' }}>
+                  {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
+                </span>
+                <span style={{ fontSize: 9, color: 'var(--t3)', lineHeight: 1, letterSpacing: '0.08em' }}>
+                  {source === 'admin' ? 'SUDO' : (user?.rank || 'AFFILIATE')}
+                </span>
+              </div>
+              <ChevronDown size={11} style={{ color: 'var(--t3)', marginLeft: 2 }} />
             </button>
 
             {userMenuOpen ? (
               <DropdownContainer width={180}>
-                <div style={{ padding: '8px 14px' }}>
-                  <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 500 }}>
-                    {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
-                  </div>
-                  <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <NexusToken
-                      src={rankToken(source === 'admin' ? 'PIONEER' : (user?.rank || 'AFFILIATE'))}
-                      size={22}
-                      alt={source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}
-                    />
-                    <span className="nexus-pill nexus-pill-neu" style={{ color: rankColor, borderColor: 'var(--b2)' }}>
-                      {source === 'admin' ? 'SUDO' : (user?.rank || 'AFFILIATE')}
-                    </span>
-                  </div>
-                </div>
-                <Divider />
                 <MenuLink
                   icon={User}
-                  label="Profile settings"
+                  label="Profile"
+                  disabled={signingOut}
                   onClick={() => {
                     navigate('/app/profile');
                     setUserMenuOpen(false);
                   }}
                 />
                 <MenuLink
+                  icon={User}
+                  label="Preferences"
+                  disabled={signingOut}
+                  onClick={() => {
+                    navigate('/app/settings');
+                    setUserMenuOpen(false);
+                  }}
+                />
+                <MenuLink
                   icon={ScrollText}
                   label="Changelog"
+                  disabled={signingOut}
                   onClick={() => {
                     setShowChangelog(true);
                     setUserMenuOpen(false);
@@ -352,9 +352,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                   icon={LogOut}
                   label="Sign out"
                   danger
-                  onClick={() => {
-                    setUserMenuOpen(false);
-                    logout('/');
+                  disabled={signingOut}
+                  spinner={signingOut}
+                  onClick={async () => {
+                    setSigningOut(true);
+                    await logout('/');
                   }}
                 />
               </DropdownContainer>
