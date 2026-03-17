@@ -126,22 +126,16 @@ export default function AccessGate() {
         fontFamily: "'Barlow Condensed', 'Barlow', sans-serif",
       }}
     >
-      {/* BACKGROUND VIDEO */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
+      {/* ANIMATED BACKGROUND */}
+      <div
         style={{
           position: 'absolute',
           inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
+          background: 'linear-gradient(135deg, #08080A 0%, #1a0f0a 25%, #08080A 50%, #0f0a15 75%, #08080A 100%)',
+          backgroundSize: '400% 400%',
+          animation: 'nexus-gradient-shift 15s ease infinite',
           zIndex: 0,
-          opacity: 0.18
         }}
-        src="/video/nexus-boot-loop.mp4"
       />
 
       {/* STARFIELD */}
@@ -458,6 +452,11 @@ export default function AccessGate() {
         @import url('https://fonts.cdnfonts.com/css/beyond-mars');
         @import url('https://fonts.cdnfonts.com/css/earth-orbiter');
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes nexus-gradient-shift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
       `}</style>
     </div>
   );
