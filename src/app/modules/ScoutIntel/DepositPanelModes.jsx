@@ -389,25 +389,37 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
           onClick={() => handleVote('confirm')}
           className="nexus-btn"
           style={{
-            flex: 1, justifyContent: 'center', padding: '6px 0', fontSize: 10,
-            background: 'rgba(39,201,106,0.06)',
-            borderColor: 'rgba(39,201,106,0.25)',
-            color: 'var(--live)',
+            flex: 1, justifyContent: 'center', gap: 5, padding: '6px 0', fontSize: 10,
+            background: 'transparent', borderColor: 'var(--b1)', color: 'var(--t1)',
           }}
         >
-          <CheckCircle size={10} /> CONFIRM
+          <CheckCircle size={10} />
+          CONFIRM
+          <span style={{
+            fontSize: 9, padding: '1px 5px', borderRadius: 3,
+            background: 'rgba(39,201,106,0.12)', color: 'var(--live)',
+            fontWeight: 600, minWidth: 16, textAlign: 'center',
+          }}>
+            {deposit.confirmed_votes || 0}
+          </span>
         </button>
         <button
           onClick={() => handleVote('stale')}
           className="nexus-btn"
           style={{
-            flex: 1, justifyContent: 'center', padding: '6px 0', fontSize: 10,
-            background: 'rgba(232,160,32,0.06)',
-            borderColor: 'rgba(232,160,32,0.25)',
-            color: 'var(--warn)',
+            flex: 1, justifyContent: 'center', gap: 5, padding: '6px 0', fontSize: 10,
+            background: 'transparent', borderColor: 'var(--b1)', color: 'var(--t1)',
           }}
         >
-          <AlertTriangle size={10} /> MARK STALE
+          <AlertTriangle size={10} />
+          STALE
+          <span style={{
+            fontSize: 9, padding: '1px 5px', borderRadius: 3,
+            background: 'rgba(232,160,32,0.12)', color: 'var(--warn)',
+            fontWeight: 600, minWidth: 16, textAlign: 'center',
+          }}>
+            {deposit.stale_votes || 0}
+          </span>
         </button>
       </div>
 
