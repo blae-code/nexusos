@@ -274,6 +274,7 @@ export default function OpBoard() {
             </span>
           </button>
         )}
+        </div>
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px' }}>
