@@ -36,6 +36,7 @@ function App() {
           <Routes>
             <Route path="/" element={<AccessGate />} />
             <Route path="/gate" element={<AccessGate />} />
+            <Route path="/boot" element={<BootScreen />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />
 
