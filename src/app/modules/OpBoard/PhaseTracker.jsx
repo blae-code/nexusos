@@ -1,19 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import NexusToken from '@/components/ui/NexusToken';
-import { phaseToken } from '@/lib/tokenMap';
 
 const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
-function PhaseNode({ label, index, status, canAdvance, onClick }) {
+function PhaseNode({ label, index, status, totalPhases }) {
   const isDone = status === 'done';
   const isActive = status === 'active';
-  const isLocked = status === 'locked';
-  const clickable = isActive && canAdvance;
 
-  const labelColor = isActive ? 'var(--t1)' : 'var(--t3)';
-  const subLabelColor = isDone ? 'var(--live)' : isActive ? 'var(--warn)' : 'var(--t3)';
-  const subLabel = isDone ? 'DONE' : isActive ? 'ACTIVE' : 'LOCKED';
+  const nodeBg = isDone ? 'var(--live)' : isActive ? 'var(--acc)' : 'var(--bg3)';
+  const nodeBorder = isDone || isActive ? 'none' : '0.5px solid var(--b2)';
+  const labelColor = isDone ? 'var(--live)' : isActive ? 'var(--t0)' : 'var(--t2)';
 
   return (
     <div
@@ -24,24 +20,60 @@ function PhaseNode({ label, index, status, canAdvance, onClick }) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 5,
-        cursor: clickable ? 'pointer' : isLocked ? 'not-allowed' : 'default',
-        opacity: isLocked ? 0.35 : 1,
+        gap: 6,
       }}
-      onClick={clickable ? onClick : undefined}
-      title={clickable ? 'Advance phase' : undefined}
     >
-      <NexusToken
-        src={phaseToken(index + 1, status.toUpperCase())}
-        size={36}
-        pulse={isActive ? 'live' : false}
-        alt={`Phase ${index + 1} — ${subLabel}`}
-      />
+      {/* Phase node circle */}
+      <div
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: '50%',
+          background: nodeBg,
+          border: nodeBorder,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          ...(isActive && {
+            boxShadow: '0 0 0 2px var(--bg0), 0 0 0 3px var(--b2)',
+            animation: 'node-pulse 2s ease-in-out infinite',
+          }),
+        }}
+      >
+        {isDone ? (
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <polyline
+              points="3 8 5 10 9 3"
+              stroke="white"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : isActive ? (
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />
+        ) : (
+          <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)', fontWeight: 600 }}>
+            {index + 1}
+          </span>
+        )}
+      </div>
 
-      <span style={{ fontSize: 8, color: labelColor, letterSpacing: '.06em', textAlign: 'center', lineHeight: 1.3, maxWidth: 72 }}>
+      {/* Phase label */}
+      <span
+        style={{
+          fontSize: 9,
+          color: labelColor,
+          fontFamily: 'var(--font)',
+          letterSpacing: '0.06em',
+          textAlign: 'center',
+          lineHeight: 1.3,
+          maxWidth: 80,
+        }}
+      >
         {label}
       </span>
-      <span style={{ fontSize: 8, color: subLabelColor, textAlign: 'center', minHeight: 10 }}>{subLabel}</span>
     </div>
   );
 }
