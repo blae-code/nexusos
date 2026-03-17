@@ -277,23 +277,28 @@ export function RoleSlotEditor({ slots, onChange, error = null }) {
         </div>
       ))}
       <button
-        type="button"
-        onClick={add}
-        style={{
-          width: '100%', background: 'none', border: '0.5px dashed var(--b1)',
-          cursor: 'pointer', color: 'var(--t2)', fontSize: 10, fontFamily: 'inherit',
-          letterSpacing: '0.08em', padding: '8px 0', borderRadius: 4,
-          transition: 'border-color 120ms',
-          textTransform: 'uppercase',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--acc-rgb), 0.4)'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--b1)'; }}
+       type="button"
+       onClick={add}
+       style={{
+         width: '100%', background: 'none', border: '0.5px dashed var(--b1)',
+         cursor: 'pointer', color: 'var(--t2)', fontSize: 10, fontFamily: 'inherit',
+         letterSpacing: '0.08em', padding: '8px 0', borderRadius: 4,
+         transition: 'border-color 120ms',
+         textTransform: 'uppercase',
+       }}
+       onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--acc-rgb), 0.4)'; }}
+       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--b1)'; }}
       >
-        + Add Role Slot
+       + Add Role Slot
       </button>
-    </div>
-  );
-}
+      {error && (
+       <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
+         {error}
+       </div>
+      )}
+      </div>
+      );
+      }
 
 // ─── Phase editor (drag to reorder) ──────────────────────────────────────────
 
