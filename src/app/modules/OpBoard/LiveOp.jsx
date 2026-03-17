@@ -352,8 +352,12 @@ export default function LiveOp() {
               <PhaseTracker {...phaseTrackerProps} />
             </Panel>
             <ReadinessGate {...readinessGateProps} />
-            <Panel title="CREW">
-              <CrewGrid {...crewGridProps} />
+            <Panel title="CREW & RSVP">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <OpRsvpSection {...opRsvpProps} />
+                <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+                <CrewGrid {...crewGridProps} />
+              </div>
             </Panel>
             <Panel>
               <ThreatPanel {...threatPanelProps} />
