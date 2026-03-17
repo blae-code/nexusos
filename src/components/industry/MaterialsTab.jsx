@@ -206,8 +206,12 @@ export default function MaterialsTab({ materials, onRefresh }) {
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={10} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>
-                  No materials found.
+                <td colSpan={10} style={{ padding: 0 }}>
+                  <EmptyState
+                    icon={Layers}
+                    title="No materials logged"
+                    detail="Log your first haul using the upload zone above."
+                  />
                 </td>
               </tr>
             )}
