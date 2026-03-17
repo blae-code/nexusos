@@ -25,25 +25,38 @@ function qualityFeedback(pct) {
 
 // ─── Segmented control ────────────────────────────────────────────────────────
 
-function SegCtrl({ options, value, onChange }) {
+const RISK_ACTIVE = {
+  Low:     { border: 'var(--live)',   bg: 'transparent' },
+  Medium:  { border: 'var(--warn)',   bg: 'transparent' },
+  High:    { border: 'var(--danger)', bg: 'rgba(224,72,72,0.10)' },
+  Extreme: { border: 'var(--danger)', bg: 'rgba(224,72,72,0.10)' },
+};
+
+function SegCtrl({ options, value, onChange, riskColors }) {
   return (
     <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-      {options.map(opt => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          style={{
-            padding: '3px 9px', fontSize: 10, letterSpacing: '0.06em',
-            borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
-            border: value === opt ? '0.5px solid var(--b3)' : '0.5px solid var(--b1)',
-            background: value === opt ? 'var(--bg4)' : 'var(--bg2)',
-            color: value === opt ? 'var(--t0)' : 'var(--t2)',
-            fontWeight: value === opt ? 600 : 400,
-          }}
-        >
-          {opt}
-        </button>
-      ))}
+      {options.map(opt => {
+        const isActive = value === opt;
+        const risk = riskColors && isActive ? RISK_ACTIVE[opt] : null;
+        return (
+          <button
+            key={opt}
+            onClick={() => onChange(opt)}
+            style={{
+              padding: '3px 9px', fontSize: 10, letterSpacing: '0.06em',
+              borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
+              border: isActive
+                ? `0.5px solid ${risk ? risk.border : 'var(--b3)'}`
+                : '0.5px solid var(--b1)',
+              background: isActive ? (risk ? risk.bg : 'var(--bg4)') : 'var(--bg2)',
+              color: isActive ? (risk ? risk.border : 'var(--t0)') : 'var(--t2)',
+              fontWeight: isActive ? 600 : 400,
+            }}
+          >
+            {opt}
+          </button>
+        );
+      })}
     </div>
   );
 }
