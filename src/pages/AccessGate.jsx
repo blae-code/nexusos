@@ -103,13 +103,19 @@ export default function AccessGate() {
   }, []);
 
   const handleDiscordContinue = () => {
-    if (!health?.oauth_ready || launching) {
+    if (launching || healthLoading) {
       return;
     }
 
     setLaunching(true);
     const redirectTo = searchParams.get('redirect_to') || '/app/industry';
-    window.location.assign(authApi.getDiscordStartUrl(redirectTo));
+    try {
+      const url = authApi.getDiscordStartUrl(redirectTo);
+      window.location.href = url;
+    } catch (error) {
+      console.error('[AccessGate] Discord redirect failed:', error);
+      setLaunching(false);
+    }
   };
 
   if (!loading && isAuthenticated) {
