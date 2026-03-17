@@ -256,11 +256,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 width: 5,
                 height: 5,
                 borderRadius: '50%',
-                background: 'var(--live)',
+                background: '#C8A84B',
                 animation: 'pulse-dot 2.5s ease-in-out infinite',
               }}
             />
-            <span style={{ color: 'var(--t2)', fontSize: 10 }}>
+            <span style={{ color: '#C8A84B', fontSize: 10, fontWeight: 600 }}>
               {onlineCount !== null ? `${onlineCount} online` : 'online'}
             </span>
           </div>
