@@ -250,6 +250,24 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(104,120,192,0.15);
 }
 
+.nexus-input.error,
+select.error {
+  border-color: var(--warn);
+}
+
+.nexus-input.error:focus,
+select.error:focus {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px rgba(240,170,36,0.15);
+}
+
+.nexus-error-message {
+  display: block;
+  margin-top: 4px;
+  font-size: 9px;
+  color: var(--warn);
+}
+
 .nexus-tag {
   font-size: 9px;
   color: var(--t2);
