@@ -75,32 +75,51 @@ function StepIndicator({ currentStep, totalSteps }) {
 }
 
 function Step1Welcome({ callsign, onContinue }) {
+  const [arrowShift, setArrowShift] = useState(false);
+  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'center', textAlign: 'center' }}>
-      <div>
-        <div style={{ fontSize: 28, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.15em', marginBottom: 16 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 24,
+        alignItems: 'center',
+        textAlign: 'center',
+        animation: 'onboarding-fade-in 200ms ease-out both',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 480 }}>
+        <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
+          Welcome,
+        </div>
+        <div style={{ fontSize: 26, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.05em', fontFamily: 'inherit' }}>
           {callsign}
         </div>
-        <div style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.7 }}>
-          Welcome to NexusOS. This is Redscar Nomads' operational coordination platform. It helps us plan missions, track resources, and stay organized across the verse.
+        <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.6, maxWidth: 360, margin: '0 auto', fontFamily: 'inherit' }}>
+          This is Redscar Nomads' operational coordination platform. It helps us plan missions, track resources, and stay organized across the verse.
         </div>
       </div>
       <button
         onClick={onContinue}
+        onMouseEnter={() => setArrowShift(true)}
+        onMouseLeave={() => setArrowShift(false)}
+        className="nexus-btn primary"
         style={{
           padding: '10px 24px',
-          background: 'var(--bg3)',
-          border: '0.5px solid var(--b2)',
-          borderRadius: 6,
-          color: 'var(--t0)',
           fontSize: 11,
           letterSpacing: '0.12em',
           fontWeight: 500,
           fontFamily: 'inherit',
           cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
         }}
       >
         CONTINUE
+        <span style={{ display: 'inline-block', transform: arrowShift ? 'translateX(3px)' : 'translateX(0)', transition: 'transform 150ms ease' }}>
+          →
+        </span>
       </button>
     </div>
   );
