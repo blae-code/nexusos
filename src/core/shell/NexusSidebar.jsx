@@ -25,6 +25,7 @@ const NAV_GROUPS = [
   ],
   [
     { icon: SettingsIcon, label: 'SETTINGS', path: '/app/profile' },
+    { icon: SettingsIcon, label: 'ADMIN SETTINGS', path: '/app/admin/settings', badge: null, rank: ['PIONEER', 'FOUNDER'] },
   ],
 ];
 
@@ -75,6 +76,11 @@ export default function NexusSidebar({ currentPath }) {
     return currentPath === path || currentPath.startsWith(`${path}/`);
   };
 
+  const canAccessItem = (item) => {
+    if (!item.rank) return true;
+    return item.rank.includes(rank);
+  };
+
   return (
     <nav
       style={{
@@ -107,6 +113,9 @@ export default function NexusSidebar({ currentPath }) {
               const isActive = isActiveRoute(item.path);
               const badgeActive = item.badge ? badges[item.badge] : false;
               const badgeColor = item.badge === 'live' ? 'var(--live)' : item.badge === 'craft' ? 'var(--warn)' : 'var(--t2)';
+              const canAccess = canAccessItem(item);
+
+              if (!canAccess) return null;
 
               return (
                 <Link
