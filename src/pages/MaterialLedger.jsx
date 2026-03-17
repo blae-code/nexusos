@@ -39,7 +39,7 @@ export default function MaterialLedger() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="flex flex-col h-full" style={{ background: 'var(--bg0)' }}>
+    <div className="nexus-page-enter flex flex-col h-full" style={{ background: 'var(--bg0)' }}>
       {/* Tab bar */}
       <div
         className="flex items-center gap-1 flex-shrink-0"

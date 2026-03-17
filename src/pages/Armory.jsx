@@ -60,7 +60,7 @@ export default function Armory() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Tabs */}
       <div
         style={{
@@ -161,7 +161,7 @@ export default function Armory() {
                           style={{
                             padding: '4px 8px',
                             background: 'rgba(var(--live-rgb), 0.12)',
-                            border: '0.5px solid var(--live)',
+                            border: '0.5px solid rgba(var(--live-rgb), 1)',
                             borderRadius: 4,
                             color: 'var(--live)',
                             fontSize: 9,
