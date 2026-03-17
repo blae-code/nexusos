@@ -14,9 +14,10 @@
  * Op overlay: pulsing amber ring on craft-target deposits when live op active.
  */
 import React, { useMemo, useState } from 'react';
-import { Layers, Crosshair } from 'lucide-react';
+import { Layers, Crosshair, MapPin } from 'lucide-react';
 import NexusToken from '@/components/ui/NexusToken';
 import { depositToken } from '@/lib/tokenMap';
+import EmptyState from '@/components/ui/EmptyState';
 import { Chip, IconBtn } from './SystemMapControls';
 
 // ─── System layout data ────────────────────────────────────────────────────────
