@@ -276,8 +276,9 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             <button
               type="button"
               onClick={() => setMoreMenuOpen((open) => !open)}
+              className="nexus-tooltip"
+              data-tooltip="More destinations"
               style={menuButtonStyle(moreMenuOpen)}
-              title="More destinations"
             >
               <MoreIcon size={16} />
             </button>
