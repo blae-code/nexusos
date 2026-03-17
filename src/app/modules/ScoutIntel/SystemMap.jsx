@@ -265,7 +265,7 @@ export default function SystemMap({
 
         {/* Material filter chips (dynamic) */}
         {materialChips.length > 0 && (
-          <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
             <Chip
               label="ALL MAT"
               active={material === 'ALL'}
