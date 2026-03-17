@@ -318,30 +318,71 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         {/* ACCESS */}
         <div style={{ marginBottom: 28 }}>
           <SectionHeader label="ACCESS" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <FormField label="ACCESS TYPE">
-              <SegmentedControl
-                options={[
-                  { value: 'EXCLUSIVE', label: 'EXCLUSIVE' },
-                  { value: 'SHARED',    label: 'SHARED' },
-                ]}
-                value={form.access_type}
-                onChange={v => set('access_type', v)}
-              />
-            </FormField>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Access Type Pills */}
+            <div>
+              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Access Type</div>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                {['OPEN', 'EXCLUSIVE'].map(type => {
+                  const activeBorder = type === 'OPEN' ? 'var(--live)' : 'var(--warn)';
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => set('access_type', type)}
+                      style={{
+                        padding: '6px 14px',
+                        fontSize: 10,
+                        fontFamily: 'var(--font)',
+                        background: form.access_type === type ? 'var(--bg3)' : 'var(--bg2)',
+                        border: `0.5px solid ${form.access_type === type ? activeBorder : 'var(--b1)'}`,
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        color: form.access_type === type ? activeBorder : 'var(--t2)',
+                        transition: 'background 120ms, border-color 120ms, color 120ms',
+                      }}
+                      onMouseEnter={e => { if (form.access_type !== type) e.currentTarget.style.background = 'rgba(var(--bg3-rgb, 23,28,52), 0.8)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = form.access_type === type ? 'var(--bg3)' : 'var(--bg2)'; }}
+                    >
+                      {type}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'inherit' }}>
+                {form.access_type === 'OPEN'
+                  ? 'All org members may join and share the payout.'
+                  : 'Buy-in required. Payout split covers buy-in deduction.'}
+              </div>
+            </div>
+
+            {/* Buy-In Field */}
             {form.access_type === 'EXCLUSIVE' && (
-              <FormField label="BUY-IN (aUEC)">
-                <input
-                  className="nexus-input"
-                  type="number"
-                  min={0}
-                  step={1000}
-                  value={form.buy_in_cost}
-                  onChange={e => set('buy_in_cost', parseInt(e.target.value) || 0)}
-                  style={{ maxWidth: 180 }}
-                />
-              </FormField>
+              <div style={{
+                opacity: 0,
+                animation: 'nexus-fade-in 150ms ease-out forwards',
+              }}>
+                <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Buy-In Amount</div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    className="nexus-input"
+                    type="number"
+                    min={0}
+                    step={1000}
+                    value={form.buy_in_cost}
+                    onChange={e => set('buy_in_cost', parseInt(e.target.value) || 0)}
+                    placeholder="0"
+                    style={{ paddingRight: 48 }}
+                  />
+                  <div style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    fontSize: 9, color: 'var(--t3)', pointerEvents: 'none', fontFamily: 'inherit',
+                  }}>
+                    aUEC
+                  </div>
+                </div>
+              </div>
             )}
+
             <FormField label="MINIMUM RANK TO RSVP">
               <select
                 className="nexus-input"
