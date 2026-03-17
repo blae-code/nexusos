@@ -486,7 +486,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         {/* ROLE SLOTS */}
         <div style={{ marginBottom: 28 }}>
           <SectionHeader label="ROLE SLOTS" />
-          <RoleSlotEditor slots={roleSlots} onChange={setRoleSlots} />
+          <RoleSlotEditor slots={roleSlots} onChange={setRoleSlots} error={validationErrors.roleSlots} />
         </div>
 
         {/* SETTINGS */}
