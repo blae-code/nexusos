@@ -370,10 +370,22 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
                   marginTop: selectedRole ? 4 : 6,
                   opacity: !selectedRole || confirming ? 0.5 : 1,
                   cursor: !selectedRole || confirming ? 'not-allowed' : 'pointer',
+                  pointerEvents: confirming ? 'none' : 'auto',
                 }}
               >
-                {confirming ? 'CONFIRMING...' : 'CONFIRM RSVP →'}
+                {confirming ? <div className="nexus-loading-dots" style={{ margin: '0 auto' }}><span /><span /><span /></div> : 'CONFIRM RSVP →'}
               </button>
+              {rsvpError && (
+                <div style={{
+                  color: 'var(--danger)',
+                  fontSize: 9,
+                  fontFamily: 'var(--font)',
+                  marginTop: 6,
+                  animation: 'nexus-fade-in 150ms ease-out both',
+                }}>
+                  {rsvpError}
+                </div>
+              )}
             </div>
           )}
         </div>
