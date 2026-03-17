@@ -144,20 +144,20 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   }, [showChangelog]);
 
   return (
-    <div style={{ position: 'relative', flexShrink: 0 }}>
+    <div style={{ position: 'relative', flexShrink: 0, height: 'var(--topbar-h)' }}>
       <header
         style={{
           height: 'var(--topbar-h)',
-          background: 'var(--bg1)',
+          background: 'var(--bg0)',
           borderBottom: '0.5px solid var(--b1)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 16px',
-          flexShrink: 0,
           gap: 12,
           position: 'relative',
           zIndex: 20,
+          boxSizing: 'border-box',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
