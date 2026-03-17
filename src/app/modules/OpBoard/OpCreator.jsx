@@ -147,21 +147,34 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
 
       {/* Header */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
         padding: '12px 20px', borderBottom: '0.5px solid var(--b1)',
         background: 'var(--bg1)',
       }}>
+        <span style={{ color: 'var(--t3)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
+          Create Operation
+        </span>
         <button
           onClick={() => navigate('/app/ops')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', display: 'flex', padding: 4 }}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--t2)',
+            fontSize: 9,
+            fontFamily: 'inherit',
+            transition: 'color 150ms ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t2)'; }}
         >
-          <ChevronLeft size={14} />
+          Discard
         </button>
-        <span style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 600, letterSpacing: '0.06em' }}>CREATE OP</span>
       </div>
 
       {/* Scrollable form body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', maxWidth: 760 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', animation: 'nexus-page-enter 200ms ease-out both', maxWidth: '100%', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 640 }}>
 
         {error && (
           <div style={{
