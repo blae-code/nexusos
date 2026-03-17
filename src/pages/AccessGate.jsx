@@ -322,7 +322,7 @@ export default function AccessGate() {
         ) : (
           <button
             onClick={handleDiscordContinue}
-            disabled={!health?.oauth_ready || launching || healthLoading}
+            disabled={launching || healthLoading}
             style={{
               display: 'block',
               width: '100%',
@@ -331,10 +331,7 @@ export default function AccessGate() {
               border: 'none',
               borderRadius: '2px',
               padding: '14px 24px',
-              cursor:
-                health?.oauth_ready && !launching && !healthLoading
-                  ? 'pointer'
-                  : 'not-allowed',
+              cursor: launching || healthLoading ? 'not-allowed' : 'pointer',
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
               fontSize: '14px',
@@ -342,8 +339,7 @@ export default function AccessGate() {
               textTransform: 'uppercase',
               marginBottom: '16px',
               transition: 'background 0.15s',
-              opacity:
-                health?.oauth_ready && !launching && !healthLoading ? 1 : 0.5,
+              opacity: launching || healthLoading ? 0.5 : 1,
             }}
             onMouseEnter={(e) => {
               if (
