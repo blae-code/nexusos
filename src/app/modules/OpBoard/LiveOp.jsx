@@ -82,8 +82,23 @@ export default function LiveOp() {
   const rank = ctx.rank || 'VAGRANT';
   const callsign = ctx.callsign || 'UNKNOWN';
   const discordId = ctx.discordId || null;
-  const layoutMode = ctx.layoutMode || 'ALT-TAB';
-  const setLayoutMode = ctx.setLayoutMode;
+
+  const [layoutMode, setLayoutMode] = useState(() => {
+    try {
+      return localStorage.getItem('nexusos_layout_mode') || 'ALT-TAB';
+    } catch {
+      return 'ALT-TAB';
+    }
+  });
+
+  const handleLayoutChange = (mode) => {
+    setLayoutMode(mode);
+    try {
+      localStorage.setItem('nexusos_layout_mode', mode);
+    } catch {
+      // localStorage unavailable
+    }
+  };
 
   const [op, setOp] = useState(null);
   const [rsvps, setRsvps] = useState([]);
