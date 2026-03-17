@@ -41,39 +41,81 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
   const cfg = STATUS_CONFIG[op.status] || STATUS_CONFIG.DRAFT;
   const isLive = op.status === 'LIVE';
   const totalSlots = Object.values(op.role_slots || {}).reduce((s, v) => s + (typeof v === 'object' ? (v.capacity ?? v) : v), 0);
+  const [hovered, setHovered] = React.useState(false);
 
   return (
-    <Link to={`/app/ops/${op.id}`} style={{ textDecoration: 'none' }}>
+    <Link to={`/app/ops/${op.id}`} style={{ textDecoration: 'none', display: 'block', marginBottom: 8, overflow: 'hidden' }}>
       <div
-        className={`nexus-card ${cfg.stripe}`}
-        style={{ padding: '12px 14px', marginBottom: 6, cursor: 'pointer', transition: 'border-color 0.1s' }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--b2)'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = ''; }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          background: 'var(--bg1)',
+          border: '0.5px solid var(--b1)',
+          borderLeft: `3px solid ${hovered ? cfg.stripeHover : cfg.stripe}`,
+          borderRadius: 6,
+          overflow: 'hidden',
+          cursor: 'pointer',
+          transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+          transition: 'border-left-color 150ms ease, transform 150ms ease, box-shadow 150ms ease',
+          boxShadow: hovered ? '0 4px 16px rgba(0,0,0,0.3)' : 'none',
+        }}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              {isLive && <div className="pulse-live" />}
-              <span style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {op.name}
-              </span>
-              <span className="nexus-tag" style={{ color: cfg.color, borderColor: cfg.border, background: cfg.bg, flexShrink: 0 }}>
-                {cfg.label}
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-              <span className="nexus-tag">{(op.type || '').replace(/_/g, ' ')}</span>
-              {op.system_name && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.system_name}{op.location ? ` · ${op.location}` : ''}</span>}
-              {op.scheduled_at && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{isLive ? 'started' : 'scheduled'} {relativeTime(op.scheduled_at)}</span>}
-              {op.access_type === 'EXCLUSIVE' && <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.05)' }}>EXCLUSIVE</span>}
-              {op.buy_in_cost > 0 && <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.buy_in_cost.toLocaleString()} aUEC buy-in</span>}
-            </div>
+        {/* Header */}
+        <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          {isLive && <div className="pulse-live" style={{ flexShrink: 0 }} />}
+          <span style={{
+            color: 'var(--t0)', fontSize: 14, fontWeight: 500,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+          }}>
+            {op.name}
+          </span>
+          <span
+            style={{
+              flexShrink: 0, padding: '2px 7px', borderRadius: 3, fontSize: 9,
+              letterSpacing: '0.1em', fontWeight: 500,
+              color: cfg.color, background: cfg.bg, border: `0.5px solid ${cfg.border}`,
+            }}
+          >
+            {cfg.label}
+          </span>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '0 14px 8px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
+          <span style={{
+            padding: '2px 6px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em',
+            color: 'var(--t2)', background: 'var(--bg3)', border: '0.5px solid var(--b1)',
+            whiteSpace: 'nowrap',
+          }}>
+            {(op.type || '').replace(/_/g, ' ')}
+          </span>
+          {(op.system_name || op.location) && (
+            <span style={{ color: 'var(--t2)', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {op.system_name}{op.location ? ` · ${op.location}` : ''}
+            </span>
+          )}
+          {op.scheduled_at && (
+            <span style={{ color: 'var(--t3)', fontSize: 10, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+              {isLive ? 'started' : 'scheduled'} {relativeTime(op.scheduled_at)}
+            </span>
+          )}
+          {op.access_type === 'EXCLUSIVE' && (
+            <span style={{ padding: '2px 6px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em', color: 'var(--warn)', background: 'rgba(232,160,32,0.05)', border: '0.5px solid rgba(232,160,32,0.3)', whiteSpace: 'nowrap' }}>
+              EXCLUSIVE
+            </span>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '7px 14px', borderTop: '0.5px solid var(--b0)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ color: 'var(--t1)', fontSize: 11 }}>{rsvpCount}</span>
+            <span style={{ color: 'var(--t3)', fontSize: 9 }}>/ {totalSlots || '?'} crew</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ color: 'var(--t1)', fontSize: 11 }}>{rsvpCount}</span>
-              <span style={{ color: 'var(--t3)', fontSize: 9 }}>/ {totalSlots || '?'} crew</span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {['PUBLISHED', 'LIVE'].includes(op.status) && !canLead && (
               <button
                 onClick={e => { e.preventDefault(); onRsvp(op.id); }}
@@ -88,6 +130,12 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
                 {myRsvp ? '✓ RSVP\'D' : 'RSVP'}
               </button>
             )}
+            <span style={{
+              padding: '3px 10px', borderRadius: 4, fontSize: 9, letterSpacing: '0.08em',
+              color: 'var(--t2)', background: 'var(--bg3)', border: '0.5px solid var(--b1)',
+            }}>
+              VIEW →
+            </span>
           </div>
         </div>
       </div>
