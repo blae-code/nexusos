@@ -313,41 +313,52 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
           )}
         </div>
       ) : myRsvp ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Already RSVPd pill */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '8px 12px',
+            background: 'rgba(var(--live-rgb), 0.04)',
+            border: '0.5px solid var(--live)',
+            borderLeft: '3px solid var(--live)',
+            borderRadius: 4,
+          }}
+        >
+          {/* Live dot */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 12px',
-              background: 'rgba(var(--live-rgb), 0.1)',
-              border: '0.5px solid rgba(var(--live-rgb), 0.3)',
-              borderRadius: 6,
-              flex: 1,
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: 'var(--live)',
+              flexShrink: 0,
             }}
-          >
-            <div
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: 'var(--live)',
-              }}
-            />
-            <span style={{ color: 'var(--live)', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 500 }}>
-              {myRsvp.role || 'Role TBD'}
-            </span>
-          </div>
+          />
 
-          {/* Leave op link */}
+          {/* Role name */}
+          <span style={{ color: 'var(--t0)', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 500 }}>
+            {myRsvp.role || 'Role TBD'}
+          </span>
+
+          {/* Ship name (if provided) */}
+          {myRsvp.ship && (
+            <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)' }}>
+              {myRsvp.ship}
+            </span>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* Leave op link with confirmation state */}
           <button
-            onClick={handleLeaveOp}
+            onClick={leaveConfirming ? handleLeaveOp : handleLeaveClick}
+            onBlur={() => setLeaveConfirming(false)}
             style={{
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'var(--t3)',
+              color: leaveConfirming ? 'var(--warn)' : 'var(--t3)',
               fontSize: 9,
               fontFamily: 'var(--font)',
               textDecoration: 'none',
@@ -355,13 +366,17 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
               whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.color = 'var(--danger)';
+              if (!leaveConfirming) {
+                e.currentTarget.style.color = 'var(--danger)';
+              }
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.color = 'var(--t3)';
+              if (!leaveConfirming) {
+                e.currentTarget.style.color = 'var(--t3)';
+              }
             }}
           >
-            Leave op
+            {leaveConfirming ? 'Are you sure? Confirm →' : 'Leave op'}
           </button>
         </div>
       ) : null}
