@@ -188,8 +188,12 @@ export default function RefineryOrdersTab({ orders, onRefresh }) {
             })}
             {(orders || []).length === 0 && (
               <tr>
-                <td colSpan={11} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>
-                  No refinery orders.
+                <td colSpan={11} style={{ padding: 0 }}>
+                  <EmptyState
+                    icon={Beaker}
+                    title="No active orders"
+                    detail="Submit a refinery order to start tracking."
+                  />
                 </td>
               </tr>
             )}
