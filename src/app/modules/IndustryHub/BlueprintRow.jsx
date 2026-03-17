@@ -3,7 +3,7 @@
  * No closed-over variables — props only.
  */
 import React, { useState } from 'react';
-import { Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   BlueprintHolderChip,
   BlueprintPriorityTag,
