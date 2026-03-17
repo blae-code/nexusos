@@ -7,6 +7,7 @@ import CraftQueueTab from '@/apps/industry-hub/CraftQueueTab';
 import RefineryManagement from '@/apps/industry-hub/RefineryManagement';
 import PatchDigestHeader from '@/apps/industry-hub/PatchDigestHeader';
 import IndustryOverview from '@/apps/industry-hub/IndustryOverview';
+import PriceTracker from '@/apps/industry-hub/PriceTracker';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -274,6 +275,7 @@ export default function IndustryHub() {
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} onRefresh={load} /> : null}
         {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} materials={materials} blueprints={blueprints} /> : null}
         {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} callsign={callsign} /> : null}
+        {tab === 'prices' ? <PriceTracker /> : null}
       </div>
     </div>
   );
