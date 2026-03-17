@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { Package, Zap, BookMarked, Hammer } from 'lucide-react';
 import {
   BlueprintHolderChip,
   BlueprintPriorityTag,
