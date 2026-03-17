@@ -110,12 +110,13 @@ export function GapRow({ name, have, need, bestDeposit }) {
           {have.toFixed(0)} / {need.toFixed(0)} SCU
         </span>
       </div>
-      <div style={{ height: 3, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden' }}>
+      <div style={{ height: 3, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden', display: 'flex' }}>
         <div style={{
           height: '100%', width: `${pct}%`,
-          background: met ? 'var(--live)' : 'var(--warn)',
-          transition: 'width 0.3s ease',
+          background: 'var(--acc)',
+          transition: 'width 0.3s ease', flexShrink: 0,
         }} />
+        <div style={{ height: '100%', flex: 1, background: 'var(--b1)' }} />
       </div>
       {!met && bestDeposit && (
         <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.04em' }}>
