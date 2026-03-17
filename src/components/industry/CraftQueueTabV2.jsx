@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Plus, AlertCircle } from 'lucide-react';
+import NexusToken from '@/components/ui/NexusToken';
+import { T } from '@/lib/tokenMap';
 
 const STATUS_COLOURS = {
   OPEN:        'var(--info)',
@@ -140,8 +142,10 @@ export default function CraftQueueTabV2({ craftQueue, callsign, onRefresh }) {
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
         {STATUS_ORDER.map(status => renderStatus(status, grouped[status].length))}
         {Object.values(grouped).every(g => g.length === 0) && (
-          <div style={{ textAlign: 'center', color: 'var(--t2)', padding: 40 }}>
-            Craft queue is empty.
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 60, gap: 12 }}>
+            <NexusToken src={T('square-grey')} size={40} opacity={0.25} alt="Empty craft queue" />
+            <span style={{ color: 'var(--t2)', fontSize: 13 }}>Craft queue is empty</span>
+            <span style={{ color: 'var(--t3)', fontSize: 11 }}>Queue a blueprint from the Blueprints tab to begin crafting</span>
           </div>
         )}
       </div>

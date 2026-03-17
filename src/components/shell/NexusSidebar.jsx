@@ -15,7 +15,7 @@ import {
   ScoutIcon,
   SettingsIcon,
 } from './NexusIcons';
-import { BookOpen } from 'lucide-react';
+import { Archive, BarChart2, BookOpen, TrendingUp } from 'lucide-react';
 
 const BASE_NAV_ITEMS = [
   { icon: IndustryIcon, label: 'Industry Hub', path: '/app/industry', badge: 'craft' },
@@ -25,10 +25,13 @@ const BASE_NAV_ITEMS = [
   { icon: BlueprintIcon, label: 'Blueprint Registry', path: '/app/industry?tab=blueprints', badge: 'blueprints' },
   null,
   { icon: CofferIcon, label: 'Coffer', path: '/app/coffer' },
+  { icon: TrendingUp, label: 'Profit Calc', path: '/app/profit' },
   { icon: RescueIcon, label: 'Rescue', path: '/app/rescue', badge: 'rescue' },
   { icon: RosterIcon, label: 'Roster', path: '/app/roster' },
   { icon: RosterIcon, label: 'Armory', path: '/app/armory' },
   null,
+  { icon: BarChart2, label: 'Material Ledger', path: '/app/ledger' },
+  { icon: Archive, label: 'Epic Archive', path: '/app/archive' },
   { icon: BookOpen, label: 'Org Handbook', path: '/app/handbook' },
   { icon: SettingsIcon, label: 'Profile Settings', path: '/app/profile' },
 ];

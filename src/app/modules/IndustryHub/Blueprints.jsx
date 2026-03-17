@@ -6,6 +6,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Plus, Search } from 'lucide-react';
+import NexusToken from '@/components/ui/NexusToken';
+import { T } from '@/lib/tokenMap';
 import { Chip } from './BlueprintFilterChips';
 import BlueprintRow from './BlueprintRow';
 import PriorityPanel from './PriorityPanel';
@@ -167,8 +169,18 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
             ))}
 
             {sorted.length === 0 && (
-              <div style={{ padding: '28px 16px', textAlign: 'center', color: 'var(--t2)', fontSize: 11, fontStyle: 'italic' }}>
-                No blueprints match this filter
+              <div style={{ padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                <NexusToken
+                  src={blueprints.length === 0 ? T('square-grey') : T('square-orange')}
+                  size={32}
+                  opacity={0.35}
+                  alt="No blueprints"
+                />
+                <span style={{ color: 'var(--t2)', fontSize: 11 }}>
+                  {blueprints.length === 0
+                    ? 'No blueprints registered — add one to start tracking crafting capacity'
+                    : 'No blueprints match this filter'}
+                </span>
               </div>
             )}
           </div>

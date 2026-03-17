@@ -57,7 +57,7 @@ export function createMockBase44Client() {
 
     functions: {
       async invoke(name, payload) {
-        console.log(`[DEV] functions.invoke: ${name}`, payload);
+        // [DEV] mock functions.invoke: no-op in simulation mode
         return { success: true, message: '[DEV] mock response' };
       },
     },

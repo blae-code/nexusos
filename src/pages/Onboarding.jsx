@@ -263,7 +263,7 @@ function Step4Consent({ onComplete }) {
       });
       onComplete();
     } catch (err) {
-      console.error('Onboarding submission failed:', err);
+      console.warn('[Onboarding] submission failed:', err);
       setSubmitting(false);
     }
   };

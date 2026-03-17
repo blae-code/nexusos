@@ -431,13 +431,13 @@ export default function Materials({ materials, onRefresh }) {
             <thead>
               <tr>
                 <StaticColHeader label="" />
-                <StaticColHeader label="MATERIAL" />
-                <StaticColHeader label="TYPE" />
-                <SortableColHeader col="quality_pct"  label="QUALITY"  sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
-                <SortableColHeader col="quantity_scu" label="SCU"      sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
-                <StaticColHeader label="T2" />
-                <StaticColHeader label="STATUS" />
-                <SortableColHeader col="logged_at"    label="LOGGED"   sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
+                <StaticColHeader label="MATERIAL" title="Material name" />
+                <StaticColHeader label="TYPE"     title="Material category — ore, salvage, fuel, etc." />
+                <SortableColHeader col="quality_pct"  label="QUALITY"  title="Quality percentage (0–100%). ≥80% meets T2 crafting requirements. Click to sort." sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
+                <SortableColHeader col="quantity_scu" label="SCU"      title="Current stock in Standard Cargo Units. Click to sort." sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
+                <StaticColHeader label="T2"     title="Tier 2 eligibility — T2 materials can craft high-end components. T1 is lower tier." />
+                <StaticColHeader label="STATUS" title="Crafting status: CRAFT-READY, BELOW T2, REFINE FIRST, or T1 ONLY" />
+                <SortableColHeader col="logged_at"    label="LOGGED"   title="When this stock entry was last recorded. Click to sort." sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
                 <StaticColHeader label="ACTIONS" right />
               </tr>
             </thead>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, Check } from 'lucide-react';
 import { normalizeRoleSlots, Overlay, DialogCard } from './opBoardHelpers';
+import NexusToken from '@/components/ui/NexusToken';
+import { roleToken } from '@/lib/tokenMap';
 
 export default function RSVPDialog({ op, rsvps, discordId, callsign, onClose, onRefresh }) {
   const [submitting, setSubmitting] = useState(false);
@@ -84,19 +86,26 @@ export default function RSVPDialog({ op, rsvps, discordId, callsign, onClose, on
                     key={i}
                     onClick={() => !full && submit(slot.name)}
                     disabled={full || submitting}
+                    title={full ? `${slot.name} — slot full (${filled}/${slot.capacity})` : `Sign up as ${slot.name}`}
                     style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      display: 'flex', alignItems: 'center', gap: 8,
                       padding: '9px 12px', borderRadius: 6, cursor: full ? 'not-allowed' : 'pointer',
                       background: selected ? 'rgba(39,201,106,0.08)' : 'var(--bg3)',
                       border: `0.5px solid ${selected ? 'rgba(39,201,106,0.3)' : 'var(--b2)'}`,
                       opacity: full ? 0.5 : 1, fontFamily: 'inherit',
                     }}
                   >
-                    <span style={{ color: selected ? 'var(--live)' : 'var(--t0)', fontSize: 12, fontWeight: selected ? 600 : 400, letterSpacing: '0.05em' }}>
+                    <NexusToken
+                      src={roleToken(slot.name.toUpperCase().replace(/\s+/g, '_'))}
+                      size={16}
+                      opacity={full ? 0.4 : 1}
+                      alt={slot.name}
+                    />
+                    <span style={{ flex: 1, color: selected ? 'var(--live)' : 'var(--t0)', fontSize: 12, fontWeight: selected ? 600 : 400, letterSpacing: '0.05em', textAlign: 'left' }}>
                       {slot.name.toUpperCase()}
                       {selected && <span style={{ fontSize: 10, marginLeft: 6, color: 'var(--live)' }}>✓ SELECTED</span>}
                     </span>
-                    <span style={{ color: full ? 'var(--danger)' : 'var(--t1)', fontSize: 11 }}>
+                    <span style={{ color: full ? 'var(--danger)' : 'var(--t1)', fontSize: 11, flexShrink: 0 }}>
                       {filled}/{slot.capacity}{full ? ' — FULL' : ''}
                     </span>
                   </button>

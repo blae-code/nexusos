@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
+import NexusToken from '@/components/ui/NexusToken';
+import { T } from '@/lib/tokenMap';
 import {
   createRescueCall,
   getActiveRescueCount,
@@ -184,9 +186,10 @@ export default function RescueBoard() {
         ))}
 
         {calls.length === 0 && (
-          <div className="flex flex-col items-center" style={{ padding: 60, color: 'var(--t2)', fontSize: 13 }}>
-            <AlertTriangle size={28} style={{ marginBottom: 12, opacity: 0.2 }} />
-            <span>No active distress calls — verse is quiet</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 60, gap: 12 }}>
+            <NexusToken src={T('hospital-grey')} size={40} opacity={0.25} alt="No active calls" />
+            <span style={{ color: 'var(--t2)', fontSize: 13 }}>No active distress calls</span>
+            <span style={{ color: 'var(--t3)', fontSize: 11 }}>Verse is quiet — use SEND DISTRESS if you need assistance</span>
           </div>
         )}
       </div>

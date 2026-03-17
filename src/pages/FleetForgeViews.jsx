@@ -4,6 +4,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Save, Share2, Lock, Unlock, ChevronDown, Zap, Shield, Cpu } from 'lucide-react';
+import NexusToken from '@/components/ui/NexusToken';
+import { T } from '@/lib/tokenMap';
 
 const SLOT_SECTIONS = [
   { label: 'MINING EQUIPMENT', slots: [
@@ -331,8 +333,10 @@ export function FleetView({ builds }) {
           </div>
         ))}
         {builds.length === 0 && (
-          <div style={{ gridColumn: '1/-1', color: 'var(--t2)', fontSize: 13, textAlign: 'center', padding: 40 }}>
-            No builds saved yet. Use the Ship Fitting tab to create one.
+          <div style={{ gridColumn: '1/-1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 60, gap: 12 }}>
+            <NexusToken src={T('mechanics-grey')} size={40} opacity={0.25} alt="No builds" />
+            <span style={{ color: 'var(--t2)', fontSize: 13 }}>No builds saved yet</span>
+            <span style={{ color: 'var(--t3)', fontSize: 11 }}>Use the Ship Fitting tab to create a loadout</span>
           </div>
         )}
       </div>

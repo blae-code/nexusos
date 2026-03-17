@@ -59,11 +59,12 @@ export function SortArrow({ active, dir }) {
 
 // ─── Sort column header ────────────────────────────────────────────────────────
 
-export function SortableColHeader({ col, label, sortBy, sortDir, onToggle }) {
+export function SortableColHeader({ col, label, title, sortBy, sortDir, onToggle }) {
   const active = sortBy === col;
   return (
     <th
       onClick={() => onToggle(col)}
+      title={title}
       style={{
         ...TH,
         cursor: 'pointer',
@@ -76,10 +77,10 @@ export function SortableColHeader({ col, label, sortBy, sortDir, onToggle }) {
   );
 }
 
-export function StaticColHeader({ label, right = false }) {
+export function StaticColHeader({ label, title, right = false }) {
   if (right) {
-    return <th style={{ ...TH, textAlign: 'right' }}>{label}</th>;
+    return <th title={title} style={{ ...TH, textAlign: 'right' }}>{label}</th>;
   }
 
-  return <th style={TH}>{label}</th>;
+  return <th title={title} style={TH}>{label}</th>;
 }

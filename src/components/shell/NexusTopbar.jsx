@@ -317,6 +317,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 src={rankToken(source === 'admin' ? 'PIONEER' : (user?.rank || 'AFFILIATE'))}
                 size={16}
                 alt={source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}
+                title={`Rank: ${source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}`}
               />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
                 <span style={{ fontSize: 11, color: 'var(--t0)', lineHeight: 1, fontFamily: 'inherit' }}>

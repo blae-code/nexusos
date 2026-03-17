@@ -1,6 +1,8 @@
 import React from 'react';
 import { Clock, ChevronRight } from 'lucide-react';
 import { normalizeRoleSlots, TypeTag, relativeTime, utcString } from './opBoardHelpers';
+import NexusToken from '@/components/ui/NexusToken';
+import { opTypeToken } from '@/lib/tokenMap';
 
 export default function UpcomingCard({ op, userRsvp, onRsvp, onView }) {
   const slots      = normalizeRoleSlots(op.role_slots);
@@ -16,6 +18,12 @@ export default function UpcomingCard({ op, userRsvp, onRsvp, onView }) {
       borderRadius: 8, padding: '12px 14px',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+        <NexusToken
+          src={opTypeToken(op.type)}
+          size={22}
+          alt={op.type}
+          title={`Op type: ${op.type || 'UNCLASSIFIED'}`}
+        />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
             <span style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

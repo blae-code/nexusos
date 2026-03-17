@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Users } from 'lucide-react';
 import { TypeTag } from './opBoardHelpers';
+import NexusToken from '@/components/ui/NexusToken';
+import { opTypeToken, opStatusToken } from '@/lib/tokenMap';
 
 export default function ArchiveTable({ ops }) {
   const [limit, setLimit] = useState(10);
@@ -31,8 +33,14 @@ export default function ArchiveTable({ ops }) {
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            {['OP NAME', 'DATE', 'DURATION', 'CREW', 'OUTCOME'].map(h => (
-              <th key={h} style={TH_STYLE}>{h}</th>
+            {[
+              { label: 'OP NAME',  title: 'Operation name and type' },
+              { label: 'DATE',     title: 'Scheduled date (hover cell for UTC)' },
+              { label: 'DURATION', title: 'Total elapsed time from start to wrap' },
+              { label: 'CREW',     title: 'Number of confirmed crew members' },
+              { label: 'OUTCOME',  title: 'Final op status — COMPLETE, CANCELLED, or STOOD DOWN' },
+            ].map(h => (
+              <th key={h.label} title={h.title} style={TH_STYLE}>{h.label}</th>
             ))}
           </tr>
         </thead>
@@ -46,11 +54,16 @@ export default function ArchiveTable({ ops }) {
             >
               <td style={{ ...TD_STYLE }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <NexusToken
+                    src={opTypeToken(op.type)}
+                    size={16}
+                    alt={op.type}
+                    title={`Op type: ${op.type || 'UNCLASSIFIED'}`}
+                  />
                   <span style={{ color: 'var(--t0)', fontSize: 12 }}>{op.name}</span>
-                  <TypeTag type={op.type} />
                 </div>
               </td>
-              <td style={{ ...TD_STYLE, color: 'var(--t1)', fontSize: 11 }}>{opDate(op)}</td>
+              <td style={{ ...TD_STYLE, color: 'var(--t1)', fontSize: 11 }} title={op.scheduled_at || undefined}>{opDate(op)}</td>
               <td style={{ ...TD_STYLE, color: 'var(--t1)', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>{duration(op)}</td>
               <td style={{ ...TD_STYLE, color: 'var(--t1)', fontSize: 11 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -59,14 +72,22 @@ export default function ArchiveTable({ ops }) {
                 </span>
               </td>
               <td style={TD_STYLE}>
-                <span style={{
-                  fontSize: 9, padding: '1px 6px', borderRadius: 4,
-                  border: '0.5px solid var(--b2)', background: 'var(--bg3)',
-                  color: op.status === 'COMPLETE' ? 'var(--live)' : 'var(--t2)',
-                  letterSpacing: '0.06em',
-                }}>
-                  {op.status}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <NexusToken
+                    src={opStatusToken(op.status)}
+                    size={14}
+                    alt={op.status}
+                    title={op.status}
+                  />
+                  <span style={{
+                    fontSize: 9, padding: '1px 6px', borderRadius: 4,
+                    border: '0.5px solid var(--b2)', background: 'var(--bg3)',
+                    color: op.status === 'COMPLETE' ? 'var(--live)' : 'var(--t2)',
+                    letterSpacing: '0.06em',
+                  }}>
+                    {op.status}
+                  </span>
+                </div>
               </td>
             </tr>
           ))}

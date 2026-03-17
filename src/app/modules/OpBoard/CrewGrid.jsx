@@ -88,6 +88,7 @@ function CrewCard({ rsvp, op }) {
                   src={roleToken(rsvp.role.toUpperCase())}
                   size={22}
                   alt={rsvp.role}
+                  title={`Role: ${rsvp.role}`}
                 />
                 <span style={{
                   fontSize: 9, padding: '1px 5px', borderRadius: 4,
