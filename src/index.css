@@ -298,6 +298,16 @@ textarea.nexus-input {
   animation: nexus-page-enter 0.15s ease-out both;
 }
 
+@keyframes onboarding-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes node-pulse {
   0%, 100% { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 3px var(--b2); }
   50%       { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 4px var(--acc); }
