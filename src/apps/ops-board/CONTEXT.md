@@ -1,127 +1,104 @@
-# Op Board — App Context
-
-**Route:** `/app/ops` (list) · `/app/ops/new` (create) · `/app/ops/:id` (live detail)
-**Directory:** `src/apps/ops-board/`
-**Status:** COMPLETE — production-ready
-
----
+# CONTEXT — ops-board
 
 ## Purpose
+Operation lifecycle management: create, publish, run, and archive org operations.
+Route prefix: `/app/ops`
 
-End-to-end operation lifecycle management for Redscar Nomads.
-Covers creation, pre-op readiness, live execution (phase tracking, crew, threats, loot, session log),
-and post-op split calculation. Connects to Herald Bot for all Discord embeds and role pings.
-
----
+## Routes
+| Path | Component | Description |
+|------|-----------|-------------|
+| `/app/ops` | `OpBoard.jsx` | List view — all ops grouped by status |
+| `/app/ops/new` | `OpCreatorPage.jsx` → `OpCreator.jsx` | Create new op |
+| `/app/ops/:id` | `LiveOp.jsx` | Detail / live-op view |
 
 ## Entity Ownership
+**Entities owned by this app (reads + writes):**
+- `Op` — full CRUD: create, update status/phases/session_log/readiness_gate, list/filter
+- `OpRsvp` — create, update status, filter by op_id or discord_id
 
-This app is the **primary owner** of:
+**Entities read-only (cross-app):**
+- `CofferLog` — SplitCalc creates entries (entry_type: 'OP_SPLIT') — writes to Industry-Hub's ledger
+- `game_cache_items` — LootTally reads for material autocomplete
 
-| Entity | Operations |
-|--------|-----------|
-| `Op` | create, read, update (status, phase, session_log, readiness_gate, started_at, ended_at) |
-| `OpRsvp` | create, read, update (status, role, ship) |
-
-This app **writes to** (secondary):
-
-| Entity | Context |
-|--------|---------|
-| `CofferLog` | SplitCalc writes `OP_SPLIT` entries after post-op haul logging |
-
-This app **reads from** (shared data):
-
-| Entity | Context |
-|--------|---------|
-| `game_cache_items` | LootTally material autocomplete |
-
----
+**Functions invoked:**
+- `heraldBot` — actions: `opActivate`, `opEnd`, `publishOp`, `phaseAdvance`, `opGo`, `threatAlert`
 
 ## Cross-App Data Dependencies
+- **Session context** (`@/core/data/SessionContext`): rank, callsign, discordId via useOutletContext
+- **SplitCalc → CofferLog**: writes to the ledger owned by Industry Hub — callers should be aware
+- **LootTally → game_cache_items**: shared cache entity, read-only
 
-| Dependency | Source | Used In |
-|------------|--------|---------|
-| Scout deposits | `src/apps/scout-intel/` | Not currently read; ops are created independently |
-| Materials | `src/apps/industry-hub/` | Not currently read in Op Board |
-| CofferLog | shared | SplitCalc writes split entries to ledger |
-| `heraldBot` function | Base44 function | Publish op, phase advance, threat alert, op start/end, scout ping |
-
----
-
-## User Flows
-
-1. **Create op** — SCOUT+ navigates to `/app/ops/new` → fills BASICS / ACCESS / ROLE SLOTS / SETTINGS / PHASES → publishes or saves draft → Herald Bot DMs Discord event if `createDiscordEvent` toggle is on
-2. **RSVP to op** — Any rank views op list → clicks RSVP button → selects role + ship in RSVPDialog → status set to CONFIRMED
-3. **Activate op** — PIONEER/FOUNDER/VOYAGER clicks ACTIVATE on op detail → status → LIVE, `started_at` set, Herald Bot fires `opActivate`
-4. **Advance phase** — SCOUT+ clicks ADVANCE in PhaseTracker → confirmation required → phase_current incremented, Herald Bot fires `phaseAdvance`
-5. **Report threat** — Any crew member in ThreatPanel → fills threat form (severity, description, location) → appended to session_log, Herald Bot fires `threatAlert`
-6. **Log loot** — SCOUT+ uses LootTally (visible at phase ≥ 4) → adds material + qty + quality → appended to session_log
-7. **Log session entry** — SCOUT+ types in SessionLog input → Enter submits → entry appended with timestamp
-8. **Readiness gate** — SCOUT+ checks items in ReadinessGate → all checked → GO button available → Herald Bot fires `opGo`
-9. **End op** — PIONEER/FOUNDER/VOYAGER clicks END → status → COMPLETE, `ended_at` set
-10. **Split payout** — SplitCalc → enter gross haul → equal split or custom per-member → EXCLUSIVE ops deduct buy-ins → "Log Split to Coffer" creates CofferLog entries per crew member
-
----
+## User Flows Implemented
+1. **View ops list** — load all ops, group by status, filter active/complete/all, RSVP toggle
+2. **Create op** — multi-section form (BASICS, ACCESS, ROLE SLOTS, SETTINGS, PHASES), save as DRAFT or PUBLISHED
+3. **RSVP** — role selector grid, ship input, confirm/decline, real-time capacity display
+4. **Live op detail** — 2-layout (ALT-TAB / 2ND MONITOR), phase advance, crew grid, session log, readiness gate, threat panel, loot tally, split calc
+5. **Phase advance** — confirm → Herald Bot ping → session log entry
+6. **Threat alert** — report with severity, Herald Bot ping, resolve
+7. **Split payout** — gross haul entry, equal/custom split, log entries to CofferLog
+8. **Archive ops** — completed ops table with duration, crew count, pagination
 
 ## Component Inventory
 
-| File | Role | Status |
-|------|------|--------|
-| `OpBoard.jsx` | Route component — op list grouped by status, RSVP toggle | **Complete** |
-| `index.jsx` | Alternative list view with LIVE/UPCOMING/ARCHIVE tabs | **Complete** (duplicate; may deprecate one) |
-| `LiveOp.jsx` | Route component — full op detail with all sub-panels | **Complete** |
-| `OpCreator.jsx` | Op creation form (BASICS→ACCESS→ROLES→SETTINGS→PHASES) | **Complete** (minor bug: see Known Issues) |
-| `OpCreatorPage.jsx` | Thin wrapper — reads outlet context, passes props to OpCreator | **Complete** |
-| `PhaseTracker.jsx` | Visual phase progress bar with advance + confirm flow | **Complete** |
-| `ReadinessGate.jsx` | Checklist with GO button; percent-complete badge | **Complete** |
-| `SessionLog.jsx` | Scrollable event feed; manual entry for SCOUT+ | **Complete** |
-| `SplitCalc.jsx` | Post-op payout calculator; logs to CofferLog | **Complete** |
-| `ThreatPanel.jsx` | Threat reporting with severity; resolve flow | **Complete** |
-| `CrewGrid.jsx` | Responsive crew roster (confirmed + empty slots) | **Complete** |
-| `LootTally.jsx` | Material harvest logger; visible at phase ≥ 4 | **Complete** |
-| `OpRsvpSection.jsx` | Role slot grid + RSVP form + confirmed crew list | **Complete** |
-| `RSVPDialog.jsx` | Quick RSVP modal with role grid + ship input | **Complete** |
-| `LiveOpTopbar.jsx` | Persistent header: op name, phase pill, elapsed timer, layout toggle | **Complete** |
-| `LiveOpCard.jsx` | Compact op card for LIVE ops | **Complete** |
-| `UpcomingCard.jsx` | Card for upcoming (PUBLISHED) ops with RSVP action | **Complete** |
-| `ArchiveTable.jsx` | Table view of COMPLETE/ARCHIVED ops with pagination | **Complete** |
-| `LootTally.jsx` | Material haul logger (session_log append) | **Complete** |
-| `opBoardHelpers.jsx` | Shared atoms: relativeTime, SectionHeader, TypeTag, ElapsedTimer, Overlay, DialogCard | **Complete** |
-| `opCreatorHelpers.jsx` | Creator atoms: OP_TYPES, SYSTEMS, RANK_GATES, getDefaults, RoleSlotEditor, PhaseEditor | **Complete** |
-| `LiveOpCrewTab.jsx` | Legacy crew tab component from old components/ops/ | **Legacy** |
-| `LiveOpHeader.jsx` | Legacy op header component from old components/ops/ | **Legacy** |
-| `LiveOpSessionLog.jsx` | Legacy session log from old components/ops/ | **Legacy** |
-| `OpBoardModule.jsx` | Legacy full module wrapper from old components/ops/ | **Legacy** |
-| `PhaseBriefModal.jsx` | Legacy phase brief modal from old components/ops/ | **Legacy** |
-| `PhaseBriefPanel.jsx` | Legacy phase brief panel from old components/ops/ | **Legacy** |
-| `PhaseTrackerLegacy.jsx` | Legacy phase tracker (renamed to avoid conflict with active version) | **Legacy** |
-| `SessionLogLegacy.jsx` | Legacy session log (renamed to avoid conflict with active version) | **Legacy** |
-| `SupplyChainCards.jsx` | Legacy supply chain cards | **Legacy** |
-| `SupplyChainView.jsx` | Legacy supply chain view | **Legacy** |
-| `TacticalCommsQuickRef.jsx` | Legacy comms quick reference | **Legacy** |
-| `ThreatAlertModal.jsx` | Legacy threat alert modal | **Legacy** |
-| `CrewRoster.jsx` | Legacy crew roster | **Legacy** |
+### Entry / Container
+| File | Status | Notes |
+|------|--------|-------|
+| `OpBoard.jsx` | Complete | List view with status grouping, RSVP toggle, subscribe |
+| `LiveOp.jsx` | Complete | Full op detail; uses `useOutletContext` + `useParams` |
+| `OpCreator.jsx` | 85% complete | Props-based form; `error` state initialized but never displayed in error banner — see Known Issues |
+| `OpCreatorPage.jsx` | Complete | Thin wrapper; reads outlet context, passes props to OpCreator |
+| `index.jsx` | Complete | Alternative op board (tab-based: LIVE/UPCOMING/ARCHIVE) — duplicate of OpBoard.jsx |
 
----
+### Sub-components — Live Op
+| File | Status | Notes |
+|------|--------|-------|
+| `PhaseTracker.jsx` | Complete | Visual progress, confirm-advance flow, Herald Bot ping |
+| `ReadinessGate.jsx` | Complete | Checklist to GO, rank-gated, GO fires heraldBot opGo |
+| `SessionLog.jsx` | Complete | Type-coloured event feed, manual entry, auto-scroll |
+| `ThreatPanel.jsx` | Complete | Report/resolve threats, severity tokens, Herald Bot |
+| `CrewGrid.jsx` | Complete | Confirmed + empty slot grid, 2/3-col layout modes |
+| `LootTally.jsx` | Complete | Phase ≥4 only, material autocomplete, SCOUT+ gate |
+| `OpRsvpSection.jsx` | Complete | Role slots, capacity bars, RSVP flow, leave confirmation |
+| `SplitCalc.jsx` | Complete | Gross haul → net split, CofferLog write |
+| `LiveOpTopbar.jsx` | Complete | Persistent header: op name, phase pill, layout toggle, timer |
+
+### Sub-components — Op Board / Creator
+| File | Status | Notes |
+|------|--------|-------|
+| `UpcomingCard.jsx` | Complete | Card for published ops, RSVP status, role slots |
+| `ArchiveTable.jsx` | Complete | Completed ops table with pagination (10 at a time) |
+| `RSVPDialog.jsx` | Complete | Quick RSVP modal: role grid + ship input |
+| `LiveOpCard.jsx` | Complete | Compact live op card used in index.jsx |
+| `LiveOpHeader.jsx` | Legacy | From components/ops — superseded by LiveOpTopbar.jsx |
+| `LiveOpCrewTab.jsx` | Legacy | From components/ops — superseded by CrewGrid.jsx |
+| `LiveOpSessionLog.jsx` | Legacy | From components/ops — superseded by SessionLog.jsx |
+| `OpBoardModule.jsx` | Legacy | From components/ops — original board implementation |
+| `PhaseBriefPanel.jsx` | Legacy | From components/ops — phase briefing panel |
+| `PhaseBriefModal.jsx` | Legacy | From components/ops — modal wrapper |
+| `PhaseTrackerLegacy.jsx` | Legacy | From components/ops — original PhaseTracker |
+| `SessionLogLegacy.jsx` | Legacy | From components/ops — original SessionLog |
+| `CrewRoster.jsx` | Legacy | From components/ops — original crew view |
+| `SupplyChainView.jsx` | Legacy | From components/ops — supply chain view |
+| `SupplyChainCards.jsx` | Legacy | From components/ops — supply chain cards |
+| `TacticalCommsQuickRef.jsx` | Legacy | From components/ops — comms quick reference |
+| `ThreatAlertModal.jsx` | Legacy | From components/ops — superseded by ThreatPanel.jsx |
+
+### Helpers
+| File | Status | Notes |
+|------|--------|-------|
+| `opBoardHelpers.jsx` | Complete | relativeTime, utcString, normalizeRoleSlots, SectionHeader, TypeTag, ElapsedTimer, Overlay, DialogCard |
+| `opCreatorHelpers.jsx` | Complete | OP_TYPES, SYSTEMS, RANK_GATES, OP_TYPE_DEFAULTS, getDefaults(), SectionHeader, FormField, SegmentedControl, Toggle, RoleSlotEditor, PhaseEditor |
 
 ## Known Issues / Next Tasks
-
-1. **`OpCreator.jsx` — undeclared `error` state (line ~204)**: `setError()` is called on op creation failure but `const [error, setError] = useState(null)` was never added. Error messages on creation failure are silently swallowed. Fix: add the state declaration and render `error` near the submit button.
-
-2. **localStorage usage in `LiveOp.jsx`**: Layout mode (`nexus_layout_mode`) is persisted via `localStorage`. CLAUDE.md explicitly forbids localStorage in any component. Fix: move to `src/core/data/safe-storage.js` or derive from URL params/outlet context.
-
-3. **Duplicate op list views**: `OpBoard.jsx` and `index.jsx` both render op lists with slightly different UX (grouped by status vs. tabbed by lifecycle stage). The active route (`/app/ops`) uses `OpBoard.jsx`. `index.jsx` is unused at the route level — consider deprecating or consolidating.
-
-4. **Settings fields not persisted**: Several `OpCreator.jsx` toggle fields (`reminder24h`, `reminder1h`, `atHereOnGo`, `createDiscordEvent`) are rendered in UI but not yet written to the Op payload. These need backend integration via Herald Bot before they have effect.
-
-5. **Legacy components**: All files ending in `Legacy` and the old `src/components/ops/` copies were moved here during restructure. They are not imported anywhere in the active codebase. Audit and delete in a follow-up pass.
-
----
+1. **`OpCreator.jsx` bug (line ~204)**: `setError()` is called on creation failure but `error` state is never declared as a `useState`. Error messages from the server are silently discarded. Fix: add `const [error, setError] = useState(null)` and render an error banner.
+2. **localStorage violation in `LiveOp.jsx` (lines ~88, ~97)**: Layout mode is persisted to `localStorage` under key `nexus_layout_mode`. CLAUDE.md explicitly forbids localStorage. Fix: remove persistence or use the session context / URL param instead.
+3. **Duplicate op list views**: `OpBoard.jsx` (status-grouped cards) and `index.jsx` (tab-based: LIVE/UPCOMING/ARCHIVE) both implement op list views. Only one should be the canonical `/app/ops` route. Current routing uses OpBoard.jsx — index.jsx is orphaned.
+4. **Settings toggles not all persisted**: `OpCreator.jsx` shows toggles for reminder24h, reminder1h, postPhaseUpdates, autoWrapUp, atHereOnGo, createDiscordEvent but not all are included in the Op.create() payload.
+5. **Legacy components** (listed above with Legacy status): All `*Legacy.jsx` files and legacy `src/components/ops` survivors are dead code — nothing imports them from the new structure. Candidates for deletion once confirmed.
 
 ## What NOT to Touch
-
-- **Do not** change `Op.status` enum values — they are used in Herald Bot routing (`heraldBot.ts`) and any change breaks Discord channel posting logic.
-- **Do not** change `session_log` array schema — entries use `{ type, text, t }` and are directly read by `SessionLog.jsx`, `ThreatPanel.jsx`, and `LootTally.jsx`. Any field rename breaks multiple components simultaneously.
-- **Do not** move `opBoardHelpers.jsx` or `opCreatorHelpers.jsx` out of this directory — they are imported with relative paths (`./opBoardHelpers`) throughout the module.
-- **Do not** rename `PhaseTracker.jsx` (the active module version) — it is the one actively used by `LiveOp.jsx`. The legacy version is `PhaseTrackerLegacy.jsx`.
-- **Do not** add email auth or expose Discord IDs in session log display — member identity is callsign only in UI.
+- `heraldBot` invocation shape — actions are hardcoded strings matched by the bot: `opActivate`, `opEnd`, `publishOp`, `phaseAdvance`, `opGo`, `threatAlert`. Do not rename.
+- `op.session_log` structure — array of `{ type, text, t, id? }` objects. Type values are PHASE_ADVANCE, THREAT, THREAT_RESOLVED, MATERIAL, CRAFT, PING, MANUAL. Adding new types requires updating SessionLog.jsx display logic too.
+- `op.readiness_gate` structure — array of `{ title, detail, priority, done, locked, assignee }`. Changing shape breaks ReadinessGate.jsx.
+- `OpRsvp.status` enum — CONFIRMED/DECLINED/TENTATIVE. Used in multiple filter calls.
+- Rank gate constants: `PIONEER_RANKS = ['PIONEER', 'FOUNDER']` and `SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER']`. Matches Discord role → nexus_rank mapping in NEXUSOS_AI_HANDOFF.md.
