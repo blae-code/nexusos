@@ -465,11 +465,35 @@ export default function AccessGate() {
         @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
         @import url('https://fonts.cdnfonts.com/css/beyond-mars');
         @import url('https://fonts.cdnfonts.com/css/earth-orbiter');
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        @keyframes nexus-gradient-shift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        
+        @keyframes twinkle {
+          0%, 100% { opacity: var(--star-opacity, 0.6); }
+          50% { opacity: calc(var(--star-opacity, 0.6) * 0.4); }
+        }
+        
+        @keyframes panel-fade-in {
+          0% { 
+            opacity: 0;
+            transform: translateY(-50%) translateX(-20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+          }
+        }
+        
+        @keyframes pulse-glow {
+          0%, 100% { 
+            box-shadow: 0 0 12px rgba(192, 57, 43, 0.5);
+          }
+          50% {
+            box-shadow: 0 0 20px rgba(192, 57, 43, 0.8);
+          }
+        }
+        
+        @keyframes scan-line {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
         }
       `}</style>
     </div>
