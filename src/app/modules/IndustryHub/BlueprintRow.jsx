@@ -41,22 +41,32 @@ export default function BlueprintRow({ blueprint, isPioneer, materials, callsign
 
         {/* Item name */}
         <span style={{
-          flex: 1, fontSize: 11, fontWeight: owned ? 500 : 400,
-          color: owned ? 'var(--t0)' : 'var(--t2)',
+          flex: 1, fontSize: 11,
+          color: 'var(--t0)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {blueprint.item_name}
         </span>
 
         {/* Tier badge */}
-        <TierBadge tier={blueprint.tier} />
+        <span style={{
+          fontSize: 9, padding: '2px 6px', borderRadius: 4, flexShrink: 0,
+          fontWeight: 600, letterSpacing: '0.06em',
+          background: blueprint.tier === 'T2' ? 'rgba(var(--acc-rgb, 74,143,208), 0.10)' : 'var(--bg3)',
+          color: blueprint.tier === 'T2' ? 'var(--acc)' : 'var(--t2)',
+          border: `0.5px solid ${blueprint.tier === 'T2' ? 'var(--b2)' : 'var(--b1)'}`,
+        }}>
+          {blueprint.tier || 'T1'}
+        </span>
 
         {/* Category tag */}
         <CategoryTag category={blueprint.category} />
 
-        {/* Holder callsign chip or "Unowned" dim text */}
+        {/* Holder callsign or "unowned" */}
         {owned ? (
-          <BlueprintHolderChip holder={blueprint.owned_by_callsign || '—'} />
+          <span style={{ color: 'var(--t2)', fontSize: 9, flexShrink: 0 }}>
+            {blueprint.owned_by_callsign || '—'}
+          </span>
         ) : (
           <span style={{ color: 'var(--t3)', fontSize: 9, flexShrink: 0 }}>unowned</span>
         )}
