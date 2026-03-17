@@ -58,16 +58,16 @@ export function TopDepositRow({ deposit, onClick }) {
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '7px 8px', borderRadius: 5,
-        background: 'var(--bg2)', border: '0.5px solid var(--b1)',
-        cursor: 'pointer',
+        background: 'transparent', border: '0.5px solid var(--b1)',
+        cursor: 'pointer', transition: 'background 0.1s',
       }}
-      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'var(--bg2)'}
+      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
       {/* Quality % */}
       <span style={{
-        color: col, fontSize: 16, fontWeight: 700, minWidth: 36,
-        fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+        color: col, fontSize: 13, fontWeight: 700, minWidth: 34,
+        fontVariantNumeric: 'tabular-nums', lineHeight: 1, flexShrink: 0,
       }}>
         {Math.round(deposit.quality_pct || 0)}%
       </span>
@@ -75,29 +75,18 @@ export function TopDepositRow({ deposit, onClick }) {
       {/* Detail */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          color: 'var(--t0)', fontSize: 11, fontWeight: 500,
+          color: 'var(--t0)', fontSize: 11,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {deposit.material_name || '—'}
         </div>
         <div style={{
-          color: 'var(--t2)', fontSize: 9,
+          color: 'var(--t2)', fontSize: 9, marginTop: 1,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-          {deposit.system_name} · {deposit.location_detail || '—'}
+          {deposit.system_name} · {deposit.location_detail || '—'} · {isRecent ? 'FRESH' : relativeTime(deposit.reported_at)}
         </div>
       </div>
-
-      {/* Freshness chip */}
-      <span style={{
-        fontSize: 8, padding: '1px 5px', borderRadius: 4, flexShrink: 0,
-        border: `0.5px solid ${isRecent ? 'rgba(39,201,106,0.3)' : 'var(--b1)'}`,
-        background: isRecent ? 'rgba(39,201,106,0.06)' : 'transparent',
-        color: isRecent ? 'var(--live)' : 'var(--t3)',
-        letterSpacing: '0.06em',
-      }}>
-        {isRecent ? 'FRESH' : relativeTime(deposit.reported_at)}
-      </span>
     </div>
   );
 }
