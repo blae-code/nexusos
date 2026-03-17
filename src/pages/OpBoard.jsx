@@ -257,9 +257,14 @@ export default function OpBoard() {
             <div className="nexus-loading-dots"><span /><span /><span /></div>
           </div>
         ) : grouped.length === 0 ? (
-          <div style={{ color: 'var(--t2)', fontSize: 12, textAlign: 'center', padding: 40 }}>
-            No ops found.{canLead && ' Create the first one →'}
-          </div>
+          <EmptyState
+            icon={Crosshair}
+            title="No operations found"
+            detail="No ops match your current filters, or none have been created yet."
+            action={canLead}
+            actionLabel="Create Operation"
+            actionOnClick={() => navigate('/app/ops/new')}
+          />
         ) : (
           grouped.map(({ status, ops: group }) => {
             const cfg = STATUS_CONFIG[status];
