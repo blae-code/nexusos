@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useSession } from '@/lib/SessionContext';
-import { useVerseStatus } from '@/lib/useVerseStatus';
-import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/lib/dev';
+import { useSession } from '@/core/data/SessionContext';
+import { useVerseStatus } from '@/core/data/useVerseStatus';
+import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
 
 const STAR_SIZES = [
   ...Array(48).fill(1),

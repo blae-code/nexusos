@@ -9,9 +9,9 @@ import {
   RefreshCw,
   ScanSearch,
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
-import { appParams } from '@/lib/app-params';
-import { safeLocalStorage } from '@/lib/safe-storage';
+import { base44 } from '@/core/data/base44Client';
+import { appParams } from '@/core/data/app-params';
+import { safeLocalStorage } from '@/core/data/safe-storage';
 
 const MANUAL_STORAGE_KEY = 'nexus_todo_checked';
 

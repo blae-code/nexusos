@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/core/data/base44Client';
 import ArmoryCheckoutForm from '@/components/armory/ArmoryCheckoutForm';
 import { RotateCcw } from 'lucide-react';
 import { CategorySection } from './ArmoryWidgets';

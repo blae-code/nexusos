@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/core/data/base44Client';
 import { AlertTriangle, Send } from 'lucide-react';
-import { safeLocalStorage } from '@/lib/safe-storage';
+import { safeLocalStorage } from '@/core/data/safe-storage';
 
 const DEFAULT_THRESHOLDS = [
   { material: 'Taranite',      min_scu: 20, min_quality: 80, critical: true },

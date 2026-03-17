@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/core/data/base44Client';
 import { AlertCircle } from 'lucide-react';
 
 export default function ArmoryCheckoutForm({ items, callsign, discordId, onCheckoutComplete }) {
