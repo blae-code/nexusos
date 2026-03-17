@@ -1,18 +1,8 @@
 /**
- * CrewGrid — 2-column grid of confirmed crew cards.
- * Props: { rsvps, op }
- *
- * Each card: avatar initials + callsign + role tag + ship + phase progress bar.
- * Design decision: "current objective" shown as current phase name (no
- * per-member objective schema exists). "online" indicator not shown — no
- * real-time presence data available; green border reserved for actual live data.
- * Voice channel shown at bottom based on op type routing from spec.
+ * CrewGrid — responsive crew roster cards.
+ * Props: { rsvps, op, layoutMode }
  */
 import React from 'react';
-import NexusToken from '@/components/ui/NexusToken';
-import { roleToken } from '@/lib/tokenMap';
-
-// ─── Role colour map ──────────────────────────────────────────────────────────
 
 const ROLE_COLORS = {
   mining:       'var(--info)',
@@ -22,107 +12,111 @@ const ROLE_COLORS = {
   combat:       'var(--danger)',
   support:      'var(--acc)',
   salvage:      'var(--warn)',
+  hauler:       'var(--warn)',
+  refinery:     'var(--info)',
+  medic:        'var(--live)',
   rescue:       'var(--live)',
   medical:      'var(--live)',
 };
 
 function roleColor(role) {
-  return ROLE_COLORS[(role || '').toLowerCase()] || 'var(--t2)';
+  return ROLE_COLORS[(role || '').toLowerCase()] || 'var(--b2)';
 }
 
-// ─── Voice channel routing ────────────────────────────────────────────────────
-
-function voiceChannel(opType) {
-  const t = (opType || '').toUpperCase();
-  if (['INDUSTRY', 'MINING', 'ROCKBREAKER', 'SALVAGE'].includes(t)) return 'Industry Bonfire';
-  if (['PATROL', 'COMBAT', 'ESCORT', 'S17', 'RESCUE'].includes(t))  return 'Rangers Bonfire';
-  return 'Redscar Only';
+function normalizeRoleSlots(slots) {
+  if (!slots) return [];
+  if (Array.isArray(slots)) return slots;
+  return Object.entries(slots).map(([name, value]) => ({
+    name,
+    capacity: typeof value === 'number' ? value : (value?.capacity || 1),
+  }));
 }
 
-// ─── Initials avatar ──────────────────────────────────────────────────────────
+function CrewCard({ rsvp, op }) {
+  const isExclusive = op.access_type === 'EXCLUSIVE';
+  const rCol = roleColor(rsvp.role);
 
-function Avatar({ callsign }) {
-  const initials = (callsign || '??').slice(0, 2).toUpperCase();
   return (
-    <div style={{
-      width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-      background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 10, fontWeight: 700, color: 'var(--acc2)',
-      letterSpacing: '0.04em',
-    }}>
-      {initials}
+    <div className="nexus-card" style={{ padding: 12, gap: 8, display: 'flex', flexDirection: 'column' }}>
+      {/* Top row: dot + callsign + online dot */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: rCol,
+            flexShrink: 0,
+          }}
+        />
+        <span style={{ fontSize: 11, color: 'var(--t0)', fontFamily: 'var(--font)', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {rsvp.callsign || '—'}
+        </span>
+        {/* Online indicator — placeholder for future real-time presence */}
+        {/* <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--live)', flexShrink: 0, animation: 'pulse-dot 2.5s ease-in-out infinite' }} /> */}
+      </div>
+
+      {/* Role name */}
+      {rsvp.role && (
+        <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          {rsvp.role}
+        </span>
+      )}
+
+      {/* Ship name */}
+      {rsvp.ship && (
+        <span style={{ fontSize: 9, color: 'var(--t2)', fontFamily: 'var(--font)', fontStyle: 'italic' }}>
+          {rsvp.ship}
+        </span>
+      )}
+
+      {/* Buy-in status (exclusive ops only) */}
+      {isExclusive && (
+        <div style={{ marginTop: 4 }}>
+          <span
+            style={{
+              display: 'inline-block',
+              fontSize: 8,
+              fontFamily: 'var(--font)',
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              padding: '2px 8px',
+              borderRadius: 3,
+              background: 'rgba(var(--live-rgb), 0.08)',
+              border: '0.5px solid rgba(var(--live-rgb), 0.3)',
+              color: 'var(--live)',
+            }}
+          >
+            PAID
+          </span>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Single crew card ─────────────────────────────────────────────────────────
-
-function CrewCard({ rsvp, op }) {
-  const phases      = Array.isArray(op.phases) ? op.phases : [];
-  const currentPhase = op.phase_current || 0;
-  const phasePct    = phases.length > 0 ? Math.round((currentPhase / phases.length) * 100) : 0;
-  const phaseName   = phases[currentPhase] || '—';
-  const rCol        = roleColor(rsvp.role);
-
+function EmptySlotCard({ roleName }) {
   return (
-    <div style={{
-      background: 'var(--bg2)', border: '0.5px solid var(--b1)',
-      borderRadius: 7, padding: '10px 12px',
-      display: 'flex', flexDirection: 'column', gap: 7,
-    }}>
-      {/* Top row: avatar + callsign + role */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Avatar callsign={rsvp.callsign} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            color: 'var(--t0)', fontSize: 12, fontWeight: 500,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {rsvp.callsign || '—'}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-            {rsvp.role && (
-              <>
-                <NexusToken
-                  src={roleToken(rsvp.role.toUpperCase())}
-                  size={22}
-                  alt={rsvp.role}
-                  title={`Role: ${rsvp.role}`}
-                />
-                <span style={{
-                  fontSize: 9, padding: '1px 5px', borderRadius: 4,
-                  border: `0.5px solid ${rCol}50`,
-                  background: `${rCol}12`,
-                  color: rCol, letterSpacing: '0.06em', fontWeight: 600,
-                }}>
-                  {rsvp.role.toUpperCase()}
-                </span>
-              </>
-            )}
-            {rsvp.ship && (
-              <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.04em' }}>
-                {rsvp.ship}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Current objective (phase name) */}
-      <div style={{ color: 'var(--t1)', fontSize: 10, letterSpacing: '0.04em' }}>
-        {phaseName}
-      </div>
-
-      {/* Phase progress bar */}
-      <div style={{ height: 2, background: 'var(--b0)', borderRadius: 1, overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', borderRadius: 1,
-          width: `${phasePct}%`,
-          background: 'var(--acc)',
-          transition: 'width 0.4s ease',
-        }} />
-      </div>
+    <div
+      className="nexus-card"
+      style={{
+        padding: 12,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        minHeight: 100,
+        background: 'var(--bg1)',
+        border: '0.5px dashed var(--b1)',
+      }}
+    >
+      <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+        {roleName}
+      </span>
+      <span style={{ fontSize: 8, color: 'var(--b2)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        OPEN
+      </span>
     </div>
   );
 }
