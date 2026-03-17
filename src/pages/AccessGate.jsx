@@ -156,6 +156,7 @@ export default function AccessGate() {
               borderRadius: '50%',
               background: '#E8E4DC',
               opacity: star.opacity,
+              animation: 'twinkle 3s ease-in-out infinite',
             }}
           />
         ))}
