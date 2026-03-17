@@ -316,7 +316,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
               <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>System</div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {['STANTON', 'PYRO', 'NYX'].map((sys, i) => {
-                  const systemBorder = { STANTON: 'var(--info)', PYRO: 'var(--danger)', NYX: 'var(--acc2)' }[sys];
+                  const systemBorder = validationErrors.system ? 'var(--warn)' : { STANTON: 'var(--info)', PYRO: 'var(--danger)', NYX: 'var(--acc2)' }[sys];
                   return (
                     <button
                       key={sys}
@@ -326,7 +326,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                         fontSize: 10,
                         fontFamily: 'var(--font)',
                         background: form.system_name === sys ? 'var(--bg3)' : 'var(--bg2)',
-                        border: `0.5px solid ${form.system_name === sys ? systemBorder : 'var(--b1)'}`,
+                        border: `0.5px solid ${validationErrors.system && form.system_name !== sys ? 'var(--warn)' : form.system_name === sys ? systemBorder : 'var(--b1)'}`,
                         borderRadius: 4,
                         cursor: 'pointer',
                         color: form.system_name === sys ? systemBorder : 'var(--t2)',
@@ -348,6 +348,11 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                   );
                 })}
               </div>
+              {validationErrors.system && (
+                <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
+                  {validationErrors.system}
+                </div>
+              )}
             </div>
             <div style={{ marginTop: 20 }}>
               <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Location</div>
