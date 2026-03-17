@@ -419,7 +419,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
 
         {/* PHASES */}
         <div style={{ marginBottom: 28 }}>
-          <SectionHeader label="PHASES" />
+          <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>Phases</div>
           <PhaseEditor phases={phases} onChange={setPhases} />
         </div>
 
