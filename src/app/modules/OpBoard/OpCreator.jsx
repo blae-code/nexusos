@@ -453,51 +453,8 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
           <PhaseEditor phases={phases} onChange={setPhases} />
         </div>
 
-        {/* Publish row */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 40 }}>
-          <button
-            type="button"
-            onClick={() => submit(true)}
-            disabled={saving}
-            style={{
-              width: '100%', padding: '12px 0', borderRadius: 7,
-              background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-              color: 'var(--t0)', fontFamily: 'inherit', fontSize: 12,
-              fontWeight: 600, letterSpacing: '0.1em', cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.6 : 1, transition: 'opacity 0.15s',
-            }}
-            onMouseEnter={e => { if (!saving) e.currentTarget.style.background = 'var(--bg4)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg3)'; }}
-          >
-            {saving ? 'PUBLISHING...' : 'PUBLISH OP →'}
-          </button>
-
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
-            <button
-              type="button"
-              onClick={() => submit(false)}
-              disabled={saving}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--t2)', fontSize: 11, fontFamily: 'inherit',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Save as draft
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/app/ops')}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--t2)', fontSize: 11, fontFamily: 'inherit',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-          </div>
+        {/* Spacer to account for sticky footer */}
+        <div style={{ height: 100 }} />
           </div>
           </div>
           </div>
