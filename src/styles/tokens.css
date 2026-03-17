@@ -210,7 +210,7 @@ body {
   border-color: var(--danger-b);
   color: var(--danger);
 }
-.nexus-btn-danger:hover {
+.nexus-btn-danger:hover:not(:disabled) {
   background: var(--danger-bg);
   border-color: var(--danger);
 }
@@ -221,7 +221,9 @@ body {
   color: var(--live);
   letter-spacing: .12em;
 }
-.nexus-btn-go:hover { background: var(--live-bg); }
+.nexus-btn-go:hover:not(:disabled) {
+  background: var(--live-bg);
+}
 
 .nexus-label {
   display: block;
