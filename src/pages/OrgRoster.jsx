@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/core/data/base44Client';
 import { Search, Users } from 'lucide-react';
-import NexusToken from '@/components/ui/NexusToken';
-import { rankToken, opTypeToken } from '@/lib/tokenMap';
+import NexusToken from '@/core/design/NexusToken';
+import { rankToken, opTypeToken } from '@/core/data/tokenMap';
 
 const RANK_ORDER = ['PIONEER','FOUNDER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];
 

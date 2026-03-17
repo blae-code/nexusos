@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/core/data/base44Client';
 import { Search, Trophy, Clock, Users, TrendingUp, BookOpen } from 'lucide-react';
 
 const TABS = ['OPS', 'LEADERBOARDS', 'PATCH HISTORY'];

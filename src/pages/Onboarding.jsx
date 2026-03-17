@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { useSession } from '@/lib/SessionContext';
+import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
 
 const PRIVACY_DISCLOSURE = `NexusOS Privacy & Data Usage Disclosure
 

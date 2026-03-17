@@ -2,10 +2,10 @@
  * FleetForgeViews — ShipFitting and FleetView sub-components for FleetForge.
  */
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '@/core/data/base44Client';
 import { Save, Share2, Lock, Unlock, ChevronDown, Zap, Shield, Cpu } from 'lucide-react';
-import NexusToken from '@/components/ui/NexusToken';
-import { T } from '@/lib/tokenMap';
+import NexusToken from '@/core/design/NexusToken';
+import { T } from '@/core/data/tokenMap';
 
 const SLOT_SECTIONS = [
   { label: 'MINING EQUIPMENT', slots: [

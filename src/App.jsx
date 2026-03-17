@@ -1,29 +1,29 @@
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/core/design/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import { queryClientInstance } from '@/lib/query-client';
-import { getAppBasePath } from '@/lib/app-base-path';
-import { SessionProvider } from '@/lib/SessionContext';
-import NexusShell from '@/components/shell/NexusShell';
-import LiveOp from '@/pages/LiveOp';
+import { queryClientInstance } from '@/core/data/query-client';
+import { getAppBasePath } from '@/core/data/app-base-path';
+import { SessionProvider } from '@/core/data/SessionContext';
+import NexusShell from '@/core/shell/NexusShell';
+import LiveOp from '@/apps/ops-board/LiveOp';
 import AccessGate from '@/pages/AccessGate';
 import Onboarding from '@/pages/Onboarding';
 import CofferLedger from '@/pages/CofferLedger';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
-import IndustryHub from '@/pages/IndustryHub';
+import IndustryHub from '@/apps/industry-hub/IndustryHub';
 import MaterialLedger from '@/pages/MaterialLedger';
 import NexusSettings from '@/pages/NexusSettings';
 import NexusTodo from '@/pages/NexusTodo';
-import OpBoard from '@/pages/OpBoard';
-import OpCreator from '@/pages/OpCreator';
+import OpBoard from '@/apps/ops-board/OpBoard';
+import OpCreator from '@/apps/ops-board/OpCreatorPage';
 import OrgRoster from '@/pages/OrgRoster';
 import ProfitCalc from '@/pages/ProfitCalc';
 import RescueBoard from '@/pages/RescueBoard';
-import ScoutIntel from '@/pages/ScoutIntel';
+import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
-import KeyManagement from '@/pages/KeyManagement';
+import KeyManagement from '@/apps/key-management/KeyManagement';
 
 function App() {
   return (
