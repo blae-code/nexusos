@@ -204,63 +204,78 @@ function Step3Privacy({ onContinue }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        style={{
-          flex: 1,
-          background: 'var(--bg2)',
-          border: '0.5px solid var(--b1)',
-          borderRadius: 6,
-          padding: 16,
-          overflow: 'auto',
-          fontSize: 10,
-          color: 'var(--t1)',
-          lineHeight: 1.7,
-          whiteSpace: 'pre-wrap',
-          fontFamily: 'monospace',
-        }}
-      >
-        {PRIVACY_DISCLOSURE}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, animation: 'onboarding-fade-in 200ms ease-out both' }}>
+      <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
+        Privacy Disclosure
       </div>
 
-      {/* Progress bar */}
       <div
         style={{
-          height: 2,
-          background: 'var(--b1)',
-          borderRadius: 1,
+          position: 'relative',
+          maxHeight: 320,
           overflow: 'hidden',
+          borderRadius: 8,
         }}
       >
         <div
+          ref={scrollRef}
+          onScroll={handleScroll}
           style={{
-            height: '100%',
-            background: 'var(--live)',
-            width: `${scrollPercent}%`,
-            transition: 'width 0.2s',
+            maxHeight: 320,
+            background: 'var(--bg1)',
+            border: '0.5px solid var(--b1)',
+            borderRadius: 8,
+            padding: 16,
+            overflowY: 'auto',
+            fontSize: 11,
+            color: 'var(--t2)',
+            lineHeight: 1.7,
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'inherit',
           }}
-        />
+        >
+          {PRIVACY_DISCLOSURE}
+        </div>
+
+        {/* Progress bar */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            background: 'var(--b1)',
+            borderRadius: '0 0 8px 8px',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              background: 'var(--acc)',
+              width: `${scrollPercent}%`,
+              transition: 'width 100ms ease',
+            }}
+          />
+        </div>
       </div>
 
       <button
         onClick={onContinue}
         disabled={scrollPercent < 100}
+        className="nexus-btn primary"
         style={{
           padding: '10px 24px',
-          background: scrollPercent < 100 ? 'var(--bg2)' : 'var(--bg3)',
-          border: `0.5px solid ${scrollPercent < 100 ? 'var(--b1)' : 'var(--b2)'}`,
-          borderRadius: 6,
-          color: scrollPercent < 100 ? 'var(--t2)' : 'var(--t0)',
           fontSize: 11,
           letterSpacing: '0.12em',
           fontWeight: 500,
           fontFamily: 'inherit',
-          cursor: scrollPercent < 100 ? 'not-allowed' : 'pointer',
           alignSelf: 'center',
-          opacity: scrollPercent < 100 ? 0.5 : 1,
-          transition: 'all 0.12s',
+          opacity: scrollPercent < 100 ? 0.4 : 1,
+          cursor: scrollPercent < 100 ? 'not-allowed' : 'pointer',
+          pointerEvents: scrollPercent < 100 ? 'none' : 'auto',
+          transition: 'opacity 100ms ease',
         }}
       >
         CONTINUE
