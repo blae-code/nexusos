@@ -25,6 +25,7 @@ import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
+import AdminSettings from '@/pages/AdminSettings';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
               <Route path="ledger" element={<MaterialLedger />} />
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="armory" element={<Armory />} />
+              <Route path="admin/settings" element={<AdminSettings />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
