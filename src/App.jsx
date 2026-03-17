@@ -12,6 +12,7 @@ import CofferLedger from '@/pages/CofferLedger';
 import Commerce from '@/pages/Commerce';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
+import Fleet from '@/pages/Fleet';
 import IndustryHub from '@/apps/industry-hub/IndustryHub';
 import Logistics from '@/pages/Logistics';
 import MaterialLedger from '@/pages/MaterialLedger';
@@ -48,6 +49,7 @@ function App() {
               <Route path="ops/new" element={<OpCreator />} />
               <Route path="ops/:id" element={<LiveOp />} />
               <Route path="fleet" element={<FleetForge />} />
+              <Route path="org-fleet" element={<Fleet />} />
               <Route path="profit" element={<ProfitCalc />} />
               <Route path="coffer" element={<CofferLedger />} />
               <Route path="rescue" element={<RescueBoard />} />
