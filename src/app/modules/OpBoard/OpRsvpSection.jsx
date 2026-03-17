@@ -61,10 +61,12 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
         discord_id: discordId,
         callsign,
         role: selectedRole,
+        ship: selectedShip || null,
         status: 'CONFIRMED',
       });
       setShowRoleSelector(false);
       setSelectedRole(null);
+      setSelectedShip('');
       // Trigger refresh via parent callback if needed
       window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
     } catch {
@@ -76,6 +78,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
 
   const handleLeaveOp = async () => {
     if (!myRsvp) return;
+    setLeaveConfirming(false);
     try {
       await base44.entities.OpRsvp.update(myRsvp.id, { status: 'DECLINED' });
       // Trigger refresh
@@ -83,6 +86,13 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
     } catch {
       // Handle error
     }
+  };
+
+  const handleLeaveClick = () => {
+    setLeaveConfirming(true);
+    setTimeout(() => {
+      setLeaveConfirming(false);
+    }, 4000);
   };
 
   return (
