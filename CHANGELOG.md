@@ -1,5 +1,8 @@
 # NexusOS Changelog
 
+## 1.0.0 — 2026-03-17
+- NexusOS v2 — complete OS-with-apps architecture, seven apps, Herald Bot, Discord SSO, external integrations
+
 ## 0.9.0 — 2026-03-17
 - Commerce, Logistics, integrations, data model — NexusOS v2 architecture complete
 
