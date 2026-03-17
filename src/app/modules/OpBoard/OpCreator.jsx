@@ -95,7 +95,9 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
   });
 
   const [saving, setSaving] = useState(false);
-  const [showSuccessFlash, setShowSuccessFlash] = useState(false);
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [publishedOpId, setPublishedOpId] = useState(null);
+  const [draftSaved, setDraftSaved] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     type: null,
     system: null,
