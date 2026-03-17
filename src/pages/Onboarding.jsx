@@ -311,36 +311,66 @@ function Step4Consent({ onComplete }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'onboarding-fade-in 200ms ease-out both' }}>
+      <style>{`
+        @keyframes pulse-border {
+          0% { box-shadow: 0 0 0 0 rgba(var(--acc-rgb), 0.6); }
+          100% { box-shadow: 0 0 0 6px rgba(var(--acc-rgb), 0); }
+        }
+        .consent-button-pulse {
+          animation: pulse-border 600ms ease-out 1;
+        }
+      `}</style>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Consent 1 */}
         <label
           style={{
             display: 'flex',
-            gap: 10,
+            gap: 8,
             alignItems: 'flex-start',
             cursor: 'pointer',
-            padding: 10,
-            borderRadius: 4,
-            background: 'var(--bg2)',
-            border: `0.5px solid ${consent1 ? 'var(--b2)' : 'var(--b1)'}`,
-            transition: 'border-color 0.12s',
           }}
         >
-          <input
-            type="checkbox"
-            checked={consent1}
-            onChange={(e) => setConsent1(e.target.checked)}
+          <div
             style={{
               width: 16,
               height: 16,
               flexShrink: 0,
-              cursor: 'pointer',
-              accentColor: 'var(--live)',
-              marginTop: 2,
+              background: consent1 ? 'var(--bg3)' : 'var(--bg2)',
+              border: `0.5px solid ${consent1 ? 'var(--acc)' : 'var(--b2)'}`,
+              borderRadius: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 150ms ease, border-color 150ms ease',
+              marginTop: 3,
             }}
+          >
+            {consent1 && (
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                <path
+                  d="M3 8l4 4 6-6"
+                  stroke="var(--acc)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    strokeDasharray: 14,
+                    strokeDashoffset: 0,
+                    animation: 'dash-draw 150ms ease-out forwards',
+                  }}
+                />
+              </svg>
+            )}
+          </div>
+          <input
+            type="checkbox"
+            checked={consent1}
+            onChange={(e) => setConsent1(e.target.checked)}
+            style={{ display: 'none' }}
           />
-          <span style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.5 }}>
+          <span style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.6, fontFamily: 'inherit' }}>
             I have read and agree to the NexusOS data disclosure
           </span>
         </label>
@@ -349,30 +379,50 @@ function Step4Consent({ onComplete }) {
         <label
           style={{
             display: 'flex',
-            gap: 10,
+            gap: 8,
             alignItems: 'flex-start',
             cursor: 'pointer',
-            padding: 10,
-            borderRadius: 4,
-            background: 'var(--bg2)',
-            border: `0.5px solid ${consent2 ? 'var(--b2)' : 'var(--b1)'}`,
-            transition: 'border-color 0.12s',
           }}
         >
-          <input
-            type="checkbox"
-            checked={consent2}
-            onChange={(e) => setConsent2(e.target.checked)}
+          <div
             style={{
               width: 16,
               height: 16,
               flexShrink: 0,
-              cursor: 'pointer',
-              accentColor: 'var(--live)',
-              marginTop: 2,
+              background: consent2 ? 'var(--bg3)' : 'var(--bg2)',
+              border: `0.5px solid ${consent2 ? 'var(--acc)' : 'var(--b2)'}`,
+              borderRadius: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 150ms ease, border-color 150ms ease',
+              marginTop: 3,
             }}
+          >
+            {consent2 && (
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                <path
+                  d="M3 8l4 4 6-6"
+                  stroke="var(--acc)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    strokeDasharray: 14,
+                    strokeDashoffset: 0,
+                    animation: 'dash-draw 150ms ease-out forwards',
+                  }}
+                />
+              </svg>
+            )}
+          </div>
+          <input
+            type="checkbox"
+            checked={consent2}
+            onChange={(e) => setConsent2(e.target.checked)}
+            style={{ display: 'none' }}
           />
-          <span style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.5 }}>
+          <span style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.6, fontFamily: 'inherit' }}>
             I understand that my Redscar roles determine my access level within NexusOS
           </span>
         </label>
@@ -382,51 +432,92 @@ function Step4Consent({ onComplete }) {
           style={{
             display: 'flex',
             gap: 10,
-            alignItems: 'center',
-            padding: 10,
-            borderRadius: 4,
-            background: 'var(--bg2)',
-            border: '0.5px solid var(--b1)',
+            alignItems: 'flex-start',
+            marginTop: 6,
           }}
         >
-          <input
-            type="checkbox"
-            checked={aiEnabled}
-            onChange={(e) => setAiEnabled(e.target.checked)}
+          <div
             style={{
-              width: 16,
-              height: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
               flexShrink: 0,
-              cursor: 'pointer',
-              accentColor: 'var(--acc)',
+              marginTop: 3,
             }}
-          />
-          <span style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.5, flex: 1 }}>
-            Enable AI-assisted features (tactical briefings, route optimization, patch analysis)
-          </span>
+          >
+            <button
+              onClick={() => setAiEnabled(!aiEnabled)}
+              style={{
+                width: 28,
+                height: 15,
+                borderRadius: 8,
+                background: aiEnabled ? 'var(--live-bg)' : 'var(--bg4)',
+                border: `0.5px solid ${aiEnabled ? 'var(--live-b)' : 'var(--b2)'}`,
+                cursor: 'pointer',
+                position: 'relative',
+                transition: 'all 0.15s',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 1.5,
+                  left: aiEnabled ? 14.5 : 1.5,
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  background: aiEnabled ? 'var(--live)' : 'var(--t2)',
+                  transition: 'all 0.15s',
+                }}
+              />
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ color: 'var(--t1)', fontSize: 11, fontFamily: 'inherit' }}>
+              Enable AI-assisted features
+            </span>
+            <span style={{ color: 'var(--t3)', fontSize: 10, fontFamily: 'inherit' }}>
+              Enables intelligent suggestions across Scout Intel and Industry Hub.
+            </span>
+          </div>
         </div>
       </div>
 
       <button
         onClick={handleSubmit}
         disabled={!canSubmit || submitting}
+        className={`nexus-btn primary ${canSubmit && !submitting ? 'consent-button-pulse' : ''}`}
         style={{
+          width: '100%',
           padding: '10px 24px',
-          background: canSubmit && !submitting ? 'var(--bg3)' : 'var(--bg2)',
-          border: `0.5px solid ${canSubmit && !submitting ? 'var(--b2)' : 'var(--b1)'}`,
-          borderRadius: 6,
-          color: canSubmit && !submitting ? 'var(--t0)' : 'var(--t2)',
           fontSize: 11,
           letterSpacing: '0.12em',
           fontWeight: 500,
           fontFamily: 'inherit',
           cursor: canSubmit && !submitting ? 'pointer' : 'not-allowed',
-          opacity: canSubmit ? 1 : 0.5,
-          transition: 'all 0.12s',
+          opacity: canSubmit && !submitting ? 1 : 0.4,
+          pointerEvents: canSubmit && !submitting ? 'auto' : 'none',
+          transition: 'opacity 100ms ease',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
         }}
       >
-        {submitting ? 'ENTERING NEXUSOS...' : 'ENTER NEXUSOS'}
+        {submitting ? 'ENTERING NEXUSOS...' : (
+          <>
+            ENTER NEXUSOS
+            <span style={{ display: 'inline-block', transition: 'transform 150ms ease' }}>→</span>
+          </>
+        )}
       </button>
+
+      <style>{`
+        @keyframes dash-draw {
+          from { stroke-dashoffset: 14; }
+          to { stroke-dashoffset: 0; }
+        }
+      `}</style>
     </div>
   );
 }
