@@ -95,6 +95,9 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
     }, 4000);
   };
 
+  const totalCapacity = normalizedSlots.reduce((sum, slot) => sum + slot.capacity, 0);
+  const isFull = confirmedRsvps.length === totalCapacity && totalCapacity > 0;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Role Slots List */}
