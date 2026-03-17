@@ -66,6 +66,7 @@ function App() {
               <Route path="ledger" element={<MaterialLedger />} />
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="armory" element={<Armory />} />
+              <Route path="inventory" element={<InventoryManager />} />
               <Route path="admin/settings" element={<AdminSettings />} />
             </Route>
 
