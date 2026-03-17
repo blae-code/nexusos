@@ -69,6 +69,7 @@ export default function CraftQueueTabV2({ craftQueue, callsign, onRefresh }) {
               style={{
                 background: 'var(--bg1)',
                 border: '0.5px solid var(--b0)',
+                borderLeft: `3px solid ${item.priority_flag ? 'var(--warn)' : 'var(--b1)'}`,
                 borderRadius: 6,
                 padding: 10,
                 display: 'grid',
