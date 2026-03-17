@@ -114,8 +114,29 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
     }
   }, [form.type]);
 
-  const set        = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set        = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    // Clear validation errors for this field as user corrects it
+    if (k === 'type') setValidationErrors(e => ({ ...e, type: null }));
+    if (k === 'system_name') setValidationErrors(e => ({ ...e, system: null }));
+    if (k === 'scheduled_at') setValidationErrors(e => ({ ...e, schedule: null }));
+  };
   const setSetting = (k, v) => setSettings(s => ({ ...s, [k]: v }));
+
+  // Validation check
+  const getValidationErrors = () => {
+    const errors = {};
+    if (!form.type) errors.type = 'Select an op type.';
+    if (!form.system_name) errors.system = 'Select a star system.';
+    if (!roleSlots || roleSlots.length === 0) errors.roleSlots = 'Add at least one role slot.';
+    if (roleSlots && roleSlots.some(r => !r.name?.trim())) errors.roleSlots = 'Enter a name for this role.';
+    if (!form.scheduled_at) errors.schedule = 'Set a date and time for the op.';
+    return errors;
+  };
+
+  const currentValidationErrors = getValidationErrors();
+  const isValid = Object.keys(currentValidationErrors).length === 0;
+  const hasValidationAttempted = Object.values(validationErrors).some(e => e !== null);
 
   // ── Publish / draft ────────────────────────────────
 
