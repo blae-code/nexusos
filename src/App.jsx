@@ -29,6 +29,7 @@ import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
 import InventoryManager from '@/pages/InventoryManager';
 import CrewScheduler from '@/pages/CrewScheduler';
+import TrainingHub from '@/pages/TrainingHub';
 import AdminSettings from '@/pages/AdminSettings';
 import BootScreen from '@/pages/BootScreen';
 
@@ -41,6 +42,7 @@ function App() {
             <Route path="/" element={<AccessGate />} />
             <Route path="/gate" element={<AccessGate />} />
             <Route path="/boot" element={<BootScreen />} />
+            <Route path="/training" element={<TrainingHub />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />
 
