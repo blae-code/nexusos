@@ -58,16 +58,16 @@ export function TopDepositRow({ deposit, onClick }) {
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '7px 8px', borderRadius: 5,
-        background: 'transparent', border: '0.5px solid var(--b1)',
-        cursor: 'pointer', transition: 'background 0.1s',
+        background: 'var(--bg2)', border: '0.5px solid var(--b1)',
+        cursor: 'pointer',
       }}
-      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'var(--bg2)'}
     >
       {/* Quality % */}
       <span style={{
-        color: col, fontSize: 13, fontWeight: 700, minWidth: 34,
-        fontVariantNumeric: 'tabular-nums', lineHeight: 1, flexShrink: 0,
+        color: col, fontSize: 16, fontWeight: 700, minWidth: 36,
+        fontVariantNumeric: 'tabular-nums', lineHeight: 1,
       }}>
         {Math.round(deposit.quality_pct || 0)}%
       </span>
@@ -75,18 +75,29 @@ export function TopDepositRow({ deposit, onClick }) {
       {/* Detail */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          color: 'var(--t0)', fontSize: 11,
+          color: 'var(--t0)', fontSize: 11, fontWeight: 500,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {deposit.material_name || '—'}
         </div>
         <div style={{
-          color: 'var(--t2)', fontSize: 9, marginTop: 1,
+          color: 'var(--t2)', fontSize: 9,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-          {deposit.system_name} · {deposit.location_detail || '—'} · {isRecent ? 'FRESH' : relativeTime(deposit.reported_at)}
+          {deposit.system_name} · {deposit.location_detail || '—'}
         </div>
       </div>
+
+      {/* Freshness chip */}
+      <span style={{
+        fontSize: 8, padding: '1px 5px', borderRadius: 4, flexShrink: 0,
+        border: `0.5px solid ${isRecent ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b1)'}`,
+        background: isRecent ? 'rgba(var(--live-rgb), 0.06)' : 'transparent',
+        color: isRecent ? 'var(--live)' : 'var(--t3)',
+        letterSpacing: '0.06em',
+      }}>
+        {isRecent ? 'FRESH' : relativeTime(deposit.reported_at)}
+      </span>
     </div>
   );
 }
@@ -110,13 +121,12 @@ export function GapRow({ name, have, need, bestDeposit }) {
           {have.toFixed(0)} / {need.toFixed(0)} SCU
         </span>
       </div>
-      <div style={{ height: 3, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden', display: 'flex' }}>
+      <div style={{ height: 3, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${pct}%`,
-          background: 'var(--acc)',
-          transition: 'width 0.3s ease', flexShrink: 0,
+          background: met ? 'var(--live)' : 'var(--warn)',
+          transition: 'width 0.3s ease',
         }} />
-        <div style={{ height: '100%', flex: 1, background: 'var(--b1)' }} />
       </div>
       {!met && bestDeposit && (
         <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.04em' }}>
@@ -334,8 +344,8 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
         {deposit.is_stale && (
           <span style={{
             fontSize: 8, padding: '2px 5px', borderRadius: 4, flexShrink: 0,
-            border: '0.5px solid rgba(232,160,32,0.3)',
-            background: 'rgba(232,160,32,0.06)',
+            border: '0.5px solid rgba(var(--warn-rgb), 0.3)',
+            background: 'rgba(var(--warn-rgb), 0.06)',
             color: 'var(--warn)', letterSpacing: '0.08em',
           }}>
             STALE
@@ -389,37 +399,25 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
           onClick={() => handleVote('confirm')}
           className="nexus-btn"
           style={{
-            flex: 1, justifyContent: 'center', gap: 5, padding: '6px 0', fontSize: 10,
-            background: 'transparent', borderColor: 'var(--b1)', color: 'var(--t1)',
+            flex: 1, justifyContent: 'center', padding: '6px 0', fontSize: 10,
+            background: 'rgba(var(--live-rgb), 0.06)',
+            borderColor: 'rgba(var(--live-rgb), 0.25)',
+            color: 'var(--live)',
           }}
         >
-          <CheckCircle size={10} />
-          CONFIRM
-          <span style={{
-            fontSize: 9, padding: '1px 5px', borderRadius: 3,
-            background: 'rgba(39,201,106,0.12)', color: 'var(--live)',
-            fontWeight: 600, minWidth: 16, textAlign: 'center',
-          }}>
-            {deposit.confirmed_votes || 0}
-          </span>
+          <CheckCircle size={10} /> CONFIRM
         </button>
         <button
           onClick={() => handleVote('stale')}
           className="nexus-btn"
           style={{
-            flex: 1, justifyContent: 'center', gap: 5, padding: '6px 0', fontSize: 10,
-            background: 'transparent', borderColor: 'var(--b1)', color: 'var(--t1)',
+            flex: 1, justifyContent: 'center', padding: '6px 0', fontSize: 10,
+            background: 'rgba(var(--warn-rgb), 0.06)',
+            borderColor: 'rgba(var(--warn-rgb), 0.25)',
+            color: 'var(--warn)',
           }}
         >
-          <AlertTriangle size={10} />
-          STALE
-          <span style={{
-            fontSize: 9, padding: '1px 5px', borderRadius: 3,
-            background: 'rgba(232,160,32,0.12)', color: 'var(--warn)',
-            fontWeight: 600, minWidth: 16, textAlign: 'center',
-          }}>
-            {deposit.stale_votes || 0}
-          </span>
+          <AlertTriangle size={10} /> MARK STALE
         </button>
       </div>
 
@@ -446,8 +444,8 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
             style={{
               justifyContent: 'center', padding: '7px 0', fontSize: 10,
               letterSpacing: '0.08em',
-              background: loggedToOp ? 'rgba(39,201,106,0.06)' : undefined,
-              borderColor: loggedToOp ? 'rgba(39,201,106,0.3)' : undefined,
+              background: loggedToOp ? 'rgba(var(--live-rgb), 0.06)' : undefined,
+              borderColor: loggedToOp ? 'rgba(var(--live-rgb), 0.3)' : undefined,
               color: loggedToOp ? 'var(--live)' : undefined,
             }}
           >

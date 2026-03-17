@@ -159,7 +159,7 @@ function NexusToken({
     position:      'absolute',
     inset:         -(size * 0.1),  // ring gap scales with token size
     borderRadius:  '50%',
-    border:        '1px solid',
+    border:        '0.5px solid',
     pointerEvents: 'none',
     ...RING_STYLES[pulse],
   }

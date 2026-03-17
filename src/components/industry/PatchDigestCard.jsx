@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 
 const SEVERITY_STYLE = {
-  high:   { color: 'var(--danger)', bg: 'rgba(224,72,72,0.08)',   border: 'rgba(224,72,72,0.25)' },
-  medium: { color: 'var(--warn)',   bg: 'rgba(232,160,32,0.08)', border: 'rgba(232,160,32,0.25)' },
+  high:   { color: 'var(--danger)', bg: 'rgba(var(--danger-rgb), 0.08)',   border: 'rgba(var(--danger-rgb), 0.25)' },
+  medium: { color: 'var(--warn)',   bg: 'rgba(var(--warn-rgb), 0.08)', border: 'rgba(var(--warn-rgb), 0.25)' },
   low:    { color: 'var(--info)',   bg: 'rgba(74,143,208,0.08)', border: 'rgba(74,143,208,0.25)' },
 };
 
@@ -36,7 +36,7 @@ export default function PatchDigestCard({ digest, onDismiss }) {
   return (
     <div style={{
       background: 'var(--bg2)',
-      border: `0.5px solid ${highCount > 0 ? 'rgba(232,160,32,0.4)' : 'var(--b2)'}`,
+      border: `0.5px solid ${highCount > 0 ? 'rgba(var(--warn-rgb), 0.4)' : 'var(--b2)'}`,
       borderRadius: 8,
       margin: '0 16px',
       overflow: 'hidden',
@@ -49,7 +49,7 @@ export default function PatchDigestCard({ digest, onDismiss }) {
         gap: 10,
         padding: '8px 12px',
         borderBottom: expanded ? '0.5px solid var(--b1)' : 'none',
-        background: highCount > 0 ? 'rgba(232,160,32,0.04)' : 'transparent',
+        background: highCount > 0 ? 'rgba(var(--warn-rgb), 0.04)' : 'transparent',
       }}>
         {/* Version badge */}
         <span style={{
@@ -57,8 +57,8 @@ export default function PatchDigestCard({ digest, onDismiss }) {
           fontSize: 10,
           fontWeight: 500,
           letterSpacing: '0.1em',
-          background: 'rgba(232,160,32,0.1)',
-          border: '0.5px solid rgba(232,160,32,0.3)',
+          background: 'rgba(var(--warn-rgb), 0.1)',
+          border: '0.5px solid rgba(var(--warn-rgb), 0.3)',
           borderRadius: 4,
           padding: '1px 7px',
           flexShrink: 0,

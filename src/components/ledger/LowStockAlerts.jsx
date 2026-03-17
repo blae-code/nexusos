@@ -54,9 +54,9 @@ function AlertCard({ threshold, currentMat, onSendAlert, sending }) {
   if (status === 'OK') return null;
 
   const statusStyle = {
-    MISSING:  { color: 'var(--danger)', border: 'rgba(224,72,72,0.3)',  bg: 'rgba(224,72,72,0.06)',  label: 'MISSING' },
-    CRITICAL: { color: 'var(--danger)', border: 'rgba(224,72,72,0.3)',  bg: 'rgba(224,72,72,0.06)',  label: 'CRITICAL' },
-    LOW:      { color: 'var(--warn)',   border: 'rgba(232,160,32,0.3)', bg: 'rgba(232,160,32,0.06)', label: 'LOW STOCK' },
+    MISSING:  { color: 'var(--danger)', border: 'rgba(var(--danger-rgb), 0.3)',  bg: 'rgba(var(--danger-rgb), 0.06)',  label: 'MISSING' },
+    CRITICAL: { color: 'var(--danger)', border: 'rgba(var(--danger-rgb), 0.3)',  bg: 'rgba(var(--danger-rgb), 0.06)',  label: 'CRITICAL' },
+    LOW:      { color: 'var(--warn)',   border: 'rgba(var(--warn-rgb), 0.3)', bg: 'rgba(var(--warn-rgb), 0.06)', label: 'LOW STOCK' },
     QUALITY:  { color: 'var(--info)',   border: 'rgba(74,143,208,0.3)', bg: 'rgba(74,143,208,0.06)', label: 'BELOW T2' },
   }[status];
 
@@ -109,8 +109,8 @@ function AlertCard({ threshold, currentMat, onSendAlert, sending }) {
           padding: '4px 10px',
           fontSize: 10,
           color: 'var(--info)',
-          borderColor: 'rgba(74,143,208,0.3)',
-          background: 'rgba(74,143,208,0.05)',
+          borderColor: 'rgba(var(--info-rgb), 0.3)',
+          background: 'rgba(var(--info-rgb), 0.05)',
           flexShrink: 0,
           opacity: sending ? 0.5 : 1,
         }}
@@ -165,7 +165,7 @@ function ThresholdEditor({ thresholds, onSave }) {
                 <td style={{ padding: '5px 12px' }}>
                   <button onClick={() => update(i, 'critical', !t.critical)} style={{
                     width: 32, height: 18, borderRadius: 9,
-                    background: t.critical ? 'rgba(224,72,72,0.3)' : 'var(--bg3)',
+                    background: t.critical ? 'rgba(var(--danger-rgb), 0.3)' : 'var(--bg3)',
                     border: `0.5px solid ${t.critical ? 'var(--danger)' : 'var(--b2)'}`,
                     cursor: 'pointer', position: 'relative', transition: 'all 0.2s',
                   }}>
@@ -191,7 +191,7 @@ function ThresholdEditor({ thresholds, onSave }) {
               <td style={{ padding: '5px 12px' }}>
                 <button onClick={() => setNewRow(r => ({ ...r, critical: !r.critical }))} style={{
                   width: 32, height: 18, borderRadius: 9,
-                  background: newRow.critical ? 'rgba(224,72,72,0.3)' : 'var(--bg3)',
+                  background: newRow.critical ? 'rgba(var(--danger-rgb), 0.3)' : 'var(--bg3)',
                   border: `0.5px solid ${newRow.critical ? 'var(--danger)' : 'var(--b2)'}`,
                   cursor: 'pointer', position: 'relative',
                 }}>
@@ -199,7 +199,7 @@ function ThresholdEditor({ thresholds, onSave }) {
                 </button>
               </td>
               <td style={{ padding: '5px 12px' }}>
-                <button onClick={add} className="nexus-btn" style={{ padding: '2px 7px', fontSize: 9, color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)' }}>+ ADD</button>
+                <button onClick={add} className="nexus-btn" style={{ padding: '2px 7px', fontSize: 9, color: 'var(--live)', borderColor: 'rgba(var(--live-rgb), 0.3)' }}>+ ADD</button>
               </td>
             </tr>
           </tbody>
@@ -358,7 +358,7 @@ export default function LowStockAlerts({ materials, callsign = 'SYSTEM' }) {
             const when = lastSent[t.material];
             return (
               <div key={t.material} style={{
-                background: 'var(--bg1)', border: `0.5px solid ${ok ? 'var(--b1)' : 'rgba(232,160,32,0.2)'}`, borderRadius: 6, padding: '8px 10px',
+                background: 'var(--bg1)', border: `0.5px solid ${ok ? 'var(--b1)' : 'rgba(var(--warn-rgb), 0.2)'}`, borderRadius: 6, padding: '8px 10px',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ color: 'var(--t0)', fontSize: 11 }}>{t.material}</span>

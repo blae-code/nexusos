@@ -39,8 +39,8 @@ export default function PhaseTracker({ op, canEdit, onPhaseChange }) {
                   width: 32,
                   height: 32,
                   borderRadius: '50%',
-                  background: isCurrent ? 'rgba(232,160,32,0.15)' : isDone ? 'rgba(39,201,106,0.15)' : 'var(--bg3)',
-                  border: `0.5px solid ${isCurrent ? 'rgba(232,160,32,0.4)' : isDone ? 'rgba(39,201,106,0.3)' : 'var(--b2)'}`,
+                  background: isCurrent ? 'var(--warn-bg)' : isDone ? 'var(--live-bg)' : 'transparent',
+                  border: `0.5px solid ${isCurrent ? 'var(--warn-b)' : isDone ? 'var(--live-b)' : 'var(--b2)'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -49,23 +49,10 @@ export default function PhaseTracker({ op, canEdit, onPhaseChange }) {
                   color: isCurrent ? 'var(--warn)' : isDone ? 'var(--live)' : 'var(--t3)',
                   cursor: canEdit && (isCurrent || isDone) ? 'pointer' : 'default',
                   transition: 'all 0.12s',
-                  position: 'relative',
+                  animation: isCurrent ? 'node-pulse 2s ease-in-out infinite' : undefined,
                 }}
               >
                 {isDone ? '✓' : isCurrent ? '▶' : `${i + 1}`}
-
-                {/* Current phase indicator glow */}
-                {isCurrent && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: -4,
-                      borderRadius: '50%',
-                      border: '0.5px solid rgba(232,160,32,0.2)',
-                      animation: 'pulse-live 2s ease-in-out infinite',
-                    }}
-                  />
-                )}
               </div>
 
               {/* Connector line */}
@@ -74,7 +61,7 @@ export default function PhaseTracker({ op, canEdit, onPhaseChange }) {
                   style={{
                     width: 12,
                     height: '0.5px',
-                    background: isDone ? 'var(--live)' : isCurrent ? 'var(--warn)' : 'var(--b0)',
+                    background: isDone ? 'var(--live)' : 'var(--b2)',
                     flexShrink: 0,
                     transition: 'all 0.12s',
                   }}

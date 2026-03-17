@@ -227,7 +227,7 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
           <div
             style={{
               padding: '8px 10px',
-              background: 'rgba(224,72,72,0.1)',
+              background: 'rgba(var(--danger-rgb), 0.1)',
               border: '0.5px solid var(--danger)',
               borderRadius: 4,
               color: 'var(--danger)',
@@ -315,7 +315,7 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
                 flex: 1,
                 padding: '6px 14px',
                 fontSize: 10,
-                background: submitting ? 'var(--bg3)' : 'rgba(39,201,106,0.12)',
+                background: submitting ? 'var(--bg3)' : 'rgba(var(--live-rgb), 0.12)',
                 borderColor: submitting ? 'var(--b2)' : 'var(--live)',
                 color: submitting ? 'var(--t2)' : 'var(--live)',
               }}

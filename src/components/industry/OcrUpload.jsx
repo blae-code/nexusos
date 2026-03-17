@@ -129,7 +129,7 @@ export default function OcrUpload({ callsign, discordId, onSuccess }) {
       )}
 
       {error && (
-        <div style={{ display: 'flex', gap: 8, padding: '8px 12px', background: 'rgba(224,72,72,0.08)', border: '0.5px solid rgba(224,72,72,0.3)', borderRadius: 6, color: 'var(--danger)', fontSize: 10 }}>
+        <div style={{ display: 'flex', gap: 8, padding: '8px 12px', background: 'rgba(var(--danger-rgb), 0.08)', border: '0.5px solid rgba(var(--danger-rgb), 0.3)', borderRadius: 6, color: 'var(--danger)', fontSize: 10 }}>
           <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
           <span>{error}</span>
         </div>

@@ -13,9 +13,9 @@ const STATUS_COLORS = {
 };
 
 const FEASIBILITY_STYLE = {
-  READY:   { color: 'var(--live)',   bg: 'rgba(39,201,106,0.08)',  border: 'rgba(39,201,106,0.25)' },
-  PARTIAL: { color: 'var(--warn)',   bg: 'rgba(232,160,32,0.08)', border: 'rgba(232,160,32,0.25)' },
-  BLOCKED: { color: 'var(--danger)', bg: 'rgba(224,72,72,0.08)',  border: 'rgba(224,72,72,0.2)'   },
+  READY:   { color: 'var(--live)',   bg: 'rgba(var(--live-rgb), 0.08)',  border: 'rgba(var(--live-rgb), 0.25)' },
+  PARTIAL: { color: 'var(--warn)',   bg: 'rgba(var(--warn-rgb), 0.08)', border: 'rgba(var(--warn-rgb), 0.25)' },
+  BLOCKED: { color: 'var(--danger)', bg: 'rgba(var(--danger-rgb), 0.08)',  border: 'rgba(var(--danger-rgb), 0.2)'   },
 };
 
 const PRIORITY_COLORS = {

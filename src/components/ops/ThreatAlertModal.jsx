@@ -48,7 +48,7 @@ export default function ThreatAlertModal({ op, callsign, onClose, onPosted }) {
     <div style={{
       position: 'absolute', inset: 0, zIndex: 50,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(7,8,11,0.82)',
+      background: 'rgba(var(--bg0-rgb), 0.82)',
     }}>
       <div className="nexus-fade-in" style={{
         width: 400,

@@ -34,7 +34,7 @@ function EfficiencyBar({ label, expected, actual, unit = 'SCU' }) {
             {displayPct}%
           </span>
           {overYield && (
-            <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.08)', fontSize: 9 }}>
+            <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(var(--live-rgb), 0.3)', background: 'rgba(var(--live-rgb), 0.08)', fontSize: 9 }}>
               OVER
             </span>
           )}

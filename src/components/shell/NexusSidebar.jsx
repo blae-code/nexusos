@@ -176,18 +176,18 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
               justifyContent: 'center',
               transition: 'background 150ms ease, border-left-color 150ms ease, color 150ms ease',
               position: 'relative',
-              background: isActive ? 'rgba(104,120,192,0.12)' : 'transparent',
+              background: isActive ? 'rgba(var(--acc-rgb), 0.12)' : 'transparent',
               color: isActive ? 'var(--acc)' : 'var(--t2)',
             }}
             onMouseEnter={(event) => {
               if (!isActive) {
-                event.currentTarget.style.background = 'rgba(104,120,192,0.07)';
+                event.currentTarget.style.background = 'rgba(var(--acc-rgb), 0.07)';
               }
             }}
             onMouseLeave={(event) => {
               if (!isActive) {
                 event.currentTarget.style.background = 'transparent';
-                event.currentTarget.style.color = 'var(--t3)';
+                event.currentTarget.style.color = 'var(--t2)';
               }
             }}
           >
@@ -215,7 +215,7 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
         <div
           style={{
             width: '100%',
-            borderTop: '0.5px solid rgba(240,168,36,0.18)',
+            borderTop: '0.5px solid rgba(var(--warn-rgb), 0.18)',
             paddingTop: 8,
             paddingBottom: 4,
             display: 'flex',
@@ -226,7 +226,7 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
           }}
         >
           <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-          <span style={{ fontSize: 8, color: 'rgba(240,168,36,0.6)', letterSpacing: '0.18em', userSelect: 'none' }}>SIM</span>
+          <span style={{ fontSize: 8, color: 'rgba(var(--warn-rgb), 0.6)', letterSpacing: '0.18em', userSelect: 'none' }}>SIM</span>
         </div>
       ) : null}
     </nav>

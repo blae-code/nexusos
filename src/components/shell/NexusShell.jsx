@@ -240,8 +240,8 @@ export default function NexusShell() {
           <div
             style={{
               height: 22,
-              background: 'rgba(240,168,36,0.07)',
-              borderBottom: '0.5px solid rgba(240,168,36,0.22)',
+              background: 'rgba(var(--warn-rgb), 0.07)',
+              borderBottom: '0.5px solid rgba(var(--warn-rgb), 0.22)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -274,7 +274,7 @@ export default function NexusShell() {
                   transform: 'translate(-50%, -50%) rotate(-25deg)',
                   fontSize: 110,
                   fontWeight: 700,
-                  color: 'rgba(240,168,36,0.028)',
+                  color: 'rgba(var(--warn-rgb), 0.028)',
                   letterSpacing: '0.45em',
                   pointerEvents: 'none',
                   whiteSpace: 'nowrap',

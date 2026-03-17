@@ -42,7 +42,7 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
     <div style={{
       position: 'absolute', inset: 0, zIndex: 50,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(7,8,11,0.82)',
+      background: 'rgba(var(--bg0-rgb), 0.82)',
     }}>
       <div className="nexus-fade-in" style={{
         width: 520,
@@ -119,7 +119,7 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em' }}>GENERATED BRIEF</span>
                 {posted && (
-                  <span style={{ color: 'var(--live)', fontSize: 9, padding: '1px 6px', border: '0.5px solid rgba(39,201,106,0.3)', borderRadius: 3, background: 'rgba(39,201,106,0.07)' }}>
+                  <span style={{ color: 'var(--live)', fontSize: 9, padding: '1px 6px', border: '0.5px solid rgba(var(--live-rgb), 0.3)', borderRadius: 3, background: 'rgba(var(--live-rgb), 0.07)' }}>
                     POSTED TO DISCORD
                   </span>
                 )}

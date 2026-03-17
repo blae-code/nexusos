@@ -82,8 +82,8 @@ export default function LiveOpHeader({ op, canLead, onGoLive, onEndOp, onThreatA
                   display: 'flex', alignItems: 'center', gap: 4,
                   padding: '3px 8px',
                   borderRadius: 4,
-                  background: active ? 'rgba(232,160,32,0.1)' : done ? 'rgba(39,201,106,0.07)' : 'var(--bg2)',
-                  border: `0.5px solid ${active ? 'var(--warn)' : done ? 'rgba(39,201,106,0.25)' : 'var(--b1)'}`,
+                  background: active ? 'rgba(var(--warn-rgb), 0.1)' : done ? 'rgba(var(--live-rgb), 0.07)' : 'var(--bg2)',
+                  border: `0.5px solid ${active ? 'var(--warn)' : done ? 'rgba(var(--live-rgb), 0.25)' : 'var(--b1)'}`,
                 }}>
                   <div style={{
                     width: 4, height: 4, borderRadius: '50%',

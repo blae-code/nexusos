@@ -90,8 +90,8 @@ export default function RSVPDialog({ op, rsvps, discordId, callsign, onClose, on
                     style={{
                       display: 'flex', alignItems: 'center', gap: 8,
                       padding: '9px 12px', borderRadius: 6, cursor: full ? 'not-allowed' : 'pointer',
-                      background: selected ? 'rgba(39,201,106,0.08)' : 'var(--bg3)',
-                      border: `0.5px solid ${selected ? 'rgba(39,201,106,0.3)' : 'var(--b2)'}`,
+                      background: selected ? 'rgba(var(--live-rgb), 0.08)' : 'var(--bg3)',
+                      border: `0.5px solid ${selected ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)'}`,
                       opacity: full ? 0.5 : 1, fontFamily: 'inherit',
                     }}
                   >

@@ -92,7 +92,7 @@ function CofferBalanceWidget({ latestBalance, latestTransaction }) {
         Coffer Balance
       </div>
       <div>
-        <div className="quick-access-timer" style={{ fontSize: 16, marginBottom: 4 }}>
+        <div className="quick-access-timer" style={{ fontSize: 18, fontFamily: 'var(--font)', fontVariantNumeric: 'tabular-nums', color: 'var(--t0)', marginBottom: 4 }}>
           {(latestBalance || 0).toLocaleString()}
         </div>
         <div style={{ color: 'var(--t2)', fontSize: 9 }}>

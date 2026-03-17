@@ -40,7 +40,7 @@ export default function EditRow({ material, onSave, onCancel }) {
   };
 
   return (
-    <tr style={{ background: 'rgba(104,120,192,0.1)', borderBottom: '0.5px solid var(--b1)' }}>
+    <tr style={{ background: 'rgba(var(--acc-rgb), 0.1)', borderBottom: '0.5px solid var(--b1)' }}>
       {/* icon */}
       <td style={TD}>
         <NexusToken src={materialToken(matCategory(type), 'neutral')} size={24} alt={type} />
@@ -83,7 +83,7 @@ export default function EditRow({ material, onSave, onCancel }) {
           <button
             onClick={handleSave}
             className="nexus-btn"
-            style={{ padding: '3px 8px', fontSize: 9, background: 'rgba(39,201,106,0.1)', borderColor: 'rgba(39,201,106,0.3)', color: 'var(--live)' }}
+            style={{ padding: '3px 8px', fontSize: 9, background: 'rgba(var(--live-rgb), 0.1)', borderColor: 'rgba(var(--live-rgb), 0.3)', color: 'var(--live)' }}
           >SAVE</button>
           <button onClick={onCancel} className="nexus-btn" style={{ padding: '3px 8px', fontSize: 9 }}>
             CANCEL

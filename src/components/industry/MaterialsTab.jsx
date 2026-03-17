@@ -5,7 +5,7 @@ import { Plus, Archive } from 'lucide-react';
 const TYPE_BADGES = {
   RAW:     { color: 'var(--warn)',  label: 'RAW' },
   REFINED: { color: 'var(--cyan)',  label: 'REFINED' },
-  SALVAGE: { color: '#a855f7',      label: 'SALVAGE' },
+  SALVAGE: { color: 'var(--acc2)',   label: 'SALVAGE' },
   CRAFTED: { color: 'var(--live)',  label: 'CRAFTED' },
   OTHER:   { color: 'var(--t2)',    label: 'OTHER' },
 };

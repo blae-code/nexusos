@@ -25,8 +25,8 @@ function StatCard({ label, value, sub, accent = 'var(--t0)' }) {
       background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 8,
       padding: '12px 14px', flex: 1, minWidth: 0,
     }}>
-      <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
-      <div style={{ color: accent || 'var(--t0)', fontSize: 22, fontWeight: 500, lineHeight: 1 }}>{value}</div>
+      <div style={{ color: 'var(--t2)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
+      <div style={{ color: accent || 'var(--t0)', fontSize: 28, fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
       {sub && <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 4 }}>{sub}</div>}
     </div>
   );

@@ -283,3 +283,8 @@ textarea.nexus-input {
     transform: translateY(0);
   }
 }
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 3px var(--b2); }
+  50%       { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 4px var(--acc); }
+}

@@ -283,7 +283,7 @@ export default function Materials({ materials, onRefresh }) {
             className="nexus-btn"
             style={{
               padding: '3px 9px', fontSize: 9,
-              borderColor: qualityMin === 80 ? 'rgba(39,201,106,0.4)' : 'var(--b1)',
+              borderColor: qualityMin === 80 ? 'rgba(var(--live-rgb), 0.4)' : 'var(--b1)',
               color:       qualityMin === 80 ? 'var(--live)'           : 'var(--t1)',
             }}
           >T2 PRESET</button>
@@ -530,7 +530,7 @@ export default function Materials({ materials, onRefresh }) {
                           <button
                             onClick={() => handleArchive(m.id)}
                             className="nexus-btn"
-                            style={{ padding: '2px 7px', fontSize: 9, background: 'rgba(224,72,72,0.1)', borderColor: 'var(--danger)', color: 'var(--danger)' }}
+                            style={{ padding: '2px 7px', fontSize: 9, background: 'rgba(var(--danger-rgb), 0.1)', borderColor: 'var(--danger)', color: 'var(--danger)' }}
                           >CONFIRM</button>
                           <button
                             onClick={() => setArchiveConfirmId(null)}

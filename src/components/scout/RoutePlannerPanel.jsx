@@ -165,7 +165,7 @@ export default function RoutePlannerPanel({ materials, onRouteGenerated, onClose
         <div
           style={{
             padding: '8px 10px',
-            background: 'rgba(224, 72, 72, 0.1)',
+            background: 'rgba(var(--danger-rgb), 0.1)',
             border: '0.5px solid var(--danger)',
             borderRadius: 4,
             color: 'var(--danger)',
@@ -186,7 +186,7 @@ export default function RoutePlannerPanel({ materials, onRouteGenerated, onClose
         disabled={loading || !targetMaterial}
         style={{
           padding: '8px 12px',
-          background: loading ? 'var(--bg3)' : 'rgba(39,201,106,0.15)',
+          background: loading ? 'var(--bg3)' : 'rgba(var(--live-rgb), 0.15)',
           border: `0.5px solid ${loading ? 'var(--b2)' : 'var(--live)'}`,
           borderRadius: 4,
           color: 'var(--live)',

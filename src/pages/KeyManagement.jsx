@@ -84,8 +84,8 @@ function NewKeyBanner({ rawKey, onDismiss }) {
     <div
       style={{
         padding: '12px 14px',
-        background: 'rgba(39,201,106,0.06)',
-        border: '0.5px solid rgba(39,201,106,0.35)',
+        background: 'rgba(var(--live-rgb), 0.06)',
+        border: '0.5px solid rgba(var(--live-rgb), 0.35)',
         borderRadius: 6,
         marginBottom: 16,
       }}
@@ -261,8 +261,8 @@ export default function KeyManagement() {
           <div
             style={{
               padding: '8px 12px',
-              background: 'rgba(220,50,50,0.07)',
-              border: '0.5px solid rgba(220,50,50,0.3)',
+              background: 'rgba(var(--danger-rgb), 0.07)',
+              border: '0.5px solid rgba(var(--danger-rgb), 0.3)',
               borderRadius: 5,
               color: 'var(--danger)',
               fontSize: 11,

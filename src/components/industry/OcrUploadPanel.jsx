@@ -145,7 +145,7 @@ function MiningScanConfirm({ data, callsign, discordId, onConfirm, onDismiss }) 
           disabled={saving || !form.material_name}
           style={{
             flex: 1, padding: '6px 0', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10,
-            background: 'rgba(39,201,106,0.08)', border: '0.5px solid rgba(39,201,106,0.3)', color: 'var(--live)',
+            background: 'rgba(var(--live-rgb), 0.08)', border: '0.5px solid rgba(var(--live-rgb), 0.3)', color: 'var(--live)',
             opacity: saving || !form.material_name ? 0.5 : 1,
           }}
         >
@@ -337,7 +337,7 @@ export default function OcrUploadPanel({ callsign, discordId, onComplete }) {
                 <button onClick={reset} className="nexus-btn" style={{ padding: '6px 14px', fontSize: 9 }}>DISCARD</button>
                 <button onClick={handleDone} style={{
                   flex: 1, padding: '6px 0', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10,
-                  background: 'rgba(39,201,106,0.08)', border: '0.5px solid rgba(39,201,106,0.3)', color: 'var(--live)',
+                  background: 'rgba(var(--live-rgb), 0.08)', border: '0.5px solid rgba(var(--live-rgb), 0.3)', color: 'var(--live)',
                 }}>
                   ACKNOWLEDGED
                 </button>

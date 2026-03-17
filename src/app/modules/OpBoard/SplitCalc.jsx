@@ -155,8 +155,8 @@ export default function SplitCalc({ op, rsvps = [] }) {
         {isExclusive && buyInCost > 0 && (
           <div style={{
             padding: '6px 10px', borderRadius: 6,
-            background: 'rgba(232,160,32,0.06)',
-            border: '0.5px solid rgba(232,160,32,0.2)',
+            background: 'rgba(var(--warn-rgb), 0.06)',
+            border: '0.5px solid rgba(var(--warn-rgb), 0.2)',
             color: 'var(--t1)', fontSize: 10,
           }}>
             <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.1em', marginBottom: 2 }}>BUY-IN DEDUCTED</div>
@@ -265,8 +265,8 @@ export default function SplitCalc({ op, rsvps = [] }) {
           style={{
             width: '100%', justifyContent: 'center', padding: '9px 0',
             fontSize: 11, letterSpacing: '0.08em',
-            background: logged ? 'rgba(39,201,106,0.06)' : 'var(--bg3)',
-            borderColor: logged ? 'rgba(39,201,106,0.3)' : 'var(--b2)',
+            background: logged ? 'rgba(var(--live-rgb), 0.06)' : 'var(--bg3)',
+            borderColor: logged ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)',
             color: logged ? 'var(--live)' : 'var(--t0)',
             opacity: logging ? 0.6 : 1,
           }}

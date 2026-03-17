@@ -2,16 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { Crosshair, ZoomIn, ZoomOut } from 'lucide-react';
 
 const SYSTEM_DATA = {
-  STANTON: { x: 50, y: 50, color: '#4a8fd0', label: 'STANTON' },
-  PYRO: { x: 75, y: 30, color: '#e8a020', label: 'PYRO' },
-  NYX: { x: 25, y: 70, color: '#e04848', label: 'NYX' },
+  STANTON: { x: 50, y: 50, color: 'var(--info)',   label: 'STANTON' },
+  PYRO:    { x: 75, y: 30, color: 'var(--warn)',   label: 'PYRO' },
+  NYX:     { x: 25, y: 70, color: 'var(--danger)', label: 'NYX' },
 };
 
 const RISK_COLORS = {
-  LOW: '#27c96a',
-  MEDIUM: '#e8a020',
-  HIGH: '#e8a020',
-  EXTREME: '#e04848',
+  LOW:     'var(--live)',
+  MEDIUM:  'var(--warn)',
+  HIGH:    'var(--warn)',
+  EXTREME: 'var(--danger)',
 };
 
 const VOLUME_SIZE = {

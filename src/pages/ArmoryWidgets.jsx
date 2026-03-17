@@ -24,7 +24,7 @@ export function ArmoryItemCard({ item, onReturn }) {
     <div
       style={{
         background: 'var(--bg1)',
-        border: `0.5px solid ${isLowStock ? 'rgba(232,160,32,0.4)' : 'var(--b0)'}`,
+        border: `0.5px solid ${isLowStock ? 'rgba(var(--warn-rgb), 0.4)' : 'var(--b0)'}`,
         borderRadius: 8,
         padding: '12px 14px',
         display: 'flex',
@@ -40,7 +40,7 @@ export function ArmoryItemCard({ item, onReturn }) {
           height: 28,
           borderRadius: 6,
           background: 'var(--bg3)',
-          border: `0.5px solid ${isLowStock ? 'rgba(232,160,32,0.4)' : 'var(--b2)'}`,
+          border: `0.5px solid ${isLowStock ? 'rgba(var(--warn-rgb), 0.4)' : 'var(--b2)'}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

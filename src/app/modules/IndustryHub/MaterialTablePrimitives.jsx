@@ -30,8 +30,8 @@ export function T2Badge({ t2_eligible }) {
       <span style={{
         fontSize: 9, fontWeight: 700,
         padding: '1px 6px', borderRadius: 10,
-        border: '0.5px solid rgba(39,201,106,0.4)',
-        background: 'rgba(39,201,106,0.1)',
+        border: '0.5px solid rgba(var(--live-rgb), 0.4)',
+        background: 'rgba(var(--live-rgb), 0.1)',
         color: 'var(--live)', letterSpacing: '0.05em',
       }}>T2</span>
     );
@@ -40,8 +40,8 @@ export function T2Badge({ t2_eligible }) {
     <span style={{
       fontSize: 9, fontWeight: 700,
       padding: '1px 6px', borderRadius: 10,
-      border: '0.5px solid rgba(232,160,32,0.4)',
-      background: 'rgba(232,160,32,0.08)',
+      border: '0.5px solid rgba(var(--warn-rgb), 0.4)',
+      background: 'rgba(var(--warn-rgb), 0.08)',
       color: 'var(--warn)', letterSpacing: '0.05em',
     }}>T1</span>
   );

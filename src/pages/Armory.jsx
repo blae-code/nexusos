@@ -160,7 +160,7 @@ export default function Armory() {
                           }}
                           style={{
                             padding: '4px 8px',
-                            background: 'rgba(39,201,106,0.12)',
+                            background: 'rgba(var(--live-rgb), 0.12)',
                             border: '0.5px solid var(--live)',
                             borderRadius: 4,
                             color: 'var(--live)',

@@ -79,8 +79,8 @@ export default function UpcomingCard({ op, userRsvp, onRsvp, onView }) {
           className="nexus-btn"
           style={{
             flex: 1, justifyContent: 'center', padding: '6px 0', fontSize: 10,
-            background: rsvpStatus === 'CONFIRMED' ? 'rgba(39,201,106,0.06)' : 'var(--bg3)',
-            borderColor: rsvpStatus === 'CONFIRMED' ? 'rgba(39,201,106,0.3)' : 'var(--b2)',
+            background: rsvpStatus === 'CONFIRMED' ? 'rgba(var(--live-rgb), 0.06)' : 'var(--bg3)',
+            borderColor: rsvpStatus === 'CONFIRMED' ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)',
             color: rsvpStatus === 'CONFIRMED' ? 'var(--live)' : 'var(--t0)',
           }}
         >

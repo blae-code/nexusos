@@ -57,9 +57,9 @@ export function useBlueprintAvailability(blueprint, materials) {
 }
 
 const STATUS_STYLE = {
-  READY:     { color: 'var(--live)',   border: 'rgba(39,201,106,0.3)',  bg: 'rgba(39,201,106,0.08)'  },
-  PARTIAL:   { color: 'var(--warn)',   border: 'rgba(232,160,32,0.3)', bg: 'rgba(232,160,32,0.08)' },
-  BLOCKED:   { color: 'var(--danger)', border: 'rgba(224,72,72,0.3)',  bg: 'rgba(224,72,72,0.06)'  },
+  READY:     { color: 'var(--live)',   border: 'rgba(var(--live-rgb), 0.3)',  bg: 'rgba(var(--live-rgb), 0.08)'  },
+  PARTIAL:   { color: 'var(--warn)',   border: 'rgba(var(--warn-rgb), 0.3)', bg: 'rgba(var(--warn-rgb), 0.08)' },
+  BLOCKED:   { color: 'var(--danger)', border: 'rgba(var(--danger-rgb), 0.3)',  bg: 'rgba(var(--danger-rgb), 0.06)'  },
   NO_RECIPE: { color: 'var(--t2)',     border: 'var(--b2)',            bg: 'transparent'            },
 };
 
@@ -111,8 +111,8 @@ export default function BlueprintAvailability({ blueprint, materials }) {
           <div key={i} style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '5px 8px',
-            background: r.met ? 'rgba(39,201,106,0.04)' : 'var(--bg1)',
-            border: `0.5px solid ${r.met ? 'rgba(39,201,106,0.15)' : 'var(--b0)'}`,
+            background: r.met ? 'rgba(var(--live-rgb), 0.04)' : 'var(--bg1)',
+            border: `0.5px solid ${r.met ? 'rgba(var(--live-rgb), 0.15)' : 'var(--b0)'}`,
             borderRadius: 5,
           }}>
             {/* Status dot */}

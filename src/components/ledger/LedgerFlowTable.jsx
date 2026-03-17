@@ -67,11 +67,11 @@ function MaterialRow({ m, onArchive }) {
       <td style={{ padding: '7px 14px', color: 'var(--t1)', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>{(m.quantity_scu || 0).toFixed(1)}</td>
       <td style={{ padding: '7px 14px' }}>
         {q >= 80 ? (
-          <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.25)', background: 'rgba(39,201,106,0.07)', fontSize: 9 }}>CRAFT-READY</span>
+          <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(var(--live-rgb), 0.25)', background: 'rgba(var(--live-rgb), 0.07)', fontSize: 9 }}>CRAFT-READY</span>
         ) : m.material_type === 'RAW' ? (
           <span className="nexus-tag" style={{ color: 'var(--info)', borderColor: 'rgba(74,143,208,0.25)', background: 'rgba(74,143,208,0.07)', fontSize: 9 }}>NEEDS REFINING</span>
         ) : (
-          <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.25)', background: 'rgba(232,160,32,0.07)', fontSize: 9 }}>BELOW T2</span>
+          <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(var(--warn-rgb), 0.25)', background: 'rgba(var(--warn-rgb), 0.07)', fontSize: 9 }}>BELOW T2</span>
         )}
       </td>
       <td style={{ padding: '7px 14px', color: 'var(--t2)', fontSize: 10 }}>{stage}</td>
@@ -129,7 +129,7 @@ export default function LedgerFlowTable({ materials, refineryOrders, onRefresh }
           <SectionHeader label="REFINERY IN PROGRESS" />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {readyRO.map(o => (
-              <div key={o.id} style={{ background: 'rgba(39,201,106,0.07)', border: '0.5px solid rgba(39,201,106,0.25)', borderRadius: 6, padding: '6px 10px', display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div key={o.id} style={{ background: 'rgba(var(--live-rgb), 0.07)', border: '0.5px solid rgba(var(--live-rgb), 0.25)', borderRadius: 6, padding: '6px 10px', display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--live)' }} />
                 <span style={{ color: 'var(--t0)', fontSize: 11 }}>{o.material_name}</span>
                 <span style={{ color: 'var(--live)', fontSize: 10, fontWeight: 500 }}>READY</span>
@@ -184,7 +184,7 @@ export default function LedgerFlowTable({ materials, refineryOrders, onRefresh }
         <button onClick={() => setShowArchived(a => !a)} className="nexus-btn" style={{
           padding: '3px 8px', fontSize: 9,
           color: showArchived ? 'var(--warn)' : 'var(--t2)',
-          borderColor: showArchived ? 'rgba(232,160,32,0.3)' : 'var(--b1)',
+          borderColor: showArchived ? 'rgba(var(--warn-rgb), 0.3)' : 'var(--b1)',
         }}>
           {showArchived ? 'HIDE ARCHIVED' : 'SHOW ARCHIVED'}
         </button>

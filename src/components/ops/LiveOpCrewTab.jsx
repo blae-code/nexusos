@@ -72,8 +72,8 @@ function RoleGroup({ role, rsvps, capacity }) {
         <span style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{role}</span>
         <span style={{
           fontSize: 9, padding: '1px 6px', borderRadius: 3,
-          background: filled ? 'rgba(39,201,106,0.08)' : 'var(--bg3)',
-          border: `0.5px solid ${filled ? 'rgba(39,201,106,0.25)' : 'var(--b2)'}`,
+          background: filled ? 'rgba(var(--live-rgb), 0.08)' : 'var(--bg3)',
+          border: `0.5px solid ${filled ? 'rgba(var(--live-rgb), 0.25)' : 'var(--b2)'}`,
           color: filled ? 'var(--live)' : 'var(--t2)',
         }}>
           {confirmed}/{capacity || '?'}

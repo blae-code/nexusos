@@ -13,7 +13,7 @@ export default function LiveOpCard({ op, rsvps, onEnter }) {
 
   return (
     <div style={{
-      background: 'var(--bg1)', border: '0.5px solid rgba(39,201,106,0.25)',
+      background: 'var(--bg1)', border: '0.5px solid rgba(var(--live-rgb), 0.25)',
       borderRadius: 10, padding: '16px 18px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -22,7 +22,7 @@ export default function LiveOpCard({ op, rsvps, onEnter }) {
           {op.name}
         </span>
         <TypeTag type={op.type} />
-        <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.06)', flexShrink: 0 }}>LIVE</span>
+        <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(var(--live-rgb), 0.3)', background: 'rgba(var(--live-rgb), 0.06)', flexShrink: 0 }}>LIVE</span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
@@ -40,7 +40,7 @@ export default function LiveOpCard({ op, rsvps, onEnter }) {
         {phaseName && (
           <span style={{
             fontSize: 9, padding: '2px 8px', borderRadius: 4, flexShrink: 0,
-            border: '0.5px solid rgba(232,160,32,0.35)', background: 'rgba(232,160,32,0.06)',
+            border: '0.5px solid rgba(var(--warn-rgb), 0.35)', background: 'rgba(var(--warn-rgb), 0.06)',
             color: 'var(--warn)', letterSpacing: '0.07em', fontWeight: 600,
           }}>
             {phaseName.toUpperCase()}
@@ -69,7 +69,7 @@ export default function LiveOpCard({ op, rsvps, onEnter }) {
         className="nexus-btn"
         style={{
           width: '100%', justifyContent: 'center', padding: '8px 0', fontSize: 11,
-          background: 'rgba(39,201,106,0.06)', borderColor: 'rgba(39,201,106,0.25)',
+          background: 'rgba(var(--live-rgb), 0.06)', borderColor: 'rgba(var(--live-rgb), 0.25)',
           color: 'var(--live)', letterSpacing: '0.08em',
         }}
       >

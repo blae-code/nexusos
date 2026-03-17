@@ -20,14 +20,20 @@
   --t3: #3e456a;
 
   /* ── Accent ──────────────────────────────────────── */
-  --acc:  #6878c0;
-  --acc2: #8898d8;
+  --acc:     #6878c0;
+  --acc2:    #8898d8;
+  --acc-rgb: 104, 120, 192;   /* for rgba() use: rgba(var(--acc-rgb), 0.x) */
 
   /* ── Status (semantic only — never decorative) ───── */
-  --live:   #2edb7a;
-  --warn:   #f0aa24;
-  --danger: #e85252;
-  --info:   #5aa2e8;
+  --live:       #2edb7a;
+  --warn:       #f0aa24;
+  --danger:     #e85252;
+  --info:       #5aa2e8;
+  --live-rgb:   46, 219, 122;
+  --warn-rgb:   240, 170, 36;
+  --danger-rgb: 232, 82, 82;
+  --info-rgb:   90, 162, 232;
+  --bg0-rgb:    7, 8, 11;
 
   /* ── Status backgrounds (for status-bearing cards) ── */
   --live-bg:   #071612;
@@ -98,7 +104,7 @@ body {
   transition: border-color 150ms, transform 150ms;
 }
 .nexus-card-clickable:hover {
-  border-color: rgba(104,120,192,0.4);
+  border-color: rgba(var(--acc-rgb), 0.4);
   transform: translateY(-2px);
 }
 
@@ -224,7 +230,7 @@ body {
 .nexus-input::placeholder { color: var(--t2); }
 .nexus-input:focus {
   border-color: var(--acc);
-  box-shadow: 0 0 0 3px rgba(104,120,192,0.15);
+  box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.2);
 }
 
 select {

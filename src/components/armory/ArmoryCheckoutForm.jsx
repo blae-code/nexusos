@@ -118,7 +118,7 @@ export default function ArmoryCheckoutForm({ items, callsign, discordId, onCheck
           <div
             style={{
               padding: '8px 10px',
-              background: 'rgba(224,72,72,0.1)',
+              background: 'rgba(var(--danger-rgb), 0.1)',
               border: '0.5px solid var(--danger)',
               borderRadius: 4,
               color: 'var(--danger)',
@@ -140,7 +140,7 @@ export default function ArmoryCheckoutForm({ items, callsign, discordId, onCheck
           style={{
             width: '100%',
             padding: '8px 12px',
-            background: canCheckout && !loading ? 'rgba(39,201,106,0.12)' : 'var(--bg3)',
+            background: canCheckout && !loading ? 'rgba(var(--live-rgb), 0.12)' : 'var(--bg3)',
             border: `0.5px solid ${canCheckout && !loading ? 'var(--live)' : 'var(--b2)'}`,
             borderRadius: 4,
             color: canCheckout && !loading ? 'var(--live)' : 'var(--t2)',

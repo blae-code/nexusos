@@ -70,7 +70,7 @@ export default function BlueprintModal({ bp, callsign, discordId, onSave, onClos
   return (
     <div style={{
       position: 'absolute', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(7,8,11,0.85)',
+      background: 'rgba(var(--bg0-rgb), 0.85)',
     }}>
       <div className="nexus-fade-in" style={{
         width: 560, maxHeight: '90vh', background: 'var(--bg2)', border: '0.5px solid var(--b2)',

@@ -101,7 +101,7 @@ export default function RescueBoard() {
           <AlertTriangle size={16} style={{ color: 'var(--danger)' }} />
           <span style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 600 }}>RESCUE BOARD</span>
           {openCount > 0 && (
-            <span className="nexus-tag" style={{ color: 'var(--danger)', borderColor: 'rgba(224,72,72,0.4)', background: 'rgba(224,72,72,0.08)' }}>
+            <span className="nexus-tag" style={{ color: 'var(--danger)', borderColor: 'rgba(var(--danger-rgb), 0.4)', background: 'rgba(var(--danger-rgb), 0.08)' }}>
               {openCount} ACTIVE
             </span>
           )}
@@ -112,7 +112,7 @@ export default function RescueBoard() {
       </div>
 
       {showForm && (
-        <div className="nexus-card" style={{ padding: 16, borderColor: 'rgba(224,72,72,0.3)' }}>
+        <div className="nexus-card" style={{ padding: 16, borderColor: 'rgba(var(--danger-rgb), 0.3)' }}>
           <div style={{ color: 'var(--danger)', fontSize: 11, letterSpacing: '0.1em', marginBottom: 12 }}>DISTRESS CALL</div>
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
@@ -151,7 +151,7 @@ export default function RescueBoard() {
           <div
             key={call.id}
             className="nexus-card"
-            style={{ padding: '12px 14px', borderColor: call.status === 'OPEN' ? 'rgba(224,72,72,0.3)' : call.status === 'RESPONDING' ? 'rgba(232,160,32,0.3)' : 'var(--b1)' }}
+            style={{ padding: '12px 14px', borderColor: call.status === 'OPEN' ? 'rgba(var(--danger-rgb), 0.3)' : call.status === 'RESPONDING' ? 'rgba(var(--warn-rgb), 0.3)' : 'var(--b1)' }}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">

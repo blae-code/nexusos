@@ -114,7 +114,7 @@ export default function CraftQueueTabV2({ craftQueue, callsign, onRefresh }) {
                   </button>
                 )}
                 {status === 'IN_PROGRESS' && (
-                  <button className="nexus-btn" onClick={() => handleComplete(item.id)} style={{ padding: '4px 8px', fontSize: 9, background: 'rgba(39,201,106,0.1)', borderColor: 'var(--live)' }}>
+                  <button className="nexus-btn" onClick={() => handleComplete(item.id)} style={{ padding: '4px 8px', fontSize: 9, background: 'rgba(var(--live-rgb), 0.1)', borderColor: 'var(--live)' }}>
                     ✓
                   </button>
                 )}

@@ -100,7 +100,7 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
             </span>
           )}
           {op.access_type === 'EXCLUSIVE' && (
-            <span style={{ padding: '2px 6px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em', color: 'var(--warn)', background: 'rgba(232,160,32,0.05)', border: '0.5px solid rgba(232,160,32,0.3)', whiteSpace: 'nowrap' }}>
+            <span style={{ padding: '2px 6px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em', color: 'var(--warn)', background: 'rgba(var(--warn-rgb), 0.05)', border: '0.5px solid rgba(var(--warn-rgb), 0.3)', whiteSpace: 'nowrap' }}>
               EXCLUSIVE
             </span>
           )}
@@ -122,8 +122,8 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
                 style={{
                   padding: '3px 10px', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 9, letterSpacing: '0.08em',
-                  background: myRsvp ? 'rgba(39,201,106,0.1)' : 'var(--bg3)',
-                  border: `0.5px solid ${myRsvp ? 'rgba(39,201,106,0.3)' : 'var(--b2)'}`,
+                  background: myRsvp ? 'rgba(var(--live-rgb), 0.1)' : 'var(--bg3)',
+                  border: `0.5px solid ${myRsvp ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)'}`,
                   color: myRsvp ? 'var(--live)' : 'var(--t1)',
                 }}
               >

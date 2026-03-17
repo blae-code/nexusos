@@ -23,7 +23,7 @@ export default function RouteOverlay({ route, onClose }) {
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(7,8,11,0.9)',
+          background: 'rgba(var(--bg0-rgb), 0.9)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -68,7 +68,7 @@ export default function RouteOverlay({ route, onClose }) {
       style={{
         position: 'absolute',
         inset: 0,
-        background: 'rgba(7,8,11,0.95)',
+        background: 'rgba(var(--bg0-rgb), 0.95)',
         display: 'flex',
         flexDirection: 'column',
         zIndex: 100,

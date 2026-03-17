@@ -88,8 +88,8 @@ export default function OpBriefingPanel({ op, rsvps, onClose }) {
                   borderRadius: 3,
                   fontSize: 9,
                   letterSpacing: '0.08em',
-                  background: isCurrent ? 'rgba(232,160,32,0.12)' : isDone ? 'var(--bg2)' : 'transparent',
-                  border: `0.5px solid ${isCurrent ? 'rgba(232,160,32,0.4)' : isDone ? 'var(--b1)' : 'transparent'}`,
+                  background: isCurrent ? 'rgba(var(--warn-rgb), 0.12)' : isDone ? 'var(--bg2)' : 'transparent',
+                  border: `0.5px solid ${isCurrent ? 'rgba(var(--warn-rgb), 0.4)' : isDone ? 'var(--b1)' : 'transparent'}`,
                   color: isCurrent ? 'var(--warn)' : isDone ? 'var(--live)' : 'var(--t3)',
                 }}>
                   {isDone ? '✓' : isCurrent ? '▶' : `${i + 1}`} {name || `P${i + 1}`}

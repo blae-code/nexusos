@@ -138,8 +138,8 @@ export default function CrewRoster({ op, rsvps, canLead, onRsvpUpdate }) {
               return (
                 <div key={role} style={{
                   padding: '3px 10px', borderRadius: 4,
-                  background: filled ? 'rgba(39,201,106,0.07)' : 'var(--bg2)',
-                  border: `0.5px solid ${filled ? 'rgba(39,201,106,0.25)' : 'var(--b1)'}`,
+                  background: filled ? 'rgba(var(--live-rgb), 0.07)' : 'var(--bg2)',
+                  border: `0.5px solid ${filled ? 'rgba(var(--live-rgb), 0.25)' : 'var(--b1)'}`,
                   display: 'flex', alignItems: 'center', gap: 6,
                 }}>
                   <span style={{ color: filled ? 'var(--live)' : 'var(--t1)', fontSize: 10 }}>{role.replace(/_/g, ' ').toUpperCase()}</span>

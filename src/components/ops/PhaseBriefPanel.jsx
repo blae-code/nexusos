@@ -65,7 +65,7 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(7,9,14,0.88)',
+      background: 'rgba(var(--bg0-rgb), 0.88)',
     }}>
       <div className="nexus-fade-in" style={{
         width: 540, maxHeight: '80vh',
@@ -197,7 +197,7 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
 
             {/* Error */}
             {error && (
-              <div style={{ color: 'var(--danger)', fontSize: 11, padding: '6px 10px', background: 'rgba(224,72,72,0.06)', border: '0.5px solid rgba(224,72,72,0.2)', borderRadius: 5 }}>
+              <div style={{ color: 'var(--danger)', fontSize: 11, padding: '6px 10px', background: 'rgba(var(--danger-rgb), 0.06)', border: '0.5px solid rgba(var(--danger-rgb), 0.2)', borderRadius: 5 }}>
                 {error}
               </div>
             )}
@@ -234,7 +234,7 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
             className="nexus-btn"
             style={{
               flex: 1, justifyContent: 'center', padding: '7px 0', fontSize: 10,
-              background: 'rgba(74,143,208,0.08)', borderColor: 'rgba(74,143,208,0.35)',
+              background: 'rgba(var(--info-rgb), 0.08)', borderColor: 'rgba(var(--info-rgb), 0.35)',
               color: loading ? 'var(--t2)' : 'var(--info)',
             }}
           >

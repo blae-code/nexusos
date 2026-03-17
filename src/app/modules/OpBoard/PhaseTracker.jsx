@@ -113,8 +113,8 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank
               marginLeft: 'auto',
               padding: '2px 10px', fontSize: 9, letterSpacing: '0.1em',
               borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
-              background: 'rgba(39,201,106,0.06)',
-              border: '0.5px solid rgba(39,201,106,0.3)',
+              background: 'rgba(var(--live-rgb), 0.06)',
+              border: '0.5px solid rgba(var(--live-rgb), 0.3)',
               color: 'var(--live)',
             }}
           >

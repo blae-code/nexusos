@@ -300,8 +300,8 @@ export default function SystemMap({
             style={{
               padding: '2px 6px', fontSize: 9, letterSpacing: '0.06em',
               borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
-              border: qualityMin === 80 ? '0.5px solid rgba(39,201,106,0.4)' : '0.5px solid var(--b1)',
-              background: qualityMin === 80 ? 'rgba(39,201,106,0.06)' : 'var(--bg2)',
+              border: qualityMin === 80 ? '0.5px solid rgba(var(--live-rgb), 0.4)' : '0.5px solid var(--b1)',
+              background: qualityMin === 80 ? 'rgba(var(--live-rgb), 0.06)' : 'var(--bg2)',
               color: qualityMin === 80 ? 'var(--live)' : 'var(--t2)',
             }}
           >
@@ -475,7 +475,7 @@ export default function SystemMap({
 
           {/* Heatmap overlay */}
           {heatmap && heatNodes.map((node, i) => {
-            const col = node.avgQ >= 80 ? 'rgba(39,201,106,' : node.avgQ >= 60 ? 'rgba(232,160,32,' : 'rgba(74,80,104,';
+            const col = node.avgQ >= 80 ? 'rgba(var(--live-rgb), ' : node.avgQ >= 60 ? 'rgba(var(--warn-rgb), ' : 'rgba(74,80,104,';
             const opacity = Math.min(0.35, 0.07 * node.count);
             return (
               <circle
@@ -570,7 +570,7 @@ export default function SystemMap({
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
           padding: '4px 10px',
-          background: 'rgba(7,8,11,0.75)',
+          background: 'rgba(var(--bg0-rgb), 0.75)',
           display: 'flex', gap: 14,
         }}>
           <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.08em' }}>

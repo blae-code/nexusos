@@ -3,10 +3,10 @@ import { base44 } from '@/api/base44Client';
 import { AlertTriangle, ExternalLink } from 'lucide-react';
 
 const SEVERITY_COLORS = {
-  CRITICAL: { bg: 'rgba(224,72,72,0.12)', border: 'var(--danger)', text: 'var(--danger)' },
-  HIGH: { bg: 'rgba(232,160,32,0.12)', border: 'var(--warn)', text: 'var(--warn)' },
-  MEDIUM: { bg: 'rgba(74,143,208,0.12)', border: 'var(--info)', text: 'var(--info)' },
-  LOW: { bg: 'rgba(39,201,106,0.12)', border: 'var(--live)', text: 'var(--live)' },
+  CRITICAL: { bg: 'rgba(var(--danger-rgb), 0.12)', border: 'var(--danger)', text: 'var(--danger)' },
+  HIGH: { bg: 'rgba(var(--warn-rgb), 0.12)', border: 'var(--warn)', text: 'var(--warn)' },
+  MEDIUM: { bg: 'rgba(var(--info-rgb), 0.12)', border: 'var(--info)', text: 'var(--info)' },
+  LOW: { bg: 'rgba(var(--live-rgb), 0.12)', border: 'var(--live)', text: 'var(--live)' },
 };
 
 export default function PatchDigestHeader() {
@@ -145,15 +145,15 @@ export default function PatchDigestHeader() {
               padding: '4px 8px',
               borderRadius: 4,
               border: '0.5px solid var(--info)',
-              background: 'rgba(74,143,208,0.06)',
+              background: 'rgba(var(--info-rgb), 0.06)',
               transition: 'all 0.12s',
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(74,143,208,0.12)';
+              e.currentTarget.style.background = 'rgba(var(--info-rgb), 0.12)';
               e.currentTarget.style.borderColor = 'var(--info)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(74,143,208,0.06)';
+              e.currentTarget.style.background = 'rgba(var(--info-rgb), 0.06)';
               e.currentTarget.style.borderColor = 'var(--info)';
             }}
           >

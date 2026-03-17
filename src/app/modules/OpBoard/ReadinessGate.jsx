@@ -138,7 +138,7 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
           marginBottom: 10,
         }}
       >
-        <div style={{ fontSize: 24, fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: isGo ? 'var(--live)' : 'var(--warn)' }}>
+        <div style={{ fontSize: 18, fontFamily: 'var(--font)', fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums', color: isGo ? 'var(--live)' : 'var(--t0)', transition: 'color 300ms' }}>
           {pct}%
         </div>
         <div style={{ flex: 1 }}>

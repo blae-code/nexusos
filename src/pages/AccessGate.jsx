@@ -256,7 +256,7 @@ export default function AccessGate() {
             width: 400,
             maxWidth: 'calc(100vw - 32px)',
             background: 'var(--bg1)',
-            border: `0.5px solid ${IS_DEV_MODE ? 'rgba(240,168,36,0.3)' : 'rgba(90,96,128,0.15)'}`,
+            border: `0.5px solid ${IS_DEV_MODE ? 'rgba(var(--warn-rgb), 0.3)' : 'rgba(var(--acc-rgb), 0.15)'}`,
             borderRadius: 12,
             padding: '36px 32px 28px',
             display: 'flex',
@@ -293,7 +293,7 @@ export default function AccessGate() {
             {IS_DEV_MODE ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, marginTop: 20 }}>
                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-                <span style={{ fontSize: 7, color: 'rgba(240,168,36,0.7)', letterSpacing: '0.18em' }}>SIM</span>
+                <span style={{ fontSize: 7, color: 'rgba(var(--warn-rgb), 0.7)', letterSpacing: '0.18em' }}>SIM</span>
               </div>
             ) : (
               <div style={{

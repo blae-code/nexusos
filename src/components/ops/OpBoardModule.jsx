@@ -79,7 +79,7 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
                 </span>
               )}
               {op.access_type === 'EXCLUSIVE' && (
-                <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(232,160,32,0.3)', background: 'rgba(232,160,32,0.05)' }}>EXCLUSIVE</span>
+                <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'rgba(var(--warn-rgb), 0.3)', background: 'rgba(var(--warn-rgb), 0.05)' }}>EXCLUSIVE</span>
               )}
               {op.buy_in_cost > 0 && (
                 <span style={{ color: 'var(--t2)', fontSize: 9 }}>{op.buy_in_cost.toLocaleString()} aUEC buy-in</span>
@@ -99,8 +99,8 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
                 style={{
                   padding: '3px 10px', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 9, letterSpacing: '0.08em',
-                  background: myRsvp ? 'rgba(39,201,106,0.1)' : 'var(--bg3)',
-                  border: `0.5px solid ${myRsvp ? 'rgba(39,201,106,0.3)' : 'var(--b2)'}`,
+                  background: myRsvp ? 'rgba(var(--live-rgb), 0.1)' : 'var(--bg3)',
+                  border: `0.5px solid ${myRsvp ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)'}`,
                   color: myRsvp ? 'var(--live)' : 'var(--t1)',
                 }}
               >

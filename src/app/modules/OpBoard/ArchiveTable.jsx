@@ -21,16 +21,11 @@ export default function ArchiveTable({ ops }) {
     return new Date(op.scheduled_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: '2-digit' });
   }
 
-  const TH_STYLE = {
-    padding: '6px 12px', textAlign: 'left', color: 'var(--t2)', fontSize: 9,
-    letterSpacing: '0.1em', fontWeight: 600, borderBottom: '0.5px solid var(--b1)',
-    background: 'var(--bg2)', whiteSpace: 'nowrap',
-  };
   const TD_STYLE = { padding: '6px 12px' };
 
   return (
     <div style={{ border: '0.5px solid var(--b1)', borderRadius: 8, overflow: 'hidden' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table className="nexus-table">
         <thead>
           <tr>
             {[
@@ -40,18 +35,13 @@ export default function ArchiveTable({ ops }) {
               { label: 'CREW',     title: 'Number of confirmed crew members' },
               { label: 'OUTCOME',  title: 'Final op status — COMPLETE, CANCELLED, or STOOD DOWN' },
             ].map(h => (
-              <th key={h.label} title={h.title} style={TH_STYLE}>{h.label}</th>
+              <th key={h.label} title={h.title}>{h.label}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {visible.map(op => (
-            <tr
-              key={op.id}
-              style={{ borderBottom: '0.5px solid var(--b0)', transition: 'background 0.1s' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
+            <tr key={op.id}>
               <td style={{ ...TD_STYLE }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <NexusToken

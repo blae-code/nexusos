@@ -113,8 +113,8 @@ export default function OCRReviewTable({ items, checked, setChecked, setItems, o
           className="nexus-btn"
           style={{
             padding: '5px 14px', fontSize: 11,
-            background: checkedCount > 0 ? 'rgba(39,201,106,0.1)' : 'var(--bg2)',
-            borderColor: checkedCount > 0 ? 'rgba(39,201,106,0.3)' : 'var(--b1)',
+            background: checkedCount > 0 ? 'rgba(var(--live-rgb), 0.1)' : 'var(--bg2)',
+            borderColor: checkedCount > 0 ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b1)',
             color: checkedCount > 0 ? 'var(--live)' : 'var(--t2)',
           }}
         >

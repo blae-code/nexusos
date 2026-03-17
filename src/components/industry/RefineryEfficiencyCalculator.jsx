@@ -160,7 +160,7 @@ export default function RefineryEfficiencyCalculator() {
         <div
           style={{
             padding: '8px 10px',
-            background: 'rgba(224,72,72,0.1)',
+            background: 'rgba(var(--danger-rgb), 0.1)',
             border: '0.5px solid var(--danger)',
             borderRadius: 4,
             color: 'var(--danger)',

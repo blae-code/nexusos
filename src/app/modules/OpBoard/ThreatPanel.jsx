@@ -34,7 +34,7 @@ function Overlay({ onDismiss, children }) {
       style={{
         position: 'absolute', inset: 0, minHeight: '100%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(7,8,11,0.86)', zIndex: 50,
+        background: 'rgba(var(--bg0-rgb), 0.86)', zIndex: 50,
       }}
       onMouseDown={e => { if (e.target === e.currentTarget) onDismiss?.(); }}
     >
@@ -125,7 +125,7 @@ function ReportDialog({ onClose, onSubmit }) {
             className="nexus-btn"
             style={{
               flex: 2, justifyContent: 'center', padding: '8px 0', fontSize: 11,
-              background: 'rgba(224,72,72,0.08)', borderColor: 'rgba(224,72,72,0.3)',
+              background: 'rgba(var(--danger-rgb), 0.08)', borderColor: 'rgba(var(--danger-rgb), 0.3)',
               color: 'var(--danger)', opacity: saving ? 0.6 : 1,
             }}
           >
@@ -193,8 +193,8 @@ export default function ThreatPanel({ op, callsign, onUpdate }) {
           <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' }}>THREATS</span>
           {threats.length > 0 && (
             <span style={{
-              fontSize: 9, background: 'rgba(224,72,72,0.15)',
-              border: '0.5px solid rgba(224,72,72,0.3)',
+              fontSize: 9, background: 'rgba(var(--danger-rgb), 0.15)',
+              border: '0.5px solid rgba(var(--danger-rgb), 0.3)',
               color: 'var(--danger)', borderRadius: 10, padding: '0 5px', fontWeight: 700,
             }}>
               {threats.length}

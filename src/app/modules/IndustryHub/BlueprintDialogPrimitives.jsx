@@ -13,7 +13,7 @@ export function Overlay({ onDismiss, children }) {
       style={{
         position: 'absolute', inset: 0, minHeight: '100%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(7,8,11,0.86)', zIndex: 50,
+        background: 'rgba(var(--bg0-rgb), 0.86)', zIndex: 50,
       }}
       onMouseDown={e => { if (e.target === e.currentTarget) onDismiss?.(); }}
     >

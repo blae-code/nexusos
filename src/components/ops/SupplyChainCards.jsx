@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 // ─── Stage colours ────────────────────────────────────────────────────────────
 export const STAGE_COLOR   = { extraction: 'var(--warn)', transit: 'var(--info)', refinery: 'var(--acc2)', fabrication: 'var(--live)' };
 export const TRANSIT_COLOR = { IN_TRANSIT: 'var(--info)', DOCKED: 'var(--live)', UNLOADING: 'var(--warn)', IDLE: 'var(--t2)' };
-export const TRANSIT_BG    = { IN_TRANSIT: 'rgba(74,143,208,0.08)', DOCKED: 'rgba(39,201,106,0.07)', UNLOADING: 'rgba(232,160,32,0.07)', IDLE: 'transparent' };
+export const TRANSIT_BG    = { IN_TRANSIT: 'rgba(74,143,208,0.08)', DOCKED: 'rgba(var(--live-rgb), 0.07)', UNLOADING: 'rgba(var(--warn-rgb), 0.07)', IDLE: 'transparent' };
 
 export function SectionHeader({ label, right }) {
   return (
@@ -196,8 +196,8 @@ export function RefineryCard({ order }) {
 
   return (
     <div style={{
-      background: isReady ? 'rgba(39,201,106,0.06)' : 'var(--bg1)',
-      border: `0.5px solid ${isReady ? 'rgba(39,201,106,0.25)' : 'var(--b1)'}`,
+      background: isReady ? 'rgba(var(--live-rgb), 0.06)' : 'var(--bg1)',
+      border: `0.5px solid ${isReady ? 'rgba(var(--live-rgb), 0.25)' : 'var(--b1)'}`,
       borderRadius: 6, padding: '7px 10px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>

@@ -120,8 +120,8 @@ export default function ScoutIntel() {
             className="nexus-btn primary"
             style={{
               padding: '5px 12px', fontSize: 10, letterSpacing: '0.07em',
-              background: panelMode === 'log' ? 'rgba(39,201,106,0.08)' : undefined,
-              borderColor: panelMode === 'log' ? 'rgba(39,201,106,0.3)' : undefined,
+              background: panelMode === 'log' ? 'rgba(var(--live-rgb), 0.08)' : undefined,
+              borderColor: panelMode === 'log' ? 'rgba(var(--live-rgb), 0.3)' : undefined,
               color: panelMode === 'log' ? 'var(--live)' : undefined,
             }}
           >

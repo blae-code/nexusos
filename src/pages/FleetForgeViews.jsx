@@ -85,7 +85,7 @@ function SlotRow({ slot, component, onEdit }) {
         {hasComponent ? component.name : slot.label}
       </span>
       {hasComponent ? (
-        <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.08)', fontSize: 9 }}>OWNED</span>
+        <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(var(--live-rgb), 0.3)', background: 'rgba(var(--live-rgb), 0.08)', fontSize: 9 }}>OWNED</span>
       ) : (
         <span className="nexus-tag" style={{ color: 'var(--t2)', borderColor: 'var(--b2)', background: 'transparent', fontSize: 9 }}>EMPTY</span>
       )}
@@ -295,7 +295,7 @@ export function ShipFitting({ vehicles, componentCatalog, callsign, discordId, o
           <button
             onClick={() => setPatchLocked(!patchLocked)}
             className="nexus-btn"
-            style={{ justifyContent: 'center', padding: '6px 0', color: patchLocked ? 'var(--warn)' : 'var(--t2)', borderColor: patchLocked ? 'rgba(232,160,32,0.3)' : 'var(--b1)' }}
+            style={{ justifyContent: 'center', padding: '6px 0', color: patchLocked ? 'var(--warn)' : 'var(--t2)', borderColor: patchLocked ? 'rgba(var(--warn-rgb), 0.3)' : 'var(--b1)' }}
           >
             {patchLocked ? <><Lock size={11}/> PATCH LOCKED</> : <><Unlock size={11}/> LOCK TO PATCH</>}
           </button>
@@ -326,7 +326,7 @@ export function FleetView({ builds }) {
           <div key={b.id} className="nexus-card" style={{ padding: '10px 12px' }}>
             <div className="flex items-center justify-between mb-1">
               <span style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{b.ship_name}</span>
-              {b.is_org_canonical && <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(39,201,106,0.3)', background: 'rgba(39,201,106,0.08)', fontSize: 8 }}>CANON</span>}
+              {b.is_org_canonical && <span className="nexus-tag" style={{ color: 'var(--live)', borderColor: 'rgba(var(--live-rgb), 0.3)', background: 'rgba(var(--live-rgb), 0.08)', fontSize: 8 }}>CANON</span>}
             </div>
             <div style={{ color: 'var(--t1)', fontSize: 11 }}>{b.build_name}</div>
             <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 4 }}>{b.created_by_callsign} · {b.role_tag?.toUpperCase() || '—'}</div>
