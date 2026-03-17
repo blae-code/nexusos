@@ -162,7 +162,7 @@ export default function AccessGate() {
           transform: 'translateY(-50%)',
           width: '400px',
           background: '#0F0F0D',
-          borderLeft: '2px solid #C8391A',
+          borderLeft: '2px solid #C0392B',
           borderTop: '0.5px solid rgba(200,170,100,0.14)',
           borderRight: '0.5px solid rgba(200,170,100,0.10)',
           borderBottom: '0.5px solid rgba(200,170,100,0.10)',
@@ -180,14 +180,14 @@ export default function AccessGate() {
             <line x1="26" y1="43" x2="26" y2="50" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
             <line x1="2" y1="26" x2="9" y2="26" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
             <line x1="43" y1="26" x2="50" y2="26" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-            <circle cx="26" cy="26" r="5" fill="#C8391A"/>
+            <circle cx="26" cy="26" r="5" fill="#C0392B"/>
             <circle cx="26" cy="26" r="2.5" fill="#E8E4DC"/>
-            <polygon points="26,9 24.2,21 26,19.5 27.8,21" fill="#C8391A" opacity="0.95"/>
+            <polygon points="26,9 24.2,21 26,19.5 27.8,21" fill="#C0392B" opacity="0.95"/>
           </svg>
         </div>
 
         {/* RED RULE */}
-        <div style={{ height: '1px', background: '#C8391A', marginBottom: '16px', opacity: 0.8 }} />
+        <div style={{ height: '1px', background: '#C0392B', marginBottom: '16px', opacity: 0.8 }} />
 
         {/* ORG LABEL */}
         <div
@@ -195,7 +195,7 @@ export default function AccessGate() {
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 500,
             fontSize: '11px',
-            color: '#C47A1A',
+            color: '#C8A84B',
             letterSpacing: '0.25em',
             textTransform: 'uppercase',
             marginBottom: '6px',
@@ -263,7 +263,7 @@ export default function AccessGate() {
                 style={{
                   display: 'block',
                   width: '100%',
-                  background: '#C8391A',
+                  background: '#C0392B',
                   color: '#E8E4DC',
                   border: 'none',
                   borderRadius: '2px',
@@ -277,10 +277,10 @@ export default function AccessGate() {
                   transition: 'background 0.15s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#A82D14';
+                  e.currentTarget.style.background = '#9B2D20';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#C8391A';
+                  e.currentTarget.style.background = '#C0392B';
                 }}
               >
                 {persona.callsign} — {persona.rank}
@@ -294,7 +294,7 @@ export default function AccessGate() {
             style={{
               display: 'block',
               width: '100%',
-              background: launching || healthLoading ? '#7A2010' : '#C8391A',
+              background: launching || healthLoading ? '#7B2218' : '#C0392B',
               color: '#E8E4DC',
               border: 'none',
               borderRadius: '2px',
@@ -319,7 +319,7 @@ export default function AccessGate() {
                 !launching &&
                 !healthLoading
               ) {
-                e.currentTarget.style.background = '#A82D14';
+                e.currentTarget.style.background = '#9B2D20';
               }
             }}
             onMouseLeave={(e) => {
@@ -328,7 +328,7 @@ export default function AccessGate() {
                 !launching &&
                 !healthLoading
               ) {
-                e.currentTarget.style.background = '#C8391A';
+                e.currentTarget.style.background = '#C0392B';
               }
             }}
           >
@@ -342,7 +342,7 @@ export default function AccessGate() {
             style={{
               fontFamily: "'Barlow', sans-serif",
               fontSize: '13px',
-              color: '#C47A1A',
+              color: '#C8A84B',
               marginBottom: '16px',
               lineHeight: 1.5,
             }}
@@ -364,7 +364,7 @@ export default function AccessGate() {
               transition: 'color 0.2s',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#C47A1A';
+              e.currentTarget.style.color = '#C8A84B';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = '#8A8478';
@@ -396,7 +396,7 @@ export default function AccessGate() {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: '11px',
-            color: '#C47A1A',
+            color: '#C8A84B',
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
             display: 'flex',
