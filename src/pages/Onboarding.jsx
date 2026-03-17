@@ -317,18 +317,26 @@ function Step4Consent({ onComplete }) {
           0% { box-shadow: 0 0 0 0 rgba(var(--acc-rgb), 0.6); }
           100% { box-shadow: 0 0 0 6px rgba(var(--acc-rgb), 0); }
         }
+        @keyframes dash-draw {
+          from { stroke-dashoffset: 14; }
+          to { stroke-dashoffset: 0; }
+        }
         .consent-button-pulse {
           animation: pulse-border 600ms ease-out 1;
         }
       `}</style>
+
+      <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
+        Consent & Preferences
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Consent 1 */}
         <label
           style={{
             display: 'flex',
-            gap: 8,
-            alignItems: 'flex-start',
+            gap: 10,
+            alignItems: 'center',
             cursor: 'pointer',
           }}
         >
@@ -344,7 +352,6 @@ function Step4Consent({ onComplete }) {
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'background 150ms ease, border-color 150ms ease',
-              marginTop: 3,
             }}
           >
             {consent1 && (
@@ -358,7 +365,7 @@ function Step4Consent({ onComplete }) {
                   style={{
                     strokeDasharray: 14,
                     strokeDashoffset: 0,
-                    animation: 'dash-draw 150ms ease-out forwards',
+                    animation: 'dash-draw 200ms ease-out forwards',
                   }}
                 />
               </svg>
@@ -370,7 +377,7 @@ function Step4Consent({ onComplete }) {
             onChange={(e) => setConsent1(e.target.checked)}
             style={{ display: 'none' }}
           />
-          <span style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.6, fontFamily: 'inherit' }}>
+          <span style={{ color: 'var(--t1)', fontSize: 11, fontFamily: 'inherit' }}>
             I have read and agree to the NexusOS data disclosure
           </span>
         </label>
@@ -379,8 +386,8 @@ function Step4Consent({ onComplete }) {
         <label
           style={{
             display: 'flex',
-            gap: 8,
-            alignItems: 'flex-start',
+            gap: 10,
+            alignItems: 'center',
             cursor: 'pointer',
           }}
         >
@@ -396,7 +403,6 @@ function Step4Consent({ onComplete }) {
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'background 150ms ease, border-color 150ms ease',
-              marginTop: 3,
             }}
           >
             {consent2 && (
@@ -410,7 +416,7 @@ function Step4Consent({ onComplete }) {
                   style={{
                     strokeDasharray: 14,
                     strokeDashoffset: 0,
-                    animation: 'dash-draw 150ms ease-out forwards',
+                    animation: 'dash-draw 200ms ease-out forwards',
                   }}
                 />
               </svg>
@@ -422,7 +428,7 @@ function Step4Consent({ onComplete }) {
             onChange={(e) => setConsent2(e.target.checked)}
             style={{ display: 'none' }}
           />
-          <span style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.6, fontFamily: 'inherit' }}>
+          <span style={{ color: 'var(--t1)', fontSize: 11, fontFamily: 'inherit' }}>
             I understand that my Redscar roles determine my access level within NexusOS
           </span>
         </label>
@@ -436,48 +442,40 @@ function Step4Consent({ onComplete }) {
             marginTop: 6,
           }}
         >
-          <div
+          <button
+            onClick={() => setAiEnabled(!aiEnabled)}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
+              width: 32,
+              height: 18,
+              borderRadius: 9,
+              background: aiEnabled ? 'var(--acc)' : 'var(--bg3)',
+              border: `0.5px solid ${aiEnabled ? 'var(--acc)' : 'var(--b2)'}`,
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'all 200ms ease',
               flexShrink: 0,
               marginTop: 3,
             }}
           >
-            <button
-              onClick={() => setAiEnabled(!aiEnabled)}
+            <div
               style={{
-                width: 28,
-                height: 15,
-                borderRadius: 8,
-                background: aiEnabled ? 'var(--live-bg)' : 'var(--bg4)',
-                border: `0.5px solid ${aiEnabled ? 'var(--live-b)' : 'var(--b2)'}`,
-                cursor: 'pointer',
-                position: 'relative',
-                transition: 'all 0.15s',
+                position: 'absolute',
+                top: 1,
+                left: aiEnabled ? 16 : 2,
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                background: 'var(--bg0)',
+                transition: 'left 200ms ease',
               }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 1.5,
-                  left: aiEnabled ? 14.5 : 1.5,
-                  width: 12,
-                  height: 12,
-                  borderRadius: '50%',
-                  background: aiEnabled ? 'var(--live)' : 'var(--t2)',
-                  transition: 'all 0.15s',
-                }}
-              />
-            </button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            />
+          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 2 }}>
             <span style={{ color: 'var(--t1)', fontSize: 11, fontFamily: 'inherit' }}>
               Enable AI-assisted features
             </span>
-            <span style={{ color: 'var(--t3)', fontSize: 10, fontFamily: 'inherit' }}>
-              Enables intelligent suggestions across Scout Intel and Industry Hub.
+            <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'inherit' }}>
+              Helps surface insights and recommendations across the platform.
             </span>
           </div>
         </div>
@@ -498,26 +496,10 @@ function Step4Consent({ onComplete }) {
           opacity: canSubmit && !submitting ? 1 : 0.4,
           pointerEvents: canSubmit && !submitting ? 'auto' : 'none',
           transition: 'opacity 100ms ease',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 6,
         }}
       >
-        {submitting ? 'ENTERING NEXUSOS...' : (
-          <>
-            ENTER NEXUSOS
-            <span style={{ display: 'inline-block', transition: 'transform 150ms ease' }}>→</span>
-          </>
-        )}
+        {submitting ? 'ENTERING NEXUSOS...' : 'ENTER NEXUSOS →'}
       </button>
-
-      <style>{`
-        @keyframes dash-draw {
-          from { stroke-dashoffset: 14; }
-          to { stroke-dashoffset: 0; }
-        }
-      `}</style>
     </div>
   );
 }
