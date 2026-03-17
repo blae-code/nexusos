@@ -95,21 +95,37 @@ export default function MaterialsTab({ materials, onRefresh }) {
       </div>
 
       {/* Table */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div style={{ flex: 1, overflow: 'auto', minWidth: 0 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: '16%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '4%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '6%' }} />
+          </colgroup>
           <thead>
-            <tr style={{ background: 'var(--bg2)', position: 'sticky', top: 0 }}>
-              {['Name', 'Type', 'Qty SCU', 'Quality', 'T2', 'Location', 'Container', 'Logged By', 'Logged At', 'Action'].map(h => (
+            <tr style={{ background: 'var(--bg3)', position: 'sticky', top: 0, zIndex: 1 }}>
+              {['Name', 'Type', 'Qty SCU', 'Quality', 'T2', 'Location', 'Container', 'Logged By', 'Logged At', ''].map((h, i) => (
                 <th
-                  key={h}
+                  key={i}
                   style={{
-                    padding: '8px 12px',
+                    padding: '12px 12px',
                     textAlign: 'left',
                     color: 'var(--t2)',
-                    fontSize: 9,
-                    letterSpacing: '0.1em',
+                    fontSize: 11,
+                    letterSpacing: '0.08em',
                     fontWeight: 500,
+                    textTransform: 'uppercase',
                     borderBottom: '0.5px solid var(--b1)',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {h}
@@ -118,13 +134,24 @@ export default function MaterialsTab({ materials, onRefresh }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(m => {
+            {filtered.map((m, idx) => {
               const typeInfo = TYPE_BADGES[m.material_type] || TYPE_BADGES.OTHER;
               const quality = m.quality_pct || 0;
+              const isEven = idx % 2 === 1;
               return (
-                <tr key={m.id} style={{ borderBottom: '0.5px solid var(--b0)' }}>
-                  <td style={{ padding: '8px 12px', color: 'var(--t0)', fontSize: 11 }}>{m.material_name}</td>
-                  <td style={{ padding: '8px 12px' }}>
+                <tr
+                  key={m.id}
+                  style={{
+                    height: 44,
+                    borderBottom: '0.5px solid var(--b0)',
+                    background: isEven ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = isEven ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
+                >
+                  <td style={{ padding: '0 12px', color: 'var(--t0)', fontSize: 11, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{m.material_name}</td>
+                  <td style={{ padding: '0 12px', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 0 }}>
                     <span style={{
                       color: typeInfo.color,
                       background: `${typeInfo.color}22`,
@@ -132,40 +159,41 @@ export default function MaterialsTab({ materials, onRefresh }) {
                       padding: '2px 6px',
                       borderRadius: 3,
                       fontSize: 9,
+                      display: 'inline-block',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%',
                     }}>
                       {typeInfo.label}
                     </span>
                   </td>
-                  <td style={{ padding: '8px 12px', color: 'var(--t1)', fontSize: 11, fontFamily: 'monospace' }}>
+                  <td style={{ padding: '0 12px', color: 'var(--t1)', fontSize: 11, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>
                     {m.quantity_scu?.toFixed(1)}
                   </td>
-                  <td style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 40, height: 3, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ width: `${quality}%`, height: '100%', background: quality >= 80 ? 'var(--live)' : 'var(--warn)' }} />
+                  <td style={{ padding: '0 12px', maxWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                      <div style={{ width: 36, height: 3, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{ width: `${quality}%`, height: '100%', background: quality >= 80 ? 'var(--live)' : 'var(--warn)' }} />
+                      </div>
+                      <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--t1)', whiteSpace: 'nowrap' }}>
+                        {quality.toFixed(0)}%
+                      </span>
                     </div>
-                    <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--t1)' }}>
-                      {quality.toFixed(0)}%
-                    </span>
                   </td>
-                  <td style={{ padding: '8px 12px', fontSize: 12 }}>
+                  <td style={{ padding: '0 12px', fontSize: 12, overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 0 }}>
                     {m.t2_eligible ? '✓' : '—'}
                   </td>
-                  <td style={{ padding: '8px 12px', color: 'var(--t1)', fontSize: 10 }}>{m.location || '—'}</td>
-                  <td style={{ padding: '8px 12px', color: 'var(--t1)', fontSize: 10 }}>{m.container || '—'}</td>
-                  <td style={{ padding: '8px 12px', color: 'var(--t1)', fontSize: 10 }}>{m.logged_by || '—'}</td>
-                  <td style={{ padding: '8px 12px', color: 'var(--t2)', fontSize: 9, fontFamily: 'monospace' }}>
+                  <td style={{ padding: '0 12px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{m.location || '—'}</td>
+                  <td style={{ padding: '0 12px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{m.container || '—'}</td>
+                  <td style={{ padding: '0 12px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{m.logged_by || '—'}</td>
+                  <td style={{ padding: '0 12px', color: 'var(--t2)', fontSize: 9, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>
                     {relativeTime(m.logged_at)}
                   </td>
-                  <td style={{ padding: '8px 12px' }}>
+                  <td style={{ padding: '0 12px' }}>
                     <button
                       onClick={() => handleArchive(m.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: 'var(--t2)',
-                        display: 'flex',
-                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', display: 'flex' }}
                       title="Archive"
                     >
                       <Archive size={12} />
