@@ -245,8 +245,29 @@ export default function OpBoard() {
           <RefreshCw size={12} />
         </button>
         {canLead && (
-          <button onClick={() => navigate('/app/ops/new')} className="nexus-btn primary" style={{ padding: '5px 12px', fontSize: 10 }}>
-            <Plus size={11} /> NEW OP
+          <button
+            onClick={() => navigate('/app/ops/new')}
+            className="nexus-btn primary"
+            style={{
+              padding: '5px 12px',
+              fontSize: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+            onMouseEnter={(e) => {
+              const arrow = e.currentTarget.querySelector('.op-arrow');
+              if (arrow) arrow.style.transform = 'translateX(3px)';
+            }}
+            onMouseLeave={(e) => {
+              const arrow = e.currentTarget.querySelector('.op-arrow');
+              if (arrow) arrow.style.transform = 'translateX(0)';
+            }}
+          >
+            <Plus size={11} /> NEW OP{' '}
+            <span className="op-arrow" style={{ display: 'inline-block', transition: 'transform 150ms ease' }}>
+              →
+            </span>
           </button>
         )}
       </div>
