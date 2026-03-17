@@ -344,6 +344,20 @@ export default function SystemMap({
       </div>
 
       {/* ── SVG Map ─────────────────────────────────────────────────────────── */}
+      {visibleDeposits.length === 0 ? (
+        <div style={{
+          background: 'var(--bg0)',
+          border: '0.5px solid var(--b1)',
+          borderRadius: 8,
+          overflow: 'hidden',
+        }}>
+          <EmptyState
+            icon={MapPin}
+            title="No deposits logged"
+            detail="Log a scout deposit to begin tracking resource locations."
+          />
+        </div>
+      ) : (
       <div style={{
         position: 'relative',
         background: 'var(--bg0)',
