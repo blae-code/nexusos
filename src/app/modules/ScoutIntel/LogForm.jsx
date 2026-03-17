@@ -265,6 +265,7 @@ export default function LogForm({ callsign, discordId, onSubmit, onCancel }) {
           options={['Low', 'Medium', 'High', 'Extreme']}
           value={form.risk_level}
           onChange={v => set('risk_level', v)}
+          riskColors
         />
       </div>
 
