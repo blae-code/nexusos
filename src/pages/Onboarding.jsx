@@ -500,15 +500,22 @@ function Step4Consent({ onComplete }) {
         className={`nexus-btn primary ${canSubmit && !submitting ? 'consent-button-pulse' : ''}`}
         style={{
           width: '100%',
-          padding: '10px 24px',
-          fontSize: 11,
-          letterSpacing: '0.12em',
-          fontWeight: 500,
+          padding: '14px 24px',
+          fontSize: 13,
+          letterSpacing: '0.16em',
+          fontWeight: 600,
           fontFamily: 'inherit',
+          background: canSubmit && !submitting ? 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)' : 'linear-gradient(135deg, #4A4238 0%, #3A3530 100%)',
+          border: `1px solid ${canSubmit && !submitting ? 'rgba(192, 57, 43, 0.6)' : 'rgba(200, 170, 100, 0.15)'}`,
+          color: '#F0EDE5',
+          borderRadius: '3px',
           cursor: canSubmit && !submitting ? 'pointer' : 'not-allowed',
-          opacity: canSubmit && !submitting ? 1 : 0.4,
+          boxShadow: canSubmit && !submitting 
+            ? '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+            : 'none',
+          opacity: canSubmit && !submitting ? 1 : 0.5,
           pointerEvents: canSubmit && !submitting ? 'auto' : 'none',
-          transition: 'opacity 100ms ease',
+          transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}
       >
         {submitting ? 'ENTERING NEXUSOS...' : 'ENTER NEXUSOS →'}
