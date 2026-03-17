@@ -124,6 +124,24 @@ export default function AccessGate() {
         fontFamily: "'Barlow Condensed', 'Barlow', sans-serif",
       }}
     >
+      {/* BACKGROUND VIDEO */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+          opacity: 0.18
+        }}
+        src="/video/nexus-boot-loop.mp4"
+      />
+
       {/* STARFIELD */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
         {stars.map((star) => (
@@ -184,7 +202,7 @@ export default function AccessGate() {
         <div style={{ marginBottom: '16px' }}>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="24" cy="24" r="22" stroke="#E8E4DC" strokeWidth="0.75" opacity="0.45"/>
-            <circle cx="24" cy="24" r="16" stroke="#C0392B" strokeWidth="0.75" opacity="0.55"/>
+            <circle cx="24" cy="24" r="16" stroke="#C0392B" strokeWidth="0.75" opacity="0.6"/>
             <circle cx="24" cy="24" r="8" fill="#C0392B" opacity="0.85"/>
             <circle cx="24" cy="24" r="3.5" fill="#E8E4DC"/>
             <line x1="24" y1="2" x2="24" y2="8.5" stroke="#E8E4DC" strokeWidth="1.5" strokeLinecap="round"/>
