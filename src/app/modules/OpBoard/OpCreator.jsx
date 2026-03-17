@@ -365,7 +365,6 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
             </button>
           </div>
         </div>
-        </div>
       </div>
     </div>
   );
