@@ -84,6 +84,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
   const handleConfirmRsvp = async () => {
     if (!selectedRole || !discordId) return;
     setConfirming(true);
+    setRsvpError('');
     try {
       await base44.entities.OpRsvp.create({
         op_id: op.id,
@@ -93,12 +94,25 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
         ship: selectedShip || null,
         status: 'CONFIRMED',
       });
+      
+      // Trigger highlight on the role slot row
+      setHighlightRole(selectedRole);
+      setTimeout(() => setHighlightRole(null), 900);
+      
+      // Trigger pop on slot count
+      setPopSlot(selectedRole);
+      setTimeout(() => setPopSlot(null), 200);
+      
+      // Trigger pop on crew count pill
+      setPopCrew(true);
+      setTimeout(() => setPopCrew(false), 200);
+      
       setShowRoleSelector(false);
       setSelectedRole(null);
       setSelectedShip('');
       window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
     } catch {
-      // Handle error
+      setRsvpError('Could not confirm your RSVP. Please try again.');
     } finally {
       setConfirming(false);
     }
