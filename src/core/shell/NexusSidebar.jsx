@@ -86,16 +86,26 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
     <nav
       style={{
         width: 50,
-        background: 'var(--bg0)',
-        borderRight: '0.5px solid var(--b0)',
+        background: '#08080A',
+        borderRight: '0.5px solid rgba(200,170,100,0.12)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '8px 0',
         gap: 2,
         flexShrink: 0,
+        position: 'relative',
       }}
     >
+      {/* Left red accent stripe */}
+      <div style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: '2px',
+        background: '#C0392B',
+      }} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
         {NAV_GROUPS.map((group, groupIdx) => (
           <React.Fragment key={`group-${groupIdx}`}>
@@ -120,38 +130,39 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
 
               return (
                 <Link
-                  key={item.path}
-                  to={item.path}
-                  className="nexus-sidebar-link"
-                  data-tip={item.label}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    border: `0.5px solid ${isActive ? 'var(--b2)' : 'transparent'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'background 120ms ease, border-color 120ms ease, color 120ms ease',
-                    position: 'relative',
-                    background: isActive ? 'var(--bg3)' : 'transparent',
-                    color: isActive ? 'var(--acc2)' : 'var(--t2)',
-                  }}
-                  onMouseEnter={(event) => {
-                    if (!isActive) {
-                      event.currentTarget.style.background = 'var(--bg2)';
-                      event.currentTarget.style.borderColor = 'var(--b1)';
-                    }
-                  }}
-                  onMouseLeave={(event) => {
-                    if (!isActive) {
-                      event.currentTarget.style.background = 'transparent';
-                      event.currentTarget.style.borderColor = 'transparent';
-                      event.currentTarget.style.color = 'var(--t2)';
-                    }
-                  }}
-                >
+                   key={item.path}
+                   to={item.path}
+                   className="nexus-sidebar-link"
+                   data-tip={item.label}
+                   style={{
+                     width: 36,
+                     height: 36,
+                     borderRadius: 8,
+                     cursor: 'pointer',
+                     border: `0.5px solid ${isActive ? '#C0392B' : 'transparent'}`,
+                     display: 'flex',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     transition: 'background 120ms ease, border-color 120ms ease, color 120ms ease',
+                     position: 'relative',
+                     background: isActive ? 'rgba(192,57,43,0.12)' : 'transparent',
+                     color: isActive ? '#E8E4DC' : '#9A9488',
+                   }}
+                   onMouseEnter={(event) => {
+                     if (!isActive) {
+                       event.currentTarget.style.background = 'rgba(200,170,100,0.06)';
+                       event.currentTarget.style.borderColor = 'rgba(200,170,100,0.12)';
+                       event.currentTarget.style.color = '#E8E4DC';
+                     }
+                   }}
+                   onMouseLeave={(event) => {
+                     if (!isActive) {
+                       event.currentTarget.style.background = 'transparent';
+                       event.currentTarget.style.borderColor = 'transparent';
+                       event.currentTarget.style.color = '#9A9488';
+                     }
+                   }}
+                 >
                   <Icon size={16} />
                   {badgeActive ? (
                     <div
@@ -159,11 +170,11 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
                         position: 'absolute',
                         top: 5,
                         right: 5,
-                        width: 5,
-                        height: 5,
+                        width: 6,
+                        height: 6,
                         borderRadius: '50%',
-                        border: '1.5px solid var(--bg0)',
-                        background: badgeColor,
+                        border: '1.5px solid #08080A',
+                        background: '#C0392B',
                       }}
                     />
                   ) : null}
