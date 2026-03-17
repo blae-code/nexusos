@@ -104,87 +104,95 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
         flexDirection: 'column',
         alignItems: 'center',
         padding: '8px 0',
-        gap: 2,
+        gap: 0,
         flexShrink: 0,
       }}
     >
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
-      {navItems.map((item, index) => {
-        if (item === null) {
-          return (
-            <div
-              key={`divider-${index}`}
-              style={{
-                width: 22,
-                height: '0.5px',
-                background: 'var(--b0)',
-                margin: '3px 0',
-              }}
-            />
-          );
-        }
-
-        const Icon = item.icon;
-        const isActive = isActiveRoute(item.path);
-        const badgeActive = item.badge ? badges[item.badge] : false;
-        const badgeColor = item.badge === 'live'
-          ? 'var(--live)'
-          : item.badge === 'rescue'
-            ? 'var(--danger)'
-            : item.badge === 'blueprints' || item.badge === 'craft'
-              ? 'var(--warn)'
-              : 'var(--t2)';
-
-        return (
-          <Link
-            key={item.path}
-            to={item.path}
-            className="nexus-tooltip"
-            data-tip={item.label}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 8,
-              cursor: 'pointer',
-              borderLeft: isActive ? '3px solid var(--acc)' : '3px solid transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 150ms ease, border-left-color 150ms ease, color 150ms ease',
-              position: 'relative',
-              background: isActive ? 'rgba(var(--acc-rgb), 0.12)' : 'transparent',
-              color: isActive ? 'var(--acc)' : 'var(--t2)',
-            }}
-            onMouseEnter={(event) => {
-              if (!isActive) {
-                event.currentTarget.style.background = 'rgba(var(--acc-rgb), 0.07)';
-              }
-            }}
-            onMouseLeave={(event) => {
-              if (!isActive) {
-                event.currentTarget.style.background = 'transparent';
-                event.currentTarget.style.color = 'var(--t2)';
-              }
-            }}
-          >
-            <Icon size={16} />
-            {badgeActive ? (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', padding: '0 0' }}>
+        {NAV_STRUCTURE.map((group, groupIdx) => (
+          <div key={group.group} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', padding: groupIdx > 0 ? '12px 0 0 0' : '0' }}>
+            {groupIdx > 0 && (
               <div
                 style={{
-                  position: 'absolute',
-                  top: 5,
-                  right: 5,
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  border: '1.5px solid var(--bg0)',
-                  background: badgeColor,
+                  width: '100%',
+                  height: '0.5px',
+                  background: 'var(--b1)',
+                  margin: '6px 0',
                 }}
               />
-            ) : null}
-          </Link>
-        );
-      })}
+            )}
+            <div
+              style={{
+                fontSize: 9,
+                color: 'var(--t3)',
+                fontFamily: 'var(--font)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                padding: '4px 12px',
+                width: '100%',
+                textAlign: 'left',
+              }}
+            >
+              {group.group}
+            </div>
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive = isActiveRoute(item.path);
+              const badgeActive = item.badge ? badges[item.badge] : false;
+              const badgeColor = item.badge === 'live' ? 'var(--live)' : item.badge === 'craft' ? 'var(--warn)' : 'var(--t2)';
+
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="nexus-tooltip"
+                  data-tip={item.label}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    borderLeft: isActive ? '3px solid var(--acc)' : '3px solid transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background 150ms ease, border-left-color 150ms ease, color 150ms ease',
+                    position: 'relative',
+                    background: isActive ? 'rgba(var(--acc-rgb), 0.12)' : 'transparent',
+                    color: isActive ? 'var(--acc)' : 'var(--t2)',
+                  }}
+                  onMouseEnter={(event) => {
+                    if (!isActive) {
+                      event.currentTarget.style.background = 'rgba(var(--acc-rgb), 0.07)';
+                    }
+                  }}
+                  onMouseLeave={(event) => {
+                    if (!isActive) {
+                      event.currentTarget.style.background = 'transparent';
+                      event.currentTarget.style.color = 'var(--t2)';
+                    }
+                  }}
+                >
+                  <Icon size={16} />
+                  {badgeActive ? (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 5,
+                        right: 5,
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        border: '0.5px solid var(--bg0)',
+                        background: badgeColor,
+                      }}
+                    />
+                  ) : null}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </div>
 
       {IS_DEV_MODE ? (
