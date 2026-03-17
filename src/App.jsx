@@ -27,6 +27,7 @@ import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
+import InventoryManager from '@/pages/InventoryManager';
 import AdminSettings from '@/pages/AdminSettings';
 import BootScreen from '@/pages/BootScreen';
 
