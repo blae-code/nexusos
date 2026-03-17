@@ -177,13 +177,16 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, minWidth: 0 }}>
-            <span style={{ color: 'var(--t3)' }}>/</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, fontFamily: 'monospace', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             <span style={{ color: 'var(--t2)', whiteSpace: 'nowrap' }}>{breadcrumb.module}</span>
-            <span style={{ color: 'var(--t3)' }}>/</span>
-            <span style={{ color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {breadcrumb.tab}
-            </span>
+            {breadcrumb.tab && (
+              <>
+                <span style={{ color: 'var(--t2)' }}>/</span>
+                <span style={{ color: 'var(--t0)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {breadcrumb.tab}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
