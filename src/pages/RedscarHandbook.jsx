@@ -68,7 +68,7 @@ export default function RedscarHandbook() {
   }, [highlightedSection]);
 
   return (
-    <div style={{ padding: '24px', maxWidth: 900, margin: '0 auto', color: 'var(--t0)' }}>
+    <div className="nexus-page-enter" style={{ padding: '24px', maxWidth: 900, margin: '0 auto', color: 'var(--t0)' }}>
       {/* Header */}
       <div style={{ marginBottom: 32, textAlign: 'center' }}>
         <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '0.15em', marginBottom: 8 }}>

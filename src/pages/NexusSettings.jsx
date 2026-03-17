@@ -98,7 +98,7 @@ export default function NexusSettings() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 overflow-auto h-full" style={{ maxWidth: 680 }}>
+    <div className="nexus-page-enter flex flex-col gap-4 p-4 overflow-auto h-full" style={{ maxWidth: 680 }}>
       <Section title="IDENTITY">
         <div
           className="flex items-center gap-3"
