@@ -4,6 +4,27 @@
 Operation lifecycle management: create, publish, run, and archive org operations.
 Route prefix: `/app/ops`
 
+## Module Focus
+- `Op Creator` — draft, schedule, publish, and define role slots for new operations
+- `Live Op` — active session command view with phase tracker, readiness, crew, threats, loot, and split calculator
+- `Session Log` — meaningful op events, decisions, and command notes
+- `Split Calc` — payout planning and per-member split amounts for completed runs
+- `After Action` — op outcome records, participation history per member, payout history, and engagement logs. This is the org's institutional performance memory, inspired by zKillboard's corporation history function.
+
+## After Action Data Tracked Per Op
+- Outcome (`SUCCESS`, `PARTIAL`, `FAILED`, `ABANDONED`)
+- Participating members and their roles
+- Total haul value in aUEC
+- Split amounts per member
+- Phase completion record
+- Session duration
+- Notes from session log
+
+## After Action Views
+- Op history list with outcome indicators
+- Member participation record (how many ops, roles played, total earnings)
+- Org performance over time (ops per week, average haul value, completion rate)
+
 ## Routes
 | Path | Component | Description |
 |------|-----------|-------------|
@@ -95,6 +116,7 @@ Route prefix: `/app/ops`
 3. **Duplicate op list views**: `OpBoard.jsx` (status-grouped cards) and `index.jsx` (tab-based: LIVE/UPCOMING/ARCHIVE) both implement op list views. Only one should be the canonical `/app/ops` route. Current routing uses OpBoard.jsx — index.jsx is orphaned.
 4. **Settings toggles not all persisted**: `OpCreator.jsx` shows toggles for reminder24h, reminder1h, postPhaseUpdates, autoWrapUp, atHereOnGo, createDiscordEvent but not all are included in the Op.create() payload.
 5. **Legacy components** (listed above with Legacy status): All `*Legacy.jsx` files and legacy `src/components/ops` survivors are dead code — nothing imports them from the new structure. Candidates for deletion once confirmed.
+6. **After Action data model** requires op outcome fields to be added to the `Op` entity or a separate `OpRecord` entity.
 
 ## What NOT to Touch
 - `heraldBot` invocation shape — actions are hardcoded strings matched by the bot: `opActivate`, `opEnd`, `publishOp`, `phaseAdvance`, `opGo`, `threatAlert`. Do not rename.

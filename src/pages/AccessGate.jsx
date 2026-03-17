@@ -1,473 +1,356 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, Navigate, useLocation } from 'react-router-dom';
+import NexusCompass from '@/core/design/NexusCompass';
+import { authApi } from '@/core/data/auth-api';
+import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
 import { useVerseStatus } from '@/core/data/useVerseStatus';
-import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
 
 const STAR_SIZES = [
   ...Array(48).fill(1),
   ...Array(24).fill(1.5),
   ...Array(8).fill(2),
 ];
-const STAR_DURATIONS = [4, 6, 9];
+const STAR_DURATIONS = [3, 5, 7];
 
 function buildStars() {
   if (typeof window === 'undefined') return [];
-  const w = Math.max(window.innerWidth, 1);
-  const h = Math.max(window.innerHeight, 1);
-  const cx = w / 2;
-  const cy = h / 2;
-  const R = 200;
+  const width = Math.max(window.innerWidth, 1);
+  const height = Math.max(window.innerHeight, 1);
+  const minX = (width / 2) - 100;
+  const maxX = (width / 2) + 100;
+  const minY = (height / 2) - 200;
+  const maxY = (height / 2) + 200;
 
   return STAR_SIZES.map((size, id) => {
-    let lx, ly;
+    let x;
+    let y;
+
     do {
-      lx = Math.random() * w;
-      ly = Math.random() * h;
-    } while (Math.hypot(lx - cx, ly - cy) < R);
+      x = Math.random() * width;
+      y = Math.random() * height;
+    } while (x >= minX && x <= maxX && y >= minY && y <= maxY);
 
     return {
       id,
-      top: (ly / h) * 100,
-      left: (lx / w) * 100,
+      top: (y / height) * 100,
+      left: (x / width) * 100,
       size,
       duration: STAR_DURATIONS[Math.floor(Math.random() * STAR_DURATIONS.length)],
-      delay: -(Math.random() * 9),
-      opacity: 0.2 + Math.random() * 0.2,
+      delay: -(Math.random() * 7),
+      opacity: 0.15 + (Math.random() * 0.65),
     };
   });
 }
 
-// ── Status bar ────────────────────────────────────────────────────────────────
+function getErrorMessage(errorCode, supportChannelLabel) {
+  switch (errorCode) {
+    case 'not_in_guild':
+      return `You must join the Redscar Discord first. If you already joined, give Discord a moment to sync and try again. Support: ${supportChannelLabel}.`;
+    case 'role_not_allowed':
+      return `Your Discord account is in the server, but it does not have a Redscar member role yet. Contact leadership in ${supportChannelLabel}.`;
+    case 'expired_state':
+    case 'state_mismatch':
+      return 'Your Discord sign-in session expired before it completed. Start the Discord flow again.';
+    case 'token_exchange_failed':
+    case 'discord_request_failed':
+    case 'callback_failed':
+      return 'Discord sign-in could not be completed. Retry once, then contact leadership if the issue persists.';
+    default:
+      return '';
+  }
+}
 
 function StatusBar({ status }) {
   const map = {
-    offline:  { dot: 'var(--danger)', label: 'SERVERS OFFLINE' },
-    degraded: { dot: 'var(--warn)',   label: 'SERVERS DEGRADED' },
-    unknown:  { dot: 'var(--warn)',   label: 'SERVERS DEGRADED' },
+    offline: { dot: 'var(--danger)', label: 'OFFLINE' },
+    degraded: { dot: 'var(--warn)', label: 'DEGRADED' },
+    unknown: { dot: 'var(--warn)', label: 'DEGRADED' },
   };
-  const cfg = map[status] || { dot: 'var(--live)', label: 'SERVERS LIVE' };
+  const cfg = map[status] || { dot: 'var(--live)', label: 'LIVE' };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingTop: 14, borderTop: '0.5px solid var(--b1)' }}>
-      <span style={{ fontSize: 8, color: 'var(--t3)', letterSpacing: '0.12em' }}>
-        RSN SECURE CHANNEL
-      </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+    <div
+      style={{
+        position: 'sticky',
+        bottom: 0,
+        width: '100%',
+        height: 32,
+        background: 'var(--bg1)',
+        borderTop: '0.5px solid var(--b0)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 16px',
+        zIndex: 4,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ width: 5, height: 5, borderRadius: '50%', background: cfg.dot }} />
-        <span style={{ fontSize: 8, color: cfg.dot, letterSpacing: '0.10em' }}>{cfg.label}</span>
+        <span style={{ marginLeft: 6, fontSize: 9, color: 'var(--t2)', letterSpacing: '0.1em' }}>VERSE 4.7.0</span>
+        <span style={{ margin: '0 6px', fontSize: 9, color: 'var(--t3)' }}>·</span>
+        <span style={{ fontSize: 9, color: cfg.dot, letterSpacing: '0.1em' }}>{cfg.label}</span>
+      </div>
+      <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.1em' }}>
+        NEXUSOS · REDSCAR NOMADS · PRIVATE
       </div>
     </div>
   );
 }
 
-// ── Eye icon (SVG, no external dep) ──────────────────────────────────────────
-
-function EyeIcon({ color }) {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-// ── Pulsing dots (loading state) ──────────────────────────────────────────────
-
 function LoadingDots() {
   return (
-    <span className="nexus-loading-dots" style={{ color: 'var(--t1)' }}>
-      <span /><span /><span />
+    <span className="nexus-loading-dots" style={{ color: 'var(--t0)' }}>
+      <span />
+      <span />
+      <span />
     </span>
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
-
 export default function AccessGate() {
+  const location = useLocation();
   const { isAuthenticated, loading, user, refreshSession } = useSession();
   const { status: verseStatus } = useVerseStatus();
+  const [stars, setStars] = useState([]);
+  const [health, setHealth] = useState(null);
+  const [healthLoading, setHealthLoading] = useState(!IS_DEV_MODE);
+  const [launching, setLaunching] = useState(false);
+  const [healthError, setHealthError] = useState('');
 
-  const [authKey, setAuthKey]           = useState('');
-  const [revealing, setRevealing]       = useState(false);
-  const [authenticating, setAuth]       = useState(false);
-  const [authError, setAuthError]       = useState('');
-  const [shakeKey, setShakeKey]         = useState(0);
-  const [stars, setStars]               = useState([]);
-  const [mounted, setMounted]           = useState(false);
-  const [arrowHover, setArrowHover]     = useState(false);
-  const [eyeHover, setEyeHover]         = useState(false);
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const authError = useMemo(
+    () => getErrorMessage(searchParams.get('error'), health?.support_channel_label || '#nexusos-ops'),
+    [health?.support_channel_label, searchParams],
+  );
 
   useEffect(() => {
     setStars(buildStars());
-    requestAnimationFrame(() => setMounted(true));
   }, []);
 
   useEffect(() => {
-    if (authError) setShakeKey(k => k + 1);
-  }, [authError]);
-
-  const handleKeyChange = (val) => {
-    setAuthKey(val);
-    if (authError) setAuthError('');
-  };
-
-  const handleAuthenticate = async () => {
-    if (!authKey || authenticating) return;
-    setAuth(true);
-    setAuthError('');
-
-    try {
-      if (!authKey.match(/^RSN-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}$/i)) {
-        setAuthError('Invalid key. Verify your key and try again.');
-        setAuth(false);
-        return;
-      }
-
-      await new Promise(r => setTimeout(r, 400));
-      window.location.href = '/app/industry';
-    } catch (err) {
-      setAuthError(err.message || 'Authentication failed.');
-      setAuth(false);
+    if (IS_DEV_MODE) {
+      setHealth({
+        oauth_ready: true,
+        guild_label: 'REDSCAR NOMADS',
+        support_channel_label: '#nexusos-ops',
+        invite_url: 'https://discord.gg/redscar',
+        onboarding_steps: [
+          'Choose a simulation persona.',
+          'Review the shell and app surfaces.',
+          'Switch to live auth in production by disabling demo mode.',
+        ],
+      });
+      setHealthLoading(false);
+      return;
     }
-  };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleAuthenticate();
+    let active = true;
+    setHealthLoading(true);
+
+    authApi.getHealth()
+      .then((response) => {
+        if (!active) return;
+        setHealth(response);
+        setHealthError(response.ok ? '' : 'Discord sign-in readiness could not be verified.');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setHealth(null);
+        setHealthError(error?.message || 'Discord sign-in readiness could not be verified.');
+      })
+      .finally(() => {
+        if (active) {
+          setHealthLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleDiscordContinue = () => {
+    if (!health?.oauth_ready || launching) {
+      return;
+    }
+
+    setLaunching(true);
+    const redirectTo = searchParams.get('redirect_to') || '/app/industry';
+    window.location.assign(authApi.getDiscordStartUrl(redirectTo));
   };
 
   if (!loading && isAuthenticated) {
     return <Navigate to={user?.onboarding_complete === false ? '/onboarding' : '/app/industry'} replace />;
   }
 
-  const canSubmit = !!authKey && !authenticating;
-
   return (
     <>
-      {/* Keyframe injections */}
       <style>{`
-        @keyframes gate-star-pulse-4 {
-          0%,100% { opacity: var(--star-op, 0.25); }
-          50%      { opacity: calc(var(--star-op, 0.25) * 0.3); }
-        }
-        @keyframes gate-star-pulse-6 {
-          0%,100% { opacity: var(--star-op, 0.25); }
-          50%      { opacity: calc(var(--star-op, 0.25) * 0.25); }
-        }
-        @keyframes gate-star-pulse-9 {
-          0%,100% { opacity: var(--star-op, 0.25); }
-          50%      { opacity: calc(var(--star-op, 0.25) * 0.2); }
-        }
-        @keyframes gate-card-in {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes gate-stars-in {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes gate-status-pulse {
-          0%,100% { opacity: 1; }
-          50%      { opacity: 0.35; }
-        }
-        @keyframes gate-shake {
-          0%,100% { transform: translateX(0); }
-          15%     { transform: translateX(-6px); }
-          30%     { transform: translateX(6px); }
-          45%     { transform: translateX(-5px); }
-          60%     { transform: translateX(5px); }
-          75%     { transform: translateX(-3px); }
-          90%     { transform: translateX(3px); }
-        }
-        .gate-error-fade {
-          animation: gate-error-in 0.15s ease-out both;
-        }
-        @keyframes gate-error-in {
-          from { opacity: 0; transform: translateY(-2px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .gate-arrow {
-          display: inline-block;
-          transition: transform 150ms ease;
-        }
-        .gate-arrow-hover {
-          transform: translateX(3px);
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 0.15; }
         }
       `}</style>
 
-      {/* Root */}
-      <div style={{
-        background: 'var(--bg0)',
-        height: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-
-        {/* Scanline overlay */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          zIndex: 2,
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.03) 1px, rgba(0,0,0,0.03) 2px)',
-          opacity: 0.4,
-        }} />
-
-        {/* Star field */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          zIndex: 0,
-          animation: mounted ? 'gate-stars-in 600ms ease-out both' : 'none',
-        }}>
-          {stars.map(star => {
-            const animName = `gate-star-pulse-${star.duration}`;
-            return (
-              <div
-                key={star.id}
-                style={{
-                  position: 'absolute',
-                  top: `${star.top}%`,
-                  left: `${star.left}%`,
-                  width: `${star.size}px`,
-                  height: `${star.size}px`,
-                  borderRadius: '50%',
-                  background: 'white',
-                  '--star-op': star.opacity,
-                  opacity: star.opacity,
-                  animation: `${animName} ${star.duration}s ${star.delay}s ease-in-out infinite`,
-                }}
-              />
-            );
-          })}
+      <div
+        style={{
+          background: 'var(--bg0)',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+          {stars.map((star) => (
+            <div
+              key={star.id}
+              style={{
+                position: 'absolute',
+                top: `${star.top}%`,
+                left: `${star.left}%`,
+                width: `${star.size}px`,
+                height: `${star.size}px`,
+                borderRadius: '50%',
+                background: 'white',
+                opacity: star.opacity,
+                animation: `twinkle ${star.duration}s ease-in-out ${star.delay}s infinite`,
+              }}
+            />
+          ))}
         </div>
 
-        {/* Card */}
         <div
-          key={shakeKey}
           style={{
             position: 'relative',
-            zIndex: 3,
-            width: 400,
+            zIndex: 1,
+            width: 360,
             maxWidth: 'calc(100vw - 32px)',
             background: 'var(--bg1)',
-            border: `0.5px solid ${IS_DEV_MODE ? 'rgba(var(--warn-rgb), 0.3)' : 'rgba(var(--acc-rgb), 0.15)'}`,
+            border: '0.5px solid var(--b2)',
             borderRadius: 12,
-            padding: '36px 32px 28px',
+            padding: '36px 32px',
             display: 'flex',
             flexDirection: 'column',
-            gap: 0,
-            boxShadow: '0 0 60px 0 rgba(0,0,0,0.6), 0 0 120px 0 rgba(0,0,0,0.4)',
-            animation: mounted
-              ? `gate-card-in 400ms ease-out both, ${shakeKey > 0 ? 'gate-shake 350ms ease-out both' : 'none'}`
-              : 'none',
+            alignItems: 'center',
           }}
         >
-          {/* Top highlight line */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: '10%',
-            width: '80%',
-            height: '1px',
-            background: 'var(--b3)',
-            borderRadius: 1,
-          }} />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: '10%',
+              width: '80%',
+              height: 1,
+              background: 'var(--b3)',
+            }}
+          />
 
-          {/* ── Header ── */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <div>
-              <div style={{ fontSize: 10, color: 'var(--t3)', letterSpacing: '0.3em', marginBottom: 8 }}>
-                REDSCAR NOMADS
-              </div>
-              <div style={{ fontSize: 22, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.15em' }}>
-                NEXUS OS
-              </div>
-            </div>
-            {/* Online status dot / SIM indicator */}
-            {IS_DEV_MODE ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, marginTop: 20 }}>
-                <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-                <span style={{ fontSize: 7, color: 'rgba(var(--warn-rgb), 0.7)', letterSpacing: '0.18em' }}>SIM</span>
-              </div>
-            ) : (
-              <div style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: 'var(--live)',
-                flexShrink: 0,
-                animation: 'gate-status-pulse 3s ease-in-out infinite',
-                marginTop: 24,
-              }} />
-            )}
+          <NexusCompass size={44} />
+          <div style={{ height: 8 }} />
+          <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.25em', textAlign: 'center' }}>REDSCAR NOMADS</div>
+          <div style={{ height: 4 }} />
+          <div style={{ fontSize: 24, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.22em', textAlign: 'center' }}>NEXUSOS</div>
+          <div style={{ height: 2 }} />
+          <div style={{ fontSize: 10, color: 'var(--t2)', letterSpacing: '0.18em', textAlign: 'center' }}>ACCESS GATE</div>
+          <div style={{ height: 18 }} />
+
+          <div style={{ width: '100%', color: 'var(--t2)', fontSize: 11, lineHeight: 1.7, textAlign: 'center' }}>
+            {IS_DEV_MODE
+              ? 'Simulation mode is active. Choose any Redscar persona below to launch the shell without live Discord SSO.'
+              : `Continue with Discord to verify membership in ${health?.guild_label || 'REDSCAR NOMADS'} and launch the app.`}
           </div>
 
-          {/* Divider */}
-          <div style={{ height: '0.5px', background: 'var(--b1)', margin: '16px 0 24px' }} />
+          <div style={{ height: 18 }} />
 
           {IS_DEV_MODE ? (
-            /* ── Demo persona picker ── */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              <div style={{ fontSize: 9, color: 'var(--t2)', letterSpacing: '0.15em', marginBottom: 4 }}>
-                EXPLORE THE APP
-              </div>
-              <div style={{ fontSize: 10, color: 'var(--t3)', marginBottom: 14, lineHeight: 1.5 }}>
-                Launch a demo session as any org rank to explore the full interface.
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {DEV_PERSONAS.map(persona => (
-                  <button
-                    key={persona.id}
-                    type="button"
-                    onClick={() => { setDevPersona(persona.id); refreshSession(); }}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: 'var(--bg2)',
-                      border: '0.5px solid var(--b1)',
-                      borderRadius: 6,
-                      color: 'var(--t0)',
-                      fontSize: 11,
-                      fontFamily: 'inherit',
-                      letterSpacing: '0.06em',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      transition: 'background 0.12s, border-color 0.12s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg3)'; e.currentTarget.style.borderColor = 'var(--b2)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg2)'; e.currentTarget.style.borderColor = 'var(--b1)'; }}
-                  >
-                    <span>{persona.callsign}</span>
-                    <span style={{ color: 'var(--acc)', fontSize: 9, letterSpacing: '0.1em' }}>{persona.rank}</span>
-                  </button>
-                ))}
-              </div>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {DEV_PERSONAS.map((persona) => (
+                <button
+                  key={persona.id}
+                  type="button"
+                  className="nexus-btn"
+                  onClick={() => {
+                    setDevPersona(persona.id);
+                    refreshSession();
+                  }}
+                  style={{ width: '100%', height: 40, justifyContent: 'space-between' }}
+                >
+                  <span>{persona.callsign}</span>
+                  <span style={{ color: 'var(--acc2)' }}>{persona.rank}</span>
+                </button>
+              ))}
             </div>
           ) : (
-            /* ── Key auth ── */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              <label style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.15em', marginBottom: 8, display: 'block' }}>
-                AUTHENTICATION KEY
-              </label>
-
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={revealing ? 'text' : 'password'}
-                  value={authKey}
-                  onChange={e => handleKeyChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={authenticating}
-                  placeholder="RSN-XXXX-XXXX-XXXX"
-                  style={{
-                    width: '100%',
-                    padding: '10px 40px 10px 12px',
-                    background: 'var(--bg2)',
-                    border: `0.5px solid ${authError ? 'var(--warn)' : 'var(--b1)'}`,
-                    borderRadius: 6,
-                    color: 'var(--t0)',
-                    fontSize: 11,
-                    fontFamily: 'monospace',
-                    letterSpacing: '0.08em',
-                    outline: 'none',
-                    transition: 'border-color 0.15s',
-                    boxSizing: 'border-box',
-                    opacity: authenticating ? 0.6 : 1,
-                  }}
-                />
-                {/* Hold-to-reveal eye */}
-                <button
-                  type="button"
-                  onMouseDown={() => setRevealing(true)}
-                  onMouseUp={() => setRevealing(false)}
-                  onMouseLeave={() => { setRevealing(false); setEyeHover(false); }}
-                  onMouseEnter={() => setEyeHover(true)}
-                  onTouchStart={() => setRevealing(true)}
-                  onTouchEnd={() => setRevealing(false)}
-                  style={{
-                    position: 'absolute',
-                    right: 10,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    userSelect: 'none',
-                  }}
-                >
-                  <EyeIcon color={eyeHover ? 'var(--t1)' : 'var(--t3)'} />
-                </button>
-              </div>
-
-              {/* Error message */}
-              {authError && (
-                <div className="gate-error-fade" style={{ color: 'var(--warn)', fontSize: 9, marginTop: 7, letterSpacing: '0.04em' }}>
-                  {authError}
-                </div>
-              )}
-
-              {/* Help text */}
-              <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: authError ? 6 : 8, lineHeight: 1.5 }}>
-                Keys are issued by org Pioneers. Contact your recruiter if you have not received one.
-              </div>
-            </div>
-          )}
-
-          {/* ── Authenticate button (key auth mode only) ── */}
-          {!IS_DEV_MODE && (
             <button
               type="button"
-              onClick={handleAuthenticate}
-              disabled={!canSubmit}
-              onMouseEnter={() => setArrowHover(true)}
-              onMouseLeave={() => setArrowHover(false)}
+              onClick={handleDiscordContinue}
+              disabled={!health?.oauth_ready || launching || healthLoading}
+              className="nexus-btn nexus-btn-solid"
               style={{
-                marginTop: 20,
                 width: '100%',
-                padding: '11px 16px',
-                background: canSubmit ? 'var(--bg3)' : 'var(--bg2)',
-                border: `0.5px solid ${canSubmit ? 'var(--b2)' : 'var(--b1)'}`,
-                borderRadius: 6,
-                color: canSubmit ? 'var(--t0)' : 'var(--t2)',
-                fontSize: 11,
-                letterSpacing: '0.12em',
-                fontWeight: 500,
-                fontFamily: 'inherit',
-                cursor: canSubmit ? 'pointer' : 'not-allowed',
-                opacity: !authKey ? 0.4 : 1,
-                transition: 'background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s',
-                display: 'flex',
-                alignItems: 'center',
+                height: 40,
                 justifyContent: 'center',
-                gap: 8,
+                opacity: health?.oauth_ready ? 1 : 0.55,
               }}
             >
-              {authenticating ? (
-                <LoadingDots />
-              ) : (
-                <>
-                  <span>AUTHENTICATE</span>
-                  <span className={`gate-arrow ${arrowHover && canSubmit ? 'gate-arrow-hover' : ''}`}>→</span>
-                </>
-              )}
+              {launching ? <LoadingDots /> : 'CONTINUE WITH DISCORD ->'}
             </button>
           )}
 
-          {/* ── Status bar ── */}
-          <div style={{ marginTop: 24 }}>
-            <StatusBar status={verseStatus} />
+          <div style={{ minHeight: 36, width: '100%', marginTop: 12 }}>
+            {authError ? (
+              <div style={{ color: 'var(--warn)', fontSize: 10, lineHeight: 1.6, textAlign: 'center' }}>{authError}</div>
+            ) : null}
+            {!authError && healthError ? (
+              <div style={{ color: 'var(--warn)', fontSize: 10, lineHeight: 1.6, textAlign: 'center' }}>{healthError}</div>
+            ) : null}
+            {!authError && !healthError && !IS_DEV_MODE && health && !health.oauth_ready ? (
+              <div style={{ color: 'var(--warn)', fontSize: 10, lineHeight: 1.6, textAlign: 'center' }}>
+                Discord sign-in is not fully configured for this deployment yet. Contact leadership in {health.support_channel_label || '#nexusos-ops'}.
+              </div>
+            ) : null}
           </div>
+
+          {!IS_DEV_MODE && Array.isArray(health?.onboarding_steps) ? (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+              {health.onboarding_steps.map((step, index) => (
+                <div key={step} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
+                  <span style={{ color: 'var(--acc2)', minWidth: 10 }}>{index + 1}.</span>
+                  <span>{step}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <div style={{ height: 14 }} />
+
+          {!IS_DEV_MODE ? (
+            <a
+              href={health?.invite_url || 'https://discord.gg/redscar'}
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontSize: 10, color: 'var(--acc)', textDecoration: 'none' }}
+            >
+              Request access via {health?.support_channel_label || '#nexusos-ops'}
+            </a>
+          ) : null}
+
+          {searchParams.get('new') === '1' ? (
+            <Link
+              to="/onboarding"
+              style={{ marginTop: 6, fontSize: 9, color: 'var(--t3)', textDecoration: 'none' }}
+            >
+              First time here? View onboarding {'->'}
+            </Link>
+          ) : null}
         </div>
+
+        <StatusBar status={verseStatus} />
       </div>
     </>
   );

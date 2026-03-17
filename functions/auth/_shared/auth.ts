@@ -343,7 +343,6 @@ export async function upsertNexusUser(req: Request, discordUser: DiscordUser, me
     discord_id: discordId,
     discord_roles: roleNames,
     nexus_rank: nexusRank,
-    key_revoked: false,
     joined_at: now,
     roles_synced_at: now,
   });

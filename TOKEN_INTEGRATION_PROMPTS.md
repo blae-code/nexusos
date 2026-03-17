@@ -434,8 +434,8 @@ Replace the pill with:
 Show both token and label here — the dropdown is large enough for both,
 and the label reinforces the visual for members learning the system.
 
-─── 3. KEY MANAGEMENT TABLE ─────────────────────────────────────────────────
-In the KeyManagement.jsx member table, find the rank column. If it currently
+─── 3. MEMBER TABLES / DENSE LISTS ──────────────────────────────────────────
+In any dense member table, find the rank column. If it currently
 shows text or a pill, replace with:
   <NexusToken src={rankToken(row.nexus_rank)} size={18} title={row.nexus_rank} alt={row.nexus_rank} />
 
@@ -469,7 +469,7 @@ appears in member-facing UI.
 After changes verify:
   - User chip shows 16px penta token (not coloured pip square)
   - Dropdown shows 22px penta token + text label
-  - Key management table rank column shows 18px token with title tooltip
+  - Dense member tables show 18px token with title tooltip
   - Profile settings shows 48px token
   - rankToken imported from tokenMap in every modified file
   - Violet token appears only for FOUNDER rank, nowhere else
@@ -724,12 +724,6 @@ handler and add:
 
   threatAlert (severity MED):
     embed.setThumbnail(TOKENS.threatMed)
-
-  deliverKey:
-    embed.setThumbnail(TOKENS.keyDelivered)
-
-  keyEvent (revoke action):
-    embed.setThumbnail(TOKENS.keyRevoked)
 
   armoryUpdate:
     embed.setThumbnail(TOKENS.armoryUpdate)

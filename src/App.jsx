@@ -9,9 +9,11 @@ import LiveOp from '@/apps/ops-board/LiveOp';
 import AccessGate from '@/pages/AccessGate';
 import Onboarding from '@/pages/Onboarding';
 import CofferLedger from '@/pages/CofferLedger';
+import Commerce from '@/pages/Commerce';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
 import IndustryHub from '@/apps/industry-hub/IndustryHub';
+import Logistics from '@/pages/Logistics';
 import MaterialLedger from '@/pages/MaterialLedger';
 import NexusSettings from '@/pages/NexusSettings';
 import NexusTodo from '@/pages/NexusTodo';
@@ -23,7 +25,6 @@ import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
-import ComingSoon from '@/pages/ComingSoon';
 
 function App() {
   return (
@@ -49,12 +50,14 @@ function App() {
               <Route path="rescue" element={<RescueBoard />} />
               <Route path="roster" element={<OrgRoster />} />
               <Route path="archive" element={<EpicArchive />} />
+              <Route path="commerce" element={<Commerce />} />
+              <Route path="logistics" element={<Logistics />} />
               <Route path="settings" element={<NexusSettings />} />
               <Route path="profile" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
               <Route path="ledger" element={<MaterialLedger />} />
               <Route path="handbook" element={<RedscarHandbook />} />
-              <Route path="armory" element={<ComingSoon />} />
+              <Route path="armory" element={<Armory />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

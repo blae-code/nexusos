@@ -2,6 +2,10 @@
 
 NexusOS is the Redscar Nomads operations console for Industry, Scout Intel, Op Board, Rescue, and org readiness workflows, deployed through Base44 and integrated with Discord via Herald Bot.
 
+The UI direction targets an in-verse Star Citizen operations console: ambient
+shell depth, restrained color, MFD-style panels, and animated live data rather
+than generic web-app chrome.
+
 ## Local Development
 1. Clone the repository.
 2. Run `npm install`.
@@ -19,6 +23,7 @@ Any change pushed to the repo is also reflected in the Base44 builder.
 ## Operational Docs
 - [Architecture](./docs/architecture.md)
 - [Design System](./docs/design-system.md)
+- [AI Handoff](./NEXUSOS_AI_HANDOFF.md)
 - [Discord Bot](./docs/discord-bot.md)
 - [Rockbreaker Live Runbook](./docs/rockbreaker-live-runbook.md)
 - [Versioning](./docs/versioning.md)

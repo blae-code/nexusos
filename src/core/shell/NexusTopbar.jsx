@@ -24,9 +24,12 @@ const RANK_COLOURS = {
 };
 
 const EXTRA_LINKS = [
+  { label: 'Coffer Ledger', path: '/app/coffer' },
   { label: 'Profit Calculator', path: '/app/profit' },
-  { label: 'Epic Archive', path: '/app/archive' },
+  { label: 'Rescue Board', path: '/app/rescue' },
+  { label: 'Org Roster', path: '/app/roster' },
   { label: 'Material Ledger', path: '/app/ledger' },
+  { label: 'Org Handbook', path: '/app/handbook' },
 ];
 
 function getBreadcrumb(pathname, search) {
@@ -42,16 +45,16 @@ function getBreadcrumb(pathname, search) {
 
   if (pathname === '/app/industry') {
     const tabParam = params.get('tab');
-    return { module: 'Industry Hub', tab: industryTabLabels[tabParam] || 'Overview' };
+    return { module: 'Industry', tab: industryTabLabels[tabParam] || 'Overview' };
   }
   if (pathname === '/app/scout') {
     const tabParam = params.get('tab');
     const scoutTabs = { deposits: 'Deposits', routes: 'Routes' };
-    return { module: 'Scout Intel', tab: scoutTabs[tabParam] || 'Deposits' };
+    return { module: 'Intel', tab: scoutTabs[tabParam] || 'Deposits' };
   }
-  if (pathname === '/app/ops') return { module: 'Op Board', tab: null };
-  if (pathname === '/app/ops/new') return { module: 'Op Board', tab: 'New Op' };
-  if (pathname.startsWith('/app/ops/')) return { module: 'Op Board', tab: 'Live Op' };
+  if (pathname === '/app/ops') return { module: 'Operations', tab: null };
+  if (pathname === '/app/ops/new') return { module: 'Operations', tab: 'New Op' };
+  if (pathname.startsWith('/app/ops/')) return { module: 'Operations', tab: 'Live Op' };
   if (pathname === '/app/fleet') return { module: 'Fleet Forge', tab: null };
   if (pathname === '/app/coffer') return { module: 'Coffer', tab: null };
   if (pathname === '/app/rescue') return { module: 'Rescue Board', tab: null };
@@ -61,13 +64,14 @@ function getBreadcrumb(pathname, search) {
     const armoryTabs = { inventory: 'Inventory', checkout: 'Checkout', activity: 'Activity' };
     return { module: 'Armory', tab: armoryTabs[tabParam] || null };
   }
-  if (pathname === '/app/archive') return { module: 'Epic Archive', tab: null };
+  if (pathname === '/app/archive') return { module: 'Archive', tab: null };
+  if (pathname === '/app/commerce') return { module: 'Commerce', tab: null };
+  if (pathname === '/app/logistics') return { module: 'Logistics', tab: null };
   if (pathname === '/app/profit') return { module: 'Profit Calc', tab: null };
   if (pathname === '/app/ledger') return { module: 'Material Ledger', tab: null };
   if (pathname === '/app/handbook') return { module: 'Org Handbook', tab: null };
-  if (pathname === '/app/profile' || pathname === '/app/settings') return { module: 'Profile', tab: 'Settings' };
+  if (pathname === '/app/profile' || pathname === '/app/settings') return { module: 'Settings', tab: null };
   if (pathname === '/app/admin/todo') return { module: 'Admin', tab: 'Setup TODO' };
-  if (pathname === '/app/admin/keys') return { module: 'Admin', tab: 'Key Management' };
   return { module: 'NexusOS', tab: null };
 }
 
@@ -119,7 +123,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
       try {
         const members = await base44.entities.NexusUser.list('-joined_at', 200);
         if (!cancelled) {
-          setOnlineCount((members || []).filter((member) => !member.key_revoked).length);
+          setOnlineCount((members || []).length);
         }
       } catch (error) {
         if (!cancelled) {

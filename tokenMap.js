@@ -201,7 +201,7 @@ export function roleToken(role) {
  * rankToken
  * Returns a penta (pentagon) token for the org rank system.
  * Pentagon has five sides; org has five active rank tiers — intentional.
- * Used in: user chip dropdown, profile settings, key management table,
+ * Used in: user chip dropdown, profile settings,
  * roster module member cards.
  *
  * @param {'PIONEER'|'FOUNDER'|'VOYAGER'|'SCOUT'|'VAGRANT'|'AFFILIATE'} rank

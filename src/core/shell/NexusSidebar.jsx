@@ -1,52 +1,34 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { IS_DEV_MODE } from '@/core/data/dev';
-import { getActiveRescueCount, loadRescueCalls, refreshRescueCalls, subscribeToRescueCalls } from '@/core/data/rescue-board-store';
 import {
-  BlueprintIcon,
-  CofferIcon,
   FleetIcon,
   IndustryIcon,
-  KeyIcon,
   OpBoardIcon,
-  RescueIcon,
-  RosterIcon,
   ScoutIcon,
   SettingsIcon,
 } from './NexusIcons';
-import { Archive, BarChart2, BookOpen, TrendingUp } from 'lucide-react';
+import { Archive, Coins, Truck } from 'lucide-react';
 
-const NAV_STRUCTURE = [
-  {
-    group: 'OPERATIONS',
-    items: [
-      { icon: OpBoardIcon, label: 'OPERATIONS', path: '/app/ops', badge: 'live' },
-    ],
-  },
-  {
-    group: 'INTELLIGENCE',
-    items: [
-      { icon: ScoutIcon, label: 'INTEL', path: '/app/scout' },
-      { icon: Archive, label: 'ARCHIVE', path: '/app/archive' },
-    ],
-  },
-  {
-    group: 'INDUSTRY',
-    items: [
-      { icon: IndustryIcon, label: 'INDUSTRY', path: '/app/industry', badge: 'craft' },
-      { icon: RosterIcon, label: 'ARMORY', path: '/app/armory' },
-    ],
-  },
-  {
-    group: 'COMMAND',
-    items: [
-      { icon: SettingsIcon, label: 'Settings', path: '/app/profile' },
-    ],
-  },
+const NAV_GROUPS = [
+  [
+    { icon: OpBoardIcon, label: 'OPERATIONS', path: '/app/ops', badge: 'live' },
+    { icon: ScoutIcon, label: 'INTEL', path: '/app/scout' },
+    { icon: Archive, label: 'ARCHIVE', path: '/app/archive' },
+  ],
+  [
+    { icon: IndustryIcon, label: 'INDUSTRY', path: '/app/industry', badge: 'craft' },
+    { icon: FleetIcon, label: 'ARMORY', path: '/app/armory' },
+    { icon: Coins, label: 'COMMERCE', path: '/app/commerce' },
+    { icon: Truck, label: 'LOGISTICS', path: '/app/logistics' },
+  ],
+  [
+    { icon: SettingsIcon, label: 'SETTINGS', path: '/app/profile' },
+  ],
 ];
 
-export default function NexusSidebar({ currentPath, currentSearch, rank }) {
+export default function NexusSidebar({ currentPath }) {
   const [badges, setBadges] = useState({
     craft: false,
     live: false,
@@ -95,47 +77,32 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
 
   return (
     <nav
-      className="nexus-sidebar"
       style={{
-        width: 'var(--sidebar-w)',
+        width: 50,
         background: 'var(--bg0)',
-        borderRight: '0.5px solid var(--b1)',
+        borderRight: '0.5px solid var(--b0)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '8px 0',
-        gap: 0,
+        gap: 2,
         flexShrink: 0,
       }}
     >
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%', padding: '0 0' }}>
-        {NAV_STRUCTURE.map((group, groupIdx) => (
-          <div key={group.group} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', padding: groupIdx > 0 ? '12px 0 0 0' : '0' }}>
-            {groupIdx > 0 && (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
+        {NAV_GROUPS.map((group, groupIdx) => (
+          <React.Fragment key={`group-${groupIdx}`}>
+            {groupIdx > 0 ? (
               <div
                 style={{
-                  width: '100%',
+                  width: 22,
                   height: '0.5px',
-                  background: 'var(--b1)',
-                  margin: '6px 0',
+                  background: 'var(--b0)',
+                  margin: '3px 0',
                 }}
               />
-            )}
-            <div
-              style={{
-                fontSize: 9,
-                color: 'var(--t3)',
-                fontFamily: 'var(--font)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.2em',
-                padding: '4px 12px',
-                width: '100%',
-                textAlign: 'left',
-              }}
-            >
-              {group.group}
-            </div>
-            {group.items.map((item) => {
+            ) : null}
+            {group.map((item) => {
               const Icon = item.icon;
               const isActive = isActiveRoute(item.path);
               const badgeActive = item.badge ? badges[item.badge] : false;
@@ -145,30 +112,32 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="nexus-tooltip"
+                  className="nexus-sidebar-link"
                   data-tip={item.label}
                   style={{
-                    width: 44,
-                    height: 44,
+                    width: 36,
+                    height: 36,
                     borderRadius: 8,
                     cursor: 'pointer',
-                    borderLeft: isActive ? '3px solid var(--acc)' : '3px solid transparent',
+                    border: `0.5px solid ${isActive ? 'var(--b2)' : 'transparent'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transition: 'background 150ms ease, border-left-color 150ms ease, color 150ms ease',
+                    transition: 'background 120ms ease, border-color 120ms ease, color 120ms ease',
                     position: 'relative',
-                    background: isActive ? 'rgba(var(--acc-rgb), 0.12)' : 'transparent',
-                    color: isActive ? 'var(--acc)' : 'var(--t2)',
+                    background: isActive ? 'var(--bg3)' : 'transparent',
+                    color: isActive ? 'var(--acc2)' : 'var(--t2)',
                   }}
                   onMouseEnter={(event) => {
                     if (!isActive) {
-                      event.currentTarget.style.background = 'rgba(var(--acc-rgb), 0.07)';
+                      event.currentTarget.style.background = 'var(--bg2)';
+                      event.currentTarget.style.borderColor = 'var(--b1)';
                     }
                   }}
                   onMouseLeave={(event) => {
                     if (!isActive) {
                       event.currentTarget.style.background = 'transparent';
+                      event.currentTarget.style.borderColor = 'transparent';
                       event.currentTarget.style.color = 'var(--t2)';
                     }
                   }}
@@ -180,10 +149,10 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
                         position: 'absolute',
                         top: 5,
                         right: 5,
-                        width: 6,
-                        height: 6,
+                        width: 5,
+                        height: 5,
                         borderRadius: '50%',
-                        border: '0.5px solid var(--bg0)',
+                        border: '1.5px solid var(--bg0)',
                         background: badgeColor,
                       }}
                     />
@@ -191,7 +160,7 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
                 </Link>
               );
             })}
-          </div>
+          </React.Fragment>
         ))}
       </div>
 

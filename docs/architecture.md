@@ -10,6 +10,33 @@ NexusOS is a Base44-backed operations console for Redscar Nomads. The app is str
 - `src/pages/*` contains routed surfaces for Industry, Op Board, Scout, Rescue, Coffer, Roster, Archive, Settings, and admin setup.
 - `src/app/modules/*` contains larger domain modules reused across routed pages, especially Op Board and Scout Intel.
 
+## Visual Architecture Direction
+
+The visual direction is now defined in two layers:
+
+- `NEXUSOS_AI_HANDOFF.md` is authoritative for design principles and sequencing.
+- `docs/design-system.md` is the implementation summary for the active repo.
+
+Current UI code still lives mainly under `src/components/shell/*`, `src/pages/*`,
+and `src/app/modules/*`, but future shared visual primitives should converge on:
+
+- `src/core/shell/components/AmbientBackground.jsx`
+- `src/core/shell/useOperationalState.js`
+- `src/core/shell/depth.css`
+- `src/core/design/components/MFDPanel.jsx`
+- `src/core/design/animations.css`
+- `src/core/design/hooks/useCountUp.js`
+- `src/core/design/hooks/useAnimatedList.js`
+
+These targets support the current visual roadmap:
+
+1. Living background rendered once at shell level
+2. Shell-wide live-op colour temperature shift
+3. MFD panel adoption on data-dense surfaces
+4. Shared data animation hooks for numeric and list updates
+5. Display typography for major headings and large numbers
+6. Depth transitions for foreground panels and overlays
+
 ## Shared Data Model
 
 - `Op`, `OpRsvp`, `CraftQueue`, `RefineryOrder`, `ScoutDeposit`, and `NexusUser` are the primary Base44 entities used by the UI.
@@ -53,3 +80,5 @@ When `VITE_DEMO_MODE=true` (set in `.env`, baked into the build), `IS_DEV_MODE` 
 - The frontend must work both locally under Vite and inside Base44 preview/embed contexts.
 - Storage access is guarded through safe wrappers because Base44 preview runtimes can restrict `localStorage`.
 - Relative asset paths and mount-aware routing are required because Base44 can mount the app under a subpath.
+- Shell-level ambient effects must be rendered once and must not interfere with
+  Base44 preview/editor stability or data density during live operations.

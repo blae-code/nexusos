@@ -57,12 +57,12 @@ export const mockStore = {
 // ── Seed data ──────────────────────────────────────────────────────
 
 mockStore.seed('NexusUser', [
-  { id: 'u-pioneer',   callsign: 'COMMODORE_BLAE', rank: 'PIONEER',   nexus_rank: 'PIONEER',   discord_id: 'dev-pioneer-001',   key_revoked: false, joined_at: '2025-01-01T00:00:00Z', last_seen_at: new Date(Date.now() - 300000).toISOString(),  discord_roles: ['Leadership', 'Mining Ops', 'Fleet Cmd'] },
-  { id: 'u-founder',   callsign: 'DEV_FOUNDER',    rank: 'FOUNDER',   nexus_rank: 'FOUNDER',   discord_id: 'dev-founder-001',   key_revoked: false, joined_at: '2025-01-10T00:00:00Z', last_seen_at: new Date(Date.now() - 7200000).toISOString(),  discord_roles: ['Founding Member', 'Scout Lead'] },
-  { id: 'u-scout',     callsign: 'DEV_SCOUT',      rank: 'SCOUT',     nexus_rank: 'SCOUT',     discord_id: 'dev-scout-001',     key_revoked: false, joined_at: '2025-02-01T00:00:00Z', last_seen_at: new Date(Date.now() - 1800000).toISOString(),  discord_roles: ['Scout', 'Miner'] },
-  { id: 'u-voyager',   callsign: 'DEV_VOYAGER',    rank: 'VOYAGER',   nexus_rank: 'VOYAGER',   discord_id: 'dev-voyager-001',   key_revoked: false, joined_at: '2025-02-15T00:00:00Z', last_seen_at: new Date(Date.now() - 86400000).toISOString(), discord_roles: ['Escort', 'Gunner'] },
-  { id: 'u-vagrant',   callsign: 'DEV_VAGRANT',    rank: 'VAGRANT',   nexus_rank: 'VAGRANT',   discord_id: 'dev-vagrant-001',   key_revoked: false, joined_at: '2025-03-01T00:00:00Z', last_seen_at: new Date(Date.now() - 172800000).toISOString(), discord_roles: ['New Recruit'] },
-  { id: 'u-affiliate', callsign: 'DEV_AFFILIATE',  rank: 'AFFILIATE', nexus_rank: 'AFFILIATE', discord_id: 'dev-affiliate-001', key_revoked: false, joined_at: '2025-03-10T00:00:00Z', last_seen_at: new Date(Date.now() - 604800000).toISOString(), discord_roles: ['Ally'] },
+  { id: 'u-pioneer',   callsign: 'COMMODORE_BLAE', rank: 'PIONEER',   nexus_rank: 'PIONEER',   discord_id: 'dev-pioneer-001',   joined_at: '2025-01-01T00:00:00Z', last_seen_at: new Date(Date.now() - 300000).toISOString(),  discord_roles: ['Leadership', 'Mining Ops', 'Fleet Cmd'] },
+  { id: 'u-founder',   callsign: 'DEV_FOUNDER',    rank: 'FOUNDER',   nexus_rank: 'FOUNDER',   discord_id: 'dev-founder-001',   joined_at: '2025-01-10T00:00:00Z', last_seen_at: new Date(Date.now() - 7200000).toISOString(),  discord_roles: ['Founding Member', 'Scout Lead'] },
+  { id: 'u-scout',     callsign: 'DEV_SCOUT',      rank: 'SCOUT',     nexus_rank: 'SCOUT',     discord_id: 'dev-scout-001',     joined_at: '2025-02-01T00:00:00Z', last_seen_at: new Date(Date.now() - 1800000).toISOString(),  discord_roles: ['Scout', 'Miner'] },
+  { id: 'u-voyager',   callsign: 'DEV_VOYAGER',    rank: 'VOYAGER',   nexus_rank: 'VOYAGER',   discord_id: 'dev-voyager-001',   joined_at: '2025-02-15T00:00:00Z', last_seen_at: new Date(Date.now() - 86400000).toISOString(), discord_roles: ['Escort', 'Gunner'] },
+  { id: 'u-vagrant',   callsign: 'DEV_VAGRANT',    rank: 'VAGRANT',   nexus_rank: 'VAGRANT',   discord_id: 'dev-vagrant-001',   joined_at: '2025-03-01T00:00:00Z', last_seen_at: new Date(Date.now() - 172800000).toISOString(), discord_roles: ['New Recruit'] },
+  { id: 'u-affiliate', callsign: 'DEV_AFFILIATE',  rank: 'AFFILIATE', nexus_rank: 'AFFILIATE', discord_id: 'dev-affiliate-001', joined_at: '2025-03-10T00:00:00Z', last_seen_at: new Date(Date.now() - 604800000).toISOString(), discord_roles: ['Ally'] },
 ]);
 
 mockStore.seed('ArmoryItem', [

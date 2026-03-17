@@ -2,7 +2,7 @@
  * Herald Bot — NexusOS Discord Integration
  *
  * Actions: publishOp · rsvpUpdate · opGo · opActivate · opEnd · phaseAdvance ·
- *          phaseBriefing · threatAlert · rescueAlert · deliverKey · keyEvent · armoryUpdate ·
+ *          phaseBriefing · threatAlert · rescueAlert · armoryUpdate ·
  *          armoryAlert · patchDigest · notify_patch_alert · scoutPing ·
  *          depositStaleAlert · opDebrief · opWrapUp · wrapUpDebrief ·
  *          lowStockAlert · orgHealthBriefing
@@ -63,8 +63,6 @@ const TOKENS = {
   phaseAdvance: tokenUrl('objective-cyan'),
   threatHigh:   tokenUrl('target-red'),
   threatMed:    tokenUrl('target-alt-orange'),
-  keyDelivered: tokenUrl('square-cyan'),
-  keyRevoked:   tokenUrl('square-red'),
   armoryUpdate: tokenUrl('mechanics-blue'),
   patchDigest:  tokenUrl('energy-blue'),
   depositStale: tokenUrl('hex-grey'),
@@ -562,34 +560,6 @@ Deno.serve(async (req: Request) => {
       return Response.json({ success: true });
     }
 
-    // ── 8. Deliver Key (DM to member — non-fatal) ────────────────────────────
-    if (action === 'deliverKey') {
-      const { discord_id, callsign, auth_key, rank } = payload;
-      try {
-        const dmChannelId = await openDM(discord_id);
-        await discordPost(`/channels/${dmChannelId}/messages`, {
-          embeds: [{
-            title:       '🔑 Your NexusOS Access Key',
-            color:       0x4a5070,
-            thumbnail:   { url: TOKENS.keyDelivered },
-            description: [
-              `Welcome to NexusOS, **${callsign}** [${rank || 'OPERATIVE'}].`,
-              '',
-              'Your permanent auth key:',
-              `\`\`\`${auth_key}\`\`\``,
-              '**Keep this private.** Use it at the NexusOS login page.',
-              'This key is permanent unless revoked by a Pioneer.',
-            ].join('\n'),
-            footer:    { text: 'NEXUSOS · REDSCAR NOMADS' },
-            timestamp: new Date().toISOString(),
-          }],
-        });
-      } catch (e) {
-        console.warn('[heraldBot] deliverKey DM failed:', (e as Error).message);
-      }
-      return Response.json({ success: true });
-    }
-
     // ── 8. Wrap-Up Debrief (Claude-generated) ────────────────────────────────
     if (action === 'wrapUpDebrief') {
       const { op_name, system, location, duration_min, crew_count, total_auec, total_scu, report } = payload;
@@ -660,35 +630,6 @@ Deno.serve(async (req: Request) => {
       }
 
       return Response.json({ success: true, message_id: msg?.id || null });
-    }
-
-    // ── 10. Key Event (audit log — ISSUED / REISSUED / REVOKED) ─────────────
-    if (action === 'keyEvent') {
-      const { event_type, callsign, issued_by, nexus_rank } = payload;
-      const isRevoked = (event_type as string).toUpperCase() === 'REVOKED';
-
-      await discordPost(`/channels/${CH.nexusLog}/messages`, {
-        embeds: [{
-          title:     `🔑 KEY ${(event_type as string).toUpperCase()} — ${callsign}`,
-          color:     isRevoked ? 0xe04848 : 0x4a5070,
-          thumbnail: { url: isRevoked ? TOKENS.keyRevoked : TOKENS.keyDelivered },
-          fields: [
-            ...(nexus_rank ? [{ name: 'Rank',                                     value: nexus_rank, inline: true }] : []),
-            ...(issued_by  ? [{ name: isRevoked ? 'Revoked By' : 'Issued By',     value: issued_by,  inline: true }] : []),
-          ],
-          footer:    { text: 'NEXUSOS · KEY AUDIT' },
-          timestamp: new Date().toISOString(),
-        }],
-      });
-
-      // Welcome ping for new issuances
-      if ((event_type as string).toUpperCase() === 'ISSUED' && CH.redscarOnly) {
-        await discordPost(`/channels/${CH.redscarOnly}/messages`, {
-          content: `👋 **${callsign}** has joined NexusOS — welcome, ${nexus_rank?.toLowerCase() || 'operative'}.`,
-        });
-      }
-
-      return Response.json({ success: true });
     }
 
     // ── 11. Armory Update ────────────────────────────────────────────────────

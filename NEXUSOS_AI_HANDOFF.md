@@ -32,12 +32,12 @@ mil-spec terminal, not a gaming website.
 
 Core modules (in priority order):
 1. Access Gate — full-screen login at /gate
-2. Key Management — auth key generation/revocation at /app/admin/keys
-3. Industry Hub — materials, blueprints, craft queue, refinery at /app/industry
-4. Op Board — operation creation, live op management at /app/ops
-5. Scout Intel — SVG system map, deposit logging at /app/scout
-6. Fleet Forge — ship fitting tool (Erkul-style) at /app/fleet
-7. Profit Calculator — aUEC optimiser at /app/profit
+2. Industry Hub — materials, blueprints, craft queue, refinery at /app/industry
+3. Op Board — operation creation, live op management at /app/ops
+4. Scout Intel — SVG system map, deposit logging at /app/scout
+5. Armory — inventory, checkouts, fleet support at /app/armory
+6. Commerce — wallet, coffer, trade, contracts at /app/commerce
+7. Logistics — cargo jobs, manifests, dispatch at /app/logistics
 8. Epic Archive — completed ops, leaderboards at /app/archive
 9. Herald Bot — discord.js v14 bot at src/bot/
 
@@ -62,8 +62,8 @@ Patches applied:
 - CRAFT_QUEUE and SHIP_STATUS handlers added after MINING_SCAN block
 - All six screen types present in the response_json_schema enum
 
-DO NOT revert the callsign fix. Members authenticate via auth key + Discord
-OAuth2. There is no email field for regular users in the system.
+DO NOT revert the callsign fix. Members authenticate via Discord OAuth2 SSO.
+There is no email field for regular users in the system.
 
 ### functions/generateInsight.ts — COMPLETE, PATCHED
 Reads current org state (Materials, CraftQueue, RefineryOrders, ScoutDeposits)
@@ -101,28 +101,20 @@ condensed version of this document for fast context loading.
 - Auth: Base44 native email/password (Base44 handles this, no custom code)
 - Entry: /admin (Base44 default admin panel)
 - Display name: "System Administrator" — hardcoded, not an org rank
-- Permissions: sudo all, dev mode, Base44 editor, key management
+- Permissions: sudo all, dev mode, Base44 editor
 - This account does NOT appear in the nexus_users table
 - Never add email auth for any other user. Never.
 
 **TIER 2 — All org members:**
-- Auth: callsign + permanent auth key (RSN-XXXX-XXXX-XXXX format) + Discord OAuth2
+- Auth: Discord OAuth2 SSO only
 - Entry: /gate (the Access Gate page)
 - No email stored. No password stored. No Base44 native auth.
 - Flow:
-  1. Pioneer+ generates key in Key Management → Herald Bot DMs key to invitee
-  2. Member visits /gate, enters callsign + key
-  3. Server bcrypt-compares the entered key against auth_key_hash
-  4. On match: Discord OAuth2 fires silently to read Discord ID + server roles
-  5. Session created. nexus_users record created or updated.
-  6. Discord role sync runs on login + every 30 minutes background
-
-**Auth key format:**
-RSN-XXXX-XXXX-XXXX (org prefix + 3×4 alphanumeric)
-- Only bcrypt hash stored (auth_key_hash VARCHAR(60))
-- key_prefix (RSN-XXXX only) stored separately for display without exposure
-- Never expires unless key_revoked = true
-- Reissue generates fresh key; old key dies instantly; discord_id preserved
+  1. Member visits /gate
+  2. Discord OAuth2 SSO redirects to Discord
+  3. Server reads Discord ID + guild roles
+  4. Session created. nexus_users record created or updated.
+  5. Discord role sync runs on login + every 30 minutes background
 
 **Discord as rank authority:**
 Discord server roles are the ONLY source of truth for org rank.
@@ -145,11 +137,6 @@ All tables live in Base44. Full schema below.
 nexus_users
   discord_id        BIGINT PK
   callsign          VARCHAR(40)
-  auth_key_hash     VARCHAR(60)   -- bcrypt
-  key_prefix        VARCHAR(8)    -- RSN-XXXX
-  key_issued_by     BIGINT FK nexus_users
-  key_issued_at     TIMESTAMP
-  key_revoked       BOOLEAN DEFAULT false
   discord_roles     JSON
   nexus_rank        ENUM(PIONEER,FOUNDER,VOYAGER,SCOUT,VAGRANT,AFFILIATE)
   roles_synced_at   TIMESTAMP
@@ -286,6 +273,277 @@ Claude API is invisible to users. Every AI output appears as a system feature.
 
 ---
 
+## Visual Design Direction — Cutting Edge Standard
+
+This section defines the visual and experiential
+ambition for NexusOS. Every implementation decision
+should be evaluated against these principles. The
+target is an interface that feels like it was built
+inside the Star Citizen universe — not a web app
+that Star Citizen players happen to use.
+
+---
+
+### Principle 1 — Spatial Depth
+
+The interface must have perceivable depth. Elements
+are not all equidistant from the viewer. Foreground
+elements feel physically closer, background elements
+recede. This is achieved through:
+
+- A z-index depth system with three layers:
+  background (ambient), surface (content), and
+  foreground (active panels, drawers, modals)
+- Surface panels that open over list views use a
+  very subtle scale shift (1.00 → 1.01) and a
+  1px upward translate to suggest physical proximity
+- Background content behind an active panel dims
+  to 60% opacity rather than being overlaid with
+  a flat colour
+- No decorative box-shadows. Depth is communicated
+  through opacity, scale, and z-position only.
+
+Implementation location: src/core/shell/depth.css
+
+---
+
+### Principle 2 — Living Background
+
+The main app shell background must feel like it
+exists in space rather than on a static surface.
+This is ambient — it should only be noticed when
+content is absent.
+
+Specification:
+- A canvas or SVG layer rendered behind all app
+  content at z-index -1
+- 60–80 particles distributed across the viewport,
+  three size classes (1px, 1.5px, 2px), avoiding
+  a 120px margin around the content area
+- Particle opacity: 0.03 to 0.08 only
+- Each particle has an independent slow drift
+  animation: 80–140s duration, randomised direction,
+  looping seamlessly
+- A very subtle radial gradient centred on the
+  viewport at 4% opacity using var(--acc-rgb) —
+  this creates the impression of a distant light
+  source without being visible as a gradient
+- The background does not respond to cursor
+  movement (parallax is too distracting in a
+  data-dense environment)
+- Particle canvas fades out to opacity 0 when
+  a modal overlay is active
+
+Implementation location:
+  src/core/shell/components/AmbientBackground.jsx
+  Rendered once in Shell.jsx, never in individual
+  app pages.
+
+---
+
+### Principle 3 — Operational Colour Temperature
+
+When a live op is active anywhere in the org,
+the entire shell subtly shifts from cool to warm.
+This is the single most powerful way to make the
+interface feel responsive to real-world events.
+
+Specification:
+- Default state (no live op): cool palette as
+  currently defined in tokens.css
+- Live op active state: three CSS variable
+  overrides applied to :root over 400ms ease:
+    --acc shifts 8 degrees warmer on the hue wheel
+    --bg0 gains rgba(var(--warn-rgb), 0.012) tint
+    --b1 gains rgba(var(--warn-rgb), 0.04) tint
+- The shift is subtle enough that most users
+  will not consciously notice it — but its
+  absence would make the interface feel flat
+- The shift reverses when no live op is active
+- Implemented as a global state listener in
+  Shell.jsx that watches for any Op with
+  status === 'LIVE' in the org
+
+Implementation location:
+  src/core/shell/useOperationalState.js
+  Applied via a CSS class on the root element:
+  document.documentElement.classList.toggle(
+    'op-live', hasLiveOp
+  )
+  With corresponding :root.op-live overrides
+  in tokens.css
+
+---
+
+### Principle 4 — Data as Spectacle
+
+Every data change visible to the user must be
+animated. Static data updates are not acceptable
+in NexusOS. The interface must feel alive.
+
+Rules:
+- All numeric values that update in real time
+  use a count-up animation from previous value
+  to new value over 600ms ease-out. Use
+  font-variant-numeric: tabular-nums throughout
+  to prevent layout shift.
+- New rows arriving in any table or list
+  materialise from opacity 0, translateY(-4px)
+  to opacity 1, translateY(0) over 200ms ease-out
+- Rows being removed collapse their height to 0
+  and fade to opacity 0 over 150ms before removal
+- Progress bars and quality bars draw from their
+  current width to their new width over 600ms
+  ease-out on every update, not just on mount
+- Status badge colour transitions use 300ms ease
+  when status changes (e.g. DRAFT → PUBLISHED)
+- Charts and data visualisations draw themselves
+  in on first render — strokes draw, bars grow,
+  values count up. Subsequent updates animate
+  between states rather than re-drawing.
+
+Implementation location:
+  src/core/design/animations.css — keyframe
+  definitions
+  src/core/design/hooks/useCountUp.js — numeric
+  count-up hook
+  src/core/design/hooks/useAnimatedList.js —
+  list materialise/remove hook
+
+---
+
+### Principle 5 — MFD Panel Architecture
+
+NexusOS uses Multi-Function Display panels as its
+primary layout metaphor, especially on data-dense
+views (dashboard, live op, industry, intel).
+
+An MFD panel is a self-contained unit with:
+- A machined-corner aesthetic: border-radius 2px
+  on the outer container, 0px on inner elements
+- A top-edge inner highlight: a 1px line at the
+  top of the panel interior using var(--b3) at
+  60% opacity, created via box-shadow inset
+  0 1px 0 rgba(var(--b3-rgb), 0.6)
+- A header strip: 32px tall, var(--bg2) background,
+  0.5px bottom border var(--b1), padding 0 12px,
+  flex row with label on left and status/action
+  on right
+- Header label: 9px var(--t3) uppercase
+  letter-spacing 0.18em var(--font)
+- A subtle scan-line texture on the panel interior:
+  repeating-linear-gradient of transparent and
+  rgba(0,0,0,0.015) at 2px intervals, pointer-
+  events none, position absolute inset 0
+- Panel content sits above the scan-line via
+  position relative z-index 1
+
+The MFDPanel component is defined at:
+  src/core/design/components/MFDPanel.jsx
+
+It accepts: label (string), action (node, optional),
+statusDot (colour string, optional), children.
+
+Use MFDPanel for: all dashboard stat sections,
+the live op crew grid, phase tracker, session log,
+loot tally, split calculator, and intel deposit
+panel.
+
+---
+
+### Principle 6 — Typography Hierarchy
+
+SF Mono remains the data and label typeface
+throughout. A condensed display typeface is
+added for large numeric values and primary
+headings only.
+
+Specification:
+- Import 'Barlow Condensed' weight 600 and 700
+  from Google Fonts
+- Apply to: stat card large numbers (28px+),
+  phase names in the phase tracker, op names
+  in list and live views, section titles that
+  are 16px or larger
+- All data values, timestamps, labels, body text,
+  and UI controls remain in var(--font) (SF Mono)
+- The contrast between condensed display and
+  monospace data creates visual hierarchy without
+  adding colour
+- CSS variable: --font-display: 'Barlow Condensed',
+  sans-serif
+  Added to tokens.css and applied via
+  font-family: var(--font-display) wherever
+  specified above
+
+---
+
+### Principle 7 — Tactical Amber
+
+In operational contexts (live op view, threat
+panel, readiness gate approaching 100%), amber
+is used as a secondary tactical accent in
+addition to the primary cyan/blue accent.
+
+Rules:
+- Amber (var(--warn)) is used for: countdowns,
+  phase advancement prompts, readiness gate
+  below 100%, buy-in deduction lines, threat
+  severity medium, EXCLUSIVE op indicators
+- Amber is never used decoratively — only when
+  the semantic meaning is caution, urgency, or
+  pending action
+- In the live op view specifically, amber
+  elements carry slightly more visual weight
+  (font-weight 500 instead of 400) to ensure
+  they read clearly under the operational
+  colour temperature shift
+
+---
+
+### Implementation Priority
+
+Apply these in this sequence to maximise visual
+impact per unit of effort:
+
+1. Living background (AmbientBackground.jsx) —
+   affects every page simultaneously
+2. Operational colour temperature shift —
+   single shell-level state change, high impact
+3. MFDPanel component — replace existing card
+   usage on dashboard and live op view
+4. Data animation hooks — useCountUp and
+   useAnimatedList applied to live data views
+5. Barlow Condensed display typeface — stat
+   cards and op names
+6. Spatial depth system — depth.css and
+   panel open/close transitions
+
+Do not implement all six simultaneously.
+Implement in order, confirm build passes,
+commit, then proceed to the next.
+
+---
+
+### What This Must Never Become
+
+- Gradients on surfaces (already prohibited)
+- Animations that delay access to information
+- Visual effects that compete with content
+  for attention
+- A design that looks impressive in a screenshot
+  but feels noisy in daily use
+- Anything that increases cognitive load during
+  a live op when decisions are time-critical
+
+The test: if a crew member is mid-extraction
+in the Aaron Halo and needs to check the
+split calculator, every visual element in
+NexusOS must serve that task or get out of
+the way.
+
+---
+
 ## External API integrations
 
 ```
@@ -413,7 +671,6 @@ nexusos-redscar/
 │   ├── app/
 │   │   ├── Shell.jsx               ← topbar + sidebar + layout modes
 │   │   ├── AccessGate.jsx          ← /gate login page — BUILD NEXT
-│   │   ├── KeyManagement.jsx       ← /app/admin/keys
 │   │   └── modules/
 │   │       ├── IndustryHub/        ← Overview, Materials, Blueprints, Queue
 │   │       ├── ScoutIntel/         ← SVG system map + deposit panel
@@ -451,26 +708,12 @@ Full-screen login. Spec:
   "REDSCAR NOMADS" label (9px, --t3, letter-spacing .2em),
   "NEXUSOS" title (22px, --t0, font-weight 500, letter-spacing .2em),
   "ACCESS GATE" subtitle (10px, --t2, letter-spacing .15em),
-  CALLSIGN input (monospace, --bg2 bg, --b1 border),
-  AUTH KEY input (password type) with eye-icon reveal toggle,
-    placeholder: RSN-XXXX-XXXX-XXXX,
-  "AUTHENTICATE →" button (full width, --bg3 bg, --b2 border),
+  Discord SSO launcher button (full width, --bg3 bg, --b2 border),
   "Request access via #nexusos-ops" link (--acc, 10px)
-- Inline error: amber border + warning text on invalid credentials
+- Inline error: amber border + warning text on SSO failure states
 - Bottom status bar (fixed, 32px): live verse status dot + version + org name
 - On success: redirect to /app (or last visited module)
-- Submit to Base44 auth endpoint via POST /api/auth/gate
-  Body: { callsign, auth_key }
-
-### THEN: KeyManagement.jsx (/app/admin/keys)
-Pioneer+ only. Spec:
-- Filter chips: All | Active | Revoked
-- Table: callsign | Discord handle | rank | auth key (masked RSN-XXXX-••••-••••)
-  | reveal button | status dot | issued date | Reissue | Revoke actions
-- "Generate key" button → dialog: callsign, starting rank, Discord ID
-- On generate: POST /api/auth/key-management → triggers Herald Bot DM
-- Revoke: PATCH with key_revoked=true → invalidates sessions immediately
-- Reissue: generates fresh key, old key dies, callsign and discord_id preserved
+- Submit to Base44 auth endpoint via Discord OAuth2 SSO start/callback handlers
 
 ### THEN: Industry Hub Overview tab
 See design reference in docs/architecture.md.
@@ -484,8 +727,8 @@ The insight strip data comes from functions/generateInsight.ts — no AI label.
 **Why no email for members?**
 Voice-first org. Members are gamers, not enterprise users. Email creates
 friction and a GDPR surface. Discord identity is canonical and already trusted.
-The auth key approach is org-native — feels like being issued a security
-clearance, which fits the aesthetic.
+Discord SSO keeps identity and access control aligned with the org's live role
+structure without introducing a second credential system.
 
 **Why is AI hidden?**
 Members should feel like the system is smart, not that they're being assisted
