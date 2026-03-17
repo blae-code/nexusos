@@ -51,6 +51,7 @@ function App() {
               <Route path="ops/:id" element={<LiveOp />} />
               <Route path="fleet" element={<FleetForge />} />
               <Route path="org-fleet" element={<Fleet />} />
+              <Route path="routes" element={<RoutePlanner />} />
               <Route path="profit" element={<ProfitCalc />} />
               <Route path="coffer" element={<CofferLedger />} />
               <Route path="rescue" element={<RescueBoard />} />
