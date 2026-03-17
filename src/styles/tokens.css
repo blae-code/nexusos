@@ -330,6 +330,33 @@ select.error:focus {
 }
 .nexus-avatar-live { border-color: var(--live); }
 
+/* ── Tooltips ────────────────────────────────────── */
+.nexus-tooltip {
+  position: relative;
+}
+.nexus-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg2);
+  border: 0.5px solid var(--b2);
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-size: 10px;
+  color: var(--t1);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.nexus-tooltip:hover::after {
+  opacity: 1;
+  transition-delay: 400ms;
+}
+
 .nexus-bar-bg {
   height: 3px;
   background: var(--bg4);
