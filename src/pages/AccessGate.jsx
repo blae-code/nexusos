@@ -265,16 +265,16 @@ export default function AccessGate() {
         </div>
 
         {/* BODY */}
-        <div
-          style={{
-            fontFamily: "'Barlow', sans-serif",
-            fontWeight: 400,
-            fontSize: '13px',
-            color: '#9A9488',
-            lineHeight: 1.7,
-            marginBottom: '32px',
-          }}
-        >
+         <div
+           style={{
+             fontFamily: "'Barlow', sans-serif",
+             fontWeight: 400,
+             fontSize: '14px',
+             color: '#9A9488',
+             lineHeight: 1.7,
+             marginBottom: '32px',
+           }}
+         >
           Continue with Discord to verify your Redscar Nomads membership and launch the app.
         </div>
 
@@ -391,6 +391,7 @@ export default function AccessGate() {
               textAlign: 'center',
               cursor: 'pointer',
               transition: 'color 0.2s',
+              marginTop: '12px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = '#C8A84B';
