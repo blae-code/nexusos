@@ -500,7 +500,7 @@ export default function SystemMap({
             return (
               <g
                 key={deposit.id}
-                opacity={stale ? 0.35 : 1}
+                opacity={stale ? 0.4 : 1}
                 style={{ cursor: 'pointer' }}
                 onClick={() => onSelectDeposit(deposit)}
                 onMouseEnter={() => setHoveredDepositId(deposit.id)}
@@ -517,6 +517,17 @@ export default function SystemMap({
                     opacity={selected ? 0.7 : 0.4}
                   />
                 )}
+
+                {/* Marker circle stroke — dashed when stale */}
+                <circle
+                  cx={pos.x} cy={pos.y}
+                  r={13}
+                  fill="none"
+                  stroke={col}
+                  strokeWidth={0.75}
+                  strokeDasharray={stale ? '2 2' : 'none'}
+                  opacity={0.6}
+                />
 
                 {/* Quality label (above token) */}
                 {deposit.quality_pct != null && (
