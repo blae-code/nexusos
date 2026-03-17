@@ -531,15 +531,32 @@ export default function Onboarding() {
   return (
     <div
       style={{
-        background: 'var(--bg0)',
+        background: `
+          radial-gradient(ellipse 150% 100% at 50% 0%, rgba(139,40,40,0.12) 0%, transparent 50%),
+          linear-gradient(180deg, #0A0908 0%, #12090D 100%)
+        `,
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px 16px',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Ambient glow */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '300px',
+          background: 'radial-gradient(ellipse 80% 100% at 50% 0%, rgba(192,57,43,0.08) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
       <style>{`
         @keyframes step-enter {
           from {
