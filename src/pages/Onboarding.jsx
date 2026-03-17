@@ -594,6 +594,8 @@ export default function Onboarding() {
           display: 'flex',
           flexDirection: 'column',
           gap: 32,
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <StepIndicator currentStep={step} totalSteps={4} />
