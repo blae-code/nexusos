@@ -222,6 +222,70 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
   return (
     <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
+      {/* Success Overlay */}
+      {showSuccessOverlay && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: `rgba(var(--bg0-rgb), 0.92)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'nexus-success-fade-in 150ms ease-out both',
+        }}>
+          <style>{`
+            @keyframes nexus-success-fade-in {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes nexus-success-fade-out {
+              from { opacity: 1; }
+              to { opacity: 0; }
+            }
+            @keyframes checkmark-draw {
+              from { stroke-dashoffset: 48; }
+              to { stroke-dashoffset: 0; }
+            }
+            .success-overlay-fade-out {
+              animation: nexus-success-fade-out 200ms ease-out forwards !important;
+            }
+          `}</style>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <svg width="40" height="40" viewBox="0 0 40 40" style={{ overflow: 'visible' }}>
+              <polyline
+                points="10 20 17 27 30 14"
+                fill="none"
+                stroke="var(--live)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray="48"
+                style={{
+                  animation: 'checkmark-draw 400ms ease-out forwards',
+                }}
+              />
+            </svg>
+            <div style={{
+              color: 'var(--live)',
+              fontSize: 12,
+              fontFamily: 'var(--font)',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+            }}>
+              OP PUBLISHED
+            </div>
+            <div style={{
+              color: 'var(--t0)',
+              fontSize: 16,
+              fontFamily: 'var(--font)',
+              fontWeight: 500,
+              textAlign: 'center',
+              maxWidth: 320,
+            }}>
+              {form.name}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
