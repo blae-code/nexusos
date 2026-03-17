@@ -56,12 +56,12 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
   const [phases, setPhases]       = useState(defaults.phases);
 
   const [settings, setSettings] = useState({
-    reminder24h:        true,
-    reminder1h:         true,
-    createDiscordEvent: true,
-    postPhaseUpdates:   true,
-    autoWrapUp:         true,
-    atHereOnGo:         false,  // Pioneer+ only
+    requireDiscordRsvp:  true,
+    postToOpsBoard:      true,
+    allowLateJoins:      false,
+    hideFromNonMembers:  false,
+    logLootTally:        true,
+    calcSplitOnClose:    true,
   });
 
   const [saving, setSaving] = useState(false);
