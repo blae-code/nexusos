@@ -342,7 +342,7 @@ export default function LiveOp() {
 
   if (!isSecondMonitor) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {hero}
         <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 960, margin: '0 auto' }}>
@@ -372,7 +372,7 @@ export default function LiveOp() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {hero}
       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, padding: 10, minHeight: 0, overflow: 'hidden' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0 }}>
