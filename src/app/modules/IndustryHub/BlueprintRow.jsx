@@ -27,12 +27,14 @@ export default function BlueprintRow({ blueprint, isPioneer, materials, callsign
       <div
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
-          padding: '6px 7px',
+          padding: '0 7px',
+          height: 40,
           borderBottom: '0.5px solid var(--b0)',
           borderRadius: 5,
           transition: 'background 0.12s',
+          cursor: 'pointer',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <NexusToken src={blueprintToken(owned, isPriority)} size={18} alt="blueprint status" />
