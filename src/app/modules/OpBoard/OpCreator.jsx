@@ -22,6 +22,36 @@ import { opTypeToken } from '@/lib/tokenMap';
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
+// ─── Settings Toggle Component ────────────────────────────────────────────────
+
+function SettingsToggle({ label, checked, onChange }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        style={{
+          width: 32, height: 18, borderRadius: 9, cursor: 'pointer',
+          background: checked ? 'var(--acc)' : 'var(--bg3)',
+          border: `0.5px solid ${checked ? 'var(--acc)' : 'var(--b2)'}`,
+          position: 'relative', transition: 'all 200ms', flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 1, left: checked ? 16 : 1,
+            width: 16, height: 16, borderRadius: '50%',
+            background: 'var(--bg0)',
+            transition: 'left 200ms',
+          }}
+        />
+      </button>
+      <span style={{ color: 'var(--t1)', fontSize: 10, fontFamily: 'inherit' }}>{label}</span>
+    </div>
+  );
+}
+
 // ─── OpCreator ────────────────────────────────────────────────────────────────
 
 export default function OpCreator({ rank, callsign, discordId: discordIdProp }) {
