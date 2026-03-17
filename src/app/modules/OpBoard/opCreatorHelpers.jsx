@@ -175,7 +175,7 @@ function getRoleColour(name) {
   return 'var(--b2)';
 }
 
-export function RoleSlotEditor({ slots, onChange }) {
+export function RoleSlotEditor({ slots, onChange, error = null }) {
   const adjust = (i, delta) => {
     const next = [...slots];
     next[i] = { ...next[i], capacity: Math.max(1, Math.min(10, (next[i].capacity || 1) + delta)) };
@@ -213,7 +213,7 @@ export function RoleSlotEditor({ slots, onChange }) {
           {/* Role name input */}
           <input
             className="nexus-input"
-            style={{ flex: 1, height: 32, fontSize: 11 }}
+            style={{ flex: 1, height: 32, fontSize: 11, borderColor: error ? 'var(--warn)' : undefined }}
             placeholder="Role name e.g. Mining Lead"
             value={slot.name}
             onChange={e => rename(i, e.target.value)}
