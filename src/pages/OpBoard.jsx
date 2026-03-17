@@ -221,7 +221,7 @@ export default function OpBoard() {
   const liveCount = ops.filter(o => o.status === 'LIVE').length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)', flexShrink: 0 }}>
         {liveCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 4, background: 'var(--live-bg)', border: '0.5px solid var(--live-b)' }}>

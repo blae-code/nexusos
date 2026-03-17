@@ -218,7 +218,7 @@ export default function IndustryHub() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div
         style={{
           display: 'flex',
