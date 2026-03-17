@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import NexusCompass from '@/core/design/NexusCompass';
 import { authApi } from '@/core/data/auth-api';
 import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
@@ -179,22 +178,19 @@ export default function AccessGate() {
             {/* Outer ring */}
             <circle cx="26" cy="26" r="24" stroke="#E8E4DC" strokeWidth="0.75" opacity="0.5"/>
             {/* Inner ring */}
-            <circle cx="26" cy="26" r="18" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.3"/>
+            <circle cx="26" cy="26" r="18" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.25"/>
             {/* Cardinal tick marks */}
-            <line x1="26" y1="2" x2="26" y2="8" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.7"/>
-            <line x1="26" y1="44" x2="26" y2="50" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.7"/>
-            <line x1="2" y1="26" x2="8" y2="26" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.7"/>
-            <line x1="44" y1="26" x2="50" y2="26" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.7"/>
-            {/* Diagonal ticks */}
-            <line x1="7.5" y1="7.5" x2="11.5" y2="11.5" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="40.5" y1="7.5" x2="44.5" y2="11.5" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.3" transform="rotate(90 26 26) translate(0,0)"/>
-            <line x1="40.5" y1="40.5" x2="44.5" y2="44.5" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.3" transform="rotate(180 26 26)"/>
-            <line x1="7.5" y1="40.5" x2="11.5" y2="44.5" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.3" transform="rotate(270 26 26)"/>
-            {/* Centre pip — Redscar red */}
-            <circle cx="26" cy="26" r="4" fill="#C8391A"/>
-            <circle cx="26" cy="26" r="2" fill="#E8E4DC"/>
-            {/* North arrow pointer */}
-            <polygon points="26,10 24,22 26,20 28,22" fill="#C8391A" opacity="0.9"/>
+            <line x1="26" y1="2" x2="26" y2="8" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            <line x1="26" y1="44" x2="26" y2="50" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            <line x1="2" y1="26" x2="8" y2="26" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            <line x1="44" y1="26" x2="50" y2="26" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            {/* Compass needle — north pointing up, red */}
+            <polygon points="26,10 29,26 26,22 23,26" fill="#C8391A"/>
+            {/* Compass needle — south, dark */}
+            <polygon points="26,42 29,26 26,30 23,26" fill="#E8E4DC" opacity="0.3"/>
+            {/* Centre pip */}
+            <circle cx="26" cy="26" r="2.5" fill="#C8391A"/>
+            <circle cx="26" cy="26" r="1" fill="#E8E4DC"/>
           </svg>
         </div>
 
