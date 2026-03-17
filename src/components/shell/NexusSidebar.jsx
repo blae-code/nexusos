@@ -164,23 +164,24 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
               borderRadius: 8,
               cursor: 'pointer',
               borderLeft: isActive ? '3px solid var(--acc)' : '3px solid transparent',
-              border: isActive ? undefined : '0.5px solid transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.12s',
+              transition: 'background 150ms ease, border-left-color 150ms ease, color 150ms ease',
               position: 'relative',
-              background: isActive ? 'rgba(90,96,128,0.08)' : 'transparent',
-              color: isActive ? 'var(--acc)' : 'var(--t2)',
+              background: isActive ? 'rgba(var(--acc-rgb, 90,96,208), 0.08)' : 'transparent',
+              color: isActive ? 'var(--acc)' : 'var(--t3)',
             }}
             onMouseEnter={(event) => {
               if (!isActive) {
-                event.currentTarget.style.background = 'rgba(90,96,128,0.05)';
+                event.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                event.currentTarget.style.color = 'var(--t1)';
               }
             }}
             onMouseLeave={(event) => {
               if (!isActive) {
                 event.currentTarget.style.background = 'transparent';
+                event.currentTarget.style.color = 'var(--t3)';
               }
             }}
           >
