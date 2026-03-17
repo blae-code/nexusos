@@ -209,106 +209,163 @@ function LogForm({ onSubmit, onCancel }) {
   );
 }
 
-// ─── LootTally ────────────────────────────────────────────────────────────────
-
 const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
 export default function LootTally({ op, callsign, rank, currentPhase, onUpdate }) {
-  const [showDialog, setShowDialog] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const canLog = SCOUT_RANKS.includes(rank);
 
-  // Only visible in phases index >= 4
+  // Only visible in phases index >= 4, fades in
   if ((currentPhase || 0) < 4) return null;
 
-  const log  = Array.isArray(op.session_log) ? op.session_log : [];
+  const log = Array.isArray(op.session_log) ? op.session_log : [];
   const loot = log.filter(e => e.type === 'MATERIAL');
 
-  const totalSCU   = loot.reduce((s, e) => s + (e.quantity_scu || 0), 0);
-  const totalValue = loot.reduce((s, e) => s + (e.est_value_aUEC || 0), 0);
+  const totalSCU = loot.reduce((s, e) => s + (e.quantity_scu || 0), 0);
 
-  const handleSubmit = async ({ material_name, quantity_scu, quality_pct, est_value }) => {
+  const handleSubmit = async ({ material_name, quantity_scu, quality_pct }) => {
     const entry = {
-      t:             new Date().toISOString(),
-      type:          'MATERIAL',
-      author:        callsign,
-      text:          `Logged ${quantity_scu} SCU ${material_name}${quality_pct ? ` @ ${quality_pct}%` : ''}`,
+      t: new Date().toISOString(),
+      type: 'MATERIAL',
+      text: `Logged ${quantity_scu} SCU ${material_name}${quality_pct ? ` @ ${quality_pct}%` : ''}`,
       material_name,
       quantity_scu,
       quality_pct,
-      est_value_aUEC: est_value,
     };
     const newLog = [...log, entry];
     await base44.entities.Op.update(op.id, { session_log: newLog });
+    setShowForm(false);
     onUpdate?.(newLog);
   };
 
-  const TH = { padding: '5px 10px', textAlign: 'left', color: 'var(--t2)', fontSize: 9, letterSpacing: '0.1em', background: 'var(--bg2)', borderBottom: '0.5px solid var(--b1)', whiteSpace: 'nowrap' };
-  const TD = { padding: '5px 10px', fontSize: 11, fontVariantNumeric: 'tabular-nums' };
-
   return (
-    // position:relative for scoped overlay
-    <div style={{ position: 'relative', overflow: 'hidden' }}>
+    <div
+      style={{
+        animation: 'loot-reveal 300ms ease-out 100ms both',
+      }}
+    >
+      <style>{`
+        @keyframes loot-reveal {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes loot-form-in {
+          from {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            max-height: 100px;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' }}>LOOT TALLY</span>
+        <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+          Loot Tally
+        </span>
         {canLog && (
           <button
-            onClick={() => setShowDialog(true)}
+            onClick={() => setShowForm(!showForm)}
+            className="nexus-btn primary"
             style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              background: 'none', border: '0.5px solid var(--b2)',
-              borderRadius: 5, cursor: 'pointer', color: 'var(--t2)',
-              fontSize: 9, letterSpacing: '0.07em', padding: '3px 8px',
-              fontFamily: 'inherit',
+              padding: '4px 10px',
+              fontSize: 9,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontFamily: 'var(--font)',
             }}
           >
-            <Plus size={9} /> LOG LOOT
+            <Plus size={10} /> Log Haul
           </button>
         )}
       </div>
 
-      <div style={{ border: '0.5px solid var(--b1)', borderRadius: 7, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['MATERIAL', 'SCU', 'QUAL %', 'EST aUEC'].map(h => <th key={h} style={TH}>{h}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {loot.map((e, i) => (
-              <tr key={i} style={{ borderBottom: '0.5px solid var(--b0)' }}>
-                <td style={{ ...TD, color: 'var(--t0)' }}>{e.material_name || '—'}</td>
-                <td style={{ ...TD, color: 'var(--t1)' }}>{(e.quantity_scu || 0).toFixed(1)}</td>
-                <td style={{ ...TD, color: 'var(--t1)' }}>{e.quality_pct ? `${e.quality_pct}%` : '—'}</td>
-                <td style={{ ...TD, color: 'var(--acc2)' }}>{e.est_value_aUEC ? e.est_value_aUEC.toLocaleString() : '—'}</td>
-              </tr>
-            ))}
-            {loot.length === 0 && (
-              <tr>
-                <td colSpan={4} style={{ padding: '14px 10px', textAlign: 'center', color: 'var(--t3)', fontSize: 11 }}>
-                  No loot logged
-                </td>
-              </tr>
-            )}
-            {/* Running total */}
-            {loot.length > 0 && (
-              <tr style={{ background: 'var(--bg2)', borderTop: '0.5px solid var(--b1)' }}>
-                <td style={{ ...TD, color: 'var(--t2)', fontWeight: 600, fontSize: 9, letterSpacing: '0.08em' }}>TOTAL</td>
-                <td style={{ ...TD, color: 'var(--t0)', fontWeight: 600 }}>{totalSCU.toFixed(1)}</td>
-                <td style={{ ...TD, color: 'var(--t2)' }}>—</td>
-                <td style={{ ...TD, color: 'var(--live)', fontWeight: 600 }}>
-                  {totalValue > 0 ? totalValue.toLocaleString() : '—'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* Loot entries */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {loot.length === 0 ? (
+          <div style={{ padding: '8px 0', fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textAlign: 'center' }}>
+            No loot logged
+          </div>
+        ) : (
+          loot.map((e, i) => (
+            <div
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                height: 36,
+                borderBottom: '0.5px solid var(--b0)',
+              }}
+            >
+              {/* Material name */}
+              <span style={{ fontSize: 11, color: 'var(--t1)', fontFamily: 'var(--font)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {e.material_name || '—'}
+              </span>
+
+              {/* Quantity */}
+              <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                {(e.quantity_scu || 0).toFixed(1)} SCU
+              </span>
+
+              {/* Quality */}
+              <span
+                style={{
+                  fontSize: 9,
+                  color: qColor(e.quality_pct),
+                  fontFamily: 'monospace',
+                  fontVariantNumeric: 'tabular-nums',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  minWidth: 40,
+                }}
+              >
+                {e.quality_pct ? `${e.quality_pct}%` : '—'}
+              </span>
+
+              {/* Type pill */}
+              <span
+                className="nexus-tag"
+                style={{
+                  fontSize: 8,
+                  color: 'var(--t3)',
+                  borderColor: 'var(--b1)',
+                  background: 'var(--bg2)',
+                  flexShrink: 0,
+                }}
+              >
+                {(e.material_name || '').substring(0, 3).toUpperCase()}
+              </span>
+            </div>
+          ))
+        )}
       </div>
 
-      {showDialog && (
-        <LogLootDialog
-          onClose={() => setShowDialog(false)}
-          onSubmit={handleSubmit}
-        />
+      {/* Form */}
+      {showForm && <LogForm onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />}
+
+      {/* Total line */}
+      {loot.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', marginTop: 4, paddingTop: 8, borderTop: '0.5px solid var(--b0)' }}>
+          <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            Total Haul
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--t0)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', flex: 1, textAlign: 'right' }}>
+            {totalSCU.toFixed(1)} SCU
+          </span>
+        </div>
       )}
     </div>
   );
