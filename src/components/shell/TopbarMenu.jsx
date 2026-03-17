@@ -7,11 +7,13 @@ import { X } from 'lucide-react';
 import { changelogText } from '@/lib/generated/versioning';
 
 export function LayoutButton({ active, title, onClick, icon }) {
+  const tooltipText = title === 'ALT-TAB' ? 'Standard layout' : '2nd monitor layout';
   return (
     <button
       type="button"
       onClick={onClick}
-      title={title}
+      className="nexus-tooltip"
+      data-tooltip={tooltipText}
       style={{
         width: 30,
         height: 28,
