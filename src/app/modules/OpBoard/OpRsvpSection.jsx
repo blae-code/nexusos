@@ -315,7 +315,226 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
             </div>
           )}
         </div>
-      ) : myRsvp ? (
+      ) : null}
+
+      {/* Roster Section */}
+      <div style={{ marginTop: 4 }}>
+        {/* Total capacity pill */}
+        <div style={{ marginBottom: 12 }}>
+          <div
+            style={{
+              display: 'inline-block',
+              padding: '4px 10px',
+              background: isFull ? 'rgba(var(--live-rgb), 0.08)' : 'var(--bg3)',
+              border: `0.5px solid ${isFull ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)'}`,
+              borderRadius: 4,
+              fontSize: 9,
+              color: isFull ? 'var(--live)' : 'var(--t2)',
+              fontFamily: 'var(--font)',
+              fontVariantNumeric: 'tabular-nums',
+              transition: 'all 300ms ease',
+            }}
+          >
+            {confirmedRsvps.length} / {totalCapacity} crew
+          </div>
+        </div>
+
+        {/* Roster label */}
+        <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10, fontFamily: 'var(--font)' }}>
+          Confirmed Crew
+        </div>
+
+        {/* Roster list or empty state */}
+        {confirmedRsvps.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '12px 0', color: 'var(--t3)', fontSize: 10, fontFamily: 'var(--font)' }}>
+            No crew confirmed yet. Be the first to RSVP.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {confirmedRsvps.map((rsvp, idx) => (
+              <div
+                key={rsvp.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  height: 40,
+                  borderBottom: idx < confirmedRsvps.length - 1 ? '0.5px solid var(--b0)' : 'none',
+                  transition: 'background 150ms ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(var(--bg0-rgb), 0.04)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                {/* Role colour dot */}
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: getRoleColor(rsvp.role),
+                    flexShrink: 0,
+                  }}
+                />
+
+                {/* Callsign */}
+                <span style={{ color: 'var(--t0)', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 500, minWidth: 0 }}>
+                  {rsvp.callsign || '—'}
+                </span>
+
+                {/* Role name */}
+                <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)', whiteSpace: 'nowrap' }}>
+                  {rsvp.role || '—'}
+                </span>
+
+                {/* Ship name (italic if provided) */}
+                {rsvp.ship ? (
+                  <span style={{ color: 'var(--t2)', fontSize: 9, fontFamily: 'var(--font)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                    {rsvp.ship}
+                  </span>
+                ) : null}
+
+                <div style={{ flex: 1 }} />
+
+                {/* Joined timestamp */}
+                {rsvp.created_date && (
+                  <span
+                    style={{
+                      color: 'var(--t3)',
+                      fontSize: 9,
+                      fontFamily: 'var(--font)',
+                      fontVariantNumeric: 'tabular-nums',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                    title={new Date(rsvp.created_date).toLocaleString()}
+                  >
+                    {formatTimestamp(rsvp.created_date)}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function formatTimestamp(isoStr) {
+  if (!isoStr) return '—';
+  const now = Date.now();
+  const then = new Date(isoStr).getTime();
+  const diff = now - then;
+
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w ago`;
+
+  return new Date(isoStr).toLocaleDateString();
+}
+
+const OpRsvpSectionWithLeave = (props) => (
+  <OpRsvpSection {...props} />
+);
+
+export default OpRsvpSectionWithLeave;
+
+export function RenderWithLeaveOp({ op, rsvps, callsign, discordId, rank }) {
+  const [myRsvp, setMyRsvp] = React.useState(rsvps.find(r => r.discord_id === discordId && r.status === 'CONFIRMED'));
+  const [leaveConfirming, setLeaveConfirming] = React.useState(false);
+
+  const handleLeaveClick = () => {
+    setLeaveConfirming(true);
+    setTimeout(() => {
+      setLeaveConfirming(false);
+    }, 4000);
+  };
+
+  const handleLeaveOp = async () => {
+    if (!myRsvp) return;
+    setLeaveConfirming(false);
+    try {
+      await base44.entities.OpRsvp.update(myRsvp.id, { status: 'DECLINED' });
+      window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
+    } catch {
+      // Handle error
+    }
+  };
+
+  return myRsvp ? (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '8px 12px',
+        background: 'rgba(var(--live-rgb), 0.04)',
+        border: '0.5px solid var(--live)',
+        borderLeft: '3px solid var(--live)',
+        borderRadius: 4,
+      }}
+    >
+      <div
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: 'var(--live)',
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ color: 'var(--t0)', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 500 }}>
+        {myRsvp.role || 'Role TBD'}
+      </span>
+      {myRsvp.ship && (
+        <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)' }}>
+          {myRsvp.ship}
+        </span>
+      )}
+      <div style={{ flex: 1 }} />
+      <button
+        onClick={leaveConfirming ? handleLeaveOp : handleLeaveClick}
+        onBlur={() => setLeaveConfirming(false)}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: leaveConfirming ? 'var(--warn)' : 'var(--t3)',
+          fontSize: 9,
+          fontFamily: 'var(--font)',
+          textDecoration: 'none',
+          transition: 'color 150ms',
+          whiteSpace: 'nowrap',
+        }}
+        onMouseEnter={e => {
+          if (!leaveConfirming) {
+            e.currentTarget.style.color = 'var(--danger)';
+          }
+        }}
+        onMouseLeave={e => {
+          if (!leaveConfirming) {
+            e.currentTarget.style.color = 'var(--t3)';
+          }
+        }}
+      >
+        {leaveConfirming ? 'Are you sure? Confirm →' : 'Leave op'}
+      </button>
+    </div>
+  ) : null;
+}
         <div
           style={{
             display: 'flex',
