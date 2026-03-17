@@ -142,7 +142,7 @@ export default function OrgRoster() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 16, gap: 16 }}>
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 16, gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <Users size={16} style={{ color: 'var(--acc2)' }} />
         <span style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 600 }}>ORG ROSTER</span>

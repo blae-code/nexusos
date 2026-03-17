@@ -95,7 +95,7 @@ export default function RescueBoard() {
   const openCount = getActiveRescueCount(calls);
 
   return (
-    <div className="flex flex-col h-full overflow-auto p-4 gap-4">
+    <div className="nexus-page-enter flex flex-col h-full overflow-auto p-4 gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AlertTriangle size={16} style={{ color: 'var(--danger)' }} />

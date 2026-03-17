@@ -105,7 +105,7 @@ export default function ProfitCalc() {
   };
 
   return (
-    <div className="flex h-full" style={{ overflow: 'hidden' }}>
+    <div className="nexus-page-enter flex h-full" style={{ overflow: 'hidden' }}>
       {/* Left — inputs */}
       <div
         className="flex flex-col gap-4 flex-shrink-0 overflow-auto"
