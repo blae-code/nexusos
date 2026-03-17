@@ -182,13 +182,18 @@ export default function AccessGate() {
         }}
       >
         {/* EMBLEM */}
-        <div style={{ marginBottom: '14px', textAlign: 'center' }}>
-          <img 
-            src="https://www.redscar.org/images/2223.png"
-            alt="Redscar Nomads"
-            style={{ width: '56px', height: '56px', objectFit: 'contain', opacity: 0.92 }}
-            crossOrigin="anonymous"
-          />
+        <div style={{ marginBottom: '14px', textAlign: 'left' }}>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="22" stroke="#E8E4DC" strokeWidth="1" opacity="0.4"/>
+            <circle cx="24" cy="24" r="15" stroke="#C0392B" strokeWidth="0.75" opacity="0.6"/>
+            <circle cx="24" cy="24" r="8" fill="#C0392B" opacity="0.9"/>
+            <circle cx="24" cy="24" r="4" fill="#E8E4DC"/>
+            <line x1="24" y1="2" x2="24" y2="9" stroke="#E8E4DC" strokeWidth="1.5" strokeLinecap="round"/>
+            <line x1="24" y1="39" x2="24" y2="46" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+            <line x1="2" y1="24" x2="9" y2="24" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+            <line x1="39" y1="24" x2="46" y2="24" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+            <polygon points="24,2 21.5,14 24,12 26.5,14" fill="#E8E4DC"/>
+          </svg>
         </div>
 
         {/* RED RULE */}
@@ -205,6 +210,7 @@ export default function AccessGate() {
             textTransform: 'uppercase',
             marginBottom: '6px',
             marginTop: '8px',
+            textAlign: 'left',
           }}
         >
           REDSCAR NOMADS
