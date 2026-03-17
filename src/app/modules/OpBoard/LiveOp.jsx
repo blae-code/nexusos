@@ -242,7 +242,7 @@ export default function LiveOp() {
 
   const phaseTrackerProps = { phases, currentPhase, opId: op.id, rank, onAdvance: handlePhaseAdvance };
   const readinessGateProps = { op, rank, onUpdate: handleGateUpdate };
-  const crewGridProps = { rsvps, op };
+  const crewGridProps = { rsvps, op, layoutMode };
   const opRsvpProps = { op, rsvps, callsign, discordId, rank };
   const sessionLogProps = { op, callsign, rank, onUpdate: handleLogUpdate };
   const threatPanelProps = { op, callsign, onUpdate: handleLogUpdate };
