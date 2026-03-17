@@ -465,6 +465,60 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         <div style={{ height: 100 }} />
           </div>
           </div>
+
+          {/* Sticky Footer */}
+          <div style={{
+            position: 'sticky', bottom: 0, left: 0, right: 0,
+            background: 'var(--bg0)', borderTop: '0.5px solid var(--b1)',
+            padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: 12,
+            maxWidth: '100%',
+          }}>
+            <style>{`
+              @keyframes success-flash {
+                0% { background: rgba(var(--live-rgb), 0.15); border-color: var(--live); }
+                50% { background: rgba(var(--live-rgb), 0.15); border-color: var(--live); }
+                100% { background: var(--bg3); border-color: var(--b2); }
+              }
+              .publish-btn-success { animation: success-flash 800ms ease-out forwards; }
+            `}</style>
+            <button
+              type="button"
+              onClick={() => submit(true)}
+              disabled={saving}
+              className={`nexus-btn primary ${showSuccessFlash ? 'publish-btn-success' : ''}`}
+              style={{
+                width: '100%', padding: '12px 0', fontSize: 12,
+                fontWeight: 600, letterSpacing: '0.1em',
+                pointerEvents: saving ? 'none' : 'auto',
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
+              {saving ? <div className="nexus-loading-dots"><span /><span /><span /></div> : (
+                <>
+                  PUBLISH OP{' '}
+                  <span style={{ display: 'inline-block', transition: 'transform 150ms ease' }} className="publish-arrow">
+                    →
+                  </span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => submit(false)}
+              disabled={saving}
+              style={{
+                background: 'none', border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
+                color: 'var(--t2)', fontSize: 9, fontFamily: 'inherit',
+                letterSpacing: '0.06em', textDecoration: 'none',
+                opacity: saving ? 0.6 : 1,
+                transition: 'color 150ms, text-decoration 150ms',
+              }}
+              onMouseEnter={e => { if (!saving) { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.textDecoration = 'underline'; } }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--t2)'; e.currentTarget.style.textDecoration = 'none'; }}
+            >
+              Save as draft
+            </button>
+          </div>
           </div>
           );
           }
