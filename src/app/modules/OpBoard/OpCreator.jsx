@@ -587,15 +587,15 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
               disabled={saving}
               style={{
                 background: 'none', border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
-                color: 'var(--t2)', fontSize: 9, fontFamily: 'inherit',
+                color: draftSaved ? 'var(--live)' : 'var(--t2)', fontSize: 9, fontFamily: 'inherit',
                 letterSpacing: '0.06em', textDecoration: 'none',
                 opacity: saving ? 0.6 : 1,
                 transition: 'color 150ms, text-decoration 150ms',
               }}
-              onMouseEnter={e => { if (!saving) { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.textDecoration = 'underline'; } }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--t2)'; e.currentTarget.style.textDecoration = 'none'; }}
+              onMouseEnter={e => { if (!saving && !draftSaved) { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.textDecoration = 'underline'; } }}
+              onMouseLeave={e => { e.currentTarget.style.color = draftSaved ? 'var(--live)' : 'var(--t2)'; e.currentTarget.style.textDecoration = 'none'; }}
             >
-              Save as draft
+              {draftSaved ? 'Draft saved ✓' : 'Save as draft'}
             </button>
           </div>
           </div>
