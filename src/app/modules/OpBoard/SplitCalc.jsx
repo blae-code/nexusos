@@ -12,25 +12,7 @@ function formatAUEC(n) {
   return Math.round(n).toLocaleString();
 }
 
-// ─── Mode chip ────────────────────────────────────────────────────────────────
 
-function ModeChip({ label, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: '4px 12px', fontSize: 10, letterSpacing: '0.07em',
-        borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit',
-        border: active ? '0.5px solid var(--b3)' : '0.5px solid var(--b1)',
-        background: active ? 'var(--bg5)' : 'var(--bg3)',
-        color: active ? 'var(--t0)' : 'var(--t2)',
-        fontWeight: active ? 600 : 400,
-      }}
-    >
-      {label}
-    </button>
-  );
-}
 
 // ─── SplitCalc ────────────────────────────────────────────────────────────────
 
