@@ -13,6 +13,7 @@ import Commerce from '@/pages/Commerce';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
 import Fleet from '@/pages/Fleet';
+import RoutePlanner from '@/pages/RoutePlanner';
 import IndustryHub from '@/apps/industry-hub/IndustryHub';
 import Logistics from '@/pages/Logistics';
 import MaterialLedger from '@/pages/MaterialLedger';

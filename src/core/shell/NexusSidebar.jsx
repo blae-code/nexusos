@@ -19,6 +19,9 @@ const NAV_GROUPS = [
     { icon: Archive, label: 'ARCHIVE', path: '/app/archive' },
   ],
   [
+    { icon: Truck, label: 'ROUTES', path: '/app/routes' },
+  ],
+  [
     { icon: IndustryIcon, label: 'INDUSTRY', path: '/app/industry', badge: 'craft' },
     { icon: FleetIcon, label: 'ORG FLEET', path: '/app/org-fleet' },
     { icon: FleetIcon, label: 'ARMORY', path: '/app/armory' },
