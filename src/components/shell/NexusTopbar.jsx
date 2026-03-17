@@ -30,7 +30,8 @@ const EXTRA_LINKS = [
 
 function getBreadcrumb(pathname, search) {
   const params = new URLSearchParams(search || '');
-  const industryTab = {
+
+  const industryTabLabels = {
     overview: 'Overview',
     materials: 'Materials',
     blueprints: 'Blueprints',
@@ -39,22 +40,34 @@ function getBreadcrumb(pathname, search) {
   };
 
   if (pathname === '/app/industry') {
-    return { module: 'Industry Hub', tab: industryTab[params.get('tab')] || 'Overview' };
+    const tabParam = params.get('tab');
+    return { module: 'Industry Hub', tab: industryTabLabels[tabParam] || 'Overview' };
   }
-  if (pathname === '/app/scout') return { module: 'Scout Intel', tab: 'Deposits' };
-  if (pathname === '/app/ops') return { module: 'Op Board', tab: 'Live Feed' };
-  if (pathname === '/app/ops/new') return { module: 'Op Board', tab: 'Create Op' };
+  if (pathname === '/app/scout') {
+    const tabParam = params.get('tab');
+    const scoutTabs = { deposits: 'Deposits', routes: 'Routes' };
+    return { module: 'Scout Intel', tab: scoutTabs[tabParam] || 'Deposits' };
+  }
+  if (pathname === '/app/ops') return { module: 'Op Board', tab: null };
+  if (pathname === '/app/ops/new') return { module: 'Op Board', tab: 'New Op' };
   if (pathname.startsWith('/app/ops/')) return { module: 'Op Board', tab: 'Live Op' };
-  if (pathname === '/app/fleet') return { module: 'Fleet Forge', tab: 'Builds' };
-  if (pathname === '/app/coffer') return { module: 'Coffer', tab: 'Ledger' };
-  if (pathname === '/app/rescue') return { module: 'Rescue', tab: 'Board' };
-  if (pathname === '/app/roster') return { module: 'Roster', tab: 'Members' };
-  if (pathname === '/app/archive') return { module: 'Epic Archive', tab: 'History' };
-  if (pathname === '/app/profit') return { module: 'Profit Calc', tab: 'Routes' };
-  if (pathname === '/app/ledger') return { module: 'Material Ledger', tab: 'Alerts' };
+  if (pathname === '/app/fleet') return { module: 'Fleet Forge', tab: null };
+  if (pathname === '/app/coffer') return { module: 'Coffer', tab: null };
+  if (pathname === '/app/rescue') return { module: 'Rescue Board', tab: null };
+  if (pathname === '/app/roster') return { module: 'Roster', tab: null };
+  if (pathname === '/app/armory') {
+    const tabParam = params.get('tab');
+    const armoryTabs = { inventory: 'Inventory', checkout: 'Checkout', activity: 'Activity' };
+    return { module: 'Armory', tab: armoryTabs[tabParam] || null };
+  }
+  if (pathname === '/app/archive') return { module: 'Epic Archive', tab: null };
+  if (pathname === '/app/profit') return { module: 'Profit Calc', tab: null };
+  if (pathname === '/app/ledger') return { module: 'Material Ledger', tab: null };
+  if (pathname === '/app/handbook') return { module: 'Org Handbook', tab: null };
   if (pathname === '/app/profile' || pathname === '/app/settings') return { module: 'Profile', tab: 'Settings' };
   if (pathname === '/app/admin/todo') return { module: 'Admin', tab: 'Setup TODO' };
-  return { module: 'NexusOS', tab: 'Overview' };
+  if (pathname === '/app/admin/keys') return { module: 'Admin', tab: 'Key Management' };
+  return { module: 'NexusOS', tab: null };
 }
 
 function menuButtonStyle(active) {
