@@ -214,4 +214,9 @@ mockStore.seed('CraftQueue', [
   { id: 'cq-2', item_name: 'Shield Module Mk2',  blueprint_id: 'bp-5', status: 'OPEN',        priority: 2, claimed_by: null,             claimed_at: null,                                          notes: '' },
 ]);
 
+mockStore.seed('Wallet', []);
+mockStore.seed('Transaction', []);
+mockStore.seed('Contract', []);
+mockStore.seed('CargoJob', []);
+mockStore.seed('Consignment', []);
 mockStore.seed('RescueCall', []);

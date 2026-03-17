@@ -1,0 +1,47 @@
+@keyframes ambient-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(var(--ambient-drift-x, 0px), var(--ambient-drift-y, 0px), 0);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes nexus-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes list-materialise {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes list-collapse {
+  0% {
+    opacity: 1;
+    max-height: 240px;
+  }
+
+  100% {
+    opacity: 0;
+    max-height: 0;
+  }
+}

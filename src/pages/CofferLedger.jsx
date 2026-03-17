@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { RankGuard } from '@/core/shell/guards';
 import { Plus, TrendingUp, TrendingDown, Coins, BookOpen } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 
@@ -111,14 +112,18 @@ export default function CofferLedger() {
         ))}
       </div>
 
-      {/* Log button */}
-      <div className="flex justify-end">
-        <button onClick={() => setShowForm(!showForm)} className="nexus-btn primary" style={{ padding: '6px 14px', fontSize: 11 }}>
-          <Plus size={12}/> LOG ENTRY
-        </button>
-      </div>
+      <RankGuard requiredRank="PIONEER">
+        <>
+          {/* Log button */}
+          <div className="flex justify-end">
+            <button onClick={() => setShowForm(!showForm)} className="nexus-btn primary" style={{ padding: '6px 14px', fontSize: 11 }}>
+              <Plus size={12}/> LOG ENTRY
+            </button>
+          </div>
 
-      {showForm && <LogEntryForm onSubmit={handleLog} onCancel={() => setShowForm(false)} />}
+          {showForm && <LogEntryForm onSubmit={handleLog} onCancel={() => setShowForm(false)} />}
+        </>
+      </RankGuard>
 
       {/* Table */}
       <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>

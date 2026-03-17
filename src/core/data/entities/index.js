@@ -18,4 +18,10 @@ export const entitySchemas = {
   Consignment,
 };
 
+export const ENTITY_NAMES = Object.freeze(
+  Object.values(entitySchemas)
+    .map((schema) => schema?.name)
+    .filter(Boolean),
+);
+
 export default entitySchemas;

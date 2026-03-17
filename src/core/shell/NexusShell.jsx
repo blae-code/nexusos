@@ -3,6 +3,8 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
+import AmbientBackground from '@/core/shell/components/AmbientBackground';
+import { useOperationalState } from '@/core/shell/useOperationalState';
 import { withAppBase } from '@/core/data/app-base-path';
 import { notifyBrowser, useNotificationPreferences } from '@/core/data/notification-preferences';
 import { loadRescueCalls, refreshRescueCalls, subscribeToRescueCalls } from '@/core/data/rescue-board-store';
@@ -15,6 +17,7 @@ import { IS_DEV_MODE } from '@/core/data/dev';
 export default function NexusShell() {
   const location = useLocation();
   const { session, user, source, isAuthenticated, loading } = useSession();
+  const { hasLiveOp } = useOperationalState();
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
@@ -236,7 +239,8 @@ export default function NexusShell() {
 
   return (
     <div style={{ height: '100vh', background: 'var(--bg0)', padding: 5 }}>
-      <div className="nexus-shell-frame">
+      <div className="nexus-shell-frame nexus-depth-ambient" style={{ position: 'relative' }}>
+        <AmbientBackground dimmed={false} />
         {IS_DEV_MODE ? (
           <div
             style={{
@@ -284,7 +288,7 @@ export default function NexusShell() {
         />
         <div className="nexus-shell-body">
           <NexusSidebar currentPath={location.pathname} currentSearch={location.search} rank={outletContext.rank} />
-          <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative' }}>
+          <main className="nexus-shell-content nexus-fade-in nexus-depth-surface" style={{ position: 'relative' }} data-op-live={hasLiveOp ? 'true' : 'false'}>
             {IS_DEV_MODE ? (
               <div
                 aria-hidden="true"
