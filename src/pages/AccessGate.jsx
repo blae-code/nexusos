@@ -168,14 +168,31 @@ export default function AccessGate() {
           borderTop: '0.5px solid rgba(200,170,100,0.14)',
           borderRight: '0.5px solid rgba(200,170,100,0.10)',
           borderBottom: '0.5px solid rgba(200,170,100,0.10)',
-          padding: '40px',
+          padding: '52px 40px 40px 40px',
           boxSizing: 'border-box',
           zIndex: 1,
         }}
       >
         {/* EMBLEM */}
-        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-          <NexusCompass size={36} />
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Outer ring */}
+            <circle cx="26" cy="26" r="24" stroke="#E8E4DC" strokeWidth="0.75" opacity="0.5"/>
+            {/* Inner ring */}
+            <circle cx="26" cy="26" r="18" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.25"/>
+            {/* Cardinal tick marks */}
+            <line x1="26" y1="2" x2="26" y2="8" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            <line x1="26" y1="44" x2="26" y2="50" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            <line x1="2" y1="26" x2="8" y2="26" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            <line x1="44" y1="26" x2="50" y2="26" stroke="#E8E4DC" strokeWidth="1" opacity="0.6"/>
+            {/* Compass needle — north pointing up, red */}
+            <polygon points="26,10 29,26 26,22 23,26" fill="#C8391A"/>
+            {/* Compass needle — south, dark */}
+            <polygon points="26,42 29,26 26,30 23,26" fill="#E8E4DC" opacity="0.3"/>
+            {/* Centre pip */}
+            <circle cx="26" cy="26" r="2.5" fill="#C8391A"/>
+            <circle cx="26" cy="26" r="1" fill="#E8E4DC"/>
+          </svg>
         </div>
 
         {/* RED RULE */}
@@ -201,7 +218,7 @@ export default function AccessGate() {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 700,
-            fontSize: '52px',
+            fontSize: '62px',
             color: '#E8E4DC',
             letterSpacing: '0.05em',
             textTransform: 'uppercase',
