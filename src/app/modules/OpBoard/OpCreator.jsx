@@ -274,23 +274,44 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                 })}
               </div>
             </div>
-            <FormField label="LOCATION">
+            <div style={{ marginTop: 20 }}>
+              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Location</div>
               <input
                 className="nexus-input"
                 value={form.location}
                 onChange={e => set('location', e.target.value)}
-                placeholder="QV Station Alpha-7 · Keeger Belt"
+                placeholder="e.g. Aaron Halo, Yela Belt"
               />
-            </FormField>
-            <FormField label="SCHEDULED (UTC) *">
-              <input
-                className="nexus-input"
-                type="datetime-local"
-                value={form.scheduled_at}
-                onChange={e => set('scheduled_at', e.target.value)}
-                style={{ colorScheme: 'dark', maxWidth: 260 }}
-              />
-            </FormField>
+            </div>
+
+            <div style={{ marginTop: 20 }}>
+              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Scheduled Time (UTC) *</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  className="nexus-input"
+                  type="date"
+                  value={form.scheduled_at.split('T')[0] || ''}
+                  onChange={e => {
+                    const date = e.target.value;
+                    const time = form.scheduled_at.split('T')[1] || '00:00';
+                    set('scheduled_at', date && time ? `${date}T${time}` : form.scheduled_at);
+                  }}
+                  style={{ flex: 1, colorScheme: 'dark' }}
+                />
+                <input
+                  className="nexus-input"
+                  type="time"
+                  value={form.scheduled_at.split('T')[1] || ''}
+                  onChange={e => {
+                    const time = e.target.value;
+                    const date = form.scheduled_at.split('T')[0] || new Date().toISOString().split('T')[0];
+                    set('scheduled_at', date && time ? `${date}T${time}` : form.scheduled_at);
+                  }}
+                  style={{ flex: 0.8, colorScheme: 'dark' }}
+                />
+              </div>
+              <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 6, fontFamily: 'inherit' }}>All times are displayed in UTC across the org.</div>
+            </div>
           </div>
         </div>
 
