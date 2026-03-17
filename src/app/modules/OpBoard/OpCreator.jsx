@@ -282,7 +282,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                       fontSize: 10,
                       fontFamily: 'var(--font)',
                       background: form.type === type ? 'var(--bg3)' : 'var(--bg2)',
-                      border: `0.5px solid ${form.type === type ? 'var(--acc)' : 'var(--b1)'}`,
+                      border: `0.5px solid ${validationErrors.type ? 'var(--warn)' : form.type === type ? 'var(--acc)' : 'var(--b1)'}`,
                       borderRadius: 4,
                       cursor: 'pointer',
                       color: form.type === type ? 'var(--t0)' : 'var(--t2)',
@@ -304,6 +304,11 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                   </button>
                 ))}
               </div>
+              {validationErrors.type && (
+                <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
+                  {validationErrors.type}
+                </div>
+              )}
             </div>
 
             {/* System Selector */}
