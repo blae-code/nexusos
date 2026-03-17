@@ -376,7 +376,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                     const time = form.scheduled_at.split('T')[1] || '00:00';
                     set('scheduled_at', date && time ? `${date}T${time}` : form.scheduled_at);
                   }}
-                  style={{ flex: 1, colorScheme: 'dark' }}
+                  style={{ flex: 1, colorScheme: 'dark', borderColor: validationErrors.schedule ? 'var(--warn)' : undefined }}
                 />
                 <input
                   className="nexus-input"
@@ -387,9 +387,14 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                     const date = form.scheduled_at.split('T')[0] || new Date().toISOString().split('T')[0];
                     set('scheduled_at', date && time ? `${date}T${time}` : form.scheduled_at);
                   }}
-                  style={{ flex: 0.8, colorScheme: 'dark' }}
+                  style={{ flex: 0.8, colorScheme: 'dark', borderColor: validationErrors.schedule ? 'var(--warn)' : undefined }}
                 />
               </div>
+              {validationErrors.schedule && (
+                <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
+                  {validationErrors.schedule}
+                </div>
+              )}
               <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 6, fontFamily: 'inherit' }}>All times are displayed in UTC across the org.</div>
             </div>
           </div>
