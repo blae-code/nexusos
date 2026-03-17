@@ -262,6 +262,38 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
                 );
               })}
 
+              {/* Ship Selection — appears when role selected */}
+              {selectedRole && (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                    marginTop: 4,
+                    paddingTop: 8,
+                    borderTop: '0.5px solid var(--b0)',
+                    animation: 'nexus-fade-in 150ms ease-out both',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <label style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'var(--font)' }}>
+                      Your Ship
+                    </label>
+                    <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'var(--font)' }}>
+                      (optional)
+                    </span>
+                  </div>
+                  <input
+                    className="nexus-input"
+                    type="text"
+                    value={selectedShip}
+                    onChange={e => setSelectedShip(e.target.value)}
+                    placeholder="e.g. Prospector, MOLE, Cutlass Black"
+                    style={{ height: 32, fontSize: 11 }}
+                  />
+                </div>
+              )}
+
               <button
                 onClick={handleConfirmRsvp}
                 disabled={!selectedRole || confirming}
@@ -270,7 +302,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, ran
                   width: '100%',
                   padding: '8px 0',
                   fontSize: 10,
-                  marginTop: 6,
+                  marginTop: selectedRole ? 4 : 6,
                   opacity: !selectedRole || confirming ? 0.5 : 1,
                   cursor: !selectedRole || confirming ? 'not-allowed' : 'pointer',
                 }}
