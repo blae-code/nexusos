@@ -202,8 +202,9 @@ body {
 .nexus-label {
   display: block;
   margin-bottom: 6px;
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--t2);
 }
 
@@ -211,19 +212,19 @@ body {
   height: 40px;
   background: var(--bg2);
   border: 0.5px solid var(--b1);
-  border-radius: var(--r-md);
+  border-radius: 6px;
   color: var(--t0);
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 11px;
   padding: 0 10px;
   outline: none;
   width: 100%;
   transition: border-color .12s, box-shadow .12s;
 }
-.nexus-input::placeholder { color: var(--t3); }
+.nexus-input::placeholder { color: var(--t2); }
 .nexus-input:focus {
-  border-color: var(--b3);
-  box-shadow: 0 0 0 3px rgba(104,120,192,0.2);
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(104,120,192,0.15);
 }
 
 .nexus-tag {
