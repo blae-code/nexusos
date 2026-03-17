@@ -150,10 +150,20 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
       }
     };
 
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setUserMenuOpen(false);
+        setMoreMenuOpen(false);
+        setShowChangelog(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [showChangelog]);
 
