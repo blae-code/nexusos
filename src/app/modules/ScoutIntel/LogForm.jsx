@@ -230,7 +230,7 @@ export default function LogForm({ callsign, discordId, onSubmit, onCancel }) {
           onChange={e => set('quality_pct', parseInt(e.target.value))}
           style={{ width: '100%', accentColor: fb.color }}
         />
-        <div style={{ color: fb.color, fontSize: 9, letterSpacing: '0.08em', marginTop: 3 }}>
+        <div style={{ color: fb.color, fontSize: 10, letterSpacing: '0.08em', marginTop: 3 }}>
           {fb.label}
         </div>
       </div>
