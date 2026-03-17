@@ -222,15 +222,19 @@ export default function IndustryHub() {
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          padding: '0 16px',
+          flexDirection: 'column',
+          gap: 8,
+          padding: '10px 16px 0',
           borderBottom: '0.5px solid var(--b1)',
           background: 'var(--bg1)',
           flexShrink: 0,
         }}
       >
-        {TABS.map((item) => (
+        <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+          Industry
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {TABS.map((item) => (
           <button
             key={item.id}
             type="button"
