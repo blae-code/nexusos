@@ -28,6 +28,7 @@ import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
 import InventoryManager from '@/pages/InventoryManager';
+import CrewScheduler from '@/pages/CrewScheduler';
 import AdminSettings from '@/pages/AdminSettings';
 import BootScreen from '@/pages/BootScreen';
 
@@ -67,6 +68,7 @@ function App() {
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="armory" element={<Armory />} />
               <Route path="inventory" element={<InventoryManager />} />
+              <Route path="schedule" element={<CrewScheduler />} />
               <Route path="admin/settings" element={<AdminSettings />} />
             </Route>
 
