@@ -492,6 +492,14 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                 pointerEvents: saving ? 'none' : 'auto',
                 opacity: saving ? 0.6 : 1,
               }}
+              onMouseEnter={e => {
+                const arrow = e.currentTarget.querySelector('.publish-arrow');
+                if (arrow && !saving) arrow.style.transform = 'translateX(3px)';
+              }}
+              onMouseLeave={e => {
+                const arrow = e.currentTarget.querySelector('.publish-arrow');
+                if (arrow) arrow.style.transform = 'translateX(0)';
+              }}
             >
               {saving ? <div className="nexus-loading-dots"><span /><span /><span /></div> : (
                 <>
