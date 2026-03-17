@@ -391,8 +391,12 @@ export default function LiveOp() {
         </div>
 
         <div style={{ minHeight: 0, overflow: 'auto' }}>
-          <Panel title="CREW" style={{ minHeight: '100%' }}>
-            <CrewGrid {...crewGridProps} />
+          <Panel title="CREW & RSVP" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <OpRsvpSection {...opRsvpProps} />
+              <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+              <CrewGrid {...crewGridProps} />
+            </div>
           </Panel>
         </div>
 
