@@ -50,8 +50,6 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
   const [badges, setBadges] = useState({
     craft: false,
     live: false,
-    blueprints: false,
-    rescue: false,
   });
 
   useEffect(() => {
@@ -59,22 +57,18 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
 
     const loadBadges = async () => {
       try {
-        const [craftQueue, liveOps, priorityBlueprints] = await Promise.all([
+        const [craftQueue, liveOps] = await Promise.all([
           base44.entities.CraftQueue.list('-created_date', 50),
           base44.entities.Op.filter({ status: 'LIVE' }),
-          base44.entities.Blueprint.filter({ is_priority: true }),
         ]);
 
         if (cancelled) {
           return;
         }
 
-        const rescueCalls = await refreshRescueCalls();
         setBadges({
           craft: (craftQueue || []).some((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)),
           live: Array.isArray(liveOps) && liveOps.length > 0,
-          blueprints: (priorityBlueprints || []).some((item) => !(item.owned_by || item.owned_by_callsign)),
-          rescue: getActiveRescueCount(rescueCalls || loadRescueCalls()) > 0,
         });
       } catch (error) {
         if (!cancelled) {
@@ -85,41 +79,17 @@ export default function NexusSidebar({ currentPath, currentSearch, rank }) {
 
     loadBadges();
     const intervalId = window.setInterval(loadBadges, 45000);
-    const unsubscribeRescue = subscribeToRescueCalls((calls) => {
-      if (cancelled) {
-        return;
-      }
-
-      setBadges((current) => ({
-        ...current,
-        rescue: getActiveRescueCount(calls) > 0,
-      }));
-    });
 
     return () => {
       cancelled = true;
-      unsubscribeRescue();
       window.clearInterval(intervalId);
     };
   }, []);
 
-  const isElevated = ['PIONEER', 'FOUNDER', 'SYSTEM_ADMIN'].includes(rank || '');
-  const navItems = useMemo(
-    () => isElevated ? [...BASE_NAV_ITEMS, null, ...ADMIN_NAV_ITEMS] : BASE_NAV_ITEMS,
-    [isElevated],
-  );
-
-  const searchParams = useMemo(() => new URLSearchParams(currentSearch || ''), [currentSearch]);
-
   const isActiveRoute = (path) => {
-    if (path.startsWith('/app/industry?tab=')) {
-      return currentPath === '/app/industry' && searchParams.get('tab') === path.split('=')[1];
-    }
-
     if (path === '/app/profile') {
       return currentPath === '/app/profile' || currentPath === '/app/settings';
     }
-
     return currentPath === path || currentPath.startsWith(`${path}/`);
   };
 
