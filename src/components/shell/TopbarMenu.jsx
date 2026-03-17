@@ -51,9 +51,9 @@ export function DropdownContainer({ children, width }) {
         top: 'calc(100% + 8px)',
         right: 0,
         background: 'var(--bg2)',
-        border: '0.5px solid var(--b2)',
+        border: '0.5px solid var(--b1)',
         borderRadius: 8,
-        minWidth: width,
+        minWidth: width || 180,
         padding: '6px 0',
         zIndex: 100,
       }}
