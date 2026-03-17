@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, ChevronDown, ChevronUp, Star, FileText } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 const CATEGORY_COLOURS = {
   WEAPON:         '#ff6b35',
