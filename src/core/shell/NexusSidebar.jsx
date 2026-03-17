@@ -20,6 +20,7 @@ const NAV_GROUPS = [
   ],
   [
     { icon: IndustryIcon, label: 'INDUSTRY', path: '/app/industry', badge: 'craft' },
+    { icon: FleetIcon, label: 'ORG FLEET', path: '/app/org-fleet' },
     { icon: FleetIcon, label: 'ARMORY', path: '/app/armory' },
     { icon: Coins, label: 'COMMERCE', path: '/app/commerce' },
     { icon: Truck, label: 'LOGISTICS', path: '/app/logistics' },
