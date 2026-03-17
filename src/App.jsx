@@ -26,6 +26,7 @@ import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
 import AdminSettings from '@/pages/AdminSettings';
+import BootScreen from '@/pages/BootScreen';
 
 function App() {
   return (
