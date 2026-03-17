@@ -199,22 +199,80 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                 style={{ fontSize: 13 }}
               />
             </FormField>
-            <FormField label="TYPE *">
-              <SegmentedControl
-                options={OP_TYPES}
-                value={form.type}
-                onChange={v => set('type', v)}
-                tokenFn={opTypeToken}
-              />
-            </FormField>
-            <div style={{ display: 'flex', gap: 14 }}>
-              <FormField label="SYSTEM">
-                <SegmentedControl
-                  options={SYSTEMS}
-                  value={form.system_name}
-                  onChange={v => set('system_name', v)}
-                />
-              </FormField>
+            {/* Op Type Selector */}
+            <div>
+              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>Op Type *</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {['ROCKBREAKER', 'ESCORT', 'SALVAGE', 'CARGO', 'RECON', 'OTHER'].map((type, i) => (
+                  <button
+                    key={type}
+                    onClick={() => set('type', type)}
+                    style={{
+                      padding: '6px 14px',
+                      fontSize: 10,
+                      fontFamily: 'var(--font)',
+                      background: form.type === type ? 'var(--bg3)' : 'var(--bg2)',
+                      border: `0.5px solid ${form.type === type ? 'var(--acc)' : 'var(--b1)'}`,
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      color: form.type === type ? 'var(--t0)' : 'var(--t2)',
+                      borderLeft: form.type === type && type === 'ROCKBREAKER' ? '3px solid var(--live)' : undefined,
+                      transition: 'background 120ms, border-color 120ms',
+                      opacity: 0,
+                      animation: `nexus-fade-in 200ms ease-out both ${i * 60}ms`,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!e.currentTarget.style.background || e.currentTarget.style.background === 'var(--bg2)') {
+                        e.currentTarget.style.background = 'rgba(var(--bg3-rgb, 23,28,52), 0.8)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = form.type === type ? 'var(--bg3)' : 'var(--bg2)';
+                    }}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* System Selector */}
+            <div>
+              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>System</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {['STANTON', 'PYRO', 'NYX'].map((sys, i) => {
+                  const systemBorder = { STANTON: 'var(--info)', PYRO: 'var(--danger)', NYX: 'var(--acc2)' }[sys];
+                  return (
+                    <button
+                      key={sys}
+                      onClick={() => set('system_name', sys)}
+                      style={{
+                        padding: '6px 14px',
+                        fontSize: 10,
+                        fontFamily: 'var(--font)',
+                        background: form.system_name === sys ? 'var(--bg3)' : 'var(--bg2)',
+                        border: `0.5px solid ${form.system_name === sys ? systemBorder : 'var(--b1)'}`,
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        color: form.system_name === sys ? systemBorder : 'var(--t2)',
+                        transition: 'background 120ms, border-color 120ms',
+                        opacity: 0,
+                        animation: `nexus-fade-in 200ms ease-out both ${(i + 6) * 60}ms`,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!e.currentTarget.style.background || e.currentTarget.style.background === 'var(--bg2)') {
+                          e.currentTarget.style.background = 'rgba(var(--bg3-rgb, 23,28,52), 0.8)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = form.system_name === sys ? 'var(--bg3)' : 'var(--bg2)';
+                      }}
+                    >
+                      {sys}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <FormField label="LOCATION">
               <input
