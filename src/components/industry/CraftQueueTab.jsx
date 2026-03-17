@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Zap } from 'lucide-react';
+import { Zap, Wrench } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import RefineryEfficiencyCalculator from '@/components/industry/RefineryEfficiencyCalculator';
 import { OptimisedRow, DefaultRow } from './CraftQueueRows';
 
