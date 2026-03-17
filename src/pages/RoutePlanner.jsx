@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { MapPin, Plus, X, TrendingUp, Fuel, Clock, Package } from 'lucide-react';
+import { MapPin, X, TrendingUp, Fuel, Clock, Package } from 'lucide-react';
 import ProfitableRoutes from './components/ProfitableRoutes';
 import CommodityDemandChart from './components/CommodityDemandChart';
 

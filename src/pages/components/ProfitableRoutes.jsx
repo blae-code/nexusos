@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
-import { TrendingUp, AlertCircle, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 const ROUTE_EXAMPLES = [
   { from: 'New Babbage', to: 'Levski', profit: 45000, margin: '42%', volume: 850, risk: 'LOW' },
