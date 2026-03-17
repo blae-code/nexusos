@@ -68,11 +68,12 @@ export default function BlueprintRow({ blueprint, isPioneer, materials, callsign
             title={isPriority ? 'Remove priority' : 'Mark as priority'}
             style={{
               background: 'none', border: 'none', cursor: 'pointer', padding: 3,
-              color: isPriority ? 'var(--warn)' : 'var(--t3)',
               display: 'flex', alignItems: 'center', flexShrink: 0,
             }}
           >
-            <Star size={13} fill={isPriority ? 'var(--warn)' : 'none'} />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill={isPriority ? 'var(--warn)' : 'none'} stroke={isPriority ? 'var(--warn)' : 'var(--b2)'} strokeWidth="1.2" strokeLinejoin="round">
+              <polygon points="8,1.5 9.9,6.2 15,6.5 11.2,10 12.5,15 8,12.2 3.5,15 4.8,10 1,6.5 6.1,6.2" />
+            </svg>
           </button>
         )}
 
