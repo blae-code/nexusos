@@ -191,11 +191,12 @@ export default function CraftQueueTab({ craftQueue, callsign, materials = [], bl
 
             {craftQueue.length === 0 && (
               <tr>
-                <td
-                  colSpan={isOptimised ? 11 : 9}
-                  style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}
-                >
-                  Craft queue is empty
+                <td colSpan={isOptimised ? 11 : 9} style={{ padding: 0 }}>
+                  <EmptyState
+                    icon={Wrench}
+                    title="Queue is clear"
+                    detail="No craft jobs are currently open."
+                  />
                 </td>
               </tr>
             )}
