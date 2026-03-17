@@ -165,6 +165,16 @@ export function Toggle({ label, description = '', checked, onChange }) {
 
 // ─── Role slot editor ─────────────────────────────────────────────────────────
 
+function getRoleColour(name) {
+  const lower = (name || '').toLowerCase();
+  if (lower.includes('mining'))    return 'var(--info)';
+  if (lower.includes('escort'))    return 'var(--danger)';
+  if (lower.includes('fabricator')) return 'var(--acc2)';
+  if (lower.includes('scout'))     return 'var(--live)';
+  if (lower.includes('hauler'))    return 'var(--warn)';
+  return 'var(--b2)';
+}
+
 export function RoleSlotEditor({ slots, onChange }) {
   const adjust = (i, delta) => {
     const next = [...slots];
@@ -181,21 +191,36 @@ export function RoleSlotEditor({ slots, onChange }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', gap: 8, padding: '0 2px 2px' }}>
-        <span style={{ flex: 1, color: 'var(--t2)', fontSize: 9, letterSpacing: '0.08em' }}>ROLE NAME</span>
-        <span style={{ width: 88, color: 'var(--t2)', fontSize: 9, letterSpacing: '0.08em', textAlign: 'center' }}>CAPACITY</span>
-        <span style={{ width: 24 }} />
+      <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>
+        Role Slots
       </div>
       {slots.map((slot, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          key={i}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0',
+            borderBottom: '0.5px solid var(--b0)',
+          }}
+        >
+          {/* Colour dot */}
+          <div
+            style={{
+              width: 8, height: 8, borderRadius: '50%',
+              background: getRoleColour(slot.name), flexShrink: 0,
+            }}
+          />
+
+          {/* Role name input */}
           <input
             className="nexus-input"
-            style={{ flex: 1, fontSize: 12 }}
-            placeholder="Role name"
+            style={{ flex: 1, height: 32, fontSize: 11 }}
+            placeholder="Role name e.g. Mining Lead"
             value={slot.name}
             onChange={e => rename(i, e.target.value)}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, width: 88 }}>
+
+          {/* Capacity controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
             <button
               type="button"
               onClick={() => adjust(i, -1)}
@@ -203,9 +228,16 @@ export function RoleSlotEditor({ slots, onChange }) {
                 width: 24, height: 24, borderRadius: 4, cursor: 'pointer',
                 background: 'var(--bg3)', border: '0.5px solid var(--b2)',
                 color: 'var(--t1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'inherit', fontSize: 11,
+                transition: 'background 120ms',
               }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg3)'; }}
             >−</button>
-            <span style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600, minWidth: 28, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{
+              color: 'var(--t0)', fontSize: 11, minWidth: 28, textAlign: 'center',
+              fontVariantNumeric: 'tabular-nums',
+            }}>
               {slot.capacity}
             </span>
             <button
@@ -215,19 +247,32 @@ export function RoleSlotEditor({ slots, onChange }) {
                 width: 24, height: 24, borderRadius: 4, cursor: 'pointer',
                 background: 'var(--bg3)', border: '0.5px solid var(--b2)',
                 color: 'var(--t1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'inherit', fontSize: 11,
+                transition: 'background 120ms',
               }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg3)'; }}
             >+</button>
           </div>
+
+          {/* Delete button */}
           <button
             type="button"
             onClick={() => remove(i)}
             disabled={slots.length === 1}
             style={{
-              width: 24, background: 'none', border: 'none', cursor: slots.length > 1 ? 'pointer' : 'not-allowed',
-              color: slots.length > 1 ? 'var(--t2)' : 'var(--t3)', padding: 2, opacity: slots.length === 1 ? 0.4 : 1,
+              width: 24, height: 24, background: 'none', border: 'none',
+              cursor: slots.length > 1 ? 'pointer' : 'not-allowed',
+              color: slots.length > 1 ? 'var(--t3)' : 'var(--t3)', padding: 0,
+              borderRadius: 4, fontFamily: 'inherit', fontSize: 14,
+              opacity: slots.length === 1 ? 0.4 : 1,
+              transition: 'color 120ms',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
+            onMouseEnter={e => { if (slots.length > 1) e.currentTarget.style.color = 'var(--danger)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--t3)'; }}
           >
-            <X size={12} />
+            ×
           </button>
         </div>
       ))}
@@ -235,12 +280,16 @@ export function RoleSlotEditor({ slots, onChange }) {
         type="button"
         onClick={add}
         style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: 'var(--acc)', fontSize: 11, fontFamily: 'inherit',
-          letterSpacing: '0.06em', textAlign: 'left', padding: '3px 2px',
+          width: '100%', background: 'none', border: '0.5px dashed var(--b1)',
+          cursor: 'pointer', color: 'var(--t2)', fontSize: 10, fontFamily: 'inherit',
+          letterSpacing: '0.08em', padding: '8px 0', borderRadius: 4,
+          transition: 'border-color 120ms',
+          textTransform: 'uppercase',
         }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--acc-rgb), 0.4)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--b1)'; }}
       >
-        + Add role
+        + Add Role Slot
       </button>
     </div>
   );
