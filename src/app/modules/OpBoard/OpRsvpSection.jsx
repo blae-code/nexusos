@@ -31,7 +31,9 @@ function normalizeRoleSlots(slots) {
 export default function OpRsvpSection({ op, rsvps = [], callsign, discordId, rank }) {
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
+  const [selectedShip, setSelectedShip] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [leaveConfirming, setLeaveConfirming] = useState(false);
 
   const normalizedSlots = normalizeRoleSlots(op.role_slots);
   const confirmedRsvps = rsvps.filter(r => r.status === 'CONFIRMED');
