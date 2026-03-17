@@ -121,47 +121,61 @@ function EmptySlotCard({ roleName }) {
   );
 }
 
-// ─── CrewGrid ─────────────────────────────────────────────────────────────────
-
-export default function CrewGrid({ rsvps = [], op = {} }) {
+export default function CrewGrid({ rsvps = [], op = {}, layoutMode = 'ALT-TAB' }) {
   const confirmed = rsvps.filter(r => r.status === 'CONFIRMED');
+  const normalizedSlots = normalizeRoleSlots(op.role_slots);
+
+  // Count filled slots per role
+  const filledByRole = {};
+  confirmed.forEach(rsvp => {
+    if (rsvp.role) {
+      filledByRole[rsvp.role] = (filledByRole[rsvp.role] || 0) + 1;
+    }
+  });
+
+  // Build grid items: confirmed crew + empty slots
+  const gridItems = [];
+
+  // Add confirmed crew
+  confirmed.forEach(rsvp => {
+    gridItems.push({ type: 'crew', data: rsvp });
+  });
+
+  // Add empty slots
+  normalizedSlots.forEach(slot => {
+    const filled = filledByRole[slot.name] || 0;
+    const remaining = slot.capacity - filled;
+    for (let i = 0; i < remaining; i++) {
+      gridItems.push({ type: 'empty', data: slot.name });
+    }
+  });
+
+  const gridColumns = layoutMode === '2ND MONITOR' ? '1fr 1fr 1fr' : '1fr 1fr';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Crew grid */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6,
-      }}>
-        {confirmed.map(r => (
-          <CrewCard key={r.id} rsvp={r} op={op} />
-        ))}
-        {confirmed.length === 0 && (
-          <div style={{
-            gridColumn: '1 / -1', color: 'var(--t2)', fontSize: 11,
-            padding: '16px 0', textAlign: 'center',
-          }}>
-            No confirmed crew
-          </div>
-        )}
-      </div>
-
-      {/* Voice channel assignment */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '8px 10px', borderRadius: 6,
-        background: 'var(--bg2)', border: '0.5px solid var(--b1)',
-      }}>
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--info)', flexShrink: 0 }} />
-        <div>
-          <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.1em' }}>VOICE COMMS</div>
-          <div style={{ color: 'var(--info)', fontSize: 11, marginTop: 1 }}>
-            {voiceChannel(op.type)}
-          </div>
+      {gridItems.length > 0 ? (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: gridColumns,
+            gap: 8,
+          }}
+        >
+          {gridItems.map((item, idx) =>
+            item.type === 'crew' ? (
+              <CrewCard key={item.data.id} rsvp={item.data} op={op} />
+            ) : (
+              <EmptySlotCard key={`empty-${idx}`} roleName={item.data} />
+            )
+          )}
         </div>
-        <span style={{ marginLeft: 'auto', color: 'var(--t2)', fontSize: 10 }}>
-          {confirmed.length} crew
-        </span>
-      </div>
+      ) : (
+        <div style={{ color: 'var(--t2)', fontSize: 11, fontFamily: 'var(--font)', padding: '12px 0', textAlign: 'center' }}>
+          No crew confirmed
+        </div>
+      )}
     </div>
   );
 }
