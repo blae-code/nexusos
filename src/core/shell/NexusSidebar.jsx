@@ -17,27 +17,33 @@ import {
 } from './NexusIcons';
 import { Archive, BarChart2, BookOpen, TrendingUp } from 'lucide-react';
 
-const BASE_NAV_ITEMS = [
-  { icon: IndustryIcon, label: 'Industry Hub', path: '/app/industry', badge: 'craft' },
-  { icon: OpBoardIcon, label: 'Op Board', path: '/app/ops', badge: 'live' },
-  { icon: ScoutIcon, label: 'Scout Intel', path: '/app/scout' },
-  { icon: FleetIcon, label: 'Fleet Forge', path: '/app/fleet' },
-  { icon: BlueprintIcon, label: 'Blueprint Registry', path: '/app/industry?tab=blueprints', badge: 'blueprints' },
-  null,
-  { icon: CofferIcon, label: 'Coffer', path: '/app/coffer' },
-  { icon: TrendingUp, label: 'Profit Calc', path: '/app/profit' },
-  { icon: RescueIcon, label: 'Rescue', path: '/app/rescue', badge: 'rescue' },
-  { icon: RosterIcon, label: 'Roster', path: '/app/roster' },
-  { icon: RosterIcon, label: 'Armory', path: '/app/armory' },
-  null,
-  { icon: BarChart2, label: 'Material Ledger', path: '/app/ledger' },
-  { icon: Archive, label: 'Epic Archive', path: '/app/archive' },
-  { icon: BookOpen, label: 'Org Handbook', path: '/app/handbook' },
-  { icon: SettingsIcon, label: 'Profile Settings', path: '/app/profile' },
-];
-
-const ADMIN_NAV_ITEMS = [
-  { icon: KeyIcon, label: 'Key Management', path: '/app/admin/keys' },
+const NAV_STRUCTURE = [
+  {
+    group: 'OPERATIONS',
+    items: [
+      { icon: OpBoardIcon, label: 'OPERATIONS', path: '/app/ops', badge: 'live' },
+    ],
+  },
+  {
+    group: 'INTELLIGENCE',
+    items: [
+      { icon: ScoutIcon, label: 'INTEL', path: '/app/scout' },
+      { icon: Archive, label: 'ARCHIVE', path: '/app/archive' },
+    ],
+  },
+  {
+    group: 'INDUSTRY',
+    items: [
+      { icon: IndustryIcon, label: 'INDUSTRY', path: '/app/industry', badge: 'craft' },
+      { icon: RosterIcon, label: 'ARMORY', path: '/app/armory' },
+    ],
+  },
+  {
+    group: 'COMMAND',
+    items: [
+      { icon: SettingsIcon, label: 'Settings', path: '/app/profile' },
+    ],
+  },
 ];
 
 export default function NexusSidebar({ currentPath, currentSearch, rank }) {
