@@ -23,7 +23,7 @@ import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
-import KeyManagement from '@/apps/key-management/KeyManagement';
+import ComingSoon from '@/pages/ComingSoon';
 
 function App() {
   return (
