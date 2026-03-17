@@ -51,7 +51,7 @@ function StepIndicator({ currentStep, totalSteps }) {
     <div
       style={{
         display: 'flex',
-        gap: 6,
+        gap: 8,
         alignItems: 'center',
         justifyContent: 'center',
         paddingTop: 16,
@@ -61,11 +61,12 @@ function StepIndicator({ currentStep, totalSteps }) {
         <div
           key={i}
           style={{
-            width: 8,
-            height: 8,
+            width: i < currentStep ? 5 : i === currentStep ? 8 : 5,
+            height: i < currentStep ? 5 : i === currentStep ? 8 : 5,
             borderRadius: '50%',
             background: i < currentStep ? 'var(--live)' : i === currentStep ? 'var(--acc)' : 'var(--b2)',
-            transition: 'background 0.2s',
+            transition: 'width 200ms ease, height 200ms ease, background 200ms ease',
+            flexShrink: 0,
           }}
         />
       ))}
