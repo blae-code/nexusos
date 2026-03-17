@@ -140,6 +140,13 @@ export function SessionProvider({ children }) {
   const refreshRequestIdRef = useRef(0);
   const sessionRef = useRef(null);
 
+  // Immediately resolve loading in dev mode
+  useEffect(() => {
+    if (IS_DEV_MODE) {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
