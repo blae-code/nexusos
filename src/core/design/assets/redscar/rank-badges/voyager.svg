@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"
+     stroke="currentColor" stroke-linecap="round">
+  <!-- Secondary outer ring -->
+  <circle cx="16" cy="16" r="13" stroke-width="0.6"/>
+  <!-- Primary ring -->
+  <circle cx="16" cy="16" r="9"  stroke-width="0.75"/>
+  <!-- Cardinal spokes spanning between rings -->
+  <line x1="16" y1="3"  x2="16" y2="7"  stroke-width="1.2"/>
+  <line x1="29" y1="16" x2="25" y2="16" stroke-width="1.2"/>
+  <line x1="16" y1="29" x2="16" y2="25" stroke-width="1.2"/>
+  <line x1="3"  y1="16" x2="7"  y2="16" stroke-width="1.2"/>
+  <!-- Diagonal position markers at outer ring -->
+  <!-- NE 315°: 16+13×0.707=25.2, 16-13×0.707=6.8 -->
+  <circle cx="25.2" cy="6.8"  r="0.9" stroke-width="0.5"/>
+  <circle cx="25.2" cy="25.2" r="0.9" stroke-width="0.5"/>
+  <circle cx="6.8"  cy="25.2" r="0.9" stroke-width="0.5"/>
+  <circle cx="6.8"  cy="6.8"  r="0.9" stroke-width="0.5"/>
+  <!-- Center diamond -->
+  <path d="M 16 12.5 L 19.5 16 L 16 19.5 L 12.5 16 Z" stroke-width="0.75"/>
+</svg>

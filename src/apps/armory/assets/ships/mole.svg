@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" color="currentColor">
+  <style>
+    .ship-frame,.ship-detail,.ship-hardpoint{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+    .ship-frame{stroke-width:1}
+    .ship-detail{stroke-width:.75;opacity:.9}
+    .ship-hardpoint{stroke-width:.85;opacity:.82;transition:stroke-width .16s ease,opacity .16s ease}
+    .ship-hardpoint:hover{stroke-width:1.4;opacity:1}
+  </style>
+  <path class="ship-frame" d="M100 20L126 28L146 52L158 90L152 130L130 162L100 176L70 162L48 130L42 90L54 52L74 28Z"/>
+  <path class="ship-detail" d="M92 34H108L112 56H88Z"/>
+  <path class="ship-detail" d="M58 74L34 86V110L58 122"/>
+  <path class="ship-detail" d="M142 74L166 86V110L142 122"/>
+  <path class="ship-detail" d="M100 20V176"/>
+  <path class="ship-detail" d="M74 134H126"/>
+  <circle class="ship-hardpoint" cx="100" cy="50" r="4" data-hardpoint-id="mining-turret-center" data-hardpoint-type="mining-turret"/>
+  <circle class="ship-hardpoint" cx="54" cy="98" r="4" data-hardpoint-id="mining-turret-port" data-hardpoint-type="mining-turret"/>
+  <circle class="ship-hardpoint" cx="146" cy="98" r="4" data-hardpoint-id="mining-turret-starboard" data-hardpoint-type="mining-turret"/>
+</svg>

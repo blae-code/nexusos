@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" color="currentColor">
+  <style>
+    .ship-frame,.ship-detail,.ship-hardpoint{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+    .ship-frame{stroke-width:1}
+    .ship-detail{stroke-width:.75;opacity:.9}
+    .ship-hardpoint{stroke-width:.85;opacity:.82;transition:stroke-width .16s ease,opacity .16s ease}
+    .ship-hardpoint:hover{stroke-width:1.4;opacity:1}
+  </style>
+  <path class="ship-frame" d="M100 22L118 34L132 64L164 78L154 118L144 164L118 182H82L56 164L46 118L36 78L68 64L82 34Z"/>
+  <path class="ship-detail" d="M100 22V182"/>
+  <path class="ship-detail" d="M72 62H128"/>
+  <path class="ship-detail" d="M60 118H140"/>
+  <rect class="ship-detail" x="52" y="144" width="20" height="24" rx="2"/>
+  <rect class="ship-detail" x="128" y="144" width="20" height="24" rx="2"/>
+  <circle class="ship-hardpoint" cx="72" cy="88" r="4" data-hardpoint-id="weapon-pilot-left" data-hardpoint-type="weapon"/>
+  <circle class="ship-hardpoint" cx="128" cy="88" r="4" data-hardpoint-id="weapon-pilot-right" data-hardpoint-type="weapon"/>
+  <circle class="ship-hardpoint" cx="100" cy="110" r="4" data-hardpoint-id="turret-dorsal" data-hardpoint-type="turret"/>
+  <circle class="ship-hardpoint" cx="52" cy="96" r="4" data-hardpoint-id="missile-rack-left" data-hardpoint-type="missile"/>
+  <circle class="ship-hardpoint" cx="148" cy="96" r="4" data-hardpoint-id="missile-rack-right" data-hardpoint-type="missile"/>
+</svg>

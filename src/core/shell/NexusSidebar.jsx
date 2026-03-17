@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { IS_DEV_MODE } from '@/core/data/dev';
+import { RankBadge } from '@/core/design';
 import {
   FleetIcon,
   IndustryIcon,
@@ -172,6 +173,22 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
           </React.Fragment>
         ))}
       </div>
+
+      {rank && rank !== 'AFFILIATE' && (
+        <div style={{
+          width: '100%',
+          borderTop: '0.5px solid var(--b1)',
+          padding: '8px 0 6px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          flexShrink: 0,
+        }}>
+          <RankBadge rank={rank} size={14} />
+          <span style={{ fontSize: 8, color: 'var(--t3)', letterSpacing: '0.1em' }}>{rank}</span>
+        </div>
+      )}
 
       {IS_DEV_MODE ? (
         <div

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" color="currentColor">
+  <style>
+    .ship-frame,.ship-detail,.ship-hardpoint{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+    .ship-frame{stroke-width:1}
+    .ship-detail{stroke-width:.75;opacity:.9}
+    .ship-hardpoint{stroke-width:.85;opacity:.82;transition:stroke-width .16s ease,opacity .16s ease}
+    .ship-hardpoint:hover{stroke-width:1.4;opacity:1}
+  </style>
+  <path class="ship-frame" d="M100 14L108 24L116 56L120 118L114 170L100 186L86 170L80 118L84 56L92 24Z"/>
+  <path class="ship-detail" d="M100 14V186"/>
+  <path class="ship-detail" d="M86 82L62 96L86 110"/>
+  <path class="ship-detail" d="M114 82L138 96L114 110"/>
+  <path class="ship-detail" d="M90 140H110"/>
+  <circle class="ship-hardpoint" cx="78" cy="96" r="4" data-hardpoint-id="mount-left" data-hardpoint-type="weapon"/>
+  <circle class="ship-hardpoint" cx="122" cy="96" r="4" data-hardpoint-id="mount-right" data-hardpoint-type="weapon"/>
+  <circle class="ship-hardpoint" cx="100" cy="44" r="4" data-hardpoint-id="sensor-nose" data-hardpoint-type="sensor"/>
+</svg>

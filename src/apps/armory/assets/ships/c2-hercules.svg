@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" color="currentColor">
+  <style>
+    .ship-frame,.ship-detail,.ship-hardpoint{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+    .ship-frame{stroke-width:1}
+    .ship-detail{stroke-width:.75;opacity:.9}
+    .ship-hardpoint{stroke-width:.85;opacity:.82;transition:stroke-width .16s ease,opacity .16s ease}
+    .ship-hardpoint:hover{stroke-width:1.4;opacity:1}
+  </style>
+  <path class="ship-frame" d="M100 18L122 28L150 44L168 78L160 156L130 178H70L40 156L32 78L50 44L78 28Z"/>
+  <path class="ship-detail" d="M100 18V178"/>
+  <path class="ship-detail" d="M72 46H128"/>
+  <path class="ship-detail" d="M58 78H142"/>
+  <path class="ship-detail" d="M52 148H148"/>
+  <path class="ship-detail" d="M72 162H128"/>
+  <circle class="ship-hardpoint" cx="100" cy="46" r="4" data-hardpoint-id="turret-nose" data-hardpoint-type="turret"/>
+  <circle class="ship-hardpoint" cx="100" cy="94" r="4" data-hardpoint-id="turret-dorsal" data-hardpoint-type="turret"/>
+  <circle class="ship-hardpoint" cx="100" cy="132" r="4" data-hardpoint-id="turret-ventral" data-hardpoint-type="turret"/>
+</svg>

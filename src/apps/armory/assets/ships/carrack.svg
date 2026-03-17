@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" color="currentColor">
+  <style>
+    .ship-frame,.ship-detail,.ship-hardpoint{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+    .ship-frame{stroke-width:1}
+    .ship-detail{stroke-width:.75;opacity:.9}
+    .ship-hardpoint{stroke-width:.85;opacity:.82;transition:stroke-width .16s ease,opacity .16s ease}
+    .ship-hardpoint:hover{stroke-width:1.4;opacity:1}
+  </style>
+  <path class="ship-frame" d="M100 16L124 26L152 46L166 80L160 156L132 178H68L40 156L34 80L48 46L76 26Z"/>
+  <path class="ship-detail" d="M100 16V178"/>
+  <path class="ship-detail" d="M54 78H146"/>
+  <path class="ship-detail" d="M58 116H142"/>
+  <path class="ship-detail" d="M70 154H130"/>
+  <path class="ship-detail" d="M56 62L40 82L56 104"/>
+  <path class="ship-detail" d="M144 62L160 82L144 104"/>
+  <circle class="ship-hardpoint" cx="100" cy="50" r="4" data-hardpoint-id="turret-fore" data-hardpoint-type="turret"/>
+  <circle class="ship-hardpoint" cx="60" cy="94" r="4" data-hardpoint-id="turret-port" data-hardpoint-type="turret"/>
+  <circle class="ship-hardpoint" cx="140" cy="94" r="4" data-hardpoint-id="turret-starboard" data-hardpoint-type="turret"/>
+  <circle class="ship-hardpoint" cx="100" cy="148" r="4" data-hardpoint-id="turret-aft" data-hardpoint-type="turret"/>
+  <circle class="ship-hardpoint" cx="100" cy="72" r="4" data-hardpoint-id="sensor-array" data-hardpoint-type="sensor"/>
+</svg>

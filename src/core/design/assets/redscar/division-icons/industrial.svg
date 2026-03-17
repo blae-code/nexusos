@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Drill shaft -->
+  <rect x="10" y="2" width="4" height="10" rx="0.5" stroke-width="0.75"/>
+  <!-- Drill bit — downward-pointing triangle -->
+  <path d="M 8 12 L 12 21 L 16 12 Z" stroke-width="0.75"/>
+  <!-- Mining laser / energy beam lines flanking shaft -->
+  <line x1="5"  y1="7"  x2="9"  y2="7"  stroke-width="0.6" opacity="0.65"/>
+  <line x1="15" y1="7"  x2="19" y2="7"  stroke-width="0.6" opacity="0.65"/>
+  <line x1="4"  y1="10" x2="9"  y2="10" stroke-width="0.5" opacity="0.42"/>
+  <line x1="15" y1="10" x2="20" y2="10" stroke-width="0.5" opacity="0.42"/>
+  <!-- Material particles at drill tip -->
+  <circle cx="10"  cy="20"   r="0.5" stroke-width="0.4" opacity="0.5"/>
+  <circle cx="14"  cy="20"   r="0.5" stroke-width="0.4" opacity="0.5"/>
+  <circle cx="12"  cy="21.5" r="0.4" stroke-width="0.35" opacity="0.33"/>
+</svg>

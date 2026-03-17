@@ -3,6 +3,7 @@
  * Props: { rsvps, op, layoutMode }
  */
 import React from 'react';
+import { RankBadge } from '@/core/design';
 
 const ROLE_COLORS = {
   mining:       'var(--info)',
@@ -52,6 +53,7 @@ function CrewCard({ rsvp, op }) {
         <span style={{ fontSize: 11, color: 'var(--t0)', fontFamily: 'var(--font)', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {rsvp.callsign || '—'}
         </span>
+        {rsvp.rank && <RankBadge rank={rsvp.rank} size={12} />}
         {/* Online indicator — placeholder for future real-time presence */}
         {/* <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--live)', flexShrink: 0, animation: 'pulse-dot 2.5s ease-in-out infinite' }} /> */}
       </div>

@@ -3,7 +3,6 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { authApi } from '@/core/data/auth-api';
 import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
-import { useVerseStatus } from '@/core/data/useVerseStatus';
 
 function buildStars() {
   if (typeof window === 'undefined') return [];

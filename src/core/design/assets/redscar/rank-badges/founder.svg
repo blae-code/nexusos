@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"
+     stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="16" cy="16" r="13.5" stroke-width="0.6"/>
+  <circle cx="16" cy="16" r="9"    stroke-width="0.75"/>
+  <!-- Cardinal arms -->
+  <line x1="16" y1="2"  x2="16" y2="7"  stroke-width="1.4"/>
+  <line x1="30" y1="16" x2="25" y2="16" stroke-width="1.4"/>
+  <line x1="16" y1="30" x2="16" y2="25" stroke-width="1.4"/>
+  <line x1="2"  y1="16" x2="7"  y2="16" stroke-width="1.4"/>
+  <!-- Ornamental diamonds at diagonal positions between rings (r≈11) -->
+  <!-- NE: 16+11×0.707=23.8, 16-11×0.707=8.2 -->
+  <path d="M 23.8 6.7 L 25.3 8.2  L 23.8 9.7  L 22.3 8.2  Z" stroke-width="0.55"/>
+  <path d="M 23.8 22.3 L 25.3 23.8 L 23.8 25.3 L 22.3 23.8 Z" stroke-width="0.55"/>
+  <path d="M 8.2  22.3 L 9.7  23.8 L 8.2  25.3 L 6.7  23.8 Z" stroke-width="0.55"/>
+  <path d="M 8.2  6.7  L 9.7  8.2  L 8.2  9.7  L 6.7  8.2  Z" stroke-width="0.55"/>
+  <!-- Center cross -->
+  <line x1="16" y1="11" x2="16" y2="21" stroke-width="0.7"/>
+  <line x1="11" y1="16" x2="21" y2="16" stroke-width="0.7"/>
+  <!-- Center diamond -->
+  <path d="M 16 13.5 L 18.5 16 L 16 18.5 L 13.5 16 Z" stroke-width="0.75"/>
+</svg>

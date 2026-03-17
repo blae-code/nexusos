@@ -3,8 +3,7 @@ import { ChevronDown, LogOut, ScrollText, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import NexusCompass from '@/core/design/NexusCompass';
-import NexusToken from '@/core/design/NexusToken';
-import { rankToken } from '@/core/data/tokenMap';
+import { RankBadge } from '@/core/design';
 import { useSession } from '@/core/data/SessionContext';
 import { appVersion } from '@/core/data/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
@@ -13,15 +12,6 @@ import { StatusPill, VersionPill } from './TopbarPills';
 import { LayoutButton, DropdownContainer, Divider, MenuLink, ChangelogPanel } from './TopbarMenu';
 import { IS_DEV_MODE } from '@/core/data/dev';
 
-const RANK_COLOURS = {
-  PIONEER: 'var(--warn)',
-  FOUNDER: 'var(--acc2)',
-  VOYAGER: 'var(--info)',
-  SCOUT: 'var(--live)',
-  VAGRANT: 'var(--t1)',
-  AFFILIATE: 'var(--t2)',
-  SYSTEM_ADMIN: 'var(--info)',
-};
 
 const EXTRA_LINKS = [
   { label: 'Coffer Ledger', path: '/app/coffer' },
@@ -114,7 +104,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
     : EXTRA_LINKS;
 
   const showPtuPill = VERSE_BUILD_LABEL.toUpperCase().includes('PTU');
-  const rankColor = RANK_COLOURS[user?.rank] || 'var(--t1)';
 
   useEffect(() => {
     let cancelled = false;
@@ -318,11 +307,9 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 transition: 'background 150ms ease, border-color 150ms ease',
               }}
             >
-              <NexusToken
-                src={rankToken(source === 'admin' ? 'PIONEER' : (user?.rank || 'AFFILIATE'))}
+              <RankBadge
+                rank={source === 'admin' ? 'PIONEER' : (user?.rank || 'AFFILIATE')}
                 size={16}
-                alt={source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}
-                title={`Rank: ${source === 'admin' ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')}`}
               />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
                 <span style={{ fontSize: 11, color: 'var(--t0)', lineHeight: 1, fontFamily: 'inherit' }}>

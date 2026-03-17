@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Quill feather sweep -->
+  <path d="M 5 19 C 7 14 12 9 20 4" stroke-width="0.9"/>
+  <!-- Quill spine -->
+  <path d="M 5 19 L 13.5 10.5" stroke-width="0.5" opacity="0.5"/>
+  <!-- Quill nib -->
+  <path d="M 5 19 L 8.5 16 L 7 13.5" stroke-width="0.8"/>
+  <!-- Signal / broadcast waves upper right -->
+  <path d="M 16 13.5 Q 18 11.5 20 13.5"   stroke-width="0.65" opacity="0.75"/>
+  <path d="M 17.5 16  Q 20.5 13  23.5 16" stroke-width="0.55" opacity="0.48"/>
+</svg>
