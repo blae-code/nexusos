@@ -1,23 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import NexusCompass from '@/core/design/NexusCompass';
 import { authApi } from '@/core/data/auth-api';
 import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
 import { useVerseStatus } from '@/core/data/useVerseStatus';
-
-const COLORS = {
-  void: '#08080A',
-  voidFooter: '#0A0908',
-  panel: '#0F0F0D',
-  accentRed: '#C8391A',
-  accentAmber: '#C47A1A',
-  textPrimary: '#E8E4DC',
-  textSecondary: '#8A8478',
-  borderDefault: 'rgba(200, 170, 100, 0.08)',
-  borderAccent: 'rgba(200, 170, 100, 0.12)',
-  borderTop: 'rgba(200, 170, 100, 0.12)',
-};
 
 function buildStars() {
   if (typeof window === 'undefined') return [];
@@ -53,60 +40,10 @@ function getErrorMessage(errorCode, supportChannelLabel) {
   }
 }
 
-function StatusBar() {
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        width: '100%',
-        height: 32,
-        background: COLORS.voidFooter,
-        borderTop: `0.5px solid ${COLORS.borderTop}`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 24px',
-        zIndex: 100,
-        fontFamily: "'Barlow Condensed', sans-serif",
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div
-          style={{
-            width: 5,
-            height: 5,
-            borderRadius: '50%',
-            background: COLORS.accentAmber,
-            animation: 'pulse-verse 2s ease-in-out infinite',
-          }}
-        />
-        <span style={{ fontSize: 11, color: COLORS.accentAmber, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-          VERSE 4.7.0
-        </span>
-      </div>
-      <div style={{ fontSize: 11, color: COLORS.textSecondary, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-        REDSCAR · NOMADS · ETERNAL VOYAGE
-      </div>
-    </div>
-  );
-}
-
-function LoadingDots() {
-  return (
-    <span style={{ display: 'inline-flex', gap: 6, color: COLORS.textPrimary }}>
-      <span style={{ width: 4, height: 4, borderRadius: '50%', background: COLORS.textPrimary, animation: 'pulse-dot 1s ease-in-out infinite' }} />
-      <span style={{ width: 4, height: 4, borderRadius: '50%', background: COLORS.textPrimary, animation: 'pulse-dot 1s ease-in-out infinite 0.15s' }} />
-      <span style={{ width: 4, height: 4, borderRadius: '50%', background: COLORS.textPrimary, animation: 'pulse-dot 1s ease-in-out infinite 0.3s' }} />
-    </span>
-  );
-}
-
 export default function AccessGate() {
   const location = useLocation();
   const { isAuthenticated, loading, user, refreshSession } = useSession();
-  const { status: verseStatus } = useVerseStatus();
+
   const [stars, setStars] = useState([]);
   const [health, setHealth] = useState(null);
   const [healthLoading, setHealthLoading] = useState(!IS_DEV_MODE);
