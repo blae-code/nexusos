@@ -1,163 +1,74 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import { resolveMemberSession, sessionNoStoreHeaders } from '../_shared/auth.ts';
+import { createHmac } from 'node:crypto';
 
-const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
-
-function normalizeAdminValue(value: unknown) {
-  return String(value ?? '')
-    .trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, '_');
+function getSessionCookie(req) {
+  const cookieHeader = req.headers.get('cookie') || '';
+  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+    const [name, value] = cookie.trim().split('=');
+    acc[name] = decodeURIComponent(value || '');
+    return acc;
+  }, {});
+  return cookies.nexus_session || '';
 }
 
-function isBase44Admin(user: any) {
-  if (!user) return false;
+function validateSessionSignature(sessionToken, secret) {
+  if (!sessionToken || !secret) return false;
 
-  if (user.is_admin === true || user.isAdmin === true || user.is_system_admin === true || user.isSystemAdmin === true) {
-    return true;
-  }
+  const parts = sessionToken.split('.');
+  if (parts.length !== 2) return false;
 
-  const scalarFields = [
-    user.role,
-    user.access_level,
-    user.accessLevel,
-    user.app_role,
-    user.appRole,
-    user.user_role,
-    user.userRole,
-    user.permission_level,
-    user.permissionLevel,
-    user.level,
-    user.type,
-  ];
-
-  if (scalarFields.some((value) => ADMIN_MARKERS.has(normalizeAdminValue(value)))) {
-    return true;
-  }
-
-  const roleCollections = [user.roles, user.permissions, user.access];
-  return roleCollections.some((collection) =>
-    Array.isArray(collection) && collection.some((value) => ADMIN_MARKERS.has(normalizeAdminValue(value))),
-  );
+  const [payload, signature] = parts;
+  const expectedSignature = createHmac('sha256', secret).update(payload).digest('hex');
+  
+  return signature === expectedSignature;
 }
 
-function toAdminSession(adminUser: any) {
-  return {
-    authenticated: true,
-    source: 'admin',
-    user: {
-      id: adminUser.id || 'admin',
-      discordId: 'SYSTEM_ADMIN',
-      callsign: adminUser.full_name || adminUser.name || adminUser.email || 'SYS-ADMIN',
-      rank: 'PIONEER',
-      discordRoles: ['Base44 Admin'],
-      joinedAt: null,
-    },
-  };
-}
-
-async function resolveAdminFromBase44Request(req: Request) {
-  const appId = req.headers.get('Base44-App-Id') || req.headers.get('X-App-Id');
-  const cookie = req.headers.get('cookie');
-  const authorization = req.headers.get('Authorization');
-
-  if (!appId || (!cookie && !authorization)) {
+function parseSessionPayload(payload) {
+  try {
+    const decoded = Buffer.from(payload, 'hex').toString('utf8');
+    return JSON.parse(decoded);
+  } catch {
     return null;
   }
-
-  const serverUrl = req.headers.get('Base44-Api-Url') || new URL(req.url).origin;
-  const headers = new Headers({
-    Accept: 'application/json',
-    'X-App-Id': appId,
-    'Base44-App-Id': appId,
-  });
-
-  if (cookie) {
-    headers.set('Cookie', cookie);
-  }
-
-  const originUrl = req.headers.get('X-Origin-URL');
-  if (originUrl) {
-    headers.set('X-Origin-URL', originUrl);
-  }
-
-  if (authorization) {
-    headers.set('Authorization', authorization);
-  }
-
-  const stateHeader = req.headers.get('Base44-State');
-  if (stateHeader) {
-    headers.set('Base44-State', stateHeader);
-  }
-
-  const response = await fetch(new URL(`/api/apps/${appId}/entities/User/me`, serverUrl), {
-    method: 'GET',
-    headers,
-  }).catch(() => null);
-
-  if (!response || !response.ok) {
-    return null;
-  }
-
-  return response.json();
 }
 
-Deno.serve(async (req: Request) => {
+Deno.serve(async (req) => {
   if (req.method !== 'GET') {
-    return Response.json({ error: 'Method not allowed' }, {
-      status: 405,
-      headers: sessionNoStoreHeaders(),
-    });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
 
-  let memberSession = null;
-  try {
-    memberSession = await resolveMemberSession(req);
-  } catch (error) {
-    console.warn('[auth/session] member session lookup unavailable', error);
-  }
+  const sessionToken = getSessionCookie(req);
+  const sessionSecret = Deno.env.get('SESSION_SIGNING_SECRET');
 
-  if (memberSession) {
-    return Response.json(memberSession, {
-      headers: sessionNoStoreHeaders(),
-    });
-  }
-
-  let previewAdmin = null;
-  try {
-    previewAdmin = await resolveAdminFromBase44Request(req);
-  } catch (error) {
-    console.warn('[auth/session] preview admin lookup unavailable', error);
-  }
-
-  if (isBase44Admin(previewAdmin)) {
-    return Response.json(toAdminSession(previewAdmin), {
-      headers: sessionNoStoreHeaders(),
-    });
-  }
-
-  try {
-    const base44 = createClientFromRequest(req);
-    const adminUser = await base44.auth.me().catch(() => null);
-    if (isBase44Admin(adminUser)) {
-      return Response.json(toAdminSession(adminUser), {
-        headers: sessionNoStoreHeaders(),
-      });
-    }
-  } catch (error) {
-    console.warn('[auth/session] base44 auth fallback unavailable', error);
-  }
-
-  try {
-    return Response.json({ authenticated: false }, {
+  if (!sessionToken || !sessionSecret) {
+    return new Response(JSON.stringify({ authenticated: false }), {
       status: 401,
-      headers: sessionNoStoreHeaders(),
-    });
-  } catch (error) {
-    console.error('[auth/session]', error);
-    return Response.json({ authenticated: false, error: 'Session lookup failed' }, {
-      status: 500,
-      headers: sessionNoStoreHeaders(),
+      headers: { 'Content-Type': 'application/json' },
     });
   }
+
+  if (!validateSessionSignature(sessionToken, sessionSecret)) {
+    return new Response(JSON.stringify({ authenticated: false }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const parts = sessionToken.split('.');
+  const sessionData = parseSessionPayload(parts[0]);
+
+  if (!sessionData) {
+    return new Response(JSON.stringify({ authenticated: false }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(JSON.stringify({
+    authenticated: true,
+    user: sessionData,
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 });
