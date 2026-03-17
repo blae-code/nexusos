@@ -157,6 +157,8 @@ export function ChangelogPanel({ onClose }) {
         <button
           type="button"
           onClick={onClose}
+          className="nexus-tooltip"
+          data-tooltip="Close"
           style={{
             background: 'transparent',
             border: 'none',
