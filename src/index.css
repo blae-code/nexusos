@@ -284,6 +284,20 @@ textarea.nexus-input {
   }
 }
 
+@keyframes nexus-page-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.nexus-page-enter {
+  animation: nexus-page-enter 0.15s ease-out both;
+}
+
 @keyframes node-pulse {
   0%, 100% { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 3px var(--b2); }
   50%       { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 4px var(--acc); }
