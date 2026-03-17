@@ -422,8 +422,9 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
               Cancel
             </button>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+          </div>
+          </div>
+          </div>
+          </div>
+          );
+          }
