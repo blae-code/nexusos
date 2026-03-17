@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Plus, Beaker } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 function timeRemaining(completes_at) {
   if (!completes_at) return '—';
