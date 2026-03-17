@@ -1,37 +1,16 @@
 /**
  * LootTally — material harvest tracker for phases index >= 4.
- * Props: { op, callsign, currentPhase, onUpdate }
- *
- * Only renders when currentPhase >= 4.
- * Loot stored as session_log entries with type='MATERIAL'.
- * Log loot dialog: material autocomplete from game_cache_items,
- * qty SCU, quality %, est aUEC from game_cache_commodities sell price.
- * Design decision: est value = (quantity_scu * sell_price_per_scu).
- * If no price data found, est value field shows '—'.
- * Running total row at bottom of table.
+ * Props: { op, callsign, rank, currentPhase, onUpdate }
  */
 import React, { useState, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
-// ─── Overlay (position:absolute, scoped) ─────────────────────────────────────
-
-function Overlay({ onDismiss, children }) {
-  return (
-    <div
-      style={{
-        position: 'absolute', inset: 0, minHeight: '100%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(var(--bg0-rgb), 0.86)', zIndex: 50,
-      }}
-      onMouseDown={e => { if (e.target === e.currentTarget) onDismiss?.(); }}
-    >
-      {children}
-    </div>
-  );
+function qColor(pct) {
+  if ((pct || 0) >= 80) return 'var(--live)';
+  if ((pct || 0) >= 60) return 'var(--warn)';
+  return 'var(--t2)';
 }
-
-// ─── Simple autocomplete input ────────────────────────────────────────────────
 
 function AutocompleteInput({ value, onChange, onSelect, suggestions, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -43,25 +22,46 @@ function AutocompleteInput({ value, onChange, onSelect, suggestions, placeholder
         className="nexus-input"
         value={value}
         placeholder={placeholder}
-        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onChange={e => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         autoComplete="off"
         style={{ width: '100%', boxSizing: 'border-box' }}
       />
       {open && suggestions.length > 0 && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 60,
-          background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-          borderRadius: '0 0 6px 6px', maxHeight: 160, overflowY: 'auto',
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            zIndex: 60,
+            background: 'var(--bg3)',
+            border: '0.5px solid var(--b2)',
+            borderRadius: '0 0 6px 6px',
+            maxHeight: 160,
+            overflowY: 'auto',
+          }}
+        >
           {suggestions.map((s, i) => (
             <div
               key={i}
-              onMouseDown={() => { onSelect(s); setOpen(false); }}
-              style={{ padding: '6px 10px', color: 'var(--t0)', fontSize: 12, cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg4)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              onMouseDown={() => {
+                onSelect(s);
+                setOpen(false);
+              }}
+              style={{
+                padding: '6px 10px',
+                color: 'var(--t0)',
+                fontSize: 11,
+                fontFamily: 'var(--font)',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg4)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               {s.label}
             </div>
@@ -72,20 +72,19 @@ function AutocompleteInput({ value, onChange, onSelect, suggestions, placeholder
   );
 }
 
-// ─── Log loot dialog ──────────────────────────────────────────────────────────
-
-function LogLootDialog({ onClose, onSubmit }) {
-  const [form, setForm] = useState({ material_name: '', quantity_scu: '', quality_pct: '', est_value: '' });
-  const [itemSugg, setItemSugg]   = useState([]);
-  const [priceLookup, setPriceLookup] = useState(null);
-  const [saving, setSaving]       = useState(false);
-  const debounce                  = useRef(null);
+function LogForm({ onSubmit, onCancel }) {
+  const [form, setForm] = useState({ material_name: '', quantity_scu: '', quality_pct: '' });
+  const [itemSugg, setItemSugg] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const debounce = useRef(null);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  // Autocomplete from game_cache_items
   const loadSuggestions = useCallback(async (q) => {
-    if (q.length < 3) { setItemSugg([]); return; }
+    if (q.length < 3) {
+      setItemSugg([]);
+      return;
+    }
     try {
       const res = await base44.entities.game_cache_items.list('-item_name', 100);
       setItemSugg(
@@ -94,37 +93,13 @@ function LogLootDialog({ onClose, onSubmit }) {
           .slice(0, 8)
           .map(r => ({ label: r.item_name || r.name, value: r.item_name || r.name }))
       );
-    } catch { setItemSugg([]); }
+    } catch {
+      setItemSugg([]);
+    }
   }, []);
 
-  // Look up commodity price when material is selected
-  const lookupPrice = useCallback(async (name) => {
-    if (!name) return;
-    try {
-      const res = await base44.entities.game_cache_commodities.list('-name', 100);
-      const match = (res || []).find(c =>
-        (c.name || c.commodity_name || '').toLowerCase() === name.toLowerCase()
-      );
-      setPriceLookup(match ? (match.sell_price || match.price || null) : null);
-    } catch { setPriceLookup(null); }
-  }, []);
-
-  // Auto-compute est value when qty or price changes
-  const computeEst = (qty, price) => {
-    const q = parseFloat(qty);
-    const p = parseFloat(price);
-    if (!isNaN(q) && !isNaN(p) && p > 0) return Math.round(q * p);
-    return '';
-  };
-
-  const handleSelect = async (s) => {
+  const handleSelect = (s) => {
     set('material_name', s.value);
-    await lookupPrice(s.value);
-  };
-
-  const handleQtyChange = (v) => {
-    set('quantity_scu', v);
-    if (priceLookup) set('est_value', computeEst(v, priceLookup));
   };
 
   const submit = async () => {
@@ -132,105 +107,105 @@ function LogLootDialog({ onClose, onSubmit }) {
     setSaving(true);
     await onSubmit({
       material_name: form.material_name.trim(),
-      quantity_scu:  parseFloat(form.quantity_scu) || 0,
-      quality_pct:   parseFloat(form.quality_pct)  || 0,
-      est_value:     parseFloat(form.est_value)     || 0,
+      quantity_scu: parseFloat(form.quantity_scu) || 0,
+      quality_pct: parseFloat(form.quality_pct) || 0,
     });
     setSaving(false);
-    onClose();
   };
 
-  const LABEL = { color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 5 };
-
   return (
-    <Overlay onDismiss={onClose}>
-      <div className="nexus-fade-in" style={{
-        width: 420, background: 'var(--bg2)', border: '0.5px solid var(--b2)',
-        borderRadius: 10, padding: 22,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <span style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600, letterSpacing: '0.06em' }}>
-            LOG LOOT
-          </span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: 2 }}>
-            <X size={14} />
-          </button>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        padding: '8px 0',
+        borderTop: '0.5px solid var(--b0)',
+        animation: 'loot-form-in 200ms ease-out both',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <AutocompleteInput
+            value={form.material_name}
+            placeholder="Material..."
+            suggestions={itemSugg}
+            onChange={v => {
+              set('material_name', v);
+              clearTimeout(debounce.current);
+              debounce.current = setTimeout(() => loadSuggestions(v), 250);
+            }}
+            onSelect={handleSelect}
+          />
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label style={LABEL}>MATERIAL *</label>
-            <AutocompleteInput
-              value={form.material_name}
-              placeholder="Laranite, Quantanium..."
-              suggestions={itemSugg}
-              onChange={v => {
-                set('material_name', v);
-                clearTimeout(debounce.current);
-                debounce.current = setTimeout(() => loadSuggestions(v), 250);
-              }}
-              onSelect={handleSelect}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: 10 }}>
-            <div style={{ flex: 1 }}>
-              <label style={LABEL}>QTY SCU *</label>
-              <input
-                className="nexus-input"
-                type="number" min="0" step="0.1"
-                value={form.quantity_scu}
-                onChange={e => handleQtyChange(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={LABEL}>QUALITY %</label>
-              <input
-                className="nexus-input"
-                type="number" min="0" max="100" step="1"
-                value={form.quality_pct}
-                onChange={e => set('quality_pct', e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box' }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label style={LABEL}>
-              EST VALUE (aUEC)
-              {priceLookup && (
-                <span style={{ color: 'var(--t3)', marginLeft: 6, fontWeight: 400 }}>
-                  {priceLookup.toLocaleString()}/SCU
-                </span>
-              )}
-            </label>
-            <input
-              className="nexus-input"
-              type="number" min="0"
-              value={form.est_value}
-              onChange={e => set('est_value', e.target.value)}
-              placeholder="Auto-computed or manual"
-              style={{ width: '100%', boxSizing: 'border-box' }}
-            />
-          </div>
+        <div style={{ width: 80 }}>
+          <input
+            className="nexus-input"
+            type="number"
+            min="0"
+            step="0.1"
+            value={form.quantity_scu}
+            onChange={e => set('quantity_scu', e.target.value)}
+            placeholder="0 SCU"
+            style={{ fontSize: 11, height: 32 }}
+          />
         </div>
-
-        <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
-          <button onClick={onClose} className="nexus-btn" style={{ flex: 1, justifyContent: 'center', padding: '8px 0', fontSize: 11 }}>
-            CANCEL
-          </button>
-          <button
-            onClick={submit}
-            disabled={saving || !form.material_name.trim() || !form.quantity_scu}
-            className="nexus-btn primary"
-            style={{ flex: 2, justifyContent: 'center', padding: '8px 0', fontSize: 11, opacity: saving ? 0.6 : 1 }}
-          >
-            {saving ? 'LOGGING...' : 'LOG LOOT →'}
-          </button>
+        <div style={{ width: 70 }}>
+          <input
+            className="nexus-input"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            value={form.quality_pct}
+            onChange={e => set('quality_pct', e.target.value)}
+            placeholder="0 %"
+            style={{ fontSize: 11, height: 32 }}
+          />
         </div>
+        <button
+          onClick={submit}
+          disabled={saving || !form.material_name.trim() || !form.quantity_scu}
+          className="nexus-btn primary"
+          style={{
+            padding: '6px 10px',
+            fontSize: 10,
+            height: 32,
+            opacity: saving ? 0.6 : 1,
+            cursor: saving ? 'not-allowed' : 'pointer',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          {saving ? '...' : 'ADD'}
+        </button>
+        <button
+          onClick={onCancel}
+          style={{
+            padding: '6px 10px',
+            fontSize: 10,
+            height: 32,
+            background: 'none',
+            border: '0.5px solid var(--b1)',
+            borderRadius: 4,
+            color: 'var(--t2)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font)',
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'var(--b2)';
+            e.currentTarget.style.background = 'rgba(var(--bg3-rgb), 0.4)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'var(--b1)';
+            e.currentTarget.style.background = 'none';
+          }}
+        >
+          Cancel
+        </button>
       </div>
-    </Overlay>
+    </div>
   );
 }
 
