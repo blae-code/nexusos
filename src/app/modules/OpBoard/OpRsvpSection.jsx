@@ -56,6 +56,10 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
   const [selectedShip, setSelectedShip] = useState('');
   const [confirming, setConfirming] = useState(false);
   const [leaveConfirming, setLeaveConfirming] = useState(false);
+  const [rsvpError, setRsvpError] = useState('');
+  const [highlightRole, setHighlightRole] = useState(null);
+  const [popSlot, setPopSlot] = useState(null);
+  const [popCrew, setPopCrew] = useState(false);
 
   const normalizedSlots = normalizeRoleSlots(op.role_slots);
   const confirmedRsvps = rsvps.filter(r => r.status === 'CONFIRMED');
