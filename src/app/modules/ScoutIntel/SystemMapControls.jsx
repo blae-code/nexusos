@@ -9,6 +9,12 @@ const SYSTEM_ACTIVE_BORDER = {
   NYX:     'var(--acc2)',
 };
 
+const SYSTEM_ACTIVE_BG = {
+  STANTON: 'color-mix(in srgb, var(--info) 8%, transparent)',
+  PYRO:    'color-mix(in srgb, var(--danger) 8%, transparent)',
+  NYX:     'color-mix(in srgb, var(--acc2) 8%, transparent)',
+};
+
 export function Chip({ label, active, onClick, systemChip }) {
   const systemKey = systemChip && label ? label.toUpperCase() : null;
   const activeBorder = systemKey && SYSTEM_ACTIVE_BORDER[systemKey]
@@ -24,7 +30,7 @@ export function Chip({ label, active, onClick, systemChip }) {
         padding: '4px 10px', fontSize: 10, letterSpacing: '0.07em',
         borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
         border: active ? `0.5px solid ${activeBorder}` : '0.5px solid var(--b1)',
-        background: active ? `color-mix(in srgb, ${activeBorder} 8%, transparent)` : 'var(--bg2)',
+        background: active ? SYSTEM_ACTIVE_BG[systemKey] || `color-mix(in srgb, ${activeBorder} 8%, transparent)` : 'var(--bg2)',
         color: active ? 'var(--t0)' : 'var(--t2)',
         fontWeight: active ? 600 : 400,
         whiteSpace: 'nowrap',
