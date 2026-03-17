@@ -82,6 +82,27 @@ function withTimeout(task, timeoutMs, label) {
   });
 }
 
+function isBase44Preview() {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname.includes('base44.com') || window.location.hostname === 'localhost';
+}
+
+function toPreviewMockSession() {
+  return {
+    authenticated: true,
+    source: 'preview',
+    user: {
+      id: 'preview-mock',
+      discordId: 'PREVIEW_MOCK',
+      callsign: 'PREVIEW-USER',
+      rank: 'PIONEER',
+      discordRoles: ['Preview Mode'],
+      joinedAt: null,
+      onboarding_complete: true,
+    },
+  };
+}
+
 async function fetchPreviewAdminUser(timeoutMs = SESSION_REFRESH_TIMEOUT_MS) {
   const { appId } = getAppParams();
   if (!appId) {
@@ -150,6 +171,11 @@ export function SessionProvider({ children }) {
     } catch (error) {
       transportIssue = isAbortError(error) ? 'Session check timed out' : 'Session check unavailable';
       console.warn('[SessionProvider] refresh failed:', error);
+    }
+
+    // In Base44 preview, provide a mock Pioneer user immediately
+    if (!nextSession && isBase44Preview()) {
+      nextSession = toPreviewMockSession();
     }
 
     if (!nextSession && !IS_DEV_MODE) {
