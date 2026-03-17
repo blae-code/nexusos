@@ -31,6 +31,7 @@ type DiscordUser = {
   id: string;
   username: string;
   global_name?: string | null;
+  avatar?: string | null;
 };
 
 type DiscordGuildMember = {
@@ -180,8 +181,8 @@ function getDiscordConfig() {
   const clientId = Deno.env.get('DISCORD_CLIENT_ID');
   const clientSecret = Deno.env.get('DISCORD_CLIENT_SECRET');
   const redirectUri = Deno.env.get('DISCORD_REDIRECT_URI');
-  const guildId = Deno.env.get('REDSCAR_GUILD_ID');
-  const botToken = Deno.env.get('HERALD_BOT_TOKEN');
+  const guildId = Deno.env.get('DISCORD_GUILD_ID');
+  const botToken = Deno.env.get('DISCORD_BOT_TOKEN');
 
   if (!clientId || !clientSecret || !redirectUri || !guildId || !botToken) {
     throw new Error('Discord OAuth is not fully configured');
@@ -318,12 +319,16 @@ export async function upsertNexusUser(req: Request, discordUser: DiscordUser, me
   const now = new Date().toISOString();
   const discordId = String(discordUser.id);
   const seededCallsign = deriveSeedCallsign(member, discordUser);
+  const discordHandle = discordUser.username || null;
+  const discordAvatar = discordUser.avatar || null;
   const existing = (await base44.asServiceRole.entities.NexusUser.filter({ discord_id: discordId }))?.[0];
 
   if (existing) {
     const nextCallsign = existing.callsign || seededCallsign;
     await base44.asServiceRole.entities.NexusUser.update(existing.id, {
       callsign: nextCallsign,
+      discord_handle: discordHandle,
+      discord_avatar: discordAvatar,
       discord_roles: roleNames,
       nexus_rank: nexusRank,
       roles_synced_at: now,
@@ -332,22 +337,29 @@ export async function upsertNexusUser(req: Request, discordUser: DiscordUser, me
     return {
       ...existing,
       callsign: nextCallsign,
+      discord_handle: discordHandle,
+      discord_avatar: discordAvatar,
       discord_roles: roleNames,
       nexus_rank: nexusRank,
       roles_synced_at: now,
+      isNew: false,
     };
   }
 
   await base44.asServiceRole.entities.NexusUser.create({
     callsign: seededCallsign,
     discord_id: discordId,
+    discord_handle: discordHandle,
+    discord_avatar: discordAvatar,
     discord_roles: roleNames,
     nexus_rank: nexusRank,
     joined_at: now,
     roles_synced_at: now,
+    onboarding_complete: false,
   });
 
-  return (await base44.asServiceRole.entities.NexusUser.filter({ discord_id: discordId }))?.[0];
+  const created = (await base44.asServiceRole.entities.NexusUser.filter({ discord_id: discordId }))?.[0];
+  return created ? { ...created, isNew: true } : null;
 }
 
 export async function createSessionCookieValue(discordId: string) {
@@ -386,6 +398,7 @@ export async function resolveMemberSession(req: Request) {
       rank: user.nexus_rank || 'AFFILIATE',
       discordRoles: user.discord_roles || [],
       joinedAt: user.joined_at || null,
+      onboarding_complete: user.onboarding_complete ?? false,
     },
   };
 }

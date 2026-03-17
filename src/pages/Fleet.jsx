@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Anchor, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Anchor, AlertCircle } from 'lucide-react';
 
 const STATUS_COLORS = {
   active: 'var(--live)',

@@ -31,7 +31,9 @@ function getErrorMessage(errorCode, supportChannelLabel) {
       return 'Your Discord sign-in session expired before it completed. Start the Discord flow again.';
     case 'token_exchange_failed':
     case 'discord_request_failed':
+      return 'Discord could not be reached. Check your connection and try again. If the problem persists, contact leadership.';
     case 'callback_failed':
+    case 'auth_failed':
       return 'Discord sign-in could not be completed. Retry once, then contact leadership if the issue persists.';
     default:
       return '';

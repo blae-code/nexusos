@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Calendar, Users, AlertCircle, CheckCircle2, Clock, User } from 'lucide-react';
+import { Calendar, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const SHIP_ROLES = [
   { id: 'pilot', label: 'Pilot', color: '#C0392B' },

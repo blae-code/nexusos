@@ -24,8 +24,8 @@ Deno.serve((req: Request) => {
     'DISCORD_CLIENT_ID',
     'DISCORD_CLIENT_SECRET',
     'DISCORD_REDIRECT_URI',
-    'REDSCAR_GUILD_ID',
-    'HERALD_BOT_TOKEN',
+    'DISCORD_GUILD_ID',
+    'DISCORD_BOT_TOKEN',
     'SESSION_SIGNING_SECRET',
     'APP_URL',
   ].every(hasEnv);
