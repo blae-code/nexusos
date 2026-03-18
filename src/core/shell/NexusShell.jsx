@@ -236,7 +236,11 @@ export default function NexusShell() {
   };
 
   return (
-    <div style={{ height: '100vh', background: 'var(--bg0)', padding: 5 }}>
+    <div style={{
+      height: '100vh',
+      background: 'linear-gradient(180deg, #0A0908 0%, #08080A 100%)',
+      padding: 5,
+    }}>
       <div className="nexus-shell-frame">
         {IS_DEV_MODE ? (
           <div
