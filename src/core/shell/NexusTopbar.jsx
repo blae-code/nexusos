@@ -391,13 +391,16 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 e.currentTarget.style.borderColor = 'rgba(192,57,43,0.3)';
               }}
               title="Active Rescue Calls"
-            >
+              >
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C0392B', animation: 'pulse-dot 2.5s ease-in-out infinite', flexShrink: 0 }} />
               <span style={{ color: '#C0392B', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
-                {rescueCount}
+               {rescueCount}
               </span>
-            </div>
-          )}
+              </div>
+              )}
+
+              {/* Separator */}
+              <div style={{ width: '0.5px', height: 14, background: 'rgba(200,170,100,0.2)' }} />
         </div>
 
         {/* USER & CONTROLS SECTION */}
