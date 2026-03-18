@@ -86,14 +86,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg1);
+  background: var(--bg0);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--b2);
-  border-radius: 3px;
+  background: rgba(200,170,100,0.15);
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--b3);
+  background: rgba(200,170,100,0.28);
 }
 
 scrollbar-width: thin;
