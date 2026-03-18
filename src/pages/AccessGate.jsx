@@ -233,7 +233,7 @@ export default function AccessGate() {
         </div>
 
         {/* RED RULE */}
-        <div style={{ height: '1px', background: '#C0392B', marginBottom: '16px', opacity: 0.8 }} />
+        <div style={{ height: '1px', background: '#C0392B', marginBottom: '16px', opacity: 0.8, animation: 'panel-fade-in 0.8s ease-out 0.2s both' }} />
 
         {/* ORG LABEL */}
         <div
