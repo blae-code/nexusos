@@ -145,15 +145,15 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
         }
       `}</style>
 
-      {/* Red accent stripe — glowing */}
+      {/* Red accent stripe — premium glow */}
       <div style={{
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         width: '2.5px',
-        background: 'linear-gradient(180deg, transparent 0%, #C0392B 12%, #C0392B 88%, transparent 100%)',
-        boxShadow: '0 0 12px rgba(192,57,43,0.4), inset 1px 0 2px rgba(192,57,43,0.6)',
+        background: 'linear-gradient(180deg, rgba(192,57,43,0.2) 0%, #C0392B 10%, #C0392B 90%, rgba(192,57,43,0.2) 100%)',
+        boxShadow: '0 0 16px rgba(192,57,43,0.5), inset 1px 0 3px rgba(192,57,43,0.8), -2px 0 8px rgba(192,57,43,0.3)',
         zIndex: 2,
       }} />
 
