@@ -152,25 +152,27 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
         zIndex: 2,
       }} />
 
-      {/* Top crown — compass pip */}
+      {/* Top crown — Redscar logo */}
       <div style={{
         width: '100%',
-        height: 44,
+        height: 48,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        borderBottom: '0.5px solid rgba(200,170,100,0.08)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         flexShrink: 0,
         position: 'relative',
+        background: 'linear-gradient(180deg, rgba(192,57,43,0.05) 0%, transparent 100%)',
       }}>
-        {/* Redscar compass mark */}
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="rgba(200,168,75,0.25)" strokeWidth="0.75"/>
-          <circle cx="12" cy="12" r="5" stroke="#C0392B" strokeWidth="0.75" opacity="0.7"/>
-          <circle cx="12" cy="12" r="2" fill="#C0392B" opacity="0.9"/>
-          <line x1="12" y1="2" x2="12" y2="6" stroke="rgba(232,228,220,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
-          <polygon points="12,2 11,6 12,5 13,6" fill="#E8E4DC" opacity="0.8"/>
-        </svg>
+        <img 
+          src="https://www.redscar.org/images/2223.png" 
+          alt="Redscar Nomads" 
+          style={{ 
+            height: 28, 
+            width: 'auto',
+            filter: 'brightness(0.95) drop-shadow(0 0 4px rgba(192,57,43,0.3))',
+          }} 
+        />
       </div>
 
       {/* Nav items */}
