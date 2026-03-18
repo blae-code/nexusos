@@ -17,7 +17,7 @@ function buildStars() {
     top: Math.random() * 100,
     left: Math.random() * 100,
     size: Math.random() * 1.4 + 0.8,
-    opacity: Math.random() * 0.4 + 0.3,
+    opacity: Math.random() * 0.4 + 0.3
   }));
 }
 
@@ -56,16 +56,16 @@ export default function AccessGate() {
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const authError = useMemo(
     () => getErrorMessage(searchParams.get('error'), health?.support_channel_label || '#nexusos-ops'),
-    [health?.support_channel_label, searchParams],
+    [health?.support_channel_label, searchParams]
   );
 
   useEffect(() => {
     setStars(buildStars());
-    
+
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
-    
+
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
@@ -78,10 +78,10 @@ export default function AccessGate() {
         support_channel_label: '#nexusos-ops',
         invite_url: 'https://discord.gg/redscar',
         onboarding_steps: [
-          'Choose a simulation persona.',
-          'Review the shell and app surfaces.',
-          'Switch to live auth in production by disabling demo mode.',
-        ],
+        'Choose a simulation persona.',
+        'Review the shell and app surfaces.',
+        'Switch to live auth in production by disabling demo mode.']
+
       });
       setHealthLoading(false);
       setDiscordStatus('online');
@@ -92,23 +92,23 @@ export default function AccessGate() {
     setHealthLoading(true);
 
     Promise.all([
-      authApi.getHealth(),
-      fetch('https://discord.com/api/v10/users/@me', {
-        headers: { 'Authorization': `Bot ${process.env.VITE_DISCORD_BOT_TOKEN || ''}` }
-      }).then(r => r.ok ? 'online' : 'offline').catch(() => 'offline')
-    ]).then(([response, discordCheck]) => {
+    authApi.getHealth(),
+    fetch('https://discord.com/api/v10/users/@me', {
+      headers: { 'Authorization': `Bot ${process.env.VITE_DISCORD_BOT_TOKEN || ''}` }
+    }).then((r) => r.ok ? 'online' : 'offline').catch(() => 'offline')]
+    ).then(([response, discordCheck]) => {
       if (!active) return;
       setHealth(response);
       setHealthError(response.ok ? '' : 'Discord sign-in readiness could not be verified.');
       setDiscordStatus(discordCheck);
-    })
-    .catch((error) => {
+    }).
+    catch((error) => {
       if (!active) return;
       setHealth(null);
       setHealthError(error?.message || 'Discord sign-in readiness could not be verified.');
       setDiscordStatus('offline');
-    })
-    .finally(() => {
+    }).
+    finally(() => {
       if (active) {
         setHealthLoading(false);
       }
@@ -134,9 +134,9 @@ export default function AccessGate() {
         inset: 0,
         background: '#0A0908',
         overflow: 'hidden',
-        fontFamily: "'Barlow Condensed', 'Barlow', sans-serif",
-      }}
-    >
+        fontFamily: "'Barlow Condensed', 'Barlow', sans-serif"
+      }}>
+      
       {/* CINEMATIC BACKGROUND — Deep space with subtle nebula */}
       <div
         style={{
@@ -147,29 +147,29 @@ export default function AccessGate() {
             radial-gradient(ellipse 100% 100% at 70% 70%, rgba(50,30,60,0.08) 0%, transparent 50%),
             linear-gradient(180deg, #0A0908 0%, #12090D 50%, #0A0908 100%)
           `,
-          zIndex: 0,
-        }}
-      />
+          zIndex: 0
+        }} />
+      
 
       {/* STARFIELD — High-quality stars with variable opacity */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        {stars.map((star) => (
-          <div
-            key={star.id}
-            style={{
-              position: 'absolute',
-              top: `${star.top}%`,
-              left: `${star.left}%`,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-              borderRadius: '50%',
-              background: '#F0EDE5',
-              boxShadow: `0 0 ${star.size * 1.5}px rgba(240,237,229,${star.opacity * 0.6})`,
-              opacity: star.opacity,
-              animation: `twinkle ${2 + Math.random() * 2}s ease-in-out infinite`,
-            }}
-          />
-        ))}
+        {stars.map((star) =>
+        <div
+          key={star.id}
+          style={{
+            position: 'absolute',
+            top: `${star.top}%`,
+            left: `${star.left}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            borderRadius: '50%',
+            background: '#F0EDE5',
+            boxShadow: `0 0 ${star.size * 1.5}px rgba(240,237,229,${star.opacity * 0.6})`,
+            opacity: star.opacity,
+            animation: `twinkle ${2 + Math.random() * 2}s ease-in-out infinite`
+          }} />
+
+        )}
       </div>
 
       {/* RED NEBULA — Interactive tracking */}
@@ -180,9 +180,9 @@ export default function AccessGate() {
           pointerEvents: 'none',
           background: `radial-gradient(ellipse 50% 40% at ${mousePos.x / window.innerWidth * 100}% ${mousePos.y / window.innerHeight * 100}%, rgba(192,57,43,0.15) 0%, transparent 65%)`,
           filter: 'blur(40px)',
-          transition: 'background 50ms ease-out',
-        }}
-      />
+          transition: 'background 50ms ease-out'
+        }} />
+      
 
       {/* AMBER CORE — Warm accent at bottom */}
       <div
@@ -191,9 +191,9 @@ export default function AccessGate() {
           inset: 0,
           pointerEvents: 'none',
           background: 'radial-gradient(ellipse 70% 50% at 50% 85%, rgba(200,168,75,0.08) 0%, transparent 60%)',
-          filter: 'blur(50px)',
-        }}
-      />
+          filter: 'blur(50px)'
+        }} />
+      
 
       {/* LEFT-ANCHORED PANEL — Premium cinema-grade glass morphism */}
       <div
@@ -217,19 +217,19 @@ export default function AccessGate() {
           padding: '56px 44px 48px 44px',
           boxSizing: 'border-box',
           zIndex: 1,
-          animation: 'panel-fade-in 0.8s ease-out',
-        }}
-      >
+          animation: 'panel-fade-in 0.8s ease-out'
+        }}>
+        
         <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'panel-fade-in 0.8s ease-out 0.1s both' }}>
-          <img 
-            src="https://www.redscar.org/images/RedScarFUll.png" 
-            alt="Redscar Nomads" 
-            style={{ 
-              height: 48, 
+          <img
+            src="https://www.redscar.org/images/RedScarFUll.png"
+            alt="Redscar Nomads"
+            style={{
+              height: 48,
               width: 'auto',
-              filter: 'brightness(1.05) drop-shadow(0 2px 8px rgba(192,57,43,0.3))',
-            }} 
-          />
+              filter: 'brightness(1.05) drop-shadow(0 2px 8px rgba(192,57,43,0.3))'
+            }} />
+          
         </div>
 
         {/* RED RULE */}
@@ -245,9 +245,9 @@ export default function AccessGate() {
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
             lineHeight: 1,
-            animation: 'panel-fade-in 0.8s ease-out 0.4s both',
-          }}
-        >
+            animation: 'panel-fade-in 0.8s ease-out 0.4s both'
+          }}>
+          
           NEXUSOS
         </div>
 
@@ -262,149 +262,149 @@ export default function AccessGate() {
             textTransform: 'uppercase',
             marginTop: '6px',
             marginBottom: '28px',
-            animation: 'panel-fade-in 0.8s ease-out 0.5s both',
-          }}
-        >
+            animation: 'panel-fade-in 0.8s ease-out 0.5s both'
+          }}>
+          
           ACCESS GATE
         </div>
 
         {/* BODY */}
          <div
-           style={{
-             fontFamily: "'Barlow', sans-serif",
-             fontWeight: 400,
-             fontSize: '14px',
-             color: '#9A9488',
-             lineHeight: 1.7,
-             marginBottom: '32px',
-             animation: 'panel-fade-in 0.8s ease-out 0.6s both',
-           }}
-         >
+          style={{
+            fontFamily: "'Barlow', sans-serif",
+            fontWeight: 400,
+            fontSize: '14px',
+            color: '#9A9488',
+            lineHeight: 1.7,
+            marginBottom: '32px',
+            animation: 'panel-fade-in 0.8s ease-out 0.6s both'
+          }}>
+          
           Continue with Discord to verify your Redscar Nomads membership and launch the app.
         </div>
 
         {/* CTA BUTTON */}
-        {IS_DEV_MODE ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, animation: 'panel-fade-in 0.8s ease-out 0.7s both' }}>
-            {DEV_PERSONAS.map((persona) => (
-              <button
-                key={persona.id}
-                type="button"
-                onClick={() => {
-                  setDevPersona(persona.id);
-                  refreshSession();
-                }}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  background: '#C0392B',
-                  color: '#E8E4DC',
-                  border: 'none',
-                  borderRadius: '2px',
-                  padding: '14px 24px',
-                  cursor: 'pointer',
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#9B2D20';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#C0392B';
-                }}
-              >
-                {persona.callsign} — {persona.rank}
-              </button>
-            ))}
-          </div>
-        ) : (
+        {IS_DEV_MODE ?
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, animation: 'panel-fade-in 0.8s ease-out 0.7s both' }}>
+            {DEV_PERSONAS.map((persona) =>
           <button
-            onClick={handleDiscordContinue}
-            disabled={launching || healthLoading}
+            key={persona.id}
+            type="button"
+            onClick={() => {
+              setDevPersona(persona.id);
+              refreshSession();
+            }}
             style={{
               display: 'block',
               width: '100%',
-              animation: 'panel-fade-in 0.8s ease-out 0.7s both',
-              background: launching || healthLoading ? 'linear-gradient(135deg, #7B2218 0%, #5A1810 100%)' : 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)',
-              color: '#F0EDE5',
-              border: '1px solid rgba(192, 57, 43, 0.6)',
-              borderRadius: '3px',
-              padding: '16px 24px',
-              cursor: launching || healthLoading ? 'not-allowed' : 'pointer',
+              background: '#C0392B',
+              color: '#E8E4DC',
+              border: 'none',
+              borderRadius: '2px',
+              padding: '14px 24px',
+              cursor: 'pointer',
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
-              fontSize: '13px',
-              letterSpacing: '0.18em',
+              fontSize: '14px',
+              letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              marginBottom: '20px',
-              transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-              boxShadow: launching || healthLoading 
-                ? 'inset 0 2px 4px rgba(0,0,0,0.3)' 
-                : '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-              opacity: launching || healthLoading ? 0.65 : 1,
-              textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+              transition: 'background 0.15s'
             }}
             onMouseEnter={(e) => {
-              if (!launching && !healthLoading) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #E84C3D 0%, #C0392B 100%)';
-                e.currentTarget.style.boxShadow = '0 12px 32px rgba(192, 57, 43, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }
+              e.currentTarget.style.background = '#9B2D20';
             }}
             onMouseLeave={(e) => {
-              if (!launching && !healthLoading) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }
-            }}
-          >
+              e.currentTarget.style.background = '#C0392B';
+            }}>
+            
+                {persona.callsign} — {persona.rank}
+              </button>
+          )}
+          </div> :
+
+        <button
+          onClick={handleDiscordContinue}
+          disabled={launching || healthLoading}
+          style={{
+            display: 'block',
+            width: '100%',
+            animation: 'panel-fade-in 0.8s ease-out 0.7s both',
+            background: launching || healthLoading ? 'linear-gradient(135deg, #7B2218 0%, #5A1810 100%)' : 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)',
+            color: '#F0EDE5',
+            border: '1px solid rgba(192, 57, 43, 0.6)',
+            borderRadius: '3px',
+            padding: '16px 24px',
+            cursor: launching || healthLoading ? 'not-allowed' : 'pointer',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 600,
+            fontSize: '13px',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            marginBottom: '20px',
+            transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            boxShadow: launching || healthLoading ?
+            'inset 0 2px 4px rgba(0,0,0,0.3)' :
+            '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            opacity: launching || healthLoading ? 0.65 : 1,
+            textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+          }}
+          onMouseEnter={(e) => {
+            if (!launching && !healthLoading) {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #E84C3D 0%, #C0392B 100%)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(192, 57, 43, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!launching && !healthLoading) {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }
+          }}>
+          
             {launching || healthLoading ? 'CONNECTING...' : 'CONTINUE WITH DISCORD'}
           </button>
-        )}
+        }
 
         {/* ERROR STATE */}
-        {(authError || healthError) && (
-          <div
-            style={{
-              fontFamily: "'Barlow', sans-serif",
-              fontSize: '13px',
-              color: '#C8A84B',
-              marginBottom: '16px',
-              lineHeight: 1.5,
-            }}
-          >
+        {(authError || healthError) &&
+        <div
+          style={{
+            fontFamily: "'Barlow', sans-serif",
+            fontSize: '13px',
+            color: '#C8A84B',
+            marginBottom: '16px',
+            lineHeight: 1.5
+          }}>
+          
             {authError || healthError}
           </div>
-        )}
+        }
 
         {/* FOOTER LINK */}
-        {!IS_DEV_MODE && (
-          <div
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: '12px',
-              color: '#8A8478',
-              letterSpacing: '0.05em',
-              textAlign: 'center',
-              cursor: 'pointer',
-              transition: 'color 0.2s',
-              marginTop: '12px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#C8A84B';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#8A8478';
-            }}
-          >
-            Request access via #nexusos-ops
-          </div>
-        )}
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
       </div>
 
       {/* FIXED FOOTER */}
@@ -421,9 +421,9 @@ export default function AccessGate() {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 24px',
-          zIndex: 100,
-        }}
-      >
+          zIndex: 100
+        }}>
+        
         <div
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -433,9 +433,9 @@ export default function AccessGate() {
             textTransform: 'uppercase',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-          }}
-        >
+            gap: '6px'
+          }}>
+          
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: discordStatus === 'online' ? '#4AE830' : '#C8A84B', animation: 'pulse 2s ease-in-out infinite', display: 'inline-block' }} />
           {discordStatus === 'online' ? 'DISCORD ONLINE' : 'VERSE ' + VERSE_BUILD_LABEL}
         </div>
@@ -445,9 +445,9 @@ export default function AccessGate() {
             fontSize: '11px',
             color: '#8A8478',
             letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-          }}
-        >
+            textTransform: 'uppercase'
+          }}>
+          
           REDSCAR · NOMADS · ETERNAL VOYAGE
         </div>
       </div>
@@ -487,6 +487,6 @@ export default function AccessGate() {
           100% { transform: translateY(100%); }
         }
       `}</style>
-    </div>
-  );
+    </div>);
+
 }
