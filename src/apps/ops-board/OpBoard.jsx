@@ -232,7 +232,7 @@ export default function OpBoard() {
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {liveCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 4, background: 'var(--live-bg)', border: '0.5px solid var(--live-b)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 3, background: 'var(--live-bg)', border: '0.5px solid var(--live-b)' }}>
             <div className="pulse-live" />
             <span style={{ color: 'var(--live)', fontSize: 9, letterSpacing: '0.1em' }}>{liveCount} OP{liveCount > 1 ? 'S' : ''} LIVE</span>
           </div>
