@@ -188,8 +188,9 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
               <div style={{
                 width: 24,
                 height: '0.5px',
-                background: 'linear-gradient(90deg, transparent, rgba(200,170,100,0.2), transparent)',
-                margin: '4px 0',
+                background: 'linear-gradient(90deg, transparent, rgba(200,170,100,0.25) 50%, transparent)',
+                margin: '6px 0',
+                boxShadow: '0 0 4px rgba(200,170,100,0.08)',
               }} />
             ) : null}
             {group.map((item) => {
