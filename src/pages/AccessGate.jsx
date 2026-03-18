@@ -84,28 +84,35 @@ export default function AccessGate() {
         ],
       });
       setHealthLoading(false);
+      setDiscordStatus('online');
       return;
     }
 
     let active = true;
     setHealthLoading(true);
 
-    authApi.getHealth()
-      .then((response) => {
-        if (!active) return;
-        setHealth(response);
-        setHealthError(response.ok ? '' : 'Discord sign-in readiness could not be verified.');
-      })
-      .catch((error) => {
-        if (!active) return;
-        setHealth(null);
-        setHealthError(error?.message || 'Discord sign-in readiness could not be verified.');
-      })
-      .finally(() => {
-        if (active) {
-          setHealthLoading(false);
-        }
-      });
+    Promise.all([
+      authApi.getHealth(),
+      fetch('https://discord.com/api/v10/users/@me', {
+        headers: { 'Authorization': `Bot ${process.env.VITE_DISCORD_BOT_TOKEN || ''}` }
+      }).then(r => r.ok ? 'online' : 'offline').catch(() => 'offline')
+    ]).then(([response, discordCheck]) => {
+      if (!active) return;
+      setHealth(response);
+      setHealthError(response.ok ? '' : 'Discord sign-in readiness could not be verified.');
+      setDiscordStatus(discordCheck);
+    })
+    .catch((error) => {
+      if (!active) return;
+      setHealth(null);
+      setHealthError(error?.message || 'Discord sign-in readiness could not be verified.');
+      setDiscordStatus('offline');
+    })
+    .finally(() => {
+      if (active) {
+        setHealthLoading(false);
+      }
+    });
 
     return () => {
       active = false;
