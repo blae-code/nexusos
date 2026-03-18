@@ -119,7 +119,7 @@ function ShipCard({ ship, vehicleData }) {
 
       {/* Mission Status */}
       {hasActiveMission && (
-        <div style={{ background: 'rgba(var(--live-rgb), 0.08)', border: '0.5px solid rgba(var(--live-rgb), 0.2)', borderRadius: 4, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ background: 'rgba(var(--live-rgb), 0.08)', border: '0.5px solid rgba(var(--live-rgb), 0.2)', borderRadius: 3, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
           <AlertCircle size={12} style={{ color: 'var(--live)', flexShrink: 0 }} />
           <span style={{ color: 'var(--live)', fontSize: 9 }}>Active Mission — Currently Deployed</span>
         </div>
