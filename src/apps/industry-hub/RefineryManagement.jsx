@@ -294,7 +294,7 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
           </div>
 
           {forecast.notes && (
-            <div style={{ fontSize: 9, color: 'var(--t2)', lineHeight: 1.5, padding: '8px 10px', background: 'var(--bg3)', borderRadius: 4, marginBottom: 12, borderLeft: '2px solid var(--info)' }}>
+            <div style={{ fontSize: 9, color: 'var(--t2)', lineHeight: 1.5, padding: '8px 10px', background: 'var(--bg3)', borderRadius: 3, marginBottom: 12, borderLeft: '2px solid var(--info)' }}>
               {forecast.notes}
             </div>
           )}
