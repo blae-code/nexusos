@@ -346,6 +346,7 @@ export default function AccessGate() {
             style={{
               display: 'block',
               width: '100%',
+              animation: 'panel-fade-in 0.8s ease-out 0.7s both',
               background: launching || healthLoading ? 'linear-gradient(135deg, #7B2218 0%, #5A1810 100%)' : 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)',
               color: '#F0EDE5',
               border: '1px solid rgba(192, 57, 43, 0.6)',
