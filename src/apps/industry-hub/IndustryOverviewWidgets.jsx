@@ -292,7 +292,7 @@ export function MaterialPreviewRow({ material }) {
 
 export function BlueprintGroup({ label, items }) {
   return (
-    <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b0)', borderRadius: 8, padding: '11px 12px' }}>
+    <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 3, padding: '11px 12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.12em' }}>{label}</span>
         <span style={{ color: 'var(--t2)', fontSize: 9 }}>{items.length}</span>
