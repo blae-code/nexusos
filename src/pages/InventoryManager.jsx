@@ -146,7 +146,7 @@ export default function InventoryManager() {
                 padding: '8px 14px',
                 background: 'var(--live)',
                 border: 'none',
-                borderRadius: 4,
+                borderRadius: 3,
                 color: 'var(--bg0)',
                 fontSize: 11,
                 fontWeight: 600,
@@ -167,7 +167,7 @@ export default function InventoryManager() {
               style={{
                 background: 'var(--bg2)',
                 border: '0.5px solid var(--b1)',
-                borderRadius: 6,
+                borderRadius: 3,
                 padding: '12px',
                 marginTop: 12,
               }}
@@ -183,14 +183,14 @@ export default function InventoryManager() {
                     padding: '8px 10px',
                     background: 'var(--bg1)',
                     border: '0.5px solid var(--b0)',
-                    borderRadius: 4,
+                    borderRadius: 3,
                     color: 'var(--t1)',
                     fontSize: 10,
                     fontFamily: 'inherit',
-                  }}
-                />
-                <select
-                  value={formData.component_type}
+                    }}
+                    />
+                    <select
+                    value={formData.component_type}
                   onChange={(e) => setFormData({ ...formData, component_type: e.target.value })}
                   style={{
                     padding: '8px 10px',
@@ -240,13 +240,13 @@ export default function InventoryManager() {
                     padding: '8px 10px',
                     background: 'var(--bg1)',
                     border: '0.5px solid var(--b0)',
-                    borderRadius: 4,
+                    borderRadius: 3,
                     color: 'var(--t1)',
                     fontSize: 10,
                     fontFamily: 'inherit',
-                  }}
-                />
-                <textarea
+                    }}
+                    />
+                    <textarea
                   placeholder="Description (optional)"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -254,7 +254,7 @@ export default function InventoryManager() {
                     padding: '8px 10px',
                     background: 'var(--bg1)',
                     border: '0.5px solid var(--b0)',
-                    borderRadius: 4,
+                    borderRadius: 3,
                     color: 'var(--t1)',
                     fontSize: 10,
                     fontFamily: 'inherit',
@@ -269,14 +269,14 @@ export default function InventoryManager() {
                     padding: '8px 14px',
                     background: 'var(--live)',
                     border: 'none',
-                    borderRadius: 4,
+                    borderRadius: 3,
                     color: 'var(--bg0)',
                     fontSize: 10,
                     fontWeight: 600,
                     cursor: 'pointer',
-                  }}
-                >
-                  Add
+                    }}
+                    >
+                    Add
                 </button>
                 <button
                   type="button"
@@ -285,13 +285,13 @@ export default function InventoryManager() {
                     padding: '8px 14px',
                     background: 'var(--bg1)',
                     border: '0.5px solid var(--b1)',
-                    borderRadius: 4,
+                    borderRadius: 3,
                     color: 'var(--t1)',
                     fontSize: 10,
                     cursor: 'pointer',
-                  }}
-                >
-                  Cancel
+                    }}
+                    >
+                    Cancel
                 </button>
               </form>
             </div>
@@ -311,21 +311,21 @@ export default function InventoryManager() {
                   padding: '8px 10px 8px 32px',
                   background: 'var(--bg2)',
                   border: '0.5px solid var(--b0)',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   color: 'var(--t1)',
                   fontSize: 10,
                   fontFamily: 'inherit',
-                }}
-              />
-            </div>
-            <select
-              value={filterVessel}
+                  }}
+                  />
+                  </div>
+                  <select
+                  value={filterVessel}
               onChange={(e) => setFilterVessel(e.target.value)}
               style={{
                 padding: '8px 10px',
                 background: 'var(--bg2)',
                 border: '0.5px solid var(--b0)',
-                borderRadius: 4,
+                borderRadius: 3,
                 color: 'var(--t1)',
                 fontSize: 10,
                 fontFamily: 'inherit',
@@ -352,7 +352,7 @@ export default function InventoryManager() {
             padding: '10px 12px',
             background: 'rgba(var(--danger-rgb), 0.1)',
             border: '0.5px solid rgba(var(--danger-rgb), 0.2)',
-            borderRadius: 4,
+            borderRadius: 3,
             color: 'var(--danger)',
             fontSize: 11,
             display: 'flex',
@@ -403,7 +403,7 @@ export default function InventoryManager() {
                       style={{
                         background: 'var(--bg1)',
                         border: '0.5px solid var(--b1)',
-                        borderRadius: 6,
+                        borderRadius: 3,
                         padding: '12px',
                       }}
                     >
