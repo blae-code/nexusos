@@ -13,14 +13,7 @@ import { LayoutButton, DropdownContainer, Divider, MenuLink, ChangelogPanel } fr
 import { IS_DEV_MODE } from '@/core/data/dev';
 
 
-const EXTRA_LINKS = [
-  { label: 'Coffer Ledger', path: '/app/coffer' },
-  { label: 'Profit Calculator', path: '/app/profit' },
-  { label: 'Rescue Board', path: '/app/rescue' },
-  { label: 'Org Roster', path: '/app/roster' },
-  { label: 'Material Ledger', path: '/app/ledger' },
-  { label: 'Org Handbook', path: '/app/handbook' },
-];
+
 
 function getBreadcrumb(pathname, search) {
   const params = new URLSearchParams(search || '');
@@ -87,11 +80,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   const { user, logout, source } = useSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [onlineCount, setOnlineCount] = useState(null);
+  const [cofferBalance, setCofferBalance] = useState(null);
+  const [rescueCount, setRescueCount] = useState(0);
   const [signingOut, setSigningOut] = useState(false);
   const userMenuRef = useRef(null);
-  const moreMenuRef = useRef(null);
   const changelogRef = useRef(null);
 
   const breadcrumb = useMemo(
@@ -99,31 +92,45 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
     [location.pathname, location.search],
   );
 
-  const extraLinks = source === 'admin' || ['PIONEER', 'FOUNDER'].includes(user?.rank)
-    ? [...EXTRA_LINKS, { label: 'Setup TODO', path: '/app/admin/todo' }]
-    : EXTRA_LINKS;
+
 
   const showPtuPill = VERSE_BUILD_LABEL.toUpperCase().includes('PTU');
 
   useEffect(() => {
     let cancelled = false;
 
-    const loadOnlineCount = async () => {
+    const loadMetrics = async () => {
       try {
-        const members = await base44.entities.NexusUser.list('-joined_at', 200);
-        if (!cancelled) {
-          setOnlineCount((members || []).length);
-        }
+        const [members, cofferEntries, rescueCalls] = await Promise.all([
+          base44.entities.NexusUser.list('-joined_at', 200),
+          base44.entities.CofferLog.list('-logged_at', 1),
+          base44.entities.Op.filter({ status: 'LIVE' }),
+        ]);
+        
+        if (cancelled) return;
+        
+        setOnlineCount((members || []).length);
+        
+        // Sum recent coffer entries (last 100 to get org balance)
+        const cofferRecent = await base44.entities.CofferLog.list('-logged_at', 100);
+        const balance = (cofferRecent || []).reduce((sum, entry) => {
+          return entry.entry_type === 'SALE' || entry.entry_type === 'CRAFT_SALE' 
+            ? sum + (entry.amount_aUEC || 0)
+            : sum - (entry.amount_aUEC || 0);
+        }, 0);
+        setCofferBalance(Math.max(0, balance));
+        
+        // Count active rescue calls
+        setRescueCount((rescueCalls || []).length);
       } catch (error) {
         if (!cancelled) {
-          console.warn('[NexusTopbar] online count failed:', error?.message || error);
-          setOnlineCount(null);
+          console.warn('[NexusTopbar] metrics load failed:', error?.message || error);
         }
       }
     };
 
-    loadOnlineCount();
-    const intervalId = window.setInterval(loadOnlineCount, 60000);
+    loadMetrics();
+    const intervalId = window.setInterval(loadMetrics, 60000);
 
     return () => {
       cancelled = true;
@@ -159,7 +166,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showChangelog]);
+  }, [showChangelog, setShowChangelog]);
 
   return (
     <div style={{ position: 'relative', flexShrink: 0, height: 'var(--topbar-h)' }}>
@@ -266,7 +273,35 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             />
           </div>
 
-          {/* Member count — verse status style */}
+          {/* Coffer balance */}
+          {cofferBalance !== null && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '3px 8px',
+              background: 'rgba(200,168,75,0.05)',
+              border: '0.5px solid rgba(200,168,75,0.12)',
+              borderRadius: 3,
+              cursor: 'pointer',
+            }}
+            onClick={() => navigate('/app/coffer')}
+            title="Org Coffer">
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: '50%',
+                background: '#C8A84B',
+                display: 'inline-block',
+                flexShrink: 0,
+              }} />
+              <span style={{ color: '#C8A84B', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {cofferBalance ? (cofferBalance / 1000000).toFixed(1) : '0'} <span style={{ opacity: 0.6, fontWeight: 400 }}>M aUEC</span>
+              </span>
+            </div>
+          )}
+
+          {/* Member count */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -291,31 +326,34 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             </span>
           </div>
 
-          <div ref={moreMenuRef} style={{ position: 'relative' }}>
-            <button
-              type="button"
-              onClick={() => setMoreMenuOpen((open) => !open)}
-              className="nexus-tooltip"
-              data-tooltip="More destinations"
-              style={menuButtonStyle(moreMenuOpen)}
-            >
-              <MoreIcon size={16} />
-            </button>
-            {moreMenuOpen ? (
-              <DropdownContainer width={190}>
-                {extraLinks.map((item) => (
-                  <MenuLink
-                    key={item.path}
-                    label={item.label}
-                    onClick={() => {
-                      navigate(item.path);
-                      setMoreMenuOpen(false);
-                    }}
-                  />
-                ))}
-              </DropdownContainer>
-            ) : null}
-          </div>
+          {/* Rescue count badge */}
+          {rescueCount > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '3px 8px',
+              background: 'rgba(192,57,43,0.1)',
+              border: '0.5px solid rgba(192,57,43,0.25)',
+              borderRadius: 3,
+              cursor: 'pointer',
+            }}
+            onClick={() => navigate('/app/rescue')}
+            title="Active rescue calls">
+              <span style={{
+                width: 5,
+                height: 5,
+                borderRadius: '50%',
+                background: '#C0392B',
+                display: 'inline-block',
+                animation: 'pulse-dot 2.5s ease-in-out infinite',
+                flexShrink: 0,
+              }} />
+              <span style={{ color: '#C0392B', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {rescueCount} <span style={{ opacity: 0.6, fontWeight: 400 }}>RESCUE</span>
+              </span>
+            </div>
+          )}
 
           <div ref={userMenuRef} style={{ position: 'relative' }}>
             <button
