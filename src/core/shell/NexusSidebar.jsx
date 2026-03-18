@@ -263,29 +263,31 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
       {IS_DEV_MODE ? (
         <div style={{
           width: '100%',
-          borderTop: '0.5px solid rgba(200,168,75,0.1)',
-          paddingTop: 7,
-          paddingBottom: 6,
+          borderTop: '0.5px solid rgba(200,168,75,0.15)',
+          paddingTop: 8,
+          paddingBottom: 7,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 3,
+          gap: 3.5,
           flexShrink: 0,
+          background: 'linear-gradient(180deg, transparent 0%, rgba(200,168,75,0.04) 100%)',
         }}>
           <div style={{
-            width: 4,
-            height: 4,
+            width: 5,
+            height: 5,
             borderRadius: '50%',
             background: '#C8A84B',
             animation: 'pulse-dot 2.5s ease-in-out infinite',
-            boxShadow: '0 0 4px rgba(200,168,75,0.5)',
+            boxShadow: '0 0 6px rgba(200,168,75,0.6), inset 0 0 1px rgba(255,255,255,0.2)',
           }} />
           <span style={{
             fontSize: 7,
-            color: 'rgba(200,168,75,0.5)',
-            letterSpacing: '0.2em',
+            color: 'rgba(200,168,75,0.65)',
+            letterSpacing: '0.25em',
             userSelect: 'none',
             fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 600,
           }}>SIM</span>
         </div>
       ) : null}
