@@ -131,7 +131,7 @@ export default function AccessGate() {
   }, []);
 
   const handleDiscordContinue = () => {
-    window.location.href = 'https://nexus-nomad-core.base44.app/api/functions/auth/discord/start?redirect_to=/app/industry';
+    window.location.href = authApi.getDiscordOAuthUrl('/app/industry');
   };
 
   if (!loading && isAuthenticated) {
