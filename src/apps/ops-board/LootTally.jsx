@@ -41,7 +41,7 @@ function AutocompleteInput({ value, onChange, onSelect, suggestions, placeholder
             zIndex: 60,
             background: 'var(--bg3)',
             border: '0.5px solid var(--b2)',
-            borderRadius: '0 0 6px 6px',
+            borderRadius: '0 0 3px 3px',
             maxHeight: 160,
             overflowY: 'auto',
           }}
@@ -187,7 +187,7 @@ function LogForm({ onSubmit, onCancel }) {
             height: 32,
             background: 'none',
             border: '0.5px solid var(--b1)',
-            borderRadius: 4,
+            borderRadius: 3,
             color: 'var(--t2)',
             cursor: 'pointer',
             fontFamily: 'var(--font)',

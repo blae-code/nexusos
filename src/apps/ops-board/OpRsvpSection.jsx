@@ -179,7 +179,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
                   borderBottom: i < normalizedSlots.length - 1 ? '0.5px solid var(--b0)' : 'none',
                   border: isHighlighted ? `0.5px solid var(--live)` : undefined,
                   background: isHighlighted ? 'rgba(var(--live-rgb), 0.08)' : 'transparent',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   paddingLeft: 4,
                   paddingRight: 4,
                 }}
@@ -266,7 +266,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
                 padding: '12px',
                 background: 'var(--bg2)',
                 border: '0.5px solid var(--b1)',
-                borderRadius: 6,
+                borderRadius: 3,
                 animation: 'nexus-fade-in 150ms ease-out both',
               }}
             >
@@ -290,7 +290,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
                       padding: '8px 10px',
                       background: isSelected ? 'var(--bg3)' : 'transparent',
                       border: `0.5px solid ${isSelected ? 'var(--acc)' : 'var(--b1)'}`,
-                      borderRadius: 4,
+                      borderRadius: 3,
                       cursor: 'pointer',
                       transition: 'all 120ms',
                     }}
@@ -399,7 +399,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
             background: 'rgba(var(--live-rgb), 0.04)',
             border: '0.5px solid var(--live)',
             borderLeft: '3px solid var(--live)',
-            borderRadius: 4,
+            borderRadius: 3,
           }}
         >
           {/* Live dot */}
@@ -469,7 +469,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
               padding: '4px 10px',
               background: isFull ? 'rgba(var(--live-rgb), 0.08)' : 'var(--bg3)',
               border: `0.5px solid ${isFull ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)'}`,
-              borderRadius: 4,
+              borderRadius: 3,
               fontSize: 9,
               color: isFull ? 'var(--live)' : 'var(--t2)',
               fontFamily: 'var(--font)',
