@@ -22,9 +22,9 @@ const NAV_GROUPS = [
     { icon: Truck, label: 'ROUTES', path: '/app/routes' },
   ],
   [
-    { icon: IndustryIcon, label: 'INDUSTRY', path: '/app/industry', badge: 'craft' },
+    { icon: 'https://www.redscar.org/images/Redscar-Industry-Icon_White.png', label: 'INDUSTRY', path: '/app/industry', badge: 'craft', isImage: true },
     { icon: FleetIcon, label: 'ORG FLEET', path: '/app/org-fleet' },
-    { icon: FleetIcon, label: 'ARMORY', path: '/app/armory' },
+    { icon: 'https://www.redscar.org/images/Redscar-Rescue_Icon.png', label: 'ARMORY', path: '/app/armory', isImage: true },
     { icon: Coins, label: 'COMMERCE', path: '/app/commerce' },
     { icon: Truck, label: 'LOGISTICS', path: '/app/logistics' },
   ],
