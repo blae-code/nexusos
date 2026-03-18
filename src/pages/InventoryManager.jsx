@@ -384,7 +384,7 @@ export default function InventoryManager() {
                     marginBottom: 10,
                     padding: '8px 12px',
                     background: 'var(--bg2)',
-                    borderRadius: 4,
+                    borderRadius: 3,
                   }}
                 >
                   <MapPin size={14} style={{ color: 'var(--live)' }} />
