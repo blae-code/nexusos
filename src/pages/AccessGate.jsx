@@ -103,18 +103,7 @@ export default function AccessGate() {
   }, []);
 
   const handleDiscordContinue = () => {
-    if (launching || healthLoading) {
-      return;
-    }
-
-    setLaunching(true);
-    try {
-      const url = authApi.getDiscordOAuthUrl('/app/industry');
-      window.location.href = url;
-    } catch (error) {
-      console.error('[AccessGate] Discord redirect failed:', error);
-      setLaunching(false);
-    }
+    window.location.href = 'https://discord.com/oauth2/authorize?client_id=1483421250301989057&redirect_uri=https%3A%2F%2Fnomadnexus.space%2Ffunctions%2Fauth%2Fdiscord%2Fcallback&response_type=code&scope=identify+guilds+guilds.members.read';
   };
 
   if (!loading && isAuthenticated) {
