@@ -64,7 +64,7 @@ function ReportDialog({ onClose, onSubmit }) {
     <Overlay onDismiss={onClose}>
       <div className="nexus-fade-in" style={{
         width: 400, background: 'var(--bg2)', border: '0.5px solid var(--b2)',
-        borderRadius: 10, padding: 22,
+        borderRadius: 3, padding: 22,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <span style={{ color: 'var(--danger)', fontSize: 13, fontWeight: 600, letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -195,7 +195,7 @@ export default function ThreatPanel({ op, callsign, onUpdate }) {
             <span style={{
               fontSize: 9, background: 'rgba(var(--danger-rgb), 0.15)',
               border: '0.5px solid rgba(var(--danger-rgb), 0.3)',
-              color: 'var(--danger)', borderRadius: 10, padding: '0 5px', fontWeight: 700,
+              color: 'var(--danger)', borderRadius: 3, padding: '0 5px', fontWeight: 700,
             }}>
               {threats.length}
             </span>
@@ -206,7 +206,7 @@ export default function ThreatPanel({ op, callsign, onUpdate }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             background: 'none', border: '0.5px solid var(--b2)',
-            borderRadius: 5, cursor: 'pointer', color: 'var(--t2)',
+            borderRadius: 3, cursor: 'pointer', color: 'var(--t2)',
             fontSize: 9, letterSpacing: '0.07em', padding: '3px 8px',
             fontFamily: 'inherit',
           }}
@@ -223,7 +223,7 @@ export default function ThreatPanel({ op, callsign, onUpdate }) {
           threats.map((t, i) => (
             <div key={t.id || i} style={{
               display: 'flex', alignItems: 'flex-start', gap: 8,
-              padding: '7px 10px', borderRadius: 5,
+              padding: '7px 10px', borderRadius: 3,
               background: 'var(--bg2)', border: '0.5px solid var(--b1)',
             }}>
               <NexusToken
