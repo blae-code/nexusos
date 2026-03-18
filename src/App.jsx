@@ -10,6 +10,7 @@ import AccessGate from '@/pages/AccessGate';
 import Onboarding from '@/pages/Onboarding';
 import CofferLedger from '@/pages/CofferLedger';
 import Commerce from '@/pages/Commerce';
+import CargoTracker from '@/pages/CargoTracker';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
 import Fleet from '@/pages/Fleet';
@@ -54,6 +55,7 @@ function App() {
               <Route path="industry/coffer" element={<CofferLedger />} />
               <Route path="industry/ledger" element={<MaterialLedger />} />
               <Route path="industry/commerce" element={<Commerce />} />
+              <Route path="industry/cargo" element={<CargoTracker />} />
               <Route path="industry/profit" element={<ProfitCalc />} />
               <Route path="scout" element={<ScoutIntel />} />
               <Route path="scout/routes" element={<RoutePlanner />} />
