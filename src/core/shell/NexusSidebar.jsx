@@ -15,7 +15,7 @@ import { Archive, Coins, Truck } from 'lucide-react';
 const NAV_GROUPS = [
   [
     { icon: OpBoardIcon, label: 'OPERATIONS', path: '/app/ops', badge: 'live' },
-    { icon: ScoutIcon, label: 'INTEL', path: '/app/scout' },
+    { icon: 'https://www.redscar.org/images/Redscar-Rangers_Logo.png', label: 'INTEL', path: '/app/scout', isImage: true },
     { icon: Archive, label: 'ARCHIVE', path: '/app/archive' },
   ],
   [
