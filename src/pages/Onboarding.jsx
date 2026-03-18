@@ -63,7 +63,7 @@ function StepIndicator({ currentStep, totalSteps }) {
           style={{
             width: i === currentStep ? 28 : 8,
             height: 8,
-            borderRadius: '4px',
+            borderRadius: '3px',
             background: i < currentStep 
               ? 'linear-gradient(135deg, #C0392B, #A03220)' 
               : i === currentStep 
@@ -227,7 +227,7 @@ function Step3Privacy({ onContinue }) {
           position: 'relative',
           maxHeight: 320,
           overflow: 'hidden',
-          borderRadius: 8,
+          borderRadius: 3,
         }}
       >
         <div
@@ -237,7 +237,7 @@ function Step3Privacy({ onContinue }) {
             maxHeight: 320,
             background: 'var(--bg1)',
             border: '0.5px solid var(--b1)',
-            borderRadius: 8,
+            borderRadius: 3,
             padding: 16,
             overflowY: 'auto',
             fontSize: 11,
@@ -259,7 +259,7 @@ function Step3Privacy({ onContinue }) {
             right: 0,
             height: 2,
             background: 'var(--b1)',
-            borderRadius: '0 0 8px 8px',
+            borderRadius: '0 0 3px 3px',
             overflow: 'hidden',
           }}
         >
@@ -362,7 +362,7 @@ function Step4Consent({ user, onComplete }) {
               flexShrink: 0,
               background: consent1 ? 'var(--bg3)' : 'var(--bg2)',
               border: `0.5px solid ${consent1 ? 'var(--acc)' : 'var(--b2)'}`,
-              borderRadius: 4,
+              borderRadius: 3,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -413,7 +413,7 @@ function Step4Consent({ user, onComplete }) {
               flexShrink: 0,
               background: consent2 ? 'var(--bg3)' : 'var(--bg2)',
               border: `0.5px solid ${consent2 ? 'var(--acc)' : 'var(--b2)'}`,
-              borderRadius: 4,
+              borderRadius: 3,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
