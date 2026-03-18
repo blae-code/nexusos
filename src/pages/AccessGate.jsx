@@ -377,10 +377,15 @@ export default function AccessGate() {
         <div
           style={{
             fontFamily: "'Barlow', sans-serif",
-            fontSize: '13px',
+            fontSize: '12px',
             color: '#C8A84B',
-            marginBottom: '16px',
-            lineHeight: 1.5
+            marginBottom: '20px',
+            lineHeight: 1.6,
+            padding: '12px 14px',
+            background: 'rgba(200,168,75,0.08)',
+            border: '0.5px solid rgba(200,168,75,0.2)',
+            borderRadius: '3px',
+            animation: 'panel-fade-in 0.8s ease-out 0.8s both'
           }}>
           
             {authError || healthError}
