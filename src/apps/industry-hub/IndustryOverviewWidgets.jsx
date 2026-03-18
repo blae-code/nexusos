@@ -150,9 +150,10 @@ export function InsightStrip() {
   return (
     <div
       style={{
-        background: 'var(--bg2)',
-        border: '0.5px solid var(--b2)',
-        borderRadius: 7,
+        background: 'var(--bg1)',
+        border: '0.5px solid var(--b1)',
+        borderLeft: '2px solid rgba(192,57,43,0.4)',
+        borderRadius: 3,
         padding: '11px 13px',
         display: 'flex',
         alignItems: 'center',
