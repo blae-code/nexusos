@@ -172,14 +172,15 @@ export default function AccessGate() {
         ))}
       </div>
 
-      {/* RED NEBULA — Primary accent bloom */}
+      {/* RED NEBULA — Interactive tracking */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 50% 40% at 65% 15%, rgba(192,57,43,0.12) 0%, transparent 65%)',
+          background: `radial-gradient(ellipse 50% 40% at ${mousePos.x / window.innerWidth * 100}% ${mousePos.y / window.innerHeight * 100}%, rgba(192,57,43,0.15) 0%, transparent 65%)`,
           filter: 'blur(40px)',
+          transition: 'background 50ms ease-out',
         }}
       />
 
