@@ -295,6 +295,7 @@ export default function AccessGate() {
              color: '#9A9488',
              lineHeight: 1.7,
              marginBottom: '32px',
+             animation: 'panel-fade-in 0.8s ease-out 0.6s both',
            }}
          >
           Continue with Discord to verify your Redscar Nomads membership and launch the app.
