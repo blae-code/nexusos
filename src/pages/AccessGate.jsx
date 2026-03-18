@@ -247,6 +247,7 @@ export default function AccessGate() {
             marginBottom: '6px',
             marginTop: '8px',
             textAlign: 'left',
+            animation: 'panel-fade-in 0.8s ease-out 0.3s both',
           }}
         >
           REDSCAR NOMADS
