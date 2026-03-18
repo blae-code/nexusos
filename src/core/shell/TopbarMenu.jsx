@@ -17,26 +17,28 @@ export function LayoutButton({ active, title, onClick, icon }) {
       style={{
         width: 30,
         height: 28,
-        borderRadius: 6,
-        border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
+        borderRadius: 3,
+        border: `0.5px solid ${active ? 'rgba(192,57,43,0.5)' : 'transparent'}`,
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         transition: 'all 0.12s',
-        background: active ? 'var(--bg3)' : 'transparent',
-        color: active ? 'var(--t1)' : 'var(--t2)',
+        background: active ? 'rgba(192,57,43,0.12)' : 'transparent',
+        color: active ? '#E8E4DC' : '#7A7470',
       }}
       onMouseEnter={(event) => {
         if (!active) {
-          event.currentTarget.style.background = 'var(--bg2)';
-          event.currentTarget.style.borderColor = 'var(--b1)';
+          event.currentTarget.style.background = 'rgba(200,170,100,0.07)';
+          event.currentTarget.style.borderColor = 'rgba(200,168,75,0.18)';
+          event.currentTarget.style.color = '#E8E4DC';
         }
       }}
       onMouseLeave={(event) => {
         if (!active) {
           event.currentTarget.style.background = 'transparent';
           event.currentTarget.style.borderColor = 'transparent';
+          event.currentTarget.style.color = '#7A7470';
         }
       }}
     >
