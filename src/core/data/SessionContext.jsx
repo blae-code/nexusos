@@ -180,42 +180,7 @@ export function SessionProvider({ children }) {
       console.warn('[SessionProvider] refresh failed:', error);
     }
 
-    // In Base44 preview, provide a mock Pioneer user immediately
-    if (!nextSession && isBase44Preview()) {
-      nextSession = toPreviewMockSession();
-    }
 
-    if (!nextSession && !IS_DEV_MODE) {
-      try {
-        const adminUser = await fetchPreviewAdminUser(SESSION_REFRESH_TIMEOUT_MS);
-        if (isBase44Admin(adminUser)) {
-          nextSession = toAdminSession(adminUser);
-        }
-      } catch (error) {
-        if (!transportIssue) {
-          transportIssue = isAbortError(error) ? 'Admin preview lookup timed out' : 'Admin preview lookup unavailable';
-        }
-        console.warn('[SessionProvider] Base44 preview admin lookup unavailable:', error?.message || error);
-      }
-    }
-
-    if (!nextSession && !IS_DEV_MODE) {
-      try {
-        const adminUser = await withTimeout(
-          () => base44.auth.me(),
-          SESSION_REFRESH_TIMEOUT_MS,
-          'Base44 admin lookup',
-        );
-        if (isBase44Admin(adminUser)) {
-          nextSession = toAdminSession(adminUser);
-        }
-      } catch (error) {
-        if (!transportIssue) {
-          transportIssue = isAbortError(error) ? 'Base44 admin lookup timed out' : 'Base44 admin lookup unavailable';
-        }
-        console.warn('[SessionProvider] Base44 admin fallback unavailable:', error?.message || error);
-      }
-    }
 
     if (!isMountedRef.current || requestId !== refreshRequestIdRef.current) {
       return;
