@@ -32,6 +32,7 @@ import InventoryManager from '@/pages/InventoryManager';
 import CrewScheduler from '@/pages/CrewScheduler';
 import TrainingHub from '@/pages/TrainingHub';
 import AdminSettings from '@/pages/AdminSettings';
+import OpsDashboard from '@/pages/OpsDashboard';
 import BootScreen from '@/pages/BootScreen';
 
 function App() {
@@ -70,6 +71,7 @@ function App() {
               <Route path="settings" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
               <Route path="admin/settings" element={<AdminSettings />} />
+              <Route path="command" element={<OpsDashboard />} />
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="training" element={<TrainingHub />} />
               <Route path="roster" element={<OrgRoster />} />
