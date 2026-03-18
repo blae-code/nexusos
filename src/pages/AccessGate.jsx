@@ -220,7 +220,7 @@ export default function AccessGate() {
           animation: 'panel-fade-in 0.8s ease-out',
         }}
       >
-        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'panel-fade-in 0.8s ease-out 0.1s both' }}>
           <img 
             src="https://www.redscar.org/images/RedScarFUll.png" 
             alt="Redscar Nomads" 
