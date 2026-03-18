@@ -7,9 +7,9 @@ import { RankBadge } from '@/core/design';
 import { useSession } from '@/core/data/SessionContext';
 import { appVersion } from '@/core/data/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
-import { AltTabIcon, MoreIcon, SecondMonitorIcon } from './NexusIcons';
+import { AltTabIcon, SecondMonitorIcon } from './NexusIcons';
 import { StatusPill, VersionPill } from './TopbarPills';
-import { LayoutButton, DropdownContainer, Divider, MenuLink, ChangelogPanel } from './TopbarMenu';
+import { LayoutButton, Divider, MenuLink, ChangelogPanel } from './TopbarMenu';
 import { IS_DEV_MODE } from '@/core/data/dev';
 
 
