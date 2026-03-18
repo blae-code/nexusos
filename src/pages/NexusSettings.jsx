@@ -102,7 +102,7 @@ export default function NexusSettings() {
       <Section title="IDENTITY">
         <div
           className="flex items-center gap-3"
-          style={{ padding: '8px 12px', background: 'var(--bg2)', border: '0.5px solid var(--b2)', borderRadius: 6 }}
+          style={{ padding: '8px 12px', background: 'var(--bg2)', border: '0.5px solid var(--b2)', borderRadius: 3 }}
         >
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: rankColor }} />
           <div>
@@ -179,7 +179,7 @@ export default function NexusSettings() {
             padding: '8px 10px',
             background: 'var(--bg2)',
             border: '0.5px solid var(--b1)',
-            borderRadius: 6,
+            borderRadius: 3,
           }}
         >
           <div>
