@@ -56,7 +56,7 @@ function Panel({ title, children, style }) {
       style={{
         background: 'var(--bg1)',
         border: '0.5px solid var(--b1)',
-        borderRadius: 8,
+        borderRadius: 3,
         padding: 14,
         ...style,
       }}
