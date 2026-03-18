@@ -2,7 +2,7 @@ import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/
 
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 const DISCORD_CLIENT_ID = '1483421250301989057';
-const DISCORD_REDIRECT_URI = 'https://nomadnexus.space/functions/auth/discord/callback';
+const DISCORD_REDIRECT_URI = 'https://nexus-nomad-core.base44.app/api/functions/auth/discord/callback';
 
 function buildFunctionUrl(functionPath) {
   const base = 'https://nexus-nomad-core.base44.app/api/functions';
