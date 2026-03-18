@@ -188,7 +188,6 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
               }} />
             ) : null}
             {group.map((item) => {
-              const Icon = item.icon;
               const isActive = isActiveRoute(item.path);
               const badgeActive = item.badge ? badges[item.badge] : false;
               const isLiveBadge = item.badge === 'live';
@@ -207,7 +206,24 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
                     color: isActive ? '#E8E4DC' : '#7A7470',
                   }}
                 >
-                  <Icon size={14} />
+                  {item.isImage ? (
+                    <img 
+                      src={item.icon} 
+                      alt={item.label}
+                      style={{ 
+                        width: 14, 
+                        height: 14,
+                        filter: isActive ? 'brightness(1.1)' : 'brightness(0.8)',
+                      }} 
+                    />
+                  ) : (
+                    <>
+                      {(() => {
+                        const Icon = item.icon;
+                        return <Icon size={14} />;
+                      })()}
+                    </>
+                  )}
                   {badgeActive ? (
                     <div
                       style={{
