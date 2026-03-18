@@ -89,96 +89,134 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
   return (
     <nav
       style={{
-        width: 50,
-        background: '#08080A',
-        borderRight: '0.5px solid rgba(200,170,100,0.12)',
+        width: 52,
+        background: 'linear-gradient(180deg, #0A0908 0%, #080709 100%)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '8px 0',
-        gap: 2,
+        padding: '0',
         flexShrink: 0,
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      {/* Left red accent stripe */}
+      <style>{`
+        @keyframes sidebar-live-pulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 4px #C0392B; }
+          50% { opacity: 0.4; box-shadow: 0 0 2px #C0392B; }
+        }
+        @keyframes sidebar-craft-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        .nexus-nav-link {
+          text-decoration: none !important;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          width: 36px;
+          height: 34px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+          flex-shrink: 0;
+        }
+        .nexus-nav-link:hover:not(.active) {
+          background: rgba(200,170,100,0.07) !important;
+          border-color: rgba(200,168,75,0.18) !important;
+          color: #E8E4DC !important;
+          box-shadow: inset 0 1px 0 rgba(200,168,75,0.08) !important;
+        }
+        .nexus-nav-link.active {
+          background: rgba(192,57,43,0.15) !important;
+          border-color: rgba(192,57,43,0.55) !important;
+          color: #E8E4DC !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 0 12px rgba(192,57,43,0.15) !important;
+        }
+      `}</style>
+
+      {/* Red accent stripe — glowing */}
       <div style={{
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
         width: '2px',
-        background: '#C0392B',
+        background: 'linear-gradient(180deg, transparent 0%, #C0392B 15%, #C0392B 85%, transparent 100%)',
+        boxShadow: '2px 0 8px rgba(192,57,43,0.35)',
+        zIndex: 2,
       }} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%' }}>
+
+      {/* Top crown — compass pip */}
+      <div style={{
+        width: '100%',
+        height: 44,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderBottom: '0.5px solid rgba(200,170,100,0.08)',
+        flexShrink: 0,
+        position: 'relative',
+      }}>
+        {/* Redscar compass mark */}
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="rgba(200,168,75,0.25)" strokeWidth="0.75"/>
+          <circle cx="12" cy="12" r="5" stroke="#C0392B" strokeWidth="0.75" opacity="0.7"/>
+          <circle cx="12" cy="12" r="2" fill="#C0392B" opacity="0.9"/>
+          <line x1="12" y1="2" x2="12" y2="6" stroke="rgba(232,228,220,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+          <polygon points="12,2 11,6 12,5 13,6" fill="#E8E4DC" opacity="0.8"/>
+        </svg>
+      </div>
+
+      {/* Nav items */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', padding: '6px 0' }}>
         {NAV_GROUPS.map((group, groupIdx) => (
           <React.Fragment key={`group-${groupIdx}`}>
             {groupIdx > 0 ? (
-              <div
-                style={{
-                  width: 22,
-                  height: '0.5px',
-                  background: 'var(--b0)',
-                  margin: '3px 0',
-                }}
-              />
+              <div style={{
+                width: 24,
+                height: '0.5px',
+                background: 'linear-gradient(90deg, transparent, rgba(200,170,100,0.2), transparent)',
+                margin: '4px 0',
+              }} />
             ) : null}
             {group.map((item) => {
               const Icon = item.icon;
               const isActive = isActiveRoute(item.path);
               const badgeActive = item.badge ? badges[item.badge] : false;
-              const badgeColor = item.badge === 'live' ? 'var(--live)' : item.badge === 'craft' ? 'var(--warn)' : 'var(--t2)';
+              const isLiveBadge = item.badge === 'live';
               const canAccess = canAccessItem(item);
 
               if (!canAccess) return null;
 
               return (
                 <Link
-                   key={item.path}
-                   to={item.path}
-                   className="nexus-sidebar-link"
-                   data-tip={item.label}
-                   style={{
-                     width: 36,
-                     height: 36,
-                     borderRadius: 8,
-                     cursor: 'pointer',
-                     border: `0.5px solid ${isActive ? '#C0392B' : 'transparent'}`,
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'center',
-                     transition: 'background 120ms ease, border-color 120ms ease, color 120ms ease',
-                     position: 'relative',
-                     background: isActive ? 'rgba(192,57,43,0.12)' : 'transparent',
-                     color: isActive ? '#E8E4DC' : '#9A9488',
-                   }}
-                   onMouseEnter={(event) => {
-                     if (!isActive) {
-                       event.currentTarget.style.background = 'rgba(200,170,100,0.06)';
-                       event.currentTarget.style.borderColor = 'rgba(200,170,100,0.12)';
-                       event.currentTarget.style.color = '#E8E4DC';
-                     }
-                   }}
-                   onMouseLeave={(event) => {
-                     if (!isActive) {
-                       event.currentTarget.style.background = 'transparent';
-                       event.currentTarget.style.borderColor = 'transparent';
-                       event.currentTarget.style.color = '#9A9488';
-                     }
-                   }}
-                 >
-                  <Icon size={16} />
+                  key={item.path}
+                  to={item.path}
+                  className={`nexus-nav-link${isActive ? ' active' : ''}`}
+                  data-tip={item.label}
+                  style={{
+                    border: `0.5px solid ${isActive ? 'rgba(192,57,43,0.55)' : 'transparent'}`,
+                    color: isActive ? '#E8E4DC' : '#7A7470',
+                  }}
+                >
+                  <Icon size={15} />
                   {badgeActive ? (
                     <div
                       style={{
                         position: 'absolute',
-                        top: 5,
-                        right: 5,
-                        width: 6,
-                        height: 6,
+                        top: 4,
+                        right: 4,
+                        width: 5,
+                        height: 5,
                         borderRadius: '50%',
-                        border: '1.5px solid #08080A',
-                        background: '#C0392B',
+                        border: '1.5px solid #0A0908',
+                        background: isLiveBadge ? '#C0392B' : '#C8A84B',
+                        animation: isLiveBadge
+                          ? 'sidebar-live-pulse 2s ease-in-out infinite'
+                          : 'sidebar-craft-pulse 3s ease-in-out infinite',
                       }}
                     />
                   ) : null}
@@ -189,38 +227,57 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
         ))}
       </div>
 
+      {/* Rank footer */}
       {rank && rank !== 'AFFILIATE' && (
         <div style={{
           width: '100%',
-          borderTop: '0.5px solid var(--b1)',
-          padding: '8px 0 6px',
+          borderTop: '0.5px solid rgba(200,170,100,0.08)',
+          padding: '8px 0',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: 6,
+          gap: 3,
           flexShrink: 0,
         }}>
-          <RankBadge rank={rank} size={14} />
-          <span style={{ fontSize: 8, color: 'var(--t3)', letterSpacing: '0.1em' }}>{rank}</span>
+          <RankBadge rank={rank} size={13} />
+          <span style={{
+            fontSize: 7,
+            color: 'rgba(200,168,75,0.45)',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            fontFamily: "'Barlow Condensed', sans-serif",
+          }}>{rank.slice(0, 3)}</span>
         </div>
       )}
 
+      {/* Dev sim indicator */}
       {IS_DEV_MODE ? (
-        <div
-          style={{
-            width: '100%',
-            borderTop: '0.5px solid rgba(var(--warn-rgb), 0.18)',
-            paddingTop: 8,
-            paddingBottom: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 3,
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-          <span style={{ fontSize: 8, color: 'rgba(var(--warn-rgb), 0.6)', letterSpacing: '0.18em', userSelect: 'none' }}>SIM</span>
+        <div style={{
+          width: '100%',
+          borderTop: '0.5px solid rgba(200,168,75,0.1)',
+          paddingTop: 7,
+          paddingBottom: 6,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 3,
+          flexShrink: 0,
+        }}>
+          <div style={{
+            width: 4,
+            height: 4,
+            borderRadius: '50%',
+            background: '#C8A84B',
+            animation: 'pulse-dot 2.5s ease-in-out infinite',
+            boxShadow: '0 0 4px rgba(200,168,75,0.5)',
+          }} />
+          <span style={{
+            fontSize: 7,
+            color: 'rgba(200,168,75,0.5)',
+            letterSpacing: '0.2em',
+            userSelect: 'none',
+            fontFamily: "'Barlow Condensed', sans-serif",
+          }}>SIM</span>
         </div>
       ) : null}
     </nav>
