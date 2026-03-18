@@ -361,7 +361,7 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
             {Math.round(deposit.quality_pct || 0)}%
           </span>
         </div>
-        <div style={{ height: 6, background: 'var(--b1)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ height: 6, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{
             height: '100%', width: `${deposit.quality_pct || 0}%`,
             background: col, transition: 'width 0.3s ease',
