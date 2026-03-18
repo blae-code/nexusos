@@ -49,29 +49,29 @@ function App() {
             <Route path="/app" element={<NexusShell />}>
               <Route index element={<Navigate to="/app/industry" replace />} />
               <Route path="industry" element={<IndustryHub />} />
+              <Route path="industry/coffer" element={<CofferLedger />} />
+              <Route path="industry/ledger" element={<MaterialLedger />} />
+              <Route path="industry/commerce" element={<Commerce />} />
+              <Route path="industry/profit" element={<ProfitCalc />} />
               <Route path="scout" element={<ScoutIntel />} />
+              <Route path="scout/routes" element={<RoutePlanner />} />
               <Route path="ops" element={<OpBoard />} />
               <Route path="ops/new" element={<OpCreator />} />
               <Route path="ops/:id" element={<LiveOp />} />
-              <Route path="fleet" element={<FleetForge />} />
-              <Route path="org-fleet" element={<Fleet />} />
-              <Route path="routes" element={<RoutePlanner />} />
-              <Route path="profit" element={<ProfitCalc />} />
-              <Route path="coffer" element={<CofferLedger />} />
-              <Route path="rescue" element={<RescueBoard />} />
-              <Route path="roster" element={<OrgRoster />} />
-              <Route path="archive" element={<EpicArchive />} />
-              <Route path="commerce" element={<Commerce />} />
-              <Route path="logistics" element={<Logistics />} />
-              <Route path="settings" element={<NexusSettings />} />
-              <Route path="profile" element={<NexusSettings />} />
-              <Route path="admin/todo" element={<NexusTodo />} />
-              <Route path="ledger" element={<MaterialLedger />} />
-              <Route path="handbook" element={<RedscarHandbook />} />
+              <Route path="ops/rescue" element={<RescueBoard />} />
+              <Route path="ops/archive" element={<EpicArchive />} />
               <Route path="armory" element={<Armory />} />
-              <Route path="inventory" element={<InventoryManager />} />
-              <Route path="schedule" element={<CrewScheduler />} />
+              <Route path="armory/fleet" element={<FleetForge />} />
+              <Route path="armory/inventory" element={<InventoryManager />} />
+              <Route path="armory/schedule" element={<CrewScheduler />} />
+              <Route path="armory/org-fleet" element={<Fleet />} />
+              <Route path="profile" element={<NexusSettings />} />
+              <Route path="settings" element={<NexusSettings />} />
+              <Route path="admin/todo" element={<NexusTodo />} />
               <Route path="admin/settings" element={<AdminSettings />} />
+              <Route path="handbook" element={<RedscarHandbook />} />
+              <Route path="training" element={<TrainingHub />} />
+              <Route path="roster" element={<OrgRoster />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
