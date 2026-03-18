@@ -35,7 +35,7 @@ export function VersionPill({ version, full, date }) {
             transform: 'translateX(-50%)',
             background: 'var(--bg2)',
             border: '0.5px solid var(--b2)',
-            borderRadius: 6,
+            borderRadius: 3,
             padding: '6px 8px',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
