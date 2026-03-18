@@ -73,7 +73,7 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
             <col style={{ width: '15%' }} />
           </colgroup>
           <thead>
-            <tr style={{ background: 'var(--bg3)' }}>
+            <tr style={{ background: 'var(--bg2)' }}>
               {['MATERIAL', 'SCU', 'METHOD', 'YIELD', 'COST', 'STATION', 'SUBMITTED BY', 'TIME LEFT', 'STATUS'].map((heading) => (
                 <th
                   key={heading}
