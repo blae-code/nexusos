@@ -280,6 +280,7 @@ export default function AccessGate() {
             textTransform: 'uppercase',
             marginTop: '6px',
             marginBottom: '28px',
+            animation: 'panel-fade-in 0.8s ease-out 0.5s both',
           }}
         >
           ACCESS GATE
