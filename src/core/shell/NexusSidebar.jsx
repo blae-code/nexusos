@@ -118,7 +118,7 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
           position: relative;
           width: 36px;
           height: 34px;
-          border-radius: 4px;
+          border-radius: 3px;
           cursor: pointer;
           transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
           flex-shrink: 0;

@@ -69,7 +69,7 @@ function menuButtonStyle(active) {
   return {
     width: 30,
     height: 28,
-    borderRadius: 6,
+    borderRadius: 3,
     border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
     cursor: 'pointer',
     display: 'flex',
