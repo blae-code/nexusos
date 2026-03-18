@@ -284,10 +284,42 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           {/* Separator */}
           <div style={{ width: '0.5px', height: 14, background: 'rgba(200,170,100,0.2)' }} />
 
+          {/* Personal Wallet */}
+          {walletBalance !== null && (
+            <div
+              onClick={() => navigate('/app/profile')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '5px 10px',
+                background: 'rgba(192,57,43,0.08)',
+                border: '0.5px solid rgba(192,57,43,0.15)',
+                borderRadius: 3,
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(192,57,43,0.12)';
+                e.currentTarget.style.borderColor = 'rgba(192,57,43,0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(192,57,43,0.08)';
+                e.currentTarget.style.borderColor = 'rgba(192,57,43,0.15)';
+              }}
+              title="Personal Wallet"
+            >
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C0392B', flexShrink: 0 }} />
+              <span style={{ color: '#C0392B', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {(walletBalance / 1000000).toFixed(1)}M aUEC
+              </span>
+            </div>
+          )}
+
           {/* Coffer */}
           {cofferBalance !== null && (
             <div
-              onClick={() => navigate('/app/coffer')}
+              onClick={() => navigate('/app/industry/coffer')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
