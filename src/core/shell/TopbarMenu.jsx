@@ -145,17 +145,20 @@ export function ChangelogPanel({ onClose }) {
       className="nexus-fade-in"
       style={{
         position: 'absolute',
-        top: 'calc(100% + 10px)',
+        top: 'calc(100% + 8px)',
         right: 16,
         width: 460,
         maxHeight: 560,
-        background: 'var(--bg2)',
-        border: '0.5px solid var(--b2)',
-        borderRadius: 8,
+        background: 'rgba(12,11,9,0.97)',
+        backdropFilter: 'blur(12px)',
+        border: '0.5px solid rgba(200,170,100,0.12)',
+        borderLeft: '2.5px solid #C0392B',
+        borderRadius: '0 3px 3px 0',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         zIndex: 160,
+        boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(192,57,43,0.10), inset 0 1px 0 rgba(232,228,220,0.06)',
       }}
     >
       <div
@@ -163,59 +166,76 @@ export function ChangelogPanel({ onClose }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '10px 14px',
-          borderBottom: '0.5px solid var(--b1)',
+          padding: '10px 16px',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
           flexShrink: 0,
+          background: 'rgba(192,57,43,0.06)',
         }}
       >
-        <span style={{ color: 'var(--t0)', fontSize: 11, letterSpacing: '0.08em', fontWeight: 600 }}>
-          CHANGELOG
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: '1.5px', height: 14, background: '#C0392B', opacity: 0.8 }} />
+          <span style={{
+            color: '#C8A84B',
+            fontSize: 10,
+            letterSpacing: '0.22em',
+            fontWeight: 600,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            textTransform: 'uppercase',
+          }}>
+            CHANGELOG
+          </span>
+        </div>
         <button
           type="button"
           onClick={onClose}
-          className="nexus-tooltip"
-          data-tooltip="Close"
           style={{
             background: 'transparent',
-            border: 'none',
-            color: 'var(--t2)',
+            border: '0.5px solid transparent',
+            borderRadius: 3,
+            color: '#7A7470',
             cursor: 'pointer',
-            padding: 2,
+            padding: 4,
             display: 'flex',
             alignItems: 'center',
+            transition: 'color 120ms ease, border-color 120ms ease',
           }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#E8E4DC'; e.currentTarget.style.borderColor = 'rgba(200,170,100,0.2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#7A7470'; e.currentTarget.style.borderColor = 'transparent'; }}
         >
-          <X size={13} />
+          <X size={12} />
         </button>
       </div>
-      <div style={{ overflowY: 'auto', padding: '10px 14px' }}>
+      <div style={{ overflowY: 'auto', padding: '12px 16px' }}>
         {lines.map((line, index) => {
           if (line.startsWith('## ')) {
             return (
               <div
                 key={index}
                 style={{
-                  color: 'var(--t0)',
-                  fontSize: 11,
+                  color: '#C8A84B',
+                  fontSize: 10,
                   fontWeight: 600,
-                  paddingBottom: 5,
+                  letterSpacing: '0.15em',
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  textTransform: 'uppercase',
+                  paddingBottom: 6,
                   marginBottom: 6,
-                  marginTop: index === 0 ? 0 : 14,
-                  borderBottom: '0.5px solid var(--b0)',
+                  marginTop: index === 0 ? 0 : 16,
+                  borderBottom: '0.5px solid rgba(200,170,100,0.10)',
                 }}
               >
                 {line.replace(/^## /, '')}
               </div>
             );
           }
-
-          if (line.startsWith('# ')) {
-            return null;
-          }
-
+          if (line.startsWith('# ')) return null;
           return (
-            <div key={index} style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
+            <div key={index} style={{
+              color: '#7A7470',
+              fontSize: 10,
+              lineHeight: 1.7,
+              fontFamily: "'Barlow', sans-serif",
+            }}>
               {line || '\u00a0'}
             </div>
           );
