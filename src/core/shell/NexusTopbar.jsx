@@ -272,7 +272,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             >
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8A84B', flexShrink: 0 }} />
               <span style={{ color: '#C8A84B', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
-                {(cofferBalance / 1000000).toFixed(1)}M
+                {(cofferBalance / 1000000).toFixed(1)}M aUEC
               </span>
             </div>
           )}
