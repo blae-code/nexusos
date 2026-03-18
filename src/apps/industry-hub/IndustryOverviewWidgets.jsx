@@ -60,9 +60,9 @@ export function StatCard({ icon: Icon, label, value, unit, detail, indicator, ba
   return (
     <div
       style={{
-        background: 'var(--bg2)',
+        background: 'var(--bg1)',
         border: '0.5px solid var(--b1)',
-        borderRadius: 8,
+        borderRadius: 3,
         padding: '14px 14px 12px',
         position: 'relative',
         overflow: 'hidden',
