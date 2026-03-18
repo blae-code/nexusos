@@ -4,7 +4,6 @@ const SESSION_COOKIE_NAME = 'nexus_member_session';
 const STATE_COOKIE_NAME = 'nexus_oauth_state';
 const enc = new TextEncoder();
 
-// Signing utilities (duplicated from shared for diagnostic isolation)
 function toBase64Url(bytes) {
   const binary = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
@@ -53,7 +52,7 @@ async function decodeSignedPayload(token) {
     const decoded = JSON.parse(new TextDecoder().decode(fromBase64Url(body)));
     if (!decoded.exp || decoded.exp < Date.now()) return { valid: false, reason: 'expired' };
     return { valid: true, payload: decoded };
-  } catch (e) {
+  } catch {
     return { valid: false, reason: 'decode_error' };
   }
 }
@@ -72,21 +71,12 @@ function parseCookies(req) {
   }, {});
 }
 
-async function checkEndpoint(url, method = 'GET') {
+async function checkEndpoint(url) {
   try {
-    const response = await fetch(url, { method });
-    return {
-      endpoint: url,
-      status: response.status,
-      ok: response.ok,
-    };
+    const response = await fetch(url, { method: 'GET' });
+    return { exists: true, status: response.status, ok: response.ok };
   } catch (error) {
-    return {
-      endpoint: url,
-      status: 0,
-      ok: false,
-      error: error.message,
-    };
+    return { exists: false, status: 0, ok: false };
   }
 }
 
@@ -124,14 +114,13 @@ async function resolveSession(req) {
     return {
       valid: true,
       user: {
-        id: user.id,
         callsign: user.callsign,
         rank: user.nexus_rank || 'AFFILIATE',
         onboarding_complete: user.onboarding_complete ?? false,
       },
     };
   } catch (error) {
-    return { valid: false, reason: 'resolution_error', error: error.message };
+    return { valid: false, reason: 'resolution_error' };
   }
 }
 
@@ -154,7 +143,6 @@ function buildDiscordAuthorizeUrl() {
 }
 
 Deno.serve(async (req) => {
-  // Only allow GET requests
   if (req.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
@@ -162,82 +150,72 @@ Deno.serve(async (req) => {
   const appUrl = Deno.env.get('APP_URL') || '';
   const baseUrl = new URL(appUrl || req.url).origin;
 
-  // 1. Environment Configuration
-  const envConfig = {
+  // Environment section
+  const environment = {
     DISCORD_CLIENT_ID: Boolean(Deno.env.get('DISCORD_CLIENT_ID')),
     DISCORD_CLIENT_SECRET: Boolean(Deno.env.get('DISCORD_CLIENT_SECRET')),
-    DISCORD_REDIRECT_URI: Boolean(Deno.env.get('DISCORD_REDIRECT_URI')),
+    DISCORD_REDIRECT_URI: Deno.env.get('DISCORD_REDIRECT_URI') || null,
     DISCORD_GUILD_ID: Boolean(Deno.env.get('DISCORD_GUILD_ID')),
-    DISCORD_BOT_TOKEN: Boolean(Deno.env.get('DISCORD_BOT_TOKEN')),
     SESSION_SIGNING_SECRET: Boolean(Deno.env.get('SESSION_SIGNING_SECRET')),
-    APP_URL: Boolean(Deno.env.get('APP_URL')),
+    APP_URL: Deno.env.get('APP_URL') || null,
   };
 
-  // 2. Endpoint Health Checks
-  const healthChecks = await Promise.all([
+  // Endpoint health section
+  const endpoints = await Promise.all([
     checkEndpoint(`${baseUrl}/api/functions/auth/health/entry`),
     checkEndpoint(`${baseUrl}/api/functions/auth/session/entry`),
-    checkEndpoint(`${baseUrl}/api/functions/auth/discord/start/entry`, 'GET'),
+    checkEndpoint(`${baseUrl}/api/functions/auth/logout/entry`),
+    checkEndpoint(`${baseUrl}/api/functions/auth/discord/start/entry`),
+    checkEndpoint(`${baseUrl}/api/functions/auth/discord/callback/entry`),
   ]);
 
-  // 3. Cookie Inspection
-  const cookies = parseCookies(req);
-  const cookieInspection = {
-    nexus_member_session: Boolean(cookies[SESSION_COOKIE_NAME]),
-    nexus_session: Boolean(cookies['nexus_session']), // Check for legacy cookie
-    nexus_oauth_state: Boolean(cookies[STATE_COOKIE_NAME]),
-    found_legacy_cookies: Boolean(cookies['nexus_session']),
+  const endpoint_health = {
+    'auth/health': endpoints[0],
+    'auth/session': endpoints[1],
+    'auth/logout': endpoints[2],
+    'auth/discord/start': endpoints[3],
+    'auth/discord/callback': endpoints[4],
   };
 
-  // 4. Session Validation
-  const sessionValidation = await resolveSession(req);
+  // Cookie section
+  const cookies = parseCookies(req);
+  const cookie_check = {
+    nexus_member_session: Boolean(cookies[SESSION_COOKIE_NAME]),
+    nexus_session: Boolean(cookies['nexus_session']),
+    nexus_oauth_state: Boolean(cookies[STATE_COOKIE_NAME]),
+  };
 
-  // 5. OAuth Configuration Check
-  const discordAuthorizeUrl = buildDiscordAuthorizeUrl();
-  const redirectUri = Deno.env.get('DISCORD_REDIRECT_URI') || '';
-  const oauthConfig = {
-    authorize_url_generated: Boolean(discordAuthorizeUrl),
-    authorize_url: discordAuthorizeUrl ? 'TRUNCATED' : null,
-    redirect_uri_matches: redirectUri.includes('/api/functions/auth/discord/callback'),
-    required_scopes_present: true, // Built in
+  // Session section
+  const session = await resolveSession(req);
+
+  // OAuth section
+  const authorizeUrl = buildDiscordAuthorizeUrl();
+  const redirectUri = Deno.env.get('DISCORD_REDIRECT_URI') || null;
+  const oauth = {
+    authorize_url: authorizeUrl ? 'generated' : 'not_available',
+    redirect_uri: redirectUri,
     scopes: ['identify', 'guilds.members.read'],
   };
 
-  // 6. Rank Mapping Check
-  const rankMapping = {
-    mapped_ranks: [
-      { role: 'The Pioneer', rank: 'PIONEER' },
-      { role: 'Founder', rank: 'FOUNDER' },
-      { role: 'Voyager', rank: 'VOYAGER' },
-      { role: 'Scout', rank: 'SCOUT' },
-      { role: 'Vagrant', rank: 'VAGRANT' },
-      { role: 'Affiliate', rank: 'AFFILIATE' },
-    ],
-    mapping_logic_present: true,
-  };
-
-  // 7. Final Status Summary
-  const oauthConfigured = Object.values(envConfig).every(v => v);
-  const endpointsHealthy = healthChecks.every(check => check.ok);
-  const sessionWorking = sessionValidation.valid || cookieInspection.nexus_member_session === false;
+  // Summary section
+  const endpointsHealthy = Object.values(endpoint_health).every(e => e.exists && e.ok);
+  const oauthConfigured = Boolean(authorizeUrl);
 
   const summary = {
     oauth_configured: oauthConfigured,
     endpoints_healthy: endpointsHealthy,
-    session_working: sessionWorking,
+    session_working: session.valid,
     ready_for_login: oauthConfigured && endpointsHealthy,
   };
 
-  // Compile full diagnostic report
   const report = {
     timestamp: new Date().toISOString(),
-    environment_configuration: envConfig,
-    endpoint_health_checks: healthChecks,
-    cookie_inspection: cookieInspection,
-    session_validation: sessionValidation,
-    oauth_configuration: oauthConfig,
-    rank_mapping_validation: rankMapping,
-    status_summary: summary,
+    environment,
+    endpoint_health,
+    cookies: cookie_check,
+    session,
+    oauth,
+    summary,
   };
 
   return new Response(JSON.stringify(report, null, 2), {
