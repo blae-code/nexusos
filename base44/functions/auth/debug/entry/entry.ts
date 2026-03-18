@@ -4,12 +4,12 @@ const SESSION_COOKIE_NAME = 'nexus_member_session';
 const STATE_COOKIE_NAME = 'nexus_oauth_state';
 const enc = new TextEncoder();
 
-function toBase64Url(bytes) {
+function toBase64Url(bytes: Uint8Array): string {
   const binary = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-function fromBase64Url(value) {
+function fromBase64Url(value: string): Uint8Array {
   const padded = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
   const binary = atob(padded);
   return Uint8Array.from(binary, char => char.charCodeAt(0));
@@ -31,7 +31,7 @@ async function getSigningKey() {
   }
 }
 
-async function signValue(value) {
+async function signValue(value: string): Promise<string | null> {
   const key = await getSigningKey();
   if (!key) return null;
   try {
@@ -42,7 +42,7 @@ async function signValue(value) {
   }
 }
 
-async function decodeSignedPayload(token) {
+async function decodeSignedPayload(token?: string | null): Promise<{ valid: boolean; payload?: Record<string, any>; reason?: string } | null> {
   if (!token) return null;
   const [body, signature] = token.split('.');
   if (!body || !signature) return null;
@@ -57,9 +57,9 @@ async function decodeSignedPayload(token) {
   }
 }
 
-function parseCookies(req) {
+function parseCookies(req: Request): Record<string, string> {
   const raw = req.headers.get('cookie') || '';
-  return raw.split(';').reduce((acc, part) => {
+  return raw.split(';').reduce<Record<string, string>>((acc, part) => {
     const trimmed = part.trim();
     if (!trimmed) return acc;
     const idx = trimmed.indexOf('=');
@@ -71,16 +71,16 @@ function parseCookies(req) {
   }, {});
 }
 
-async function checkEndpoint(url) {
+async function checkEndpoint(url: string) {
   try {
     const response = await fetch(url, { method: 'GET' });
     return { exists: true, status: response.status, ok: response.ok };
-  } catch (error) {
+  } catch {
     return { exists: false, status: 0, ok: false };
   }
 }
 
-async function resolveSession(req) {
+async function resolveSession(req: Request): Promise<Record<string, any>> {
   try {
     const cookies = parseCookies(req);
     const token = cookies[SESSION_COOKIE_NAME];
@@ -94,20 +94,21 @@ async function resolveSession(req) {
       return { valid: false, reason: result?.reason || 'invalid_signature' };
     }
 
-    const { discord_id } = result.payload;
+    const { discord_id } = result.payload || {};
     if (!discord_id) {
       return { valid: false, reason: 'missing_discord_id' };
     }
 
     const base44 = createClientFromRequest(req);
-    const user = (await base44.asServiceRole.entities.NexusUser.filter({ discord_id: String(discord_id) }))?.[0];
+    const users = await base44.asServiceRole.entities.NexusUser.filter({ discord_id: String(discord_id) });
+    const user = users?.[0];
 
     if (!user) {
       return { valid: false, reason: 'user_not_found' };
     }
 
     const invalidatedAt = user.session_invalidated_at ? new Date(user.session_invalidated_at).getTime() : 0;
-    if (invalidatedAt && invalidatedAt > (result.payload.iat || 0)) {
+    if (invalidatedAt && invalidatedAt > ((result.payload?.iat as number) || 0)) {
       return { valid: false, reason: 'session_invalidated' };
     }
 
@@ -119,12 +120,12 @@ async function resolveSession(req) {
         onboarding_complete: user.onboarding_complete ?? false,
       },
     };
-  } catch (error) {
+  } catch {
     return { valid: false, reason: 'resolution_error' };
   }
 }
 
-function buildDiscordAuthorizeUrl() {
+function buildDiscordAuthorizeUrl(): string | null {
   const clientId = Deno.env.get('DISCORD_CLIENT_ID');
   const redirectUri = Deno.env.get('DISCORD_REDIRECT_URI');
 
@@ -142,9 +143,16 @@ function buildDiscordAuthorizeUrl() {
   return url.toString();
 }
 
-Deno.serve(async (req) => {
+function sessionNoStoreHeaders(): Record<string, string> {
+  return { 'Cache-Control': 'no-store' };
+}
+
+Deno.serve(async (req: Request) => {
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+    return Response.json({ error: 'Method not allowed' }, {
+      status: 405,
+      headers: sessionNoStoreHeaders(),
+    });
   }
 
   const appUrl = Deno.env.get('APP_URL') || '';
@@ -198,13 +206,13 @@ Deno.serve(async (req) => {
   };
 
   // Summary section
-  const endpointsHealthy = Object.values(endpoint_health).every(e => e.exists && e.ok);
+  const endpointsHealthy = Object.values(endpoint_health).every(e => (e as any).exists && (e as any).ok);
   const oauthConfigured = Boolean(authorizeUrl);
 
   const summary = {
     oauth_configured: oauthConfigured,
     endpoints_healthy: endpointsHealthy,
-    session_working: session.valid,
+    session_working: (session as any).valid,
     ready_for_login: oauthConfigured && endpointsHealthy,
   };
 
@@ -218,11 +226,7 @@ Deno.serve(async (req) => {
     summary,
   };
 
-  return new Response(JSON.stringify(report, null, 2), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-store',
-    },
+  return Response.json(report, {
+    headers: sessionNoStoreHeaders(),
   });
 });
