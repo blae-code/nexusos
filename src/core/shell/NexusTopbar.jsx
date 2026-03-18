@@ -9,7 +9,7 @@ import { appVersion } from '@/core/data/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
 import { AltTabIcon, SecondMonitorIcon } from './NexusIcons';
 import { StatusPill, VersionPill } from './TopbarPills';
-import { LayoutButton, Divider, MenuLink, ChangelogPanel } from './TopbarMenu';
+import { LayoutButton, Divider, MenuLink, ChangelogPanel, DropdownContainer } from './TopbarMenu';
 import { IS_DEV_MODE } from '@/core/data/dev';
 
 
