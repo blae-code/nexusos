@@ -121,7 +121,7 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
               <button
                 onClick={e => { e.preventDefault(); onRsvp(op.id); }}
                 style={{
-                  padding: '3px 10px', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
+                  padding: '3px 10px', borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 9, letterSpacing: '0.08em',
                   background: myRsvp ? 'rgba(var(--live-rgb), 0.1)' : 'var(--bg3)',
                   border: `0.5px solid ${myRsvp ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)'}`,
@@ -132,7 +132,7 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
               </button>
             )}
             <span style={{
-              padding: '3px 10px', borderRadius: 4, fontSize: 9, letterSpacing: '0.08em',
+              padding: '3px 10px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em',
               color: 'var(--t2)', background: 'var(--bg3)', border: '0.5px solid var(--b1)',
             }}>
               VIEW →
@@ -240,7 +240,7 @@ export default function OpBoard() {
         <div style={{ display: 'flex', gap: 2 }}>
           {[{ id: 'active', label: 'ACTIVE' }, { id: 'complete', label: 'COMPLETE' }, { id: 'all', label: 'ALL' }].map(f => (
             <button key={f.id} onClick={() => setStatusFilter(f.id)} style={{
-              padding: '4px 10px', borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '4px 10px', borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 9, letterSpacing: '0.1em',
               background: statusFilter === f.id ? 'var(--bg3)' : 'transparent',
               border: `0.5px solid ${statusFilter === f.id ? 'var(--b2)' : 'transparent'}`,

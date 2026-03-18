@@ -113,7 +113,7 @@ export default function ScoutIntel() {
     <div className="nexus-page-enter" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg1)', flexShrink: 0 }}>
+        <div style={{ padding: '10px 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)', flexShrink: 0 }}>
           <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
             Intel
           </span>
