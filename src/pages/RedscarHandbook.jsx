@@ -29,7 +29,7 @@ function Section({ title, children, defaultOpen = false, forceOpen = false, sect
           padding: '12px 16px',
           background: 'var(--bg2)',
           border: '0.5px solid var(--b2)',
-          borderRadius: 8,
+          borderRadius: 3,
           color: 'var(--t0)',
           fontSize: 13,
           letterSpacing: '0.1em',
@@ -114,7 +114,7 @@ export default function RedscarHandbook() {
               desc: 'Acquaintances, friendly org reps, friends not officially joining but wandering with us. Interviewed/vetted.',
             },
           ].map(({ rank, name, desc }) => (
-            <div key={rank} style={{ padding: '10px 12px', background: 'var(--bg3)', borderRadius: 6, borderLeft: `3px solid ${RANK_COLORS[rank].color}` }}>
+            <div key={rank} style={{ padding: '10px 12px', background: 'var(--bg3)', borderRadius: 3, borderLeft: `3px solid ${RANK_COLORS[rank].color}` }}>
               <div style={{ color: RANK_COLORS[rank].color, fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 4 }}>{name}</div>
               <div style={{ fontSize: 10, color: 'var(--t2)' }}>{desc}</div>
             </div>
@@ -133,7 +133,7 @@ export default function RedscarHandbook() {
             { name: 'Rescue', desc: 'First responders (medical & defense). No cost, open to all membership statuses. Request help in !-request-response.' },
             { name: 'Media', desc: 'YouTube, RSI Community Hub. Outward-facing creative works. Closed, invite-only PR team.' },
           ].map(({ name, desc }) => (
-            <div key={name} style={{ padding: '10px 12px', background: 'var(--bg3)', borderRadius: 6 }}>
+            <div key={name} style={{ padding: '10px 12px', background: 'var(--bg3)', borderRadius: 3 }}>
               <div style={{ color: 'var(--warn)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 4 }}>{name}</div>
               <div style={{ fontSize: 10, color: 'var(--t2)' }}>{desc}</div>
             </div>
@@ -153,7 +153,7 @@ export default function RedscarHandbook() {
             'Full membership requires voice participation so all know you and fit with us.',
             'Respect Voice comms. Focused channels require courtesy. Discord is 18+ only.',
           ].map((rule, i) => (
-            <div key={i} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 6, borderLeft: '2px solid var(--info)' }}>
+            <div key={i} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 3, borderLeft: '2px solid var(--info)' }}>
               <div style={{ fontSize: 10, color: 'var(--t1)' }}>{i + 1}. {rule}</div>
             </div>
           ))}
@@ -166,15 +166,15 @@ export default function RedscarHandbook() {
           <strong style={{ color: 'var(--warn)' }}>Definition:</strong> Extorting another PLAYER while NOT in PvP-centered CIG events or areas.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 6, borderLeft: '2px solid var(--danger)' }}>
+          <div style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 3, borderLeft: '2px solid var(--danger)' }}>
             <div style={{ fontSize: 10, color: 'var(--t1)', marginBottom: 4 }}>1. Redact Redscar from RSI profile before piracy.</div>
             <div style={{ fontSize: 9, color: 'var(--t3)' }}>Do not reference Redscar during questionable acts.</div>
           </div>
-          <div style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 6, borderLeft: '2px solid var(--danger)' }}>
+          <div style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 3, borderLeft: '2px solid var(--danger)' }}>
             <div style={{ fontSize: 10, color: 'var(--t1)', marginBottom: 4 }}>2. No rescue requests from Redscar if pirating.</div>
             <div style={{ fontSize: 9, color: 'var(--t3)' }}>Bad situations are on you.</div>
           </div>
-          <div style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 6, borderLeft: '2px solid var(--danger)' }}>
+          <div style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 3, borderLeft: '2px solid var(--danger)' }}>
             <div style={{ fontSize: 10, color: 'var(--t1)', marginBottom: 4 }}>3. No pro-piracy gameplay in Discord.</div>
             <div style={{ fontSize: 9, color: 'var(--t3)' }}>Anti-piracy ops are welcome.</div>
           </div>
@@ -191,7 +191,7 @@ export default function RedscarHandbook() {
           <div style={{ color: 'var(--warn)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 6 }}>FOCUSED EVENT</div>
           <div style={{ fontSize: 10, color: 'var(--t2)' }}>Highly efficient gameplay. ON TIME, PREPARED, disciplined comms, defined roles.</div>
         </div>
-        <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--bg3)', borderRadius: 6, borderLeft: '2px solid var(--live)' }}>
+        <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--bg3)', borderRadius: 3, borderLeft: '2px solid var(--live)' }}>
           <div style={{ fontSize: 10, color: 'var(--t1)', marginBottom: 8 }}>
             <strong>Pioneer Events:</strong> AUEC split evenly among all participants. Donations welcome but not required.
           </div>
@@ -225,7 +225,7 @@ export default function RedscarHandbook() {
               detail: 'End the op from the live surface, generate the debrief, and confirm the archive and Discord summary reflect what actually happened.',
             },
           ].map(({ title, detail }) => (
-            <div key={title} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 6, borderLeft: '2px solid var(--warn)' }}>
+            <div key={title} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 3, borderLeft: '2px solid var(--warn)' }}>
               <div style={{ color: 'var(--warn)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 4 }}>{title}</div>
               <div style={{ fontSize: 10, color: 'var(--t2)' }}>{detail}</div>
             </div>
@@ -259,7 +259,7 @@ export default function RedscarHandbook() {
             { word: 'CEASE FIRE', meaning: 'Stop firing' },
             { word: 'CHECK FIRE', meaning: 'Stop friendly fire' },
           ].map(({ word, meaning }) => (
-            <div key={word} style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 5 }}>
+            <div key={word} style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 3 }}>
               <div style={{ color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.1em', fontWeight: 500 }}>{word}</div>
               <div style={{ fontSize: 9, color: 'var(--t2)' }}>{meaning}</div>
             </div>
@@ -279,7 +279,7 @@ export default function RedscarHandbook() {
             'Keep up to date with Shaman discord channel.',
             'Stay engaged with problem solving and idea sharing.',
           ].map((req, i) => (
-            <div key={i} style={{ padding: '8px 10px', fontSize: 10, color: 'var(--t1)', background: 'var(--bg2)', borderRadius: 5 }}>
+            <div key={i} style={{ padding: '8px 10px', fontSize: 10, color: 'var(--t1)', background: 'var(--bg2)', borderRadius: 3 }}>
               {i + 1}. {req}
             </div>
           ))}
@@ -289,15 +289,15 @@ export default function RedscarHandbook() {
       {/* Awards */}
       <Section title="Awards & Recognition">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ padding: '12px', background: 'var(--bg3)', borderRadius: 6, borderLeft: '3px solid var(--warn)' }}>
+          <div style={{ padding: '12px', background: 'var(--bg3)', borderRadius: 3, borderLeft: '3px solid var(--warn)' }}>
             <div style={{ color: 'var(--warn)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 6 }}>Voyager Tribute</div>
             <div style={{ fontSize: 10, color: 'var(--t2)' }}>Physical, personalized, serial numbered gift. Mailed to member. NO COST. Opened at Ritual Bonfire. Formal induction ceremony.</div>
           </div>
-          <div style={{ padding: '12px', background: 'var(--bg3)', borderRadius: 6, borderLeft: '3px solid var(--info)' }}>
+          <div style={{ padding: '12px', background: 'var(--bg3)', borderRadius: 3, borderLeft: '3px solid var(--info)' }}>
             <div style={{ color: 'var(--info)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 6 }}>Redscar Rally Medal</div>
             <div style={{ fontSize: 10, color: 'var(--t2)' }}>1.5" hard enamel pin. Token of thanks from The Pioneer. Mailed or given in person. NO COST.</div>
           </div>
-          <div style={{ padding: '12px', background: 'var(--bg3)', borderRadius: 6, borderLeft: '3px solid var(--live)' }}>
+          <div style={{ padding: '12px', background: 'var(--bg3)', borderRadius: 3, borderLeft: '3px solid var(--live)' }}>
             <div style={{ color: 'var(--live)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 6 }}>Giveaways</div>
             <div style={{ fontSize: 10, color: 'var(--t2)' }}>Open to Scouts, Voyagers, Founders, The Pioneer. Subscriber flair to ships. Check #giveaways channel.</div>
           </div>
@@ -316,11 +316,11 @@ export default function RedscarHandbook() {
         <div style={{ marginBottom: 16 }}>
           <div style={{ color: 'var(--warn)', fontSize: 10, letterSpacing: '0.08em', fontWeight: 500, marginBottom: 8 }}>Voice Channels</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 5 }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 3 }}>
               <div style={{ color: 'var(--live)', fontSize: 9, fontWeight: 500 }}>CASUAL</div>
               <div style={{ fontSize: 9, color: 'var(--t3)' }}>General chat, no focused activity. Open to all.</div>
             </div>
-            <div style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 5 }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 3 }}>
               <div style={{ color: 'var(--warn)', fontSize: 9, fontWeight: 500 }}>FOCUSED</div>
               <div style={{ fontSize: 9, color: 'var(--t3)' }}>Focused gameplay. Locked — Redscar members, Partners, Affiliates only.</div>
             </div>

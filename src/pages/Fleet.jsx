@@ -19,7 +19,7 @@ function ShipCard({ ship, vehicleData }) {
       style={{
         background: 'var(--bg1)',
         border: '0.5px solid var(--b1)',
-        borderRadius: 6,
+        borderRadius: 3,
         padding: '14px 16px',
         display: 'flex',
         flexDirection: 'column',
@@ -81,7 +81,7 @@ function ShipCard({ ship, vehicleData }) {
         }}
       >
         {cargoCapacity > 0 && (
-          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 4, padding: '8px 10px' }}>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 3, padding: '8px 10px' }}>
             <div style={{ color: 'var(--t2)', fontSize: 8, letterSpacing: '0.08em', marginBottom: 2 }}>CARGO</div>
             <div style={{ color: 'var(--acc)', fontWeight: 600, fontSize: 12 }}>
               {cargoCapacity} SCU
@@ -90,7 +90,7 @@ function ShipCard({ ship, vehicleData }) {
         )}
 
         {ship.pledge_cost && (
-          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 4, padding: '8px 10px' }}>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 3, padding: '8px 10px' }}>
             <div style={{ color: 'var(--t2)', fontSize: 8, letterSpacing: '0.08em', marginBottom: 2 }}>COST</div>
             <div style={{ color: 'var(--t0)', fontWeight: 600 }}>
               ${ship.pledge_cost.toLocaleString()}
@@ -99,7 +99,7 @@ function ShipCard({ ship, vehicleData }) {
         )}
 
         {ship.manufacturer && (
-          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 4, padding: '8px 10px' }}>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 3, padding: '8px 10px' }}>
             <div style={{ color: 'var(--t2)', fontSize: 8, letterSpacing: '0.08em', marginBottom: 2 }}>MFR</div>
             <div style={{ color: 'var(--t1)', fontSize: 10 }}>
               {ship.manufacturer}
@@ -108,7 +108,7 @@ function ShipCard({ ship, vehicleData }) {
         )}
 
         {ship.fleet_role && (
-          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 4, padding: '8px 10px' }}>
+          <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 3, padding: '8px 10px' }}>
             <div style={{ color: 'var(--t2)', fontSize: 8, letterSpacing: '0.08em', marginBottom: 2 }}>ROLE</div>
             <div style={{ color: 'var(--info)', fontSize: 10 }}>
               {ship.fleet_role}
@@ -198,7 +198,7 @@ export default function Fleet() {
             padding: '6px 14px',
             background: 'var(--bg2)',
             border: '0.5px solid var(--b1)',
-            borderRadius: 4,
+            borderRadius: 3,
             color: 'var(--t1)',
             fontSize: 10,
             cursor: 'pointer',
@@ -237,7 +237,7 @@ export default function Fleet() {
           { label: 'TOTAL CARGO', value: `${totalCargo} SCU`, color: 'var(--acc)' },
           { label: 'ACTIVE MISSIONS', value: activeMissions, color: activeMissions > 0 ? 'var(--live)' : 'var(--t2)' },
         ].map((stat, i) => (
-          <div key={i} style={{ padding: '10px 12px', background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 4 }}>
+          <div key={i} style={{ padding: '10px 12px', background: 'var(--bg2)', border: '0.5px solid var(--b0)', borderRadius: 3 }}>
             <div style={{ color: 'var(--t2)', fontSize: 8, letterSpacing: '0.1em', marginBottom: 4 }}>
               {stat.label}
             </div>
