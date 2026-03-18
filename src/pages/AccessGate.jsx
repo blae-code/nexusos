@@ -220,7 +220,7 @@ export default function AccessGate() {
           animation: 'panel-fade-in 0.8s ease-out',
         }}
       >
-        <div style={{ marginBottom: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'panel-fade-in 0.8s ease-out 0.1s both' }}>
+        <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'panel-fade-in 0.8s ease-out 0.1s both' }}>
           <img 
             src="https://www.redscar.org/images/RedScarFUll.png" 
             alt="Redscar Nomads" 
@@ -233,25 +233,7 @@ export default function AccessGate() {
         </div>
 
         {/* RED RULE */}
-        <div style={{ height: '1px', background: '#C0392B', marginBottom: '28px', opacity: 0.8, animation: 'panel-fade-in 0.8s ease-out 0.2s both' }} />
-
-        {/* ORG LABEL */}
-        <div
-          style={{
-            fontFamily: "'Earth Orbiter', 'EarthOrbiter', 'Barlow Condensed', sans-serif",
-            fontWeight: 600,
-            fontSize: '11px',
-            color: '#C8A84B',
-            letterSpacing: '0.3em',
-            textTransform: 'uppercase',
-            marginBottom: '6px',
-            marginTop: '8px',
-            textAlign: 'left',
-            animation: 'panel-fade-in 0.8s ease-out 0.3s both',
-          }}
-        >
-          REDSCAR NOMADS
-        </div>
+        <div style={{ height: '1px', background: '#C0392B', marginBottom: '40px', opacity: 0.8, animation: 'panel-fade-in 0.8s ease-out 0.2s both' }} />
 
         {/* MAIN TITLE */}
         <div
