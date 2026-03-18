@@ -227,28 +227,7 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
         ))}
       </div>
 
-      {/* Rank footer */}
-      {rank && rank !== 'AFFILIATE' && (
-        <div style={{
-          width: '100%',
-          borderTop: '0.5px solid rgba(200,170,100,0.08)',
-          padding: '8px 0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 3,
-          flexShrink: 0,
-        }}>
-          <RankBadge rank={rank} size={13} />
-          <span style={{
-            fontSize: 7,
-            color: 'rgba(200,168,75,0.45)',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            fontFamily: "'Barlow Condensed', sans-serif",
-          }}>{rank.slice(0, 3)}</span>
-        </div>
-      )}
+
 
       {/* Dev sim indicator */}
       {IS_DEV_MODE ? (
