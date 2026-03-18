@@ -143,9 +143,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setUserMenuOpen(false);
       }
-      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
-        setMoreMenuOpen(false);
-      }
       if (showChangelog && changelogRef.current && !changelogRef.current.contains(event.target)) {
         setShowChangelog(false);
       }
@@ -154,7 +151,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         setUserMenuOpen(false);
-        setMoreMenuOpen(false);
         setShowChangelog(false);
       }
     };
@@ -231,7 +227,8 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+        {/* ORG METRICS SECTION */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <StatusPill verseStatus={verseStatus} />
           {IS_DEV_MODE ? (
             <div
@@ -244,116 +241,119 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             </div>
           ) : null}
           {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
-          <div className="nexus-pill nexus-pill-neu">REDSCAR NOMADS</div>
-          <VersionPill version={appVersion.version} full={appVersion.full} date={appVersion.date} />
+
+          {/* Separator */}
+          <div style={{ width: '0.5px', height: 14, background: 'rgba(200,170,100,0.2)' }} />
+
+          {/* Coffer */}
+          {cofferBalance !== null && (
+            <div
+              onClick={() => navigate('/app/coffer')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '5px 10px',
+                background: 'rgba(200,168,75,0.08)',
+                border: '0.5px solid rgba(200,168,75,0.15)',
+                borderRadius: 3,
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(200,168,75,0.12)';
+                e.currentTarget.style.borderColor = 'rgba(200,168,75,0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(200,168,75,0.08)';
+                e.currentTarget.style.borderColor = 'rgba(200,168,75,0.15)';
+              }}
+              title="Organization Coffer"
+            >
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8A84B', flexShrink: 0 }} />
+              <span style={{ color: '#C8A84B', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {(cofferBalance / 1000000).toFixed(1)}M
+              </span>
+            </div>
+          )}
+
+          {/* Members */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 10px',
+              background: 'rgba(200,168,75,0.08)',
+              border: '0.5px solid rgba(200,168,75,0.15)',
+              borderRadius: 3,
+            }}
+            title="Active Members"
+          >
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8A84B', animation: 'pulse-dot 2.5s ease-in-out infinite', flexShrink: 0 }} />
+            <span style={{ color: '#C8A84B', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
+              {onlineCount ?? '—'}
+            </span>
+          </div>
+
+          {/* Rescue */}
+          {rescueCount > 0 && (
+            <div
+              onClick={() => navigate('/app/rescue')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '5px 10px',
+                background: 'rgba(192,57,43,0.12)',
+                border: '0.5px solid rgba(192,57,43,0.3)',
+                borderRadius: 3,
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(192,57,43,0.18)';
+                e.currentTarget.style.borderColor = 'rgba(192,57,43,0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(192,57,43,0.12)';
+                e.currentTarget.style.borderColor = 'rgba(192,57,43,0.3)';
+              }}
+              title="Active Rescue Calls"
+            >
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C0392B', animation: 'pulse-dot 2.5s ease-in-out infinite', flexShrink: 0 }} />
+              <span style={{ color: '#C0392B', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                {rescueCount}
+              </span>
+            </div>
+          )}
         </div>
 
+        {/* USER & CONTROLS SECTION */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 8,
             fontSize: 10,
             color: 'var(--t2)',
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <LayoutButton
               active={layoutMode === 'ALT-TAB'}
               title="ALT-TAB"
               onClick={() => onSelectLayout('ALT-TAB')}
-              icon={<AltTabIcon size={16} />}
+              icon={<AltTabIcon size={14} />}
             />
             <LayoutButton
               active={layoutMode === '2ND MONITOR'}
               title="2ND MONITOR"
               onClick={() => onSelectLayout('2ND MONITOR')}
-              icon={<SecondMonitorIcon size={16} />}
+              icon={<SecondMonitorIcon size={14} />}
             />
           </div>
-
-          {/* Coffer balance */}
-          {cofferBalance !== null && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '3px 8px',
-              background: 'rgba(200,168,75,0.05)',
-              border: '0.5px solid rgba(200,168,75,0.12)',
-              borderRadius: 3,
-              cursor: 'pointer',
-            }}
-            onClick={() => navigate('/app/coffer')}
-            title="Org Coffer">
-              <span style={{
-                width: 5,
-                height: 5,
-                borderRadius: '50%',
-                background: '#C8A84B',
-                display: 'inline-block',
-                flexShrink: 0,
-              }} />
-              <span style={{ color: '#C8A84B', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
-                {cofferBalance ? (cofferBalance / 1000000).toFixed(1) : '0'} <span style={{ opacity: 0.6, fontWeight: 400 }}>M aUEC</span>
-              </span>
-            </div>
-          )}
-
-          {/* Member count */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '3px 8px',
-            background: 'rgba(200,168,75,0.05)',
-            border: '0.5px solid rgba(200,168,75,0.12)',
-            borderRadius: 3,
-          }}>
-            <span style={{
-              width: 5,
-              height: 5,
-              borderRadius: '50%',
-              background: '#C8A84B',
-              display: 'inline-block',
-              animation: 'pulse-dot 2.5s ease-in-out infinite',
-              boxShadow: '0 0 4px rgba(200,168,75,0.5)',
-              flexShrink: 0,
-            }} />
-            <span style={{ color: '#C8A84B', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
-              {onlineCount !== null ? `${onlineCount}` : '—'} <span style={{ opacity: 0.6, fontWeight: 400 }}>MBR</span>
-            </span>
-          </div>
-
-          {/* Rescue count badge */}
-          {rescueCount > 0 && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '3px 8px',
-              background: 'rgba(192,57,43,0.1)',
-              border: '0.5px solid rgba(192,57,43,0.25)',
-              borderRadius: 3,
-              cursor: 'pointer',
-            }}
-            onClick={() => navigate('/app/rescue')}
-            title="Active rescue calls">
-              <span style={{
-                width: 5,
-                height: 5,
-                borderRadius: '50%',
-                background: '#C0392B',
-                display: 'inline-block',
-                animation: 'pulse-dot 2.5s ease-in-out infinite',
-                flexShrink: 0,
-              }} />
-              <span style={{ color: '#C0392B', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
-                {rescueCount} <span style={{ opacity: 0.6, fontWeight: 400 }}>RESCUE</span>
-              </span>
-            </div>
-          )}
 
           <div ref={userMenuRef} style={{ position: 'relative' }}>
             <button
