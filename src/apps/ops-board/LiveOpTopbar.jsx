@@ -37,8 +37,8 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
     <div
       style={{
         height: 44,
-        background: 'var(--bg1)',
-        borderBottom: '0.5px solid var(--b1)',
+        background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         display: 'flex',
         alignItems: 'center',
         paddingLeft: 16,
@@ -118,7 +118,7 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
               height: 32,
               background: layoutMode === 'ALT-TAB' ? 'var(--bg3)' : 'transparent',
               border: `0.5px solid ${layoutMode === 'ALT-TAB' ? 'var(--b2)' : 'transparent'}`,
-              borderRadius: 4,
+              borderRadius: 3,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -145,7 +145,7 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
               height: 32,
               background: layoutMode === '2ND MONITOR' ? 'var(--bg3)' : 'transparent',
               border: `0.5px solid ${layoutMode === '2ND MONITOR' ? 'var(--b2)' : 'transparent'}`,
-              borderRadius: 4,
+              borderRadius: 3,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
