@@ -108,6 +108,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   const [showChangelog, setShowChangelog] = useState(false);
   const [onlineCount, setOnlineCount] = useState(null);
   const [cofferBalance, setCofferBalance] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(null);
   const [rescueCount, setRescueCount] = useState(0);
   const [signingOut, setSigningOut] = useState(false);
   const userMenuRef = useRef(null);
