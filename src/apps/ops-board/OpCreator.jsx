@@ -290,7 +290,8 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
         padding: '12px 20px', borderBottom: '0.5px solid var(--b1)',
-        background: 'var(--bg1)',
+        background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
       }}>
         <span style={{ color: 'var(--t3)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
           Create Operation
@@ -354,7 +355,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                       fontFamily: 'var(--font)',
                       background: form.type === type ? 'var(--bg3)' : 'var(--bg2)',
                       border: `0.5px solid ${validationErrors.type ? 'var(--warn)' : form.type === type ? 'var(--acc)' : 'var(--b1)'}`,
-                      borderRadius: 4,
+                      borderRadius: 3,
                       cursor: 'pointer',
                       color: form.type === type ? 'var(--t0)' : 'var(--t2)',
                       borderLeft: form.type === type && type === 'ROCKBREAKER' ? '3px solid var(--live)' : undefined,
@@ -398,7 +399,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                         fontFamily: 'var(--font)',
                         background: form.system_name === sys ? 'var(--bg3)' : 'var(--bg2)',
                         border: `0.5px solid ${validationErrors.system && form.system_name !== sys ? 'var(--warn)' : form.system_name === sys ? systemBorder : 'var(--b1)'}`,
-                        borderRadius: 4,
+                        borderRadius: 3,
                         cursor: 'pointer',
                         color: form.system_name === sys ? systemBorder : 'var(--t2)',
                         transition: 'background 120ms, border-color 120ms',
@@ -491,7 +492,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
                         fontFamily: 'var(--font)',
                         background: form.access_type === type ? 'var(--bg3)' : 'var(--bg2)',
                         border: `0.5px solid ${form.access_type === type ? activeBorder : 'var(--b1)'}`,
-                        borderRadius: 4,
+                        borderRadius: 3,
                         cursor: 'pointer',
                         color: form.access_type === type ? activeBorder : 'var(--t2)',
                         transition: 'background 120ms, border-color 120ms, color 120ms',
@@ -603,7 +604,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
               <div style={{
                 border: '0.5px solid var(--warn)',
                 background: 'rgba(var(--warn-rgb), 0.06)',
-                borderRadius: 6,
+                borderRadius: 3,
                 padding: '10px 14px',
                 color: 'var(--warn)',
                 fontSize: 10,

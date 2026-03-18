@@ -300,7 +300,7 @@ export default function SystemMap({
             onClick={() => onFilterChange({ qualityMin: 80 })}
             style={{
               padding: '2px 6px', fontSize: 9, letterSpacing: '0.06em',
-              borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
+              borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
               border: qualityMin === 80 ? '0.5px solid rgba(var(--live-rgb), 0.4)' : '0.5px solid var(--b1)',
               background: qualityMin === 80 ? 'rgba(var(--live-rgb), 0.06)' : 'var(--bg2)',
               color: qualityMin === 80 ? 'var(--live)' : 'var(--t2)',
@@ -348,7 +348,7 @@ export default function SystemMap({
         <div style={{
           background: 'var(--bg0)',
           border: '0.5px solid var(--b1)',
-          borderRadius: 8,
+          borderRadius: 3,
           overflow: 'hidden',
         }}>
           <EmptyState
@@ -362,7 +362,7 @@ export default function SystemMap({
         position: 'relative',
         background: 'var(--bg0)',
         border: '0.5px solid var(--b1)',
-        borderRadius: 8,
+        borderRadius: 3,
         overflow: 'hidden',
       }}>
         <svg

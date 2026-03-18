@@ -48,7 +48,7 @@ function SegCtrl({ options, value, onChange, riskColors }) {
             onClick={() => onChange(opt)}
             style={{
               padding: '3px 9px', fontSize: 10, letterSpacing: '0.06em',
-              borderRadius: 4, cursor: 'pointer', fontFamily: 'inherit',
+              borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
               border: isActive ? `0.5px solid ${riskBorder || 'var(--b3)'}` : '0.5px solid var(--b1)',
               background: isActive ? (riskBg || 'var(--bg4)') : 'var(--bg2)',
               color: isActive ? 'var(--t0)' : 'var(--t2)',
@@ -104,7 +104,7 @@ function MaterialInput({ value, onChange }) {
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 60,
           background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-          borderRadius: '0 0 6px 6px', maxHeight: 160, overflowY: 'auto',
+          borderRadius: '0 0 3px 3px', maxHeight: 160, overflowY: 'auto',
         }}>
           {suggestions.map((s, i) => (
             <div
