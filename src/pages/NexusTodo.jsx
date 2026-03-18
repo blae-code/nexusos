@@ -232,7 +232,7 @@ function TodoItem({ item, state, onToggle }) {
       style={{
         background: state.checked ? 'transparent' : priorityStyle.bg,
         border: `0.5px solid ${state.checked ? 'var(--b0)' : priorityStyle.border}`,
-        borderRadius: 6,
+        borderRadius: 3,
         overflow: 'hidden',
         opacity: state.checked ? 0.55 : 1,
         transition: 'opacity 0.2s',
@@ -295,7 +295,7 @@ function TodoItem({ item, state, onToggle }) {
                 lineHeight: 1.6,
                 background: 'var(--bg3)',
                 border: '0.5px solid var(--b1)',
-                borderRadius: 4,
+                borderRadius: 3,
                 padding: '7px 8px',
               }}
             >
@@ -414,7 +414,7 @@ export default function NexusTodo() {
           {lastCheckedAt ? `Automatic checks refreshed ${new Date(lastCheckedAt).toLocaleString()}` : 'Automatic checks use backend env status plus frontend app boot config.'}
         </div>
         {statusError ? (
-          <div style={{ marginTop: 10, color: 'var(--warn)', fontSize: 11, background: 'var(--warn-bg)', border: '0.5px solid var(--warn-b)', borderRadius: 6, padding: '8px 10px' }}>
+          <div style={{ marginTop: 10, color: 'var(--warn)', fontSize: 11, background: 'var(--warn-bg)', border: '0.5px solid var(--warn-b)', borderRadius: 3, padding: '8px 10px' }}>
             {statusError}
           </div>
         ) : null}
