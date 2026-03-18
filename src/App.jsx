@@ -13,6 +13,7 @@ import Commerce from '@/pages/Commerce';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
 import Fleet from '@/pages/Fleet';
+import OrgFleet from '@/pages/OrgFleet';
 import RoutePlanner from '@/pages/RoutePlanner';
 import IndustryHub from '@/apps/industry-hub/IndustryHub';
 import Logistics from '@/pages/Logistics';
@@ -64,7 +65,7 @@ function App() {
               <Route path="armory/fleet" element={<FleetForge />} />
               <Route path="armory/inventory" element={<InventoryManager />} />
               <Route path="armory/schedule" element={<CrewScheduler />} />
-              <Route path="armory/org-fleet" element={<Fleet />} />
+              <Route path="armory/org-fleet" element={<OrgFleet />} />
               <Route path="profile" element={<NexusSettings />} />
               <Route path="settings" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
