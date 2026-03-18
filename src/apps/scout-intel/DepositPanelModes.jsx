@@ -57,7 +57,7 @@ export function TopDepositRow({ deposit, onClick }) {
       onClick={() => onClick(deposit)}
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '7px 8px', borderRadius: 5,
+        padding: '7px 8px', borderRadius: 3,
         background: 'var(--bg2)', border: '0.5px solid var(--b1)',
         cursor: 'pointer',
       }}
@@ -90,7 +90,7 @@ export function TopDepositRow({ deposit, onClick }) {
 
       {/* Freshness chip */}
       <span style={{
-        fontSize: 8, padding: '1px 5px', borderRadius: 4, flexShrink: 0,
+        fontSize: 8, padding: '1px 5px', borderRadius: 3, flexShrink: 0,
         border: `0.5px solid ${isRecent ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b1)'}`,
         background: isRecent ? 'rgba(var(--live-rgb), 0.06)' : 'transparent',
         color: isRecent ? 'var(--live)' : 'var(--t3)',
@@ -151,7 +151,7 @@ export function LeaderRow({ rank: pos, callsign, count, avgQuality }) {
       </span>
       <span style={{ color: 'var(--t2)', fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>{count}</span>
       <span style={{
-        fontSize: 9, padding: '1px 5px', borderRadius: 4,
+        fontSize: 9, padding: '1px 5px', borderRadius: 3,
         background: 'var(--bg3)', border: '0.5px solid var(--b1)',
         color: qColor(avgQuality), fontVariantNumeric: 'tabular-nums',
       }}>
@@ -343,7 +343,7 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
         </div>
         {deposit.is_stale && (
           <span style={{
-            fontSize: 8, padding: '2px 5px', borderRadius: 4, flexShrink: 0,
+            fontSize: 8, padding: '2px 5px', borderRadius: 3, flexShrink: 0,
             border: '0.5px solid rgba(var(--warn-rgb), 0.3)',
             background: 'rgba(var(--warn-rgb), 0.06)',
             color: 'var(--warn)', letterSpacing: '0.08em',
@@ -457,7 +457,7 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
       {/* Route recommendation strip */}
       {routeResult && (
         <div style={{
-          marginTop: 10, padding: '8px 10px', borderRadius: 6,
+          marginTop: 10, padding: '8px 10px', borderRadius: 3,
           background: 'var(--bg2)', border: '0.5px solid var(--b1)',
         }}>
           <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.1em', marginBottom: 4 }}>
