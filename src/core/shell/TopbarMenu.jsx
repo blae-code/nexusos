@@ -52,14 +52,17 @@ export function DropdownContainer({ children, width }) {
     <div
       style={{
         position: 'absolute',
-        top: 'calc(100% + 8px)',
+        top: 'calc(100% + 6px)',
         right: 0,
-        background: 'var(--bg2)',
-        border: '0.5px solid var(--b1)',
-        borderRadius: 8,
+        background: 'rgba(12,11,9,0.97)',
+        backdropFilter: 'blur(12px)',
+        border: '0.5px solid rgba(200,170,100,0.12)',
+        borderLeft: '2px solid #C0392B',
+        borderRadius: '0 3px 3px 0',
         minWidth: width || 180,
-        padding: '6px 0',
+        padding: '5px 0',
         zIndex: 100,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 40px rgba(192,57,43,0.08), inset 0 1px 0 rgba(232,228,220,0.05)',
       }}
     >
       {children}
@@ -68,7 +71,13 @@ export function DropdownContainer({ children, width }) {
 }
 
 export function Divider() {
-  return <div style={{ height: '0.5px', background: 'var(--b1)', margin: '4px 0' }} />;
+  return (
+    <div style={{
+      height: '0.5px',
+      background: 'linear-gradient(90deg, rgba(192,57,43,0.3), rgba(200,170,100,0.15), transparent)',
+      margin: '4px 0',
+    }} />
+  );
 }
 
 export function MenuLink({ icon: Icon, label, onClick, danger, disabled, spinner }) {
@@ -83,23 +92,29 @@ export function MenuLink({ icon: Icon, label, onClick, danger, disabled, spinner
       disabled={disabled}
       style={{
         width: '100%',
-        height: 32,
+        height: 30,
         padding: '0 12px',
         fontSize: 11,
-        color: danger ? 'var(--danger)' : 'var(--t1)',
+        fontFamily: "'Barlow Condensed', sans-serif",
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        color: danger
+          ? (hovered ? '#E84C3D' : 'rgba(192,57,43,0.8)')
+          : (hovered ? '#E8E4DC' : '#9A9488'),
         cursor: disabled ? 'not-allowed' : 'pointer',
-        background: hovered && !disabled ? 'rgba(255,255,255,0.04)' : 'transparent',
+        background: hovered && !disabled
+          ? (danger ? 'rgba(192,57,43,0.08)' : 'rgba(200,170,100,0.05)')
+          : 'transparent',
         border: 'none',
         textAlign: 'left',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        opacity: disabled ? 0.5 : 1,
-        transition: 'background 150ms ease, opacity 150ms ease',
-        fontFamily: 'inherit',
+        opacity: disabled ? 0.4 : 1,
+        transition: 'background 120ms ease, color 120ms ease',
       }}
     >
-      {Icon ? <Icon size={13} /> : null}
+      {Icon ? <Icon size={12} style={{ flexShrink: 0, opacity: 0.7 }} /> : null}
       {label}
       {spinner ? (
         <span style={{ marginLeft: 4, display: 'inline-flex', gap: 2 }}>
