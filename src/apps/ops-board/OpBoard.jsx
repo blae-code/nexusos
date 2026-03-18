@@ -53,7 +53,7 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
           background: 'var(--bg1)',
           border: '0.5px solid var(--b1)',
           borderLeft: `3px solid ${hovered ? cfg.stripeHover : cfg.stripe}`,
-          borderRadius: 6,
+          borderRadius: 3,
           overflow: 'hidden',
           cursor: 'pointer',
           transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
