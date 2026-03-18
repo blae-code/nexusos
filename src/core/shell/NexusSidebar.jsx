@@ -86,16 +86,27 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
         flexShrink: 0,
         position: 'relative',
         overflow: 'hidden',
+        boxShadow: 'inset -1px 0 2px rgba(200,170,100,0.08)',
       }}
     >
       <style>{`
         @keyframes sidebar-live-pulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 4px #C0392B; }
-          50% { opacity: 0.4; box-shadow: 0 0 2px #C0392B; }
+          0% { 
+            opacity: 1; 
+            box-shadow: 0 0 6px rgba(192,57,43,0.8), inset 0 0 4px rgba(192,57,43,0.2);
+          }
+          50% { 
+            opacity: 0.5; 
+            box-shadow: 0 0 3px rgba(192,57,43,0.4), inset 0 0 2px rgba(192,57,43,0.1);
+          }
+          100% {
+            opacity: 1;
+            box-shadow: 0 0 6px rgba(192,57,43,0.8), inset 0 0 4px rgba(192,57,43,0.2);
+          }
         }
         @keyframes sidebar-craft-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+          0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(200,168,75,0.5); }
+          50% { opacity: 0.6; box-shadow: 0 0 2px rgba(200,168,75,0.2); }
         }
         .nexus-nav-link {
           text-decoration: none !important;
@@ -107,23 +118,30 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
           height: 36px;
           border-radius: 3px;
           cursor: pointer;
-          transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 140ms cubic-bezier(0.34, 1.56, 0.64, 1);
           flex-shrink: 0;
           background: transparent;
           border: 0.5px solid transparent;
           color: #8B8078;
+          font-smoothing: antialiased;
+          -webkit-font-smoothing: antialiased;
         }
         .nexus-nav-link:hover:not(.active) {
-          background: rgba(200,168,75,0.10) !important;
-          border-color: rgba(200,168,75,0.25) !important;
+          background: rgba(200,168,75,0.12) !important;
+          border-color: rgba(200,168,75,0.3) !important;
           color: #E8E4DC !important;
-          box-shadow: inset 0 1px 0 rgba(200,168,75,0.1) !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 12px rgba(200,168,75,0.1) !important;
+          transform: translateY(-1px);
         }
         .nexus-nav-link.active {
-          background: linear-gradient(135deg, rgba(192,57,43,0.18) 0%, rgba(192,57,43,0.10) 100%) !important;
-          border-color: rgba(192,57,43,0.65) !important;
+          background: linear-gradient(135deg, rgba(192,57,43,0.2) 0%, rgba(192,57,43,0.08) 100%) !important;
+          border-color: rgba(192,57,43,0.7) !important;
           color: #E8E4DC !important;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 16px rgba(192,57,43,0.20), inset -1px 0 2px rgba(192,57,43,0.3) !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 0 20px rgba(192,57,43,0.25), inset -2px 0 3px rgba(192,57,43,0.4) !important;
+        }
+        .nexus-nav-link img {
+          image-rendering: crisp-edges;
+          filter: drop-shadow(0 0 0.5px rgba(0,0,0,0.3));
         }
       `}</style>
 
