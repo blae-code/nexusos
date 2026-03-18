@@ -245,11 +245,13 @@ export default function IndustryHub() {
                 padding: '11px 14px',
                 background: 'transparent',
                 border: 'none',
-                borderBottom: tab === item.id ? '2px solid var(--t0)' : '2px solid transparent',
+                borderBottom: tab === item.id ? '2px solid var(--red)' : '2px solid transparent',
                 color: tab === item.id ? 'var(--t0)' : 'var(--t2)',
                 fontSize: 10,
-                letterSpacing: '0.1em',
+                letterSpacing: '0.12em',
                 cursor: 'pointer',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                transition: 'color 120ms ease',
               }}
             >
               {item.label}
