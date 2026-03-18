@@ -116,24 +116,27 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
           align-items: center;
           justify-content: center;
           position: relative;
-          width: 36px;
-          height: 34px;
+          width: 38px;
+          height: 36px;
           border-radius: 3px;
           cursor: pointer;
-          transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+          transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
           flex-shrink: 0;
+          background: transparent;
+          border: 0.5px solid transparent;
+          color: #8B8078;
         }
         .nexus-nav-link:hover:not(.active) {
-          background: rgba(200,170,100,0.07) !important;
-          border-color: rgba(200,168,75,0.18) !important;
+          background: rgba(200,168,75,0.10) !important;
+          border-color: rgba(200,168,75,0.25) !important;
           color: #E8E4DC !important;
-          box-shadow: inset 0 1px 0 rgba(200,168,75,0.08) !important;
+          box-shadow: inset 0 1px 0 rgba(200,168,75,0.1) !important;
         }
         .nexus-nav-link.active {
-          background: rgba(192,57,43,0.15) !important;
-          border-color: rgba(192,57,43,0.55) !important;
+          background: linear-gradient(135deg, rgba(192,57,43,0.18) 0%, rgba(192,57,43,0.10) 100%) !important;
+          border-color: rgba(192,57,43,0.65) !important;
           color: #E8E4DC !important;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 0 12px rgba(192,57,43,0.15) !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 16px rgba(192,57,43,0.20), inset -1px 0 2px rgba(192,57,43,0.3) !important;
         }
       `}</style>
 
@@ -143,9 +146,9 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
         left: 0,
         top: 0,
         bottom: 0,
-        width: '2px',
-        background: 'linear-gradient(180deg, transparent 0%, #C0392B 15%, #C0392B 85%, transparent 100%)',
-        boxShadow: '2px 0 8px rgba(192,57,43,0.35)',
+        width: '2.5px',
+        background: 'linear-gradient(180deg, transparent 0%, #C0392B 12%, #C0392B 88%, transparent 100%)',
+        boxShadow: '0 0 12px rgba(192,57,43,0.4), inset 1px 0 2px rgba(192,57,43,0.6)',
         zIndex: 2,
       }} />
 
@@ -202,18 +205,21 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
                     color: isActive ? '#E8E4DC' : '#7A7470',
                   }}
                 >
-                  <Icon size={15} />
+                  <Icon size={14} />
                   {badgeActive ? (
                     <div
                       style={{
                         position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        width: 5,
-                        height: 5,
+                        top: 3,
+                        right: 3,
+                        width: 6,
+                        height: 6,
                         borderRadius: '50%',
                         border: '1.5px solid #0A0908',
                         background: isLiveBadge ? '#C0392B' : '#C8A84B',
+                        boxShadow: isLiveBadge 
+                          ? '0 0 6px rgba(192,57,43,0.8)' 
+                          : '0 0 4px rgba(200,168,75,0.6)',
                         animation: isLiveBadge
                           ? 'sidebar-live-pulse 2s ease-in-out infinite'
                           : 'sidebar-craft-pulse 3s ease-in-out infinite',
