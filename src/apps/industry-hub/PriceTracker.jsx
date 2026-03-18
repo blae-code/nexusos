@@ -93,7 +93,7 @@ export default function PriceTracker() {
       {/* Main content */}
       <div className="flex gap-4 flex-1 min-h-0">
         {/* Commodities list */}
-        <div className="w-64 flex-shrink-0 border border-[rgba(200,170,100,0.12)] rounded-lg overflow-hidden flex flex-col bg-[var(--bg1)]">
+        <div className="w-64 flex-shrink-0 border border-[rgba(200,170,100,0.12)] rounded overflow-hidden flex flex-col bg-[var(--bg1)]">
           <div
             style={{
               padding: '10px 12px',
@@ -198,7 +198,7 @@ export default function PriceTracker() {
                 style={{
                   background: 'var(--bg1)',
                   border: '0.5px solid var(--b1)',
-                  borderRadius: 6,
+                  borderRadius: 3,
                   padding: '12px 16px',
                 }}
               >
@@ -247,7 +247,7 @@ export default function PriceTracker() {
               {/* Chart */}
               {loadingPrices ? (
                 <div
-                  className="flex items-center justify-center flex-1 rounded-lg border border-[rgba(200,170,100,0.12)]"
+                  className="flex items-center justify-center flex-1 rounded border border-[rgba(200,170,100,0.12)]"
                   style={{ color: 'var(--t2)' }}
                 >
                   <div className="nexus-loading-dots">
@@ -263,7 +263,7 @@ export default function PriceTracker() {
                 </>
               ) : (
                 <div
-                  className="flex items-center justify-center flex-1 rounded-lg border border-[rgba(200,170,100,0.12)]"
+                  className="flex items-center justify-center flex-1 rounded border border-[rgba(200,170,100,0.12)]"
                   style={{ color: 'var(--t2)' }}
                 >
                   No price data available

@@ -229,7 +229,7 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
               padding: '8px 10px',
               background: 'rgba(var(--danger-rgb), 0.1)',
               border: '0.5px solid var(--danger)',
-              borderRadius: 4,
+              borderRadius: 3,
               color: 'var(--danger)',
               fontSize: 9,
               display: 'flex',
@@ -251,7 +251,7 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
             padding: '8px 12px',
             background: loading ? 'var(--bg3)' : 'rgba(74,143,208,0.12)',
             border: `0.5px solid ${loading ? 'var(--b2)' : 'var(--info)'}`,
-            borderRadius: 4,
+            borderRadius: 3,
             color: 'var(--info)',
             fontSize: 10,
             letterSpacing: '0.08em',
@@ -274,19 +274,19 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 6, padding: '10px' }}>
+            <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 3, padding: '10px' }}>
               <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.08em', marginBottom: 4 }}>INPUT</div>
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>{forecast.input_scu} SCU</div>
               <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 2 }}>@ {forecast.input_quality}%</div>
             </div>
 
-            <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 6, padding: '10px' }}>
+            <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 3, padding: '10px' }}>
               <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.08em', marginBottom: 4 }}>EXPECTED OUTPUT</div>
               <div style={{ color: 'var(--live)', fontSize: 12, fontWeight: 500 }}>{forecast.estimated_output_scu.toFixed(1)} SCU</div>
               <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 2 }}>{forecast.yield_pct}% yield</div>
             </div>
 
-            <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 6, padding: '10px' }}>
+            <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 3, padding: '10px' }}>
               <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.08em', marginBottom: 4 }}>PROCESSING</div>
               <div style={{ color: 'var(--info)', fontSize: 12, fontWeight: 500 }}>{Math.round(forecast.processing_minutes)}m</div>
               <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>Cost: {forecast.cost_aUEC.toLocaleString()} aUEC</div>
