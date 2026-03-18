@@ -206,7 +206,7 @@ export default function RoutePlanner() {
                   padding: '8px 10px',
                   background: 'var(--bg2)',
                   border: '0.5px solid var(--b0)',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   color: 'var(--t1)',
                   fontSize: 10,
                   fontFamily: 'inherit',
@@ -229,7 +229,7 @@ export default function RoutePlanner() {
                   padding: '8px 10px',
                   background: 'var(--bg2)',
                   border: '0.5px solid var(--b0)',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   color: 'var(--t1)',
                   fontSize: 10,
                   fontFamily: 'inherit',
@@ -259,7 +259,7 @@ export default function RoutePlanner() {
           </button>
 
           {error && (
-            <div style={{ padding: '8px 12px', background: 'rgba(var(--danger-rgb), 0.1)', border: '0.5px solid rgba(var(--danger-rgb), 0.2)', borderRadius: 4, color: 'var(--danger)', fontSize: 10 }}>
+            <div style={{ padding: '8px 12px', background: 'rgba(var(--danger-rgb), 0.1)', border: '0.5px solid rgba(var(--danger-rgb), 0.2)', borderRadius: 3, color: 'var(--danger)', fontSize: 10 }}>
               {error}
             </div>
           )}
