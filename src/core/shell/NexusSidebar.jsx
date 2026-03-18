@@ -4,13 +4,9 @@ import { base44 } from '@/core/data/base44Client';
 import { IS_DEV_MODE } from '@/core/data/dev';
 import { RankBadge } from '@/core/design';
 import {
-  FleetIcon,
-  IndustryIcon,
   OpBoardIcon,
-  ScoutIcon,
   SettingsIcon,
 } from './NexusIcons';
-import { Archive, Coins, Truck } from 'lucide-react';
 
 const NAV_GROUPS = [
   [
