@@ -222,7 +222,7 @@ export default function Materials({ materials, onRefresh }) {
               style={{
                 background: 'var(--bg2)', border: '0.5px solid var(--b2)',
                 color: 'var(--t0)', fontFamily: 'inherit', fontSize: 11,
-                padding: '5px 10px 5px 26px', borderRadius: 5, outline: 'none', width: '100%',
+                padding: '5px 10px 5px 26px', borderRadius: 3, outline: 'none', width: '100%',
               }}
             />
           </div>
@@ -302,7 +302,7 @@ export default function Materials({ materials, onRefresh }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
 
         {/* ── Screenshot upload zone (collapsible) ─────── */}
-        <div style={{ border: '0.5px solid var(--b1)', borderRadius: 7, overflow: 'hidden' }}>
+        <div style={{ border: '0.5px solid var(--b1)', borderRadius: 3, overflow: 'hidden' }}>
           {/* Toggle header */}
           <button
             onClick={() => setUploadOpen(v => !v)}
@@ -335,7 +335,7 @@ export default function Materials({ materials, onRefresh }) {
                   onClick={() => fileInputRef.current?.click()}
                   style={{
                     border: `0.5px dashed ${dragOver ? 'var(--acc2)' : 'var(--b2)'}`,
-                    borderRadius: 8,
+                    borderRadius: 3,
                     background: dragOver ? 'var(--bg2)' : 'transparent',
                     minHeight: 120,
                     display: 'flex', flexDirection: 'column',
@@ -370,7 +370,7 @@ export default function Materials({ materials, onRefresh }) {
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '12px 14px', background: 'var(--bg2)',
-                  border: '0.5px solid var(--b2)', borderRadius: 6,
+                  border: '0.5px solid var(--b2)', borderRadius: 3,
                 }}>
                   <span style={{ color: 'var(--t1)', fontSize: 12, flex: 1 }}>
                     Scout deposit detected — log this in Scout Intel instead?
@@ -426,7 +426,7 @@ export default function Materials({ materials, onRefresh }) {
         <DiscordPathCard />
 
         {/* ── Full materials table ──────────────────────── */}
-        <div style={{ border: '0.5px solid var(--b1)', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ border: '0.5px solid var(--b1)', borderRadius: 3, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>

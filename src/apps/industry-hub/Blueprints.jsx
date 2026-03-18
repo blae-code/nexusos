@@ -139,7 +139,7 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
           )}
 
           {/* Blueprint list */}
-          <div style={{ border: '0.5px solid var(--b1)', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ border: '0.5px solid var(--b1)', borderRadius: 3, overflow: 'hidden' }}>
             {/* Column header */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10,
