@@ -68,7 +68,7 @@ export function StatCard({ icon: Icon, label, value, unit, detail, indicator, ba
         overflow: 'hidden',
       }}
     >
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'var(--b2)' }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, var(--red) 0%, rgba(192,57,43,0.3) 60%, transparent 100%)', opacity: 0.6 }} />
 
       {loading ? (
         <StatSkeleton />
