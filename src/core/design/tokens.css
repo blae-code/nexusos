@@ -1,59 +1,62 @@
 :root {
-  /* ── Backgrounds ─────────────────────────────────── */
-  --bg0: #080a12;
-  --bg1: #0c1020;
-  --bg2: #111528;
-  --bg3: #171c34;
-  --bg4: #1e2440;
-  --bg5: #252c50;
+  /* ── Backgrounds — warm void ──────────────────────── */
+  --bg0: #0A0908;
+  --bg1: #0F0E0C;
+  --bg2: #151310;
+  --bg3: #1C1A16;
+  --bg4: #231F1A;
+  --bg5: #2C271F;
 
-  /* ── Borders ─────────────────────────────────────── */
-  --b0: #1a1f34;
-  --b1: #242a4a;
-  --b2: #303860;
-  --b3: #3e4572;
+  /* ── Borders — amber-tinted glass ────────────────── */
+  --b0: #1E1B16;
+  --b1: #2A2520;
+  --b2: #38322A;
+  --b3: #4A4238;
 
-  /* ── Text ────────────────────────────────────────── */
-  --t0: #eaedff;
-  --t1: #aab4d8;
-  --t2: #6870a4;
-  --t3: #3e456a;
+  /* ── Text — warm parchment ───────────────────────── */
+  --t0: #E8E4DC;
+  --t1: #B8B0A4;
+  --t2: #7A7470;
+  --t3: #4A4640;
 
-  /* ── Accent ──────────────────────────────────────── */
-  --acc:     #6878c0;
-  --acc2:    #8898d8;
-  --acc-rgb: 104, 120, 192;   /* for rgba() use: rgba(var(--acc-rgb), 0.x) */
+  /* ── Accent — Redscar amber ──────────────────────── */
+  --acc:     #C8A84B;
+  --acc2:    #D8BC70;
+  --acc-rgb: 200, 168, 75;   /* for rgba() use: rgba(var(--acc-rgb), 0.x) */
+
+  /* ── Brand red — use sparingly for emphasis ──────── */
+  --red:     #C0392B;
+  --red-rgb: 192, 57, 43;
 
   /* ── Status (semantic only — never decorative) ───── */
   --live:       #2edb7a;
-  --warn:       #f0aa24;
-  --danger:     #e85252;
-  --info:       #5aa2e8;
+  --warn:       #C8A84B;
+  --danger:     #C0392B;
+  --info:       #7AAECC;
   --live-rgb:   46, 219, 122;
-  --warn-rgb:   240, 170, 36;
-  --danger-rgb: 232, 82, 82;
-  --info-rgb:   90, 162, 232;
-  --bg0-rgb:    7, 8, 11;
+  --warn-rgb:   200, 168, 75;
+  --danger-rgb: 192, 57, 43;
+  --info-rgb:   122, 174, 204;
+  --bg0-rgb:    10, 9, 8;
 
   /* ── Status backgrounds (for status-bearing cards) ── */
-  --live-bg:   #071612;
-  --live-b:    #1a4c30;
-  --warn-bg:   #150f00;
-  --warn-b:    #3e2c00;
-  --danger-bg: #1c0808;
-  --danger-b:  #401618;
-  --info-bg:   #091228;
-  --info-b:    #1a3660;
+  --live-bg:   #071410;
+  --live-b:    #164A28;
+  --warn-bg:   #160F00;
+  --warn-b:    #3A2C00;
+  --danger-bg: #180A08;
+  --danger-b:  #3C1410;
+  --info-bg:   #081018;
+  --info-b:    #183040;
 
   /* ── Typography ──────────────────────────────────── */
-  --font: 'SF Mono', ui-monospace, 'Cascadia Code',
-          'Fira Code', monospace;
+  --font: 'Barlow Condensed', 'Barlow', 'SF Mono', ui-monospace, monospace;
 
   /* ── Spacing ─────────────────────────────────────── */
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 8px;
-  --r-xl: 12px;
+  --r-sm: 2px;
+  --r-md: 3px;
+  --r-lg: 4px;
+  --r-xl: 6px;
 
   /* ── Layout ──────────────────────────────────────── */
   --topbar-h:  44px;
