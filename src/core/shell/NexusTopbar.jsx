@@ -195,19 +195,27 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1, position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <NexusCompass size={22} />
+            <img 
+              src="https://www.redscar.org/images/2223.png" 
+              alt="Redscar Nomads" 
+              style={{ 
+                height: 20, 
+                width: 'auto',
+                filter: 'brightness(0.98) drop-shadow(0 0 2px rgba(192,57,43,0.25))',
+              }} 
+            />
             <span
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 700,
-                letterSpacing: '0.22em',
+                letterSpacing: '0.20em',
                 whiteSpace: 'nowrap',
                 textTransform: 'uppercase',
               }}
             >
               <span style={{ color: '#E8E4DC' }}>NEXUS</span>
-              <span style={{ color: '#C0392B', opacity: 0.9 }}>OS</span>
+              <span style={{ color: '#C0392B', opacity: 0.85 }}>OS</span>
             </span>
           </div>
 
