@@ -166,7 +166,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
       <header
         style={{
           height: 'var(--topbar-h)',
-          background: '#0A0908',
+          background: 'linear-gradient(180deg, #0D0C0A 0%, #0A0908 100%)',
           borderBottom: '0.5px solid rgba(200,170,100,0.10)',
           display: 'flex',
           alignItems: 'center',
@@ -176,31 +176,47 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           position: 'relative',
           zIndex: 20,
           boxSizing: 'border-box',
+          boxShadow: 'inset 0 1px 0 rgba(232,228,220,0.04), 0 1px 0 rgba(192,57,43,0.08)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+        {/* Red bloom at left edge — echoes sidebar stripe */}
+        <div style={{
+          position: 'absolute',
+          left: 52,
+          top: 0,
+          bottom: 0,
+          width: 60,
+          background: 'radial-gradient(ellipse 100% 100% at 0% 50%, rgba(192,57,43,0.10) 0%, transparent 100%)',
+          pointerEvents: 'none',
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1, position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <NexusCompass size={22} />
             <span
               style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: 13,
-                fontWeight: 500,
-                color: 'var(--t0)',
-                letterSpacing: '0.2em',
+                fontWeight: 700,
+                letterSpacing: '0.22em',
                 whiteSpace: 'nowrap',
+                textTransform: 'uppercase',
               }}
             >
-              <span style={{ color: 'var(--t0)' }}>NEXUS</span>
-              <span style={{ color: 'var(--t2)' }}>OS</span>
+              <span style={{ color: '#E8E4DC' }}>NEXUS</span>
+              <span style={{ color: '#C0392B', opacity: 0.9 }}>OS</span>
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          {/* Tactical separator */}
+          <div style={{ width: '0.5px', height: 16, background: 'rgba(200,170,100,0.18)', flexShrink: 0 }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.10em', textTransform: 'uppercase' }}>
             <span style={{ color: '#C8A84B', whiteSpace: 'nowrap', fontWeight: 600 }}>{breadcrumb.module}</span>
             {breadcrumb.tab && (
               <>
-                <span style={{ color: '#9A9488' }}>/</span>
-                <span style={{ color: '#E8E4DC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ color: 'rgba(200,170,100,0.25)', fontSize: 9, letterSpacing: 0 }}>▸</span>
+                <span style={{ color: '#E8E4DC', opacity: 0.85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {breadcrumb.tab}
                 </span>
               </>
@@ -229,7 +245,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 12,
+            gap: 10,
             fontSize: 10,
             color: 'var(--t2)',
             flexShrink: 0,
@@ -250,18 +266,28 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: '50%',
-                background: '#C8A84B',
-                animation: 'pulse-dot 2.5s ease-in-out infinite',
-              }}
-            />
-            <span style={{ color: '#C8A84B', fontSize: 10, fontWeight: 600 }}>
-              {onlineCount !== null ? `${onlineCount} members` : 'members'}
+          {/* Member count — verse status style */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '3px 8px',
+            background: 'rgba(200,168,75,0.05)',
+            border: '0.5px solid rgba(200,168,75,0.12)',
+            borderRadius: 3,
+          }}>
+            <span style={{
+              width: 5,
+              height: 5,
+              borderRadius: '50%',
+              background: '#C8A84B',
+              display: 'inline-block',
+              animation: 'pulse-dot 2.5s ease-in-out infinite',
+              boxShadow: '0 0 4px rgba(200,168,75,0.5)',
+              flexShrink: 0,
+            }} />
+            <span style={{ color: '#C8A84B', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif" }}>
+              {onlineCount !== null ? `${onlineCount}` : '—'} <span style={{ opacity: 0.6, fontWeight: 400 }}>MBR</span>
             </span>
           </div>
 
@@ -300,11 +326,12 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 alignItems: 'center',
                 gap: 6,
                 padding: '4px 10px',
-                background: userMenuOpen ? '#141410' : '#0F0F0D',
-                border: `0.5px solid ${userMenuOpen ? '#C0392B' : 'rgba(200,170,100,0.15)'}`,
-                borderRadius: 6,
+                background: userMenuOpen ? 'rgba(192,57,43,0.10)' : 'rgba(15,14,12,0.8)',
+                border: `0.5px solid ${userMenuOpen ? 'rgba(192,57,43,0.5)' : 'rgba(200,170,100,0.15)'}`,
+                borderRadius: 3,
                 cursor: 'pointer',
                 transition: 'background 150ms ease, border-color 150ms ease',
+                boxShadow: userMenuOpen ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'none',
               }}
             >
               <RankBadge
