@@ -36,14 +36,14 @@ function PowerBar({ label, icon: Icon, value, onChange, color }) {
       <Icon size={12} style={{ color: 'var(--t2)', flexShrink: 0 }} />
       <span style={{ color: 'var(--t2)', fontSize: 10, width: 60, flexShrink: 0 }}>{label}</span>
       <div
-        style={{ flex: 1, height: 8, background: 'var(--bg3)', borderRadius: 4, cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
+        style={{ flex: 1, height: 8, background: 'var(--bg3)', borderRadius: 3, cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
         onClick={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
           const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
           onChange(Math.max(0, Math.min(100, pct)));
         }}
       >
-        <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: 4, transition: 'width 0.1s' }} />
+        <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: 3, transition: 'width 0.1s' }} />
       </div>
       <span style={{ color, fontSize: 11, fontWeight: 600, minWidth: 28, textAlign: 'right' }}>{value}%</span>
     </div>
@@ -168,7 +168,7 @@ export function ShipFitting({ vehicles, componentCatalog, callsign, discordId, o
             flex: 1,
             background: 'var(--bg2)',
             border: '0.5px dashed var(--b2)',
-            borderRadius: 8,
+            borderRadius: 3,
             minHeight: 160,
             display: 'flex',
             alignItems: 'center',

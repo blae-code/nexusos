@@ -25,7 +25,7 @@ export function ArmoryItemCard({ item, onReturn }) {
       style={{
         background: 'var(--bg1)',
         border: `0.5px solid ${isLowStock ? 'rgba(var(--warn-rgb), 0.4)' : 'var(--b0)'}`,
-        borderRadius: 8,
+        borderRadius: 3,
         padding: '12px 14px',
         display: 'flex',
         alignItems: 'flex-start',
@@ -38,7 +38,7 @@ export function ArmoryItemCard({ item, onReturn }) {
         style={{
           width: 28,
           height: 28,
-          borderRadius: 6,
+          borderRadius: 3,
           background: 'var(--bg3)',
           border: `0.5px solid ${isLowStock ? 'rgba(var(--warn-rgb), 0.4)' : 'var(--b2)'}`,
           display: 'flex',
@@ -117,7 +117,7 @@ export function ArmoryItemCard({ item, onReturn }) {
             padding: '4px 8px',
             background: 'var(--warn-bg)',
             border: '0.5px solid var(--warn-b)',
-            borderRadius: 4,
+            borderRadius: 3,
             color: 'var(--warn)',
             fontSize: 9,
             cursor: 'pointer',
