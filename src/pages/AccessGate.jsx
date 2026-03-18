@@ -103,7 +103,7 @@ export default function AccessGate() {
   }, []);
 
   const handleDiscordContinue = () => {
-    window.location.href = 'https://discord.com/oauth2/authorize?client_id=1483421250301989057&redirect_uri=https%3A%2F%2Fnexus-nomad-core.base44.app%2Fapi%2Ffunctions%2Fauth%2Fdiscord%2Fcallback%2Fentry&response_type=code&scope=identify+guilds+guilds.members.read';
+    window.location.href = 'https://discord.com/oauth2/authorize?client_id=1483421250301989057&redirect_uri=https%3A%2F%2Fnomadnexus.space%2Ffunctions%2Fauth%2Fdiscord%2Fcallback&response_type=code&scope=identify+guilds+guilds.members.read';
   };
 
   if (!loading && isAuthenticated) {
