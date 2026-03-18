@@ -234,16 +234,16 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
                     <div
                       style={{
                         position: 'absolute',
-                        top: 3,
-                        right: 3,
-                        width: 6,
-                        height: 6,
+                        top: 2,
+                        right: 2,
+                        width: 7,
+                        height: 7,
                         borderRadius: '50%',
                         border: '1.5px solid #0A0908',
                         background: isLiveBadge ? '#C0392B' : '#C8A84B',
                         boxShadow: isLiveBadge 
-                          ? '0 0 6px rgba(192,57,43,0.8)' 
-                          : '0 0 4px rgba(200,168,75,0.6)',
+                          ? '0 0 8px rgba(192,57,43,0.9), inset 0 0 2px rgba(255,255,255,0.2)' 
+                          : '0 0 6px rgba(200,168,75,0.7), inset 0 0 1px rgba(255,255,255,0.15)',
                         animation: isLiveBadge
                           ? 'sidebar-live-pulse 2s ease-in-out infinite'
                           : 'sidebar-craft-pulse 3s ease-in-out infinite',
