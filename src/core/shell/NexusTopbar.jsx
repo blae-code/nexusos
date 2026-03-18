@@ -128,10 +128,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
 
     const loadMetrics = async () => {
       try {
-        const [members, cofferEntries, rescueCalls] = await Promise.all([
+        const [members, cofferEntries, rescueCalls, userWallet] = await Promise.all([
           base44.entities.NexusUser.list('-joined_at', 200),
           base44.entities.CofferLog.list('-logged_at', 1),
           base44.entities.Op.filter({ status: 'LIVE' }),
+          base44.auth.me(),
         ]);
         
         if (cancelled) return;
@@ -146,6 +147,9 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             : sum - (entry.amount_aUEC || 0);
         }, 0);
         setCofferBalance(Math.max(0, balance));
+        
+        // Personal wallet balance
+        setWalletBalance(userWallet?.wallet_balance || 0);
         
         // Count active rescue calls
         setRescueCount((rescueCalls || []).length);
