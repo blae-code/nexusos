@@ -285,7 +285,7 @@ export default function AccessGate() {
 
         {/* CTA BUTTON */}
         {IS_DEV_MODE ?
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, animation: 'panel-fade-in 0.8s ease-out 0.7s both' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24, animation: 'panel-fade-in 0.8s ease-out 0.7s both' }}>
             {DEV_PERSONAS.map((persona) =>
           <button
             key={persona.id}
@@ -299,22 +299,27 @@ export default function AccessGate() {
               width: '100%',
               background: '#C0392B',
               color: '#E8E4DC',
-              border: 'none',
-              borderRadius: '2px',
-              padding: '14px 24px',
+              border: '1px solid rgba(192,57,43,0.5)',
+              borderRadius: '3px',
+              padding: '12px 20px',
               cursor: 'pointer',
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
-              fontSize: '14px',
-              letterSpacing: '0.15em',
+              fontSize: '12px',
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              transition: 'background 0.15s'
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 12px rgba(192,57,43,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#9B2D20';
+              e.currentTarget.style.background = '#E84C3D';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(192,57,43,0.35), inset 0 1px 0 rgba(255,255,255,0.15)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = '#C0392B';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(192,57,43,0.2), inset 0 1px 0 rgba(255,255,255,0.1)';
+              e.currentTarget.style.transform = 'translateY(0)';
             }}>
             
                 {persona.callsign} — {persona.rank}
