@@ -33,7 +33,7 @@ const PRESETS = [
 const CUSTOM_TOOLTIP_STYLE = {
   background: 'var(--bg4)',
   border: '0.5px solid var(--b3)',
-  borderRadius: 6,
+  borderRadius: 3,
   fontFamily: 'var(--font)',
   fontSize: 11,
   color: 'var(--t0)',
@@ -255,7 +255,7 @@ export default function ProfitCalc() {
         </div>
 
         {/* Recommendation strip */}
-        <div style={{ background: 'var(--live-bg)', border: '0.5px solid var(--live-b)', borderRadius: 8, padding: '12px 16px' }}>
+        <div style={{ background: 'var(--live-bg)', border: '0.5px solid var(--live-b)', borderRadius: 3, padding: '12px 16px' }}>
           <div className="flex items-center gap-2">
             <TrendingUp size={13} style={{ color: 'var(--live)' }} />
             <span style={{ color: 'var(--live)', fontSize: 10, letterSpacing: '0.1em' }}>RECOMMENDED STRATEGY</span>
