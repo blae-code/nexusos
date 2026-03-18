@@ -263,6 +263,7 @@ export default function AccessGate() {
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
             lineHeight: 1,
+            animation: 'panel-fade-in 0.8s ease-out 0.4s both',
           }}
         >
           NEXUSOS
