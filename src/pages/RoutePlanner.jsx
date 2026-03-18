@@ -97,7 +97,7 @@ export default function RoutePlanner() {
                     padding: '6px 10px',
                     background: selectedStations.includes(station) ? 'rgba(192,57,43,0.12)' : 'var(--bg2)',
                     border: `0.5px solid ${selectedStations.includes(station) ? 'rgba(192,57,43,0.3)' : 'var(--b0)'}`,
-                    borderRadius: 4,
+                    borderRadius: 3,
                     color: selectedStations.includes(station) ? 'var(--t0)' : 'var(--t1)',
                     fontSize: 10,
                     cursor: selectedStations.includes(station) ? 'not-allowed' : 'pointer',
@@ -116,7 +116,7 @@ export default function RoutePlanner() {
                 style={{
                   background: 'var(--bg2)',
                   border: '0.5px solid var(--b0)',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   padding: '10px 12px',
                 }}
               >
@@ -177,7 +177,7 @@ export default function RoutePlanner() {
                   padding: '8px 10px',
                   background: 'var(--bg2)',
                   border: '0.5px solid var(--b0)',
-                  borderRadius: 4,
+                  borderRadius: 3,
                   color: 'var(--t1)',
                   fontSize: 10,
                   fontFamily: 'inherit',
@@ -246,7 +246,7 @@ export default function RoutePlanner() {
               padding: '8px 14px',
               background: loading || selectedStations.length < 2 ? 'var(--bg2)' : 'var(--live)',
               border: 'none',
-              borderRadius: 4,
+              borderRadius: 3,
               color: 'var(--bg0)',
               fontSize: 11,
               fontWeight: 600,
@@ -331,7 +331,7 @@ export default function RoutePlanner() {
                     style={{
                       background: 'var(--bg1)',
                       border: '0.5px solid var(--b1)',
-                      borderRadius: 6,
+                      borderRadius: 3,
                       padding: '12px 14px',
                       display: 'flex',
                       flexDirection: 'column',
@@ -364,7 +364,7 @@ export default function RoutePlanner() {
                     style={{
                       background: 'var(--bg1)',
                       border: '0.5px solid var(--b1)',
-                      borderRadius: 6,
+                      borderRadius: 3,
                       padding: '12px 14px',
                       display: 'flex',
                       alignItems: 'center',

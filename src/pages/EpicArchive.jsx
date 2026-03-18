@@ -27,7 +27,7 @@ function OpArchiveCard({ op }) {
       </div>
 
       {op.wrap_up_report && (
-        <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 6, padding: '10px 12px' }}>
+        <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3, padding: '10px 12px' }}>
           <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.1em', marginBottom: 6 }}>WRAP-UP REPORT</div>
           <div style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: 120, overflow: 'hidden' }}>
             {op.wrap_up_report}

@@ -36,7 +36,7 @@ function SecretInput({ secret, value, onSave }) {
   };
 
   return (
-    <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 6 }}>
+    <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>{secret.label}</div>
         <button
@@ -47,7 +47,7 @@ function SecretInput({ secret, value, onSave }) {
             fontSize: 9,
             background: editing ? 'rgba(var(--live-rgb), 0.12)' : 'transparent',
             border: `0.5px solid ${editing ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b1)'}`,
-            borderRadius: 4,
+            borderRadius: 3,
             cursor: 'pointer',
             fontFamily: 'inherit',
             color: editing ? 'var(--live)' : 'var(--t1)',
@@ -68,7 +68,7 @@ function SecretInput({ secret, value, onSave }) {
               padding: '8px 32px 8px 10px',
               background: 'var(--bg1)',
               border: '0.5px solid var(--b2)',
-              borderRadius: 4,
+              borderRadius: 3,
               color: 'var(--t0)',
               fontSize: 11,
               fontFamily: 'monospace',
@@ -96,7 +96,7 @@ function SecretInput({ secret, value, onSave }) {
           </button>
         </div>
       ) : (
-        <div style={{ fontSize: 11, color: 'var(--t1)', fontFamily: 'monospace', background: 'var(--bg1)', padding: '6px 8px', borderRadius: 4 }}>
+        <div style={{ fontSize: 11, color: 'var(--t1)', fontFamily: 'monospace', background: 'var(--bg1)', padding: '6px 8px', borderRadius: 3 }}>
           {value ? obfuscate(value) : <span style={{ color: 'var(--t3)' }}>Not configured</span>}
         </div>
       )}
@@ -165,9 +165,9 @@ export default function AdminSettings() {
       {/* Public Config */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {PUBLIC_CONFIG.map((item) => (
-          <div key={item.id} style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 6 }}>
+          <div key={item.id} style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
             <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500, marginBottom: 6 }}>{item.label}</div>
-            <div style={{ fontSize: 11, color: 'var(--acc2)', fontFamily: 'monospace', background: 'var(--bg1)', padding: '6px 8px', borderRadius: 4 }}>
+            <div style={{ fontSize: 11, color: 'var(--acc2)', fontFamily: 'monospace', background: 'var(--bg1)', padding: '6px 8px', borderRadius: 3 }}>
               {item.value}
             </div>
           </div>
