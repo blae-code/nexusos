@@ -220,7 +220,7 @@ export default function AccessGate() {
           animation: 'panel-fade-in 0.8s ease-out',
         }}
       >
-        <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'panel-fade-in 0.8s ease-out 0.1s both' }}>
+        <div style={{ marginBottom: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'panel-fade-in 0.8s ease-out 0.1s both' }}>
           <img 
             src="https://www.redscar.org/images/RedScarFUll.png" 
             alt="Redscar Nomads" 
@@ -233,7 +233,7 @@ export default function AccessGate() {
         </div>
 
         {/* RED RULE */}
-        <div style={{ height: '1px', background: '#C0392B', marginBottom: '20px', opacity: 0.8, animation: 'panel-fade-in 0.8s ease-out 0.2s both' }} />
+        <div style={{ height: '1px', background: '#C0392B', marginBottom: '28px', opacity: 0.8, animation: 'panel-fade-in 0.8s ease-out 0.2s both' }} />
 
         {/* ORG LABEL */}
         <div
