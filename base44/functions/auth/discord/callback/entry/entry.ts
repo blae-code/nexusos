@@ -10,7 +10,7 @@ function createSessionCookie(sessionData, secret) {
   const signature = createHmac('sha256', secret).update(payload).digest('hex');
   const token = `${payload}.${signature}`;
   
-  return `nexus_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax`;
+  return `nexus_member_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax`;
 }
 
 async function exchangeDiscordCode(code, clientId, clientSecret, redirectUri) {

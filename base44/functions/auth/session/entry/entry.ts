@@ -8,7 +8,7 @@ function getSessionCookie(req) {
     acc[name] = decodeURIComponent(value || '');
     return acc;
   }, {});
-  return cookies.nexus_session || '';
+  return cookies.nexus_member_session || '';
 }
 
 function validateSessionSignature(sessionToken, secret) {
