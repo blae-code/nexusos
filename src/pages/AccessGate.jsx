@@ -334,36 +334,36 @@ export default function AccessGate() {
             display: 'block',
             width: '100%',
             animation: 'panel-fade-in 0.8s ease-out 0.7s both',
-            background: launching || healthLoading ? 'linear-gradient(135deg, #7B2218 0%, #5A1810 100%)' : 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)',
+            background: launching || healthLoading ? '#5A2620' : '#C0392B',
             color: '#F0EDE5',
-            border: '1px solid rgba(192, 57, 43, 0.6)',
+            border: `1px solid ${launching || healthLoading ? 'rgba(192,57,43,0.3)' : 'rgba(192,57,43,0.7)'}`,
             borderRadius: '3px',
-            padding: '16px 24px',
+            padding: '14px 24px',
             cursor: launching || healthLoading ? 'not-allowed' : 'pointer',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 600,
-            fontSize: '13px',
-            letterSpacing: '0.18em',
+            fontSize: '12px',
+            letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            marginBottom: '20px',
-            transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            boxShadow: launching || healthLoading ?
-            'inset 0 2px 4px rgba(0,0,0,0.3)' :
-            '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            marginBottom: '24px',
+            transition: 'all 0.2s ease',
+            boxShadow: launching || healthLoading 
+              ? 'inset 0 1px 2px rgba(0,0,0,0.4)' 
+              : '0 8px 24px rgba(192,57,43,0.3), inset 0 1px 0 rgba(255,255,255,0.12)',
             opacity: launching || healthLoading ? 0.65 : 1,
-            textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+            textShadow: '0 1px 2px rgba(0,0,0,0.2)'
           }}
           onMouseEnter={(e) => {
             if (!launching && !healthLoading) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, #E84C3D 0%, #C0392B 100%)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(192, 57, 43, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+              e.currentTarget.style.background = '#E84C3D';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(192,57,43,0.4), inset 0 1px 0 rgba(255,255,255,0.15)';
               e.currentTarget.style.transform = 'translateY(-2px)';
             }
           }}
           onMouseLeave={(e) => {
             if (!launching && !healthLoading) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.background = '#C0392B';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(192,57,43,0.3), inset 0 1px 0 rgba(255,255,255,0.12)';
               e.currentTarget.style.transform = 'translateY(0)';
             }
           }}>
