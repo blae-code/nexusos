@@ -127,7 +127,7 @@ export default function Armory() {
                         style={{
                           background: 'var(--bg1)',
                           border: '0.5px solid var(--b0)',
-                          borderRadius: 6,
+                          borderRadius: 3,
                           padding: '10px 12px',
                           display: 'flex',
                           alignItems: 'center',
@@ -162,7 +162,7 @@ export default function Armory() {
                             padding: '4px 8px',
                             background: 'rgba(var(--live-rgb), 0.12)',
                             border: '0.5px solid rgba(var(--live-rgb), 1)',
-                            borderRadius: 4,
+                            borderRadius: 3,
                             color: 'var(--live)',
                             fontSize: 9,
                             cursor: 'pointer',
@@ -199,7 +199,7 @@ export default function Armory() {
                         style={{
                           background: 'var(--bg1)',
                           border: '0.5px solid var(--b0)',
-                          borderRadius: 6,
+                          borderRadius: 3,
                           padding: '10px 12px',
                           fontSize: 9,
                         }}
