@@ -24,37 +24,63 @@ function getBreadcrumb(pathname, search) {
     blueprints: 'Blueprints',
     craft: 'Craft Queue',
     refinery: 'Refinery',
+    coffer: 'Coffer',
+    ledger: 'Material Ledger',
+    commerce: 'Commerce',
+    profit: 'Profit Calc',
   };
 
-  if (pathname === '/app/industry') {
+  const scoutTabLabels = {
+    deposits: 'Deposits',
+    routes: 'Routes',
+  };
+
+  const opsTabLabels = {
+    rescue: 'Rescue Board',
+    archive: 'Archive',
+    new: 'New Op',
+  };
+
+  const armoryTabLabels = {
+    inventory: 'Inventory',
+    checkout: 'Checkout',
+    activity: 'Activity',
+    fleet: 'Fleet Forge',
+    schedule: 'Crew Scheduler',
+    'org-fleet': 'Org Fleet',
+  };
+
+  // Nested routes
+  if (pathname.startsWith('/app/industry')) {
+    const segment = pathname.split('/')[3];
     const tabParam = params.get('tab');
-    return { module: 'Industry', tab: industryTabLabels[tabParam] || 'Overview' };
+    return { module: 'Industry', tab: industryTabLabels[segment] || industryTabLabels[tabParam] || 'Overview' };
   }
-  if (pathname === '/app/scout') {
+  if (pathname.startsWith('/app/scout')) {
+    const segment = pathname.split('/')[3];
+    return { module: 'Intel', tab: scoutTabLabels[segment] || 'Deposits' };
+  }
+  if (pathname.startsWith('/app/ops')) {
+    const segment = pathname.split('/')[3];
+    if (segment === 'new') return { module: 'Operations', tab: 'New Op' };
+    if (segment === 'rescue') return { module: 'Operations', tab: 'Rescue Board' };
+    if (segment === 'archive') return { module: 'Operations', tab: 'Archive' };
+    if (segment && segment !== 'new' && !segment.match(/^[a-z0-9]+$/i)) return { module: 'Operations', tab: 'Live Op' };
+    return { module: 'Operations', tab: null };
+  }
+  if (pathname.startsWith('/app/armory')) {
+    const segment = pathname.split('/')[3];
     const tabParam = params.get('tab');
-    const scoutTabs = { deposits: 'Deposits', routes: 'Routes' };
-    return { module: 'Intel', tab: scoutTabs[tabParam] || 'Deposits' };
+    return { module: 'Armory', tab: armoryTabLabels[segment] || armoryTabLabels[tabParam] || null };
   }
-  if (pathname === '/app/ops') return { module: 'Operations', tab: null };
-  if (pathname === '/app/ops/new') return { module: 'Operations', tab: 'New Op' };
-  if (pathname.startsWith('/app/ops/')) return { module: 'Operations', tab: 'Live Op' };
-  if (pathname === '/app/fleet') return { module: 'Fleet Forge', tab: null };
-  if (pathname === '/app/coffer') return { module: 'Coffer', tab: null };
-  if (pathname === '/app/rescue') return { module: 'Rescue Board', tab: null };
+
+  // Legacy fallbacks
   if (pathname === '/app/roster') return { module: 'Roster', tab: null };
-  if (pathname === '/app/armory') {
-    const tabParam = params.get('tab');
-    const armoryTabs = { inventory: 'Inventory', checkout: 'Checkout', activity: 'Activity' };
-    return { module: 'Armory', tab: armoryTabs[tabParam] || null };
-  }
-  if (pathname === '/app/archive') return { module: 'Archive', tab: null };
-  if (pathname === '/app/commerce') return { module: 'Commerce', tab: null };
-  if (pathname === '/app/logistics') return { module: 'Logistics', tab: null };
-  if (pathname === '/app/profit') return { module: 'Profit Calc', tab: null };
-  if (pathname === '/app/ledger') return { module: 'Material Ledger', tab: null };
-  if (pathname === '/app/handbook') return { module: 'Org Handbook', tab: null };
   if (pathname === '/app/profile' || pathname === '/app/settings') return { module: 'Settings', tab: null };
   if (pathname === '/app/admin/todo') return { module: 'Admin', tab: 'Setup TODO' };
+  if (pathname === '/app/admin/settings') return { module: 'Admin', tab: 'Settings' };
+  if (pathname === '/app/handbook') return { module: 'Org Handbook', tab: null };
+  if (pathname === '/app/training') return { module: 'Training', tab: null };
   return { module: 'NexusOS', tab: null };
 }
 
