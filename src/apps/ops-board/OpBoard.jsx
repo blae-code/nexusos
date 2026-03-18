@@ -161,21 +161,25 @@ export default function OpBoard() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [allOps, allRsvps] = await Promise.all([
+    // Fetch ops, this user's RSVPs, and ALL confirmed RSVPs in 3 parallel requests
+    // instead of 2 + N (one per active op). We then group the confirmed RSVPs
+    // by op_id on the client side, which is O(n) and avoids the request waterfall.
+    const [allOps, allRsvps, confirmedRsvps] = await Promise.all([
       base44.entities.Op.list('-scheduled_at', 100),
       discordId ? base44.entities.OpRsvp.filter({ discord_id: discordId }) : Promise.resolve([]),
+      base44.entities.OpRsvp.filter({ status: 'CONFIRMED' }),
     ]);
 
     const opList = allOps || [];
     setOps(opList);
 
-    const activeOps = opList.filter(o => ['LIVE', 'PUBLISHED', 'DRAFT'].includes(o.status));
-    const allRsvpData = await Promise.all(
-      activeOps.map(o => base44.entities.OpRsvp.filter({ op_id: o.id, status: 'CONFIRMED' }))
-    );
-
     const counts = {};
-    activeOps.forEach((o, i) => { counts[o.id] = (allRsvpData[i] || []).length; });
+    opList
+      .filter(o => ['LIVE', 'PUBLISHED', 'DRAFT'].includes(o.status))
+      .forEach(o => { counts[o.id] = 0; });
+    (confirmedRsvps || []).forEach(r => {
+      if (counts.hasOwnProperty(r.op_id)) counts[r.op_id]++;
+    });
 
     const myMap = {};
     (allRsvps || []).forEach(r => { if (r.status === 'CONFIRMED') myMap[r.op_id] = r; });

@@ -261,7 +261,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
               }}
             />
             <span style={{ color: '#C8A84B', fontSize: 10, fontWeight: 600 }}>
-              {onlineCount !== null ? `${onlineCount} online` : 'online'}
+              {onlineCount !== null ? `${onlineCount} members` : 'members'}
             </span>
           </div>
 

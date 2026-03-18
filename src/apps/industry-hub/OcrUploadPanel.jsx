@@ -185,38 +185,44 @@ export default function OcrUploadPanel({ callsign, discordId, onComplete }) {
     setState('uploading');
     setError('');
 
-    // Upload file first
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    try {
+      // Upload file first
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-    setState('processing');
+      setState('processing');
 
-    // Call OCR extract function
-    const response = await base44.functions.invoke('ocrExtract', {
-      file_url,
-      source_type: 'OCR_UPLOAD',
-      discord_id: discordId || '',
-      callsign: callsign || '',
-    });
+      // Call OCR extract function
+      const response = await base44.functions.invoke('ocrExtract', {
+        file_url,
+        source_type: 'OCR_UPLOAD',
+        discord_id: discordId || '',
+        callsign: callsign || '',
+      });
 
-    const data = response.data;
+      const data = response.data;
 
-    if (!data || data.error) {
-      setError(data?.error || 'Extraction failed');
+      if (!data || data.error) {
+        setError(data?.error || 'Extraction failed');
+        setState('error');
+        return;
+      }
+
+      setResult(data);
+
+      // Items requiring confirmation
+      if (['MINING_SCAN', 'CRAFT_QUEUE', 'SHIP_STATUS'].includes(data.screenshot_type)) {
+        const items = data.screenshot_type === 'CRAFT_QUEUE'
+          ? (data.pending_confirmation || [])
+          : [data.pending_confirmation].filter(Boolean);
+        setPendingItems(items);
+        setState('confirm');
+      } else {
+        setState('done');
+      }
+    } catch (err) {
+      console.error('[OcrUploadPanel] processFile failed:', err);
+      setError(err?.message || 'Upload failed. Check your connection and try again.');
       setState('error');
-      return;
-    }
-
-    setResult(data);
-
-    // Items requiring confirmation
-    if (['MINING_SCAN', 'CRAFT_QUEUE', 'SHIP_STATUS'].includes(data.screenshot_type)) {
-      const items = data.screenshot_type === 'CRAFT_QUEUE'
-        ? (data.pending_confirmation || [])
-        : [data.pending_confirmation].filter(Boolean);
-      setPendingItems(items);
-      setState('confirm');
-    } else {
-      setState('done');
     }
   };
 

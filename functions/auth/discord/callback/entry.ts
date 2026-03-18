@@ -127,12 +127,15 @@ Deno.serve(async (req) => {
       discord_id: discordUser.id,
     });
 
+    const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
     const sessionData = {
       id: discordUser.id,
       discord_id: discordUser.id,
       callsign: discordUser.username,
       nexus_rank: nexusRank,
       onboarding_complete: false,
+      iat: Date.now(),
+      exp: Date.now() + SESSION_MAX_AGE_MS,
     };
 
     if (nexusUsers.length > 0) {
@@ -141,6 +144,9 @@ Deno.serve(async (req) => {
         nexus_rank: nexusRank,
         discord_roles: guildMember.roles || [],
       });
+      // Use the Base44 entity ID (not the Discord snowflake) so the frontend
+      // can reliably call NexusUser.update(user.id, ...) for things like onboarding.
+      sessionData.id = existingUser.id;
       sessionData.onboarding_complete = existingUser.onboarding_complete || false;
     } else {
       const created = await base44.asServiceRole.entities.NexusUser.create({

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { ChevronLeft, Play, Square, Upload } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
+import { safeLocalStorage } from '@/core/data/safe-storage';
 import CrewGrid from './CrewGrid';
 import LootTally from './LootTally';
 import OpRsvpSection from './OpRsvpSection';
@@ -84,20 +85,12 @@ export default function LiveOp() {
   const discordId = ctx.discordId || null;
 
   const [layoutMode, setLayoutMode] = useState(() => {
-    try {
-      return localStorage.getItem('nexusos_layout_mode') || 'ALT-TAB';
-    } catch {
-      return 'ALT-TAB';
-    }
+    return safeLocalStorage.getItem('nexusos_layout_mode') || 'ALT-TAB';
   });
 
   const handleLayoutChange = (mode) => {
     setLayoutMode(mode);
-    try {
-      localStorage.setItem('nexusos_layout_mode', mode);
-    } catch {
-      // localStorage unavailable
-    }
+    safeLocalStorage.setItem('nexusos_layout_mode', mode);
   };
 
   const [op, setOp] = useState(null);

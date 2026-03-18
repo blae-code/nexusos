@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { safeLocalStorage } from '@/core/data/safe-storage';
 import { TrendingDown, TrendingUp, Plus, X } from 'lucide-react';
 import PriceWatchlist from './PriceWatchlist';
 import PriceChart from './PriceChart';
@@ -8,8 +9,12 @@ import StationPrices from './StationPrices';
 export default function PriceTracker() {
   const [commodities, setCommodities] = useState([]);
   const [watchlist, setWatchlist] = useState(() => {
-    const stored = localStorage.getItem('nexus-price-watchlist');
-    return stored ? JSON.parse(stored) : [];
+    const stored = safeLocalStorage.getItem('nexus-price-watchlist');
+    try {
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
   });
   const [selectedCommodity, setSelectedCommodity] = useState(null);
   const [priceData, setPriceData] = useState(null);
@@ -66,7 +71,7 @@ export default function PriceTracker() {
       const next = isWatched
         ? current.filter((c) => c.id !== commodity.id)
         : [...current, commodity];
-      localStorage.setItem('nexus-price-watchlist', JSON.stringify(next));
+      safeLocalStorage.setItem('nexus-price-watchlist', JSON.stringify(next));
       return next;
     });
   }, []);

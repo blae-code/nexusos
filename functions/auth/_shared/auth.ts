@@ -204,7 +204,7 @@ export async function buildDiscordAuthorizeUrl(req: Request, redirectTo: string,
   const url = new URL('https://discord.com/api/v10/oauth2/authorize');
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'identify');
+  url.searchParams.set('scope', 'identify guilds.members.read');
   url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('state', state);
   url.searchParams.set('prompt', 'consent');

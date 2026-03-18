@@ -297,7 +297,7 @@ function Step3Privacy({ onContinue }) {
   );
 }
 
-function Step4Consent({ onComplete }) {
+function Step4Consent({ user, onComplete }) {
   const [consent1, setConsent1] = useState(false);
   const [consent2, setConsent2] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
@@ -309,7 +309,9 @@ function Step4Consent({ onComplete }) {
     setSubmitting(true);
     try {
       const now = new Date().toISOString();
-      await base44.auth.updateMe({
+      // base44.auth.updateMe() only works for email/password (Base44 native) accounts.
+      // Discord SSO members must be updated via the NexusUser entity directly.
+      await base44.entities.NexusUser.update(user.id, {
         consent_given: true,
         consent_timestamp: now,
         consent_version: '1.0',
@@ -626,7 +628,7 @@ export default function Onboarding() {
           )}
           {step === 1 && <Step2HowItWorks onContinue={() => setStep(2)} />}
           {step === 2 && <Step3Privacy onContinue={() => setStep(3)} />}
-          {step === 3 && <Step4Consent onComplete={handleComplete} />}
+          {step === 3 && <Step4Consent user={user} onComplete={handleComplete} />}
         </div>
       </div>
     </div>

@@ -64,9 +64,31 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Reject expired sessions. Sessions created before this fix won't have exp,
+  // so we only enforce expiry when the field is present.
+  if (sessionData.exp && sessionData.exp < Date.now()) {
+    return new Response(JSON.stringify({ authenticated: false, reason: 'session_expired' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Normalize field names to match what SessionContext.jsx expects.
+  // The callback stores nexus_rank (snake_case) and discord_id (snake_case).
+  // The frontend reads rank and discordId (camelCase).
+  const normalizedUser = {
+    id: sessionData.id,
+    discordId: sessionData.discord_id,
+    callsign: sessionData.callsign,
+    rank: sessionData.nexus_rank || 'AFFILIATE',
+    discordRoles: sessionData.discord_roles || [],
+    joinedAt: sessionData.joined_at || null,
+    onboarding_complete: sessionData.onboarding_complete ?? false,
+  };
+
   return new Response(JSON.stringify({
     authenticated: true,
-    user: sessionData,
+    user: normalizedUser,
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },

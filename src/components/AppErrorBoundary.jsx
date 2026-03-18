@@ -16,6 +16,54 @@ export default class AppErrorBoundary extends React.Component {
 
   render() {
     if (this.state.error) {
+      // compact=true — used inside the shell to catch per-module crashes.
+      // The sidebar and topbar stay alive; only the content pane shows the error.
+      if (this.props.compact) {
+        return (
+          <div
+            style={{
+              padding: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              color: 'var(--t0)',
+            }}
+          >
+            <div style={{ color: 'var(--danger)', fontSize: 10, letterSpacing: '0.14em' }}>
+              MODULE FAULT
+            </div>
+            <div style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600 }}>
+              This module encountered an unexpected error.
+            </div>
+            <div style={{ color: 'var(--t1)', fontSize: 11, lineHeight: 1.6 }}>
+              The rest of NexusOS is still running. You can navigate to another section or reload this module.
+            </div>
+            <div
+              style={{
+                color: 'var(--t2)',
+                fontSize: 10,
+                background: 'var(--bg2)',
+                border: '0.5px solid var(--b1)',
+                borderRadius: 6,
+                padding: '8px 10px',
+                wordBreak: 'break-word',
+              }}
+            >
+              {this.state.error?.message || 'Unknown error'}
+            </div>
+            <button
+              type="button"
+              className="nexus-btn nexus-btn-solid"
+              style={{ marginTop: 4, alignSelf: 'flex-start' }}
+              onClick={() => this.setState({ error: null })}
+            >
+              RETRY
+            </button>
+          </div>
+        );
+      }
+
+      // Full-screen fallback — used at the app root for catastrophic startup failures.
       return (
         <div
           style={{

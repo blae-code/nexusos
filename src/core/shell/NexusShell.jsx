@@ -11,6 +11,7 @@ import { getStoredLayoutMode, setStoredLayoutMode } from '@/core/data/layout-mod
 import { useVerseStatus } from '@/core/data/useVerseStatus';
 import { preloadCriticalTokens } from '@/core/data/tokenMap';
 import { IS_DEV_MODE } from '@/core/data/dev';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 export default function NexusShell() {
   const location = useLocation();
@@ -307,7 +308,9 @@ export default function NexusShell() {
                 SIMULATION
               </div>
             ) : null}
-            <Outlet context={outletContext} />
+            <AppErrorBoundary compact>
+              <Outlet context={outletContext} />
+            </AppErrorBoundary>
           </main>
         </div>
       </div>

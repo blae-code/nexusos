@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { authApi } from '@/core/data/auth-api';
+import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
 import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
 
@@ -103,7 +104,7 @@ export default function AccessGate() {
   }, []);
 
   const handleDiscordContinue = () => {
-    window.location.href = 'https://discord.com/oauth2/authorize?client_id=1483421250301989057&redirect_uri=https%3A%2F%2Fnomadnexus.space%2Ffunctions%2Fauth%2Fdiscord%2Fcallback&response_type=code&scope=identify+guilds+guilds.members.read';
+    window.location.href = authApi.getDiscordOAuthUrl();
   };
 
   if (!loading && isAuthenticated) {
@@ -434,7 +435,7 @@ export default function AccessGate() {
           }}
         >
           <span style={{ animation: 'pulse 2s ease-in-out infinite' }}>●</span>
-          VERSE 4.7.0
+          VERSE {VERSE_BUILD_LABEL}
         </div>
         <div
           style={{
