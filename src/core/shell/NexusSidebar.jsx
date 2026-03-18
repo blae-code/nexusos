@@ -16,17 +16,8 @@ const NAV_GROUPS = [
   [
     { icon: OpBoardIcon, label: 'OPERATIONS', path: '/app/ops', badge: 'live' },
     { icon: 'https://www.redscar.org/images/Redscar-Rangers_Logo.png', label: 'INTEL', path: '/app/scout', isImage: true },
-    { icon: Archive, label: 'ARCHIVE', path: '/app/archive' },
-  ],
-  [
-    { icon: Truck, label: 'ROUTES', path: '/app/routes' },
-  ],
-  [
     { icon: 'https://www.redscar.org/images/Redscar-Industry-Icon_White.png', label: 'INDUSTRY', path: '/app/industry', badge: 'craft', isImage: true },
-    { icon: FleetIcon, label: 'ORG FLEET', path: '/app/org-fleet' },
     { icon: 'https://www.redscar.org/images/Redscar-Rescue_Icon.png', label: 'ARMORY', path: '/app/armory', isImage: true },
-    { icon: Coins, label: 'COMMERCE', path: '/app/commerce' },
-    { icon: Truck, label: 'LOGISTICS', path: '/app/logistics' },
   ],
   [
     { icon: SettingsIcon, label: 'SETTINGS', path: '/app/profile' },
