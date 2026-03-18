@@ -321,7 +321,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         {error && (
           <div style={{
             background: 'rgba(var(--danger-rgb), 0.08)', border: '0.5px solid rgba(var(--danger-rgb), 0.3)',
-            borderRadius: 6, padding: '8px 12px', color: 'var(--danger)',
+            borderRadius: 3, padding: '8px 12px', color: 'var(--danger)',
             fontSize: 12, marginBottom: 20, letterSpacing: '0.04em',
           }}>
             {error}
