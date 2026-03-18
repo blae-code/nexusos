@@ -164,7 +164,7 @@ export function InsightStrip() {
           width: 5,
           height: 5,
           borderRadius: '50%',
-          background: 'var(--info)',
+          background: 'var(--acc)',
           animation: 'pulse-dot 2s ease-in-out infinite',
           flexShrink: 0,
         }}
