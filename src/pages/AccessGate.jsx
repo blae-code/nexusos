@@ -454,8 +454,8 @@ export default function AccessGate() {
             gap: '6px',
           }}
         >
-          <span style={{ animation: 'pulse 2s ease-in-out infinite' }}>●</span>
-          VERSE {VERSE_BUILD_LABEL}
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: discordStatus === 'online' ? '#4AE830' : '#C8A84B', animation: 'pulse 2s ease-in-out infinite', display: 'inline-block' }} />
+          {discordStatus === 'online' ? 'DISCORD ONLINE' : 'VERSE ' + VERSE_BUILD_LABEL}
         </div>
         <div
           style={{
