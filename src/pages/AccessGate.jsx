@@ -303,7 +303,7 @@ export default function AccessGate() {
 
         {/* CTA BUTTON */}
         {IS_DEV_MODE ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20, animation: 'panel-fade-in 0.8s ease-out 0.7s both' }}>
             {DEV_PERSONAS.map((persona) => (
               <button
                 key={persona.id}
