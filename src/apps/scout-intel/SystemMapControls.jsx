@@ -49,7 +49,7 @@ export function IconBtn({ icon: Icon, active, title, onClick }) {
       title={title}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: 26, height: 26, borderRadius: 5, cursor: 'pointer',
+        width: 26, height: 26, borderRadius: 3, cursor: 'pointer',
         border: active ? '0.5px solid var(--b3)' : '0.5px solid var(--b1)',
         background: active ? 'var(--bg4)' : 'var(--bg2)',
         color: active ? 'var(--warn)' : 'var(--t2)',

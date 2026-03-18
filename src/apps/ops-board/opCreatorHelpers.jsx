@@ -99,7 +99,7 @@ export function SegmentedControl({ options, value, onChange, tokenFn = null }) {
     <div style={{
       display: 'flex', flexWrap: 'wrap', gap: 3,
       background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-      borderRadius: 8, padding: 3,
+      borderRadius: 3, padding: 3,
     }}>
       {options.map(opt => {
         const val    = typeof opt === 'object' ? opt.value : opt;
@@ -111,7 +111,7 @@ export function SegmentedControl({ options, value, onChange, tokenFn = null }) {
             type="button"
             onClick={() => onChange(val)}
             style={{
-              padding: '4px 10px', borderRadius: 5, cursor: 'pointer',
+              padding: '4px 10px', borderRadius: 3, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 10, letterSpacing: '0.07em',
               border: active ? '0.5px solid var(--b3)' : '0.5px solid transparent',
               background: active ? 'var(--bg5)' : 'transparent',
@@ -138,7 +138,7 @@ export function Toggle({ label, description = '', checked, onChange }) {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '10px 12px', background: 'var(--bg2)',
-      border: '0.5px solid var(--b1)', borderRadius: 6,
+      border: '0.5px solid var(--b1)', borderRadius: 3,
     }}>
       <div>
         <div style={{ color: 'var(--t0)', fontSize: 12 }}>{label}</div>
@@ -148,7 +148,7 @@ export function Toggle({ label, description = '', checked, onChange }) {
         type="button"
         onClick={() => onChange(!checked)}
         style={{
-          width: 36, height: 20, borderRadius: 10, cursor: 'pointer',
+          width: 36, height: 20, borderRadius: 3, cursor: 'pointer',
           background: checked ? 'var(--live)' : 'var(--bg4)',
           border: `0.5px solid ${checked ? 'var(--live)' : 'var(--b3)'}`,
           position: 'relative', transition: 'all 0.2s', flexShrink: 0,
@@ -225,7 +225,7 @@ export function RoleSlotEditor({ slots, onChange, error = null }) {
               type="button"
               onClick={() => adjust(i, -1)}
               style={{
-                width: 24, height: 24, borderRadius: 4, cursor: 'pointer',
+                width: 24, height: 24, borderRadius: 3, cursor: 'pointer',
                 background: 'var(--bg3)', border: '0.5px solid var(--b2)',
                 color: 'var(--t1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'inherit', fontSize: 11,
@@ -244,7 +244,7 @@ export function RoleSlotEditor({ slots, onChange, error = null }) {
               type="button"
               onClick={() => adjust(i, 1)}
               style={{
-                width: 24, height: 24, borderRadius: 4, cursor: 'pointer',
+                width: 24, height: 24, borderRadius: 3, cursor: 'pointer',
                 background: 'var(--bg3)', border: '0.5px solid var(--b2)',
                 color: 'var(--t1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'inherit', fontSize: 11,
@@ -264,7 +264,7 @@ export function RoleSlotEditor({ slots, onChange, error = null }) {
               width: 24, height: 24, background: 'none', border: 'none',
               cursor: slots.length > 1 ? 'pointer' : 'not-allowed',
               color: slots.length > 1 ? 'var(--t3)' : 'var(--t3)', padding: 0,
-              borderRadius: 4, fontFamily: 'inherit', fontSize: 14,
+              borderRadius: 3, fontFamily: 'inherit', fontSize: 14,
               opacity: slots.length === 1 ? 0.4 : 1,
               transition: 'color 120ms',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -282,14 +282,14 @@ export function RoleSlotEditor({ slots, onChange, error = null }) {
        style={{
          width: '100%', background: 'none', border: '0.5px dashed var(--b1)',
          cursor: 'pointer', color: 'var(--t2)', fontSize: 10, fontFamily: 'inherit',
-         letterSpacing: '0.08em', padding: '8px 0', borderRadius: 4,
+         letterSpacing: '0.08em', padding: '8px 0', borderRadius: 3,
          transition: 'border-color 120ms',
          textTransform: 'uppercase',
-       }}
-       onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--acc-rgb), 0.4)'; }}
-       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--b1)'; }}
-      >
-       + Add Role Slot
+         }}
+         onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--acc-rgb), 0.4)'; }}
+         onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--b1)'; }}
+         >
+         + Add Role Slot
       </button>
       {error && (
        <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
@@ -338,7 +338,7 @@ export function PhaseEditor({ phases, onChange }) {
             padding: '6px 0', borderBottom: '0.5px solid var(--b0)',
             background: dragging === i ? 'var(--bg3)' : 'transparent',
             border: dragging === i ? '0.5px solid var(--b2)' : 'none',
-            borderRadius: dragging === i ? 6 : 0,
+            borderRadius: dragging === i ? 3 : 0,
             opacity: dragging === i ? 0.9 : 1,
             cursor: 'grab',
             transition: 'all 120ms',
@@ -382,7 +382,7 @@ export function PhaseEditor({ phases, onChange }) {
         style={{
           width: '100%', background: 'none', border: '0.5px dashed var(--b1)',
           cursor: 'pointer', color: 'var(--t2)', fontSize: 10, fontFamily: 'inherit',
-          letterSpacing: '0.08em', padding: '8px 0', borderRadius: 4,
+          letterSpacing: '0.08em', padding: '8px 0', borderRadius: 3,
           transition: 'border-color 120ms',
           textTransform: 'uppercase',
         }}
