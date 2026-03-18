@@ -227,8 +227,8 @@ export default function IndustryHub() {
           flexDirection: 'column',
           gap: 8,
           padding: '10px 16px 0',
-          borderBottom: '0.5px solid var(--b1)',
-          background: 'var(--bg1)',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+          background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)',
           flexShrink: 0,
         }}
       >
