@@ -571,7 +571,7 @@ export default function Materials({ materials, onRefresh }) {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
                 );
               })}
 
