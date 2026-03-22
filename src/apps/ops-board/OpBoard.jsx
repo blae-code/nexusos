@@ -252,6 +252,12 @@ export default function OpBoard() {
         <button onClick={load} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: 2, display: 'flex' }}>
           <RefreshCw size={12} />
         </button>
+        <button
+          onClick={() => navigate('/app/ops/timeline')}
+          style={{ background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3, cursor: 'pointer', color: 'var(--t2)', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, letterSpacing: '0.08em', fontFamily: 'inherit' }}
+        >
+          <CalendarDays size={11} /> TIMELINE
+        </button>
         {canLead && (
           <button
             onClick={() => navigate('/app/ops/new')}
