@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { RefreshCw, AlertCircle, Gauge } from 'lucide-react';
 
 const STATUS_COLORS = {
   AVAILABLE: { bg: 'rgba(74,232,48,0.1)', text: '#4AE830', border: 'rgba(74,232,48,0.3)' },
