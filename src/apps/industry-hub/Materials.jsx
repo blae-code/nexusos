@@ -561,6 +561,17 @@ export default function Materials({ materials, onRefresh }) {
                       )}
                     </td>
                   </tr>
+                  {contextId === m.id && (
+                    <tr>
+                      <td colSpan={9} style={{ padding: 0 }}>
+                        <MaterialContextPanel
+                          materialName={m.material_name}
+                          onClose={() => setContextId(null)}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </>
                 );
               })}
 
