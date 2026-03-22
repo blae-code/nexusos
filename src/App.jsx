@@ -22,6 +22,7 @@ import MaterialLedger from '@/pages/MaterialLedger';
 import NexusSettings from '@/pages/NexusSettings';
 import NexusTodo from '@/pages/NexusTodo';
 import OpBoard from '@/apps/ops-board/OpBoard';
+import OpsTimeline from '@/apps/ops-board/OpsTimeline';
 import OpCreator from '@/apps/ops-board/OpCreatorPage';
 import OrgRoster from '@/pages/OrgRoster';
 import ProfitCalc from '@/pages/ProfitCalc';
