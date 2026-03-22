@@ -1,22 +1,21 @@
-import { sessionNoStoreHeaders } from '../../_shared/auth.ts';
-
+// Self-contained health/readiness handler — no local imports
 const DEFAULT_INVITE_URL = 'https://discord.gg/redscar';
 const DEFAULT_SUPPORT_CHANNEL = '#nexusos-ops';
 const DEFAULT_GUILD_LABEL = 'REDSCAR NOMADS';
 
-function hasEnv(name: string) {
+function hasEnv(name) {
   return Boolean(Deno.env.get(name)?.trim());
 }
 
-function getOptionalEnv(name: string, fallback: string) {
+function getOptionalEnv(name, fallback) {
   return Deno.env.get(name)?.trim() || fallback;
 }
 
-Deno.serve((req: Request) => {
+Deno.serve((req) => {
   if (req.method !== 'GET') {
     return Response.json({ error: 'Method not allowed' }, {
       status: 405,
-      headers: sessionNoStoreHeaders(),
+      headers: { 'Cache-Control': 'no-store' },
     });
   }
 
@@ -31,6 +30,7 @@ Deno.serve((req: Request) => {
   ].every(hasEnv);
 
   return Response.json({
+    ok: true,
     oauth_ready: oauthReady,
     requires_membership: true,
     guild_label: getOptionalEnv('NEXUSOS_GUILD_LABEL', DEFAULT_GUILD_LABEL),
@@ -43,6 +43,6 @@ Deno.serve((req: Request) => {
       'After first login, confirm or edit your seeded callsign in Profile Settings.',
     ],
   }, {
-    headers: sessionNoStoreHeaders(),
+    headers: { 'Cache-Control': 'no-store' },
   });
 });
