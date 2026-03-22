@@ -145,6 +145,23 @@ export default function AccessGate() {
     };
   }, []);
 
+  const handleAdminLogin = async () => {
+    setAdminLogging(true);
+    setAdminError('');
+    try {
+      const result = await authApi.adminLogin();
+      if (result?.ok) {
+        await refreshSession();
+      } else {
+        setAdminError(result?.error || 'Admin login failed');
+      }
+    } catch (e) {
+      setAdminError(e.message || 'Admin login failed');
+    } finally {
+      setAdminLogging(false);
+    }
+  };
+
   const handleDiscordContinue = () => {
     if (!canLaunchDiscord) {
       return;
