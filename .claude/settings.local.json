@@ -10,7 +10,10 @@
       "Bash(npm --version)",
       "Bash(npm install:*)",
       "Bash(timeout 30 npx vite --port 5173)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Bash(gh pr:*)",
+      "Bash(cmd.exe /c \"gh pr create --title \"\"feat\\(scout-intel\\): rich material chip and deposit marker tooltips\"\" --body \"\"## Summary\\\\n- Task ID: SCOUT-001\\\\n- Owner: nickd + Claude Sonnet 4.6\\\\n- Branch: feature/scout-intel-deposit-tooltips\\\\n\\\\n## Affected Surfaces\\\\n- src/apps/scout-intel/SystemMapControls.jsx\\\\n- src/apps/scout-intel/SystemMap.jsx\\\\n- TASK_LEDGER.md\\\\n\\\\n## Demo Verification\\\\n- Local: npm run dev with VITE_BYPASS_ACCESS_GATE=true, navigate to /app/scout, hover material chips and deposit markers\\\\n\\\\n## Base44 Impact\\\\n- none\"\" 2>&1\")",
+      "Bash(powershell.exe -NoProfile -Command \"Get-Command gh -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")"
     ]
   }
 }
