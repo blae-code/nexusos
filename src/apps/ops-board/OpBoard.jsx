@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { Plus, RefreshCw, Crosshair } from 'lucide-react';
+import { Plus, RefreshCw, Crosshair, CalendarDays } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 
 const STATUS_ORDER = ['LIVE', 'PUBLISHED', 'DRAFT', 'COMPLETE', 'ARCHIVED'];
