@@ -9,11 +9,13 @@ import PatchDigestHeader from '@/apps/industry-hub/PatchDigestHeader';
 import IndustryOverview from '@/apps/industry-hub/IndustryOverview';
 import PriceTracker from '@/apps/industry-hub/PriceTracker';
 import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
+import ProductionTab from '@/apps/industry-hub/ProductionTab';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
   { id: 'materials', label: 'MATERIALS' },
   { id: 'blueprints', label: 'BLUEPRINTS' },
+  { id: 'production', label: 'PRODUCTION' },
   { id: 'craft', label: 'CRAFT QUEUE' },
   { id: 'refinery', label: 'REFINERY' },
   { id: 'prices', label: 'PRICE TRACKER' },
@@ -279,6 +281,7 @@ export default function IndustryHub() {
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} onRefresh={load} /> : null}
         {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} materials={materials} blueprints={blueprints} /> : null}
         {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} callsign={callsign} /> : null}
+        {tab === 'production' ? <ProductionTab blueprints={blueprints} materials={materials} callsign={callsign} onRefresh={load} /> : null}
         {tab === 'prices' ? <PriceTracker /> : null}
       </div>
     </div>
