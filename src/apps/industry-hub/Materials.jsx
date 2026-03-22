@@ -472,9 +472,14 @@ export default function Materials({ materials, onRefresh }) {
                     </td>
 
                     {/* Material name + source */}
-                    <td style={{ padding: '8px 12px', maxWidth: 200 }}>
-                      <div style={{ color: 'var(--t0)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '8px 12px', maxWidth: 200, cursor: 'pointer' }}
+                      onClick={() => setContextId(contextId === m.id ? null : m.id)}
+                    >
+                      <div style={{ color: 'var(--t0)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
                         {m.material_name}
+                        <span style={{ color: contextId === m.id ? 'var(--acc2)' : 'var(--t3)', fontSize: 8, flexShrink: 0 }}>
+                          {contextId === m.id ? '▲' : '▼'}
+                        </span>
                       </div>
                       {m.source_type && (
                         <div style={{ color: 'var(--t2)', fontSize: 10 }}>
