@@ -12,7 +12,52 @@ export {
   getDevPersonaById,
 } from './personas';
 
-export const IS_ACCESS_GATE_BYPASSED = meta.env?.VITE_BYPASS_ACCESS_GATE === 'true';
+const RUNTIME_BYPASS_STORAGE_KEY = 'nexus_runtime_access_gate_bypass';
+
+function normalizeBypassParam(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (['1', 'true', 'on', 'yes'].includes(normalized)) return true;
+  if (['0', 'false', 'off', 'no'].includes(normalized)) return false;
+  return null;
+}
+
+function replaceUrlSearch(nextSearchParams) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const nextUrl = `${window.location.pathname}${nextSearchParams.toString() ? `?${nextSearchParams.toString()}` : ''}${window.location.hash}`;
+
+  try {
+    window.history.replaceState({}, document.title, nextUrl);
+  } catch {
+    // Ignore history mutations in restricted host environments.
+  }
+}
+
+function resolveRuntimeBypassFlag() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const queryValue = searchParams.get('bypass_access_gate');
+  const normalizedQuery = normalizeBypassParam(queryValue);
+  if (normalizedQuery !== null) {
+    if (normalizedQuery) {
+      safeLocalStorage.setItem(RUNTIME_BYPASS_STORAGE_KEY, '1');
+    } else {
+      safeLocalStorage.removeItem(RUNTIME_BYPASS_STORAGE_KEY);
+    }
+    searchParams.delete('bypass_access_gate');
+    replaceUrlSearch(searchParams);
+    return normalizedQuery;
+  }
+
+  return safeLocalStorage.getItem(RUNTIME_BYPASS_STORAGE_KEY) === '1';
+}
+
+export const IS_ACCESS_GATE_BYPASSED = meta.env?.VITE_BYPASS_ACCESS_GATE === 'true' || resolveRuntimeBypassFlag();
 export const IS_TEMP_ACCESS_MODE = meta.env?.VITE_TEMP_ACCESS_MODE === 'true';
 export const IS_LOCAL_SIMULATION_MODE = meta.env?.DEV === true || meta.env?.VITE_DEMO_MODE === 'true' || IS_ACCESS_GATE_BYPASSED;
 export const SANDBOX_MODE = meta.env?.VITE_SANDBOX_MODE || (IS_TEMP_ACCESS_MODE ? 'shared' : 'local');
@@ -75,4 +120,8 @@ export function buildDevSession(persona, userOverrides = {}) {
       onboarding_complete: onboardingComplete,
     },
   };
+}
+
+export function disableRuntimeAccessGateBypass() {
+  safeLocalStorage.removeItem(RUNTIME_BYPASS_STORAGE_KEY);
 }

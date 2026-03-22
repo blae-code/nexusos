@@ -36,6 +36,13 @@ Use GitHub as the source of truth. Base44 is downstream for later polish/publish
 5. This is local-only convenience mode. It does not create shared state for collaborators.
 6. If you want to test the real gate or a signed-out state again, remove `VITE_BYPASS_ACCESS_GATE` and restart the dev server.
 
+### Fastest deployed bypass
+1. Open the deployed app once with `?bypass_access_gate=1`.
+2. The app will persist temporary access in local storage and reload without the query string.
+3. You will enter as the default Voyager sandbox user and the app will use local simulation data instead of live auth/Base44 calls.
+4. To turn it off again, open the app with `?bypass_access_gate=0` and refresh.
+5. Use this only for temporary development and visual review.
+
 ### Shared Vercel collaboration deployment
 1. Create a separate Vercel project for this repo.
 2. Set:

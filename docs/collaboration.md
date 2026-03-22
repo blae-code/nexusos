@@ -16,6 +16,12 @@ Support two humans and two AI agents working in parallel from GitHub, without re
 - State remains local to your own browser.
 - If you need to test real login or signed-out behavior, remove the flag and restart the app.
 
+### Fastest deployed bypass
+- Open the deployed app once with `?bypass_access_gate=1`.
+- The app persists the bypass in local storage and enters as the default Voyager sandbox user.
+- This avoids live auth and live Base44 calls for that browser session.
+- Turn it off with `?bypass_access_gate=0`.
+
 ### Shared collaboration deployment
 - Use a dedicated Vercel deployment.
 - Set `VITE_TEMP_ACCESS_MODE=true`.
