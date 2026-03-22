@@ -4,8 +4,9 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Plus, CheckCircle, XCircle, Clock, Package } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Clock, Package, BarChart3 } from 'lucide-react';
 import NewFabJobDialog from './NewFabJobDialog';
+import ProductionMargins from './ProductionMargins';
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';
@@ -126,6 +127,7 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ACTIVE');
+  const [view, setView] = useState('jobs'); // 'jobs' | 'margins'
 
   const loadJobs = useCallback(async () => {
     try {
@@ -222,6 +224,20 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
           ))}
         </div>
 
+        {/* View toggle */}
+        <button
+          onClick={() => setView(v => v === 'jobs' ? 'margins' : 'jobs')}
+          className="nexus-btn"
+          style={{
+            padding: '4px 10px', fontSize: 9, display: 'flex', alignItems: 'center', gap: 4,
+            background: view === 'margins' ? 'var(--bg4)' : 'var(--bg2)',
+            borderColor: view === 'margins' ? 'var(--b3)' : 'var(--b1)',
+            color: view === 'margins' ? '#C8A84B' : 'var(--t2)',
+          }}
+        >
+          <BarChart3 size={10} /> MARGINS
+        </button>
+
         {/* New job button */}
         <button
           onClick={() => setShowNewDialog(true)}
@@ -232,18 +248,24 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
         </button>
       </div>
 
-      {/* Job list */}
+      {/* Content area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {filtered.map(job => (
-          <JobRow key={job.id} job={job} onComplete={handleComplete} onCancel={handleCancel} />
-        ))}
-        {filtered.length === 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: 40, color: 'var(--t2)' }}>
-            <Package size={28} style={{ opacity: 0.3 }} />
-            <span style={{ fontSize: 11 }}>
-              {statusFilter === 'ACTIVE' ? 'No active fabrication jobs — start one from a blueprint' : 'No jobs match this filter'}
-            </span>
-          </div>
+        {view === 'margins' ? (
+          <ProductionMargins jobs={jobs} blueprints={blueprints} />
+        ) : (
+          <>
+            {filtered.map(job => (
+              <JobRow key={job.id} job={job} onComplete={handleComplete} onCancel={handleCancel} />
+            ))}
+            {filtered.length === 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: 40, color: 'var(--t2)' }}>
+                <Package size={28} style={{ opacity: 0.3 }} />
+                <span style={{ fontSize: 11 }}>
+                  {statusFilter === 'ACTIVE' ? 'No active fabrication jobs — start one from a blueprint' : 'No jobs match this filter'}
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
