@@ -166,6 +166,15 @@ export const authApi = {
     throw new Error('Demo persona switching is only available in collaboration mode.');
   },
 
+  async adminLogin({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('adminLogin/entry'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+    }, timeoutMs);
+    return parseJson(response);
+  },
+
   async resetDemoSandbox() {
     if (!IS_SHARED_SANDBOX_MODE) {
       return { ok: false, skipped: true };
