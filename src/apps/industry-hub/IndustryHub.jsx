@@ -8,6 +8,7 @@ import RefineryManagement from '@/apps/industry-hub/RefineryManagement';
 import PatchDigestHeader from '@/apps/industry-hub/PatchDigestHeader';
 import IndustryOverview from '@/apps/industry-hub/IndustryOverview';
 import PriceTracker from '@/apps/industry-hub/PriceTracker';
+import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -16,6 +17,7 @@ const TABS = [
   { id: 'craft', label: 'CRAFT QUEUE' },
   { id: 'refinery', label: 'REFINERY' },
   { id: 'prices', label: 'PRICE TRACKER' },
+  { id: 'cargo', label: 'CARGO MARGINS' },
 ];
 
 function RefineryTab({ refineryOrders, materials, callsign }) {
