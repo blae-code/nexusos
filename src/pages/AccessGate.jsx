@@ -469,14 +469,12 @@ export default function AccessGate() {
           </div>
         }
 
-        {/* ADMIN LOGIN — only shown when Base44 platform session is active (system admins without Discord) */}
-        {!IS_DEV_MODE && (
-          <AdminLoginPanel
-            onLogin={handleAdminLogin}
-            logging={adminLogging}
-            error={adminError}
-          />
-        )}
+        {/* ADMIN LOGIN — email allowlist bypass, hidden behind a subtle link */}
+        <AdminLoginPanel
+          onLogin={handleAdminLogin}
+          logging={adminLogging}
+          error={adminError}
+        />
         </div>
 
       {/* FIXED FOOTER */}
