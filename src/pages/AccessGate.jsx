@@ -80,7 +80,8 @@ export default function AccessGate() {
     () => normalizeAuthenticatedDestination(searchParams.get('redirect_to'), user?.onboarding_complete),
     [searchParams, user?.onboarding_complete]
   );
-  const canLaunchDiscord = !launching && !healthLoading && health?.oauth_ready !== false;
+  // Only hard-disable if oauth_ready is explicitly false — health failures are soft warnings
+  const canLaunchDiscord = !launching && !(health?.oauth_ready === false);
 
   useEffect(() => {
     setStars(buildStars());
