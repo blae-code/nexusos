@@ -75,9 +75,18 @@ Deno.serve(async (req) => {
     const syntheticDiscordId = `admin:${email.replace(/[^a-z0-9]/g, '_')}`;
     const now = new Date().toISOString();
 
-    // Upsert NexusUser record
+    // Upsert NexusUser record — always enforce sysadmin callsign/rank
     const existing = (await base44.asServiceRole.entities.NexusUser.filter({ discord_id: syntheticDiscordId }))?.[0];
-    if (!existing) {
+    if (existing) {
+      await base44.asServiceRole.entities.NexusUser.update(existing.id, {
+        callsign: adminEntry.callsign,
+        discord_handle: email,
+        discord_roles: ['SYSADMIN'],
+        nexus_rank: adminEntry.rank,
+        roles_synced_at: now,
+        onboarding_complete: true,
+      });
+    } else {
       await base44.asServiceRole.entities.NexusUser.create({
         discord_id: syntheticDiscordId,
         callsign: adminEntry.callsign,
