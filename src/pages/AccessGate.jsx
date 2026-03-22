@@ -146,15 +146,15 @@ export default function AccessGate() {
     };
   }, []);
 
-  const handleAdminLogin = async () => {
+  const handleAdminLogin = async (email) => {
     setAdminLogging(true);
     setAdminError('');
     try {
-      const result = await authApi.adminLogin();
+      const result = await authApi.adminLogin({ email });
       if (result?.ok) {
         await refreshSession();
       } else {
-        setAdminError(result?.error || 'Admin login failed');
+        setAdminError(result?.error || 'Access denied');
       }
     } catch (e) {
       setAdminError(e.message || 'Admin login failed');
