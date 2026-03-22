@@ -27,6 +27,7 @@ const CLASS_ICONS = {
 
 export default function OrgFleet() {
   const { user } = useSession();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(false);
 
