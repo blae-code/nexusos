@@ -17,7 +17,7 @@ function getEnv(...names) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method !== 'GET') {
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
