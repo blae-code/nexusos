@@ -4,7 +4,7 @@ import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
 function buildFunctionUrl(functionPath, searchParams) {
-  const base = 'https://nexus-nomad-core.base44.app/api/functions';
+  const base = 'https://www.nomadnexus.space/api/functions';
   const url = new URL(`${base}/${functionPath}`);
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
