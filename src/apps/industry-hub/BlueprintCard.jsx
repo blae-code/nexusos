@@ -2,7 +2,8 @@
  * BlueprintCard — expandable card for a single blueprint entry.
  */
 import React, { useState } from 'react';
-import { Clock, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, Zap, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import MaterialContextPanel from '@/components/industry/MaterialContextPanel';
 
 const CAT_COLOR = {
   WEAPON: 'var(--danger)', ARMOR: 'var(--info)', GEAR: 'var(--acc2)',
@@ -18,6 +19,7 @@ function formatTime(minutes) {
 
 export default function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
+  const [contextMaterial, setContextMaterial] = useState(null);
   const owned = Boolean(bp.owned_by || bp.owned_by_callsign);
   const catColor = CAT_COLOR[bp.category] || 'var(--t2)';
   const isT2 = bp.tier === 'T2';
