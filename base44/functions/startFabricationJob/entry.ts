@@ -25,8 +25,11 @@ Deno.serve(async (req) => {
   }
 
   // 1. Fetch blueprint
-  const blueprints = await base44.asServiceRole.entities.Blueprint.filter({ id: blueprint_id });
-  const bp = blueprints?.[0];
+  let bp = null;
+  try {
+    const blueprints = await base44.asServiceRole.entities.Blueprint.filter({ id: blueprint_id });
+    bp = blueprints?.[0];
+  } catch { /* invalid id */ }
   if (!bp) return Response.json({ error: 'Blueprint not found' }, { status: 404 });
 
   const recipe = bp.recipe_materials || [];
