@@ -460,8 +460,8 @@ export default function Materials({ materials, onRefresh }) {
                 const isArchiveConfirm = archiveConfirmId === m.id;
 
                 return (
+                  <React.Fragment key={m.id}>
                   <tr
-                    key={m.id}
                     style={{ borderBottom: '0.5px solid var(--b0)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
