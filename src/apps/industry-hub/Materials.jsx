@@ -461,117 +461,117 @@ export default function Materials({ materials, onRefresh }) {
 
                 return (
                   <React.Fragment key={m.id}>
-                  <tr
-                    style={{ borderBottom: '0.5px solid var(--b0)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    {/* Icon */}
-                    <td style={{ padding: '8px 8px 8px 12px', width: 36 }}>
-                      <NexusToken src={materialToken(matCategory(m.material_type), matStatus(m))} size={24} alt={m.material_type} />
-                    </td>
-
-                    {/* Material name + source */}
-                    <td style={{ padding: '8px 12px', maxWidth: 200, cursor: 'pointer' }}
-                      onClick={() => setContextId(contextId === m.id ? null : m.id)}
+                    <tr
+                      style={{ borderBottom: '0.5px solid var(--b0)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <div style={{ color: 'var(--t0)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        {m.material_name}
-                        <span style={{ color: contextId === m.id ? 'var(--acc2)' : 'var(--t3)', fontSize: 8, flexShrink: 0 }}>
-                          {contextId === m.id ? '▲' : '▼'}
+                      {/* Icon */}
+                      <td style={{ padding: '8px 8px 8px 12px', width: 36 }}>
+                        <NexusToken src={materialToken(matCategory(m.material_type), matStatus(m))} size={24} alt={m.material_type} />
+                      </td>
+
+                      {/* Material name + source */}
+                      <td style={{ padding: '8px 12px', maxWidth: 200, cursor: 'pointer' }}
+                        onClick={() => setContextId(contextId === m.id ? null : m.id)}
+                      >
+                        <div style={{ color: 'var(--t0)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {m.material_name}
+                          <span style={{ color: contextId === m.id ? 'var(--acc2)' : 'var(--t3)', fontSize: 8, flexShrink: 0 }}>
+                            {contextId === m.id ? '▲' : '▼'}
+                          </span>
+                        </div>
+                        {m.source_type && (
+                          <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+                            {m.source_type.replace(/_/g, ' ')}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Type tag */}
+                      <td style={{ padding: '8px 12px' }}>
+                        <span className="nexus-tag" style={{ color: 'var(--t1)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>
+                          {m.material_type}
                         </span>
-                      </div>
-                      {m.source_type && (
-                        <div style={{ color: 'var(--t2)', fontSize: 10 }}>
-                          {m.source_type.replace(/_/g, ' ')}
+                      </td>
+
+                      {/* Quality bar (3px) + % label */}
+                      <td style={{ padding: '8px 12px', minWidth: 110 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div className="nexus-bar-bg" style={{ flex: 1 }}>
+                            <div className="nexus-bar-fill" style={{ width: `${m.quality_pct || 0}%`, background: 'var(--acc2)' }} />
+                          </div>
+                          <span style={{ color: 'var(--t1)', fontSize: 11, minWidth: 28, textAlign: 'right' }}>
+                            {(m.quality_pct || 0).toFixed(0)}%
+                          </span>
                         </div>
-                      )}
-                    </td>
+                      </td>
 
-                    {/* Type tag */}
-                    <td style={{ padding: '8px 12px' }}>
-                      <span className="nexus-tag" style={{ color: 'var(--t1)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>
-                        {m.material_type}
-                      </span>
-                    </td>
+                      {/* Qty SCU */}
+                      <td style={{ padding: '8px 12px', color: 'var(--t0)', fontSize: 12 }}>
+                        {(m.quantity_scu || 0).toFixed(1)}
+                      </td>
 
-                    {/* Quality bar (3px) + % label */}
-                    <td style={{ padding: '8px 12px', minWidth: 110 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div className="nexus-bar-bg" style={{ flex: 1 }}>
-                          <div className="nexus-bar-fill" style={{ width: `${m.quality_pct || 0}%`, background: 'var(--acc2)' }} />
-                        </div>
-                        <span style={{ color: 'var(--t1)', fontSize: 11, minWidth: 28, textAlign: 'right' }}>
-                          {(m.quality_pct || 0).toFixed(0)}%
-                        </span>
-                      </div>
-                    </td>
+                      {/* T2 eligibility badge */}
+                      <td style={{ padding: '8px 12px' }}>
+                        <T2Badge t2_eligible={!!m.t2_eligible} />
+                      </td>
 
-                    {/* Qty SCU */}
-                    <td style={{ padding: '8px 12px', color: 'var(--t0)', fontSize: 12 }}>
-                      {(m.quantity_scu || 0).toFixed(1)}
-                    </td>
+                      {/* Status flag */}
+                      <td style={{ padding: '8px 12px' }}>
+                        <MaterialStatusPill material={m} />
+                      </td>
 
-                    {/* T2 eligibility badge */}
-                    <td style={{ padding: '8px 12px' }}>
-                      <T2Badge t2_eligible={!!m.t2_eligible} />
-                    </td>
+                      {/* Logged by + relative timestamp */}
+                      <td style={{ padding: '8px 12px' }}>
+                        {m.logged_by_callsign && (
+                          <div style={{ color: 'var(--t1)', fontSize: 11 }}>{m.logged_by_callsign}</div>
+                        )}
+                        <div style={{ color: 'var(--t2)', fontSize: 10 }}>{relativeTime(m.logged_at)}</div>
+                      </td>
 
-                    {/* Status flag */}
-                    <td style={{ padding: '8px 12px' }}>
-                      <MaterialStatusPill material={m} />
-                    </td>
-
-                    {/* Logged by + relative timestamp */}
-                    <td style={{ padding: '8px 12px' }}>
-                      {m.logged_by_callsign && (
-                        <div style={{ color: 'var(--t1)', fontSize: 11 }}>{m.logged_by_callsign}</div>
-                      )}
-                      <div style={{ color: 'var(--t2)', fontSize: 10 }}>{relativeTime(m.logged_at)}</div>
-                    </td>
-
-                    {/* Actions: Edit | Archive */}
-                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                      {isArchiveConfirm ? (
-                        <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-                          <button
-                            onClick={() => handleArchive(m.id)}
-                            className="nexus-btn"
-                            style={{ padding: '2px 7px', fontSize: 9, background: 'rgba(var(--danger-rgb), 0.1)', borderColor: 'var(--danger)', color: 'var(--danger)' }}
-                          >CONFIRM</button>
-                          <button
-                            onClick={() => setArchiveConfirmId(null)}
-                            className="nexus-btn"
-                            style={{ padding: '2px 7px', fontSize: 9 }}
-                          >CANCEL</button>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-                          <button
-                            onClick={() => { setEditingId(m.id); setArchiveConfirmId(null); }}
-                            className="nexus-btn"
-                            style={{ padding: '2px 7px', fontSize: 9 }}
-                          >EDIT</button>
-                          <button
-                            onClick={() => { setArchiveConfirmId(m.id); setEditingId(null); }}
-                            className="nexus-btn"
-                            style={{ padding: '2px 7px', fontSize: 9, color: 'var(--t2)' }}
-                          >ARCHIVE</button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                  {contextId === m.id && (
-                    <tr>
-                      <td colSpan={9} style={{ padding: 0 }}>
-                        <MaterialContextPanel
-                          materialName={m.material_name}
-                          onClose={() => setContextId(null)}
-                        />
+                      {/* Actions: Edit | Archive */}
+                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                        {isArchiveConfirm ? (
+                          <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => handleArchive(m.id)}
+                              className="nexus-btn"
+                              style={{ padding: '2px 7px', fontSize: 9, background: 'rgba(var(--danger-rgb), 0.1)', borderColor: 'var(--danger)', color: 'var(--danger)' }}
+                            >CONFIRM</button>
+                            <button
+                              onClick={() => setArchiveConfirmId(null)}
+                              className="nexus-btn"
+                              style={{ padding: '2px 7px', fontSize: 9 }}
+                            >CANCEL</button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => { setEditingId(m.id); setArchiveConfirmId(null); }}
+                              className="nexus-btn"
+                              style={{ padding: '2px 7px', fontSize: 9 }}
+                            >EDIT</button>
+                            <button
+                              onClick={() => { setArchiveConfirmId(m.id); setEditingId(null); }}
+                              className="nexus-btn"
+                              style={{ padding: '2px 7px', fontSize: 9, color: 'var(--t2)' }}
+                            >ARCHIVE</button>
+                          </div>
+                        )}
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
+                    {contextId === m.id && (
+                      <tr>
+                        <td colSpan={9} style={{ padding: 0 }}>
+                          <MaterialContextPanel
+                            materialName={m.material_name}
+                            onClose={() => setContextId(null)}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
 
