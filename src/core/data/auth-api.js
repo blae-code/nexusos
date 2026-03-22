@@ -1,4 +1,5 @@
 import { getAppBasePath } from '@/core/data/app-base-path';
+import { base44 } from '@/api/base44Client';
 import {
   IS_DEV_MODE,
   IS_LOCAL_SIMULATION_MODE,
