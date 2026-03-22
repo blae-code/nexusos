@@ -72,6 +72,7 @@ function App() {
               <Route path="armory/inventory" element={<InventoryManager />} />
               <Route path="armory/schedule" element={<CrewScheduler />} />
               <Route path="armory/org-fleet" element={<OrgFleet />} />
+              <Route path="armory/readiness" element={<FleetReadiness />} />
               <Route path="profile" element={<NexusSettings />} />
               <Route path="settings" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
