@@ -4,9 +4,10 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Plus, CheckCircle, XCircle, Clock, Package, BarChart3 } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Clock, Package, BarChart3, MapPin } from 'lucide-react';
 import NewFabJobDialog from './NewFabJobDialog';
 import ProductionMargins from './ProductionMargins';
+import CapacityPlanner from './CapacityPlanner';
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';
@@ -127,7 +128,7 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ACTIVE');
-  const [view, setView] = useState('jobs'); // 'jobs' | 'margins'
+  const [view, setView] = useState('jobs'); // 'jobs' | 'margins' | 'capacity'
 
   const loadJobs = useCallback(async () => {
     try {
@@ -224,19 +225,28 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
           ))}
         </div>
 
-        {/* View toggle */}
-        <button
-          onClick={() => setView(v => v === 'jobs' ? 'margins' : 'jobs')}
-          className="nexus-btn"
-          style={{
-            padding: '4px 10px', fontSize: 9, display: 'flex', alignItems: 'center', gap: 4,
-            background: view === 'margins' ? 'var(--bg4)' : 'var(--bg2)',
-            borderColor: view === 'margins' ? 'var(--b3)' : 'var(--b1)',
-            color: view === 'margins' ? '#C8A84B' : 'var(--t2)',
-          }}
-        >
-          <BarChart3 size={10} /> MARGINS
-        </button>
+        {/* View toggles */}
+        <div style={{ display: 'flex', gap: 3 }}>
+          {[
+            { id: 'jobs', label: 'JOBS', icon: Package },
+            { id: 'capacity', label: 'CAPACITY', icon: MapPin },
+            { id: 'margins', label: 'MARGINS', icon: BarChart3 },
+          ].map(v => (
+            <button
+              key={v.id}
+              onClick={() => setView(v.id)}
+              className="nexus-btn"
+              style={{
+                padding: '4px 10px', fontSize: 9, display: 'flex', alignItems: 'center', gap: 4,
+                background: view === v.id ? 'var(--bg4)' : 'var(--bg2)',
+                borderColor: view === v.id ? 'var(--b3)' : 'var(--b1)',
+                color: view === v.id ? (v.id === 'margins' ? '#C8A84B' : v.id === 'capacity' ? 'var(--acc2)' : 'var(--t0)') : 'var(--t2)',
+              }}
+            >
+              <v.icon size={10} /> {v.label}
+            </button>
+          ))}
+        </div>
 
         {/* New job button */}
         <button
@@ -252,6 +262,8 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
       <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
         {view === 'margins' ? (
           <ProductionMargins jobs={jobs} blueprints={blueprints} />
+        ) : view === 'capacity' ? (
+          <CapacityPlanner jobs={jobs} onJobsChanged={loadJobs} />
         ) : (
           <>
             {filtered.map(job => (
