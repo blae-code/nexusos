@@ -43,6 +43,13 @@ Use GitHub as the source of truth. Base44 is downstream for later polish/publish
 4. To turn it off again, open the app with `?bypass_access_gate=0` and refresh.
 5. Use this only for temporary development and visual review.
 
+### System Admin sandbox access
+1. Open the normal gate.
+2. Expand `System Admin Sandbox`.
+3. Enter an allowlisted admin email.
+4. On success, the app reloads into `source: 'admin'` and uses sandbox data instead of Discord/Base44 member auth.
+5. Use this for admin-only visual review and configuration work when Discord SSO is unavailable or intentionally bypassed.
+
 ### Shared Vercel collaboration deployment
 1. Create a separate Vercel project for this repo.
 2. Set:

@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { withAppBase } from '@/core/data/app-base-path';
 import { authApi } from '@/core/data/auth-api';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
-import { DEV_PERSONAS, IS_DEV_MODE, IS_SHARED_SANDBOX_MODE, IS_TEMP_ACCESS_MODE } from '@/core/data/dev';
+import { activateAdminSandbox, DEV_PERSONAS, IS_DEV_MODE, IS_SHARED_SANDBOX_MODE, IS_TEMP_ACCESS_MODE } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
 import AdminLoginPanel from '@/components/AdminLoginPanel';
 
@@ -152,7 +153,15 @@ export default function AccessGate() {
     try {
       const result = await authApi.adminLogin({ email });
       if (result?.ok) {
-        await refreshSession();
+        activateAdminSandbox({
+          id: result.id,
+          email,
+          callsign: result.callsign,
+          name: result.name,
+          rank: result.rank,
+        });
+        const destination = normalizeAuthenticatedDestination(searchParams.get('redirect_to') || result?.redirect, true);
+        window.location.assign(withAppBase(destination));
       } else {
         setAdminError(result?.error || 'Access denied');
       }

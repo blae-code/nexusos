@@ -22,6 +22,12 @@ Support two humans and two AI agents working in parallel from GitHub, without re
 - This avoids live auth and live Base44 calls for that browser session.
 - Turn it off with `?bypass_access_gate=0`.
 
+### System Admin sandbox access
+- Use the `System Admin Sandbox` panel on the gate with an allowlisted admin email.
+- This creates a local admin sandbox session in the browser and reloads the app as `source: 'admin'`.
+- The shell and modules then render against sandbox data, not the live member auth path.
+- Use this when admin/editor work needs a cleaner bypass than the generic Voyager temp-access toggle.
+
 ### Shared collaboration deployment
 - Use a dedicated Vercel deployment.
 - Set `VITE_TEMP_ACCESS_MODE=true`.

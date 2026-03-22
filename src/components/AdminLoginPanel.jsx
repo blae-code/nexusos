@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-// Shown on AccessGate — email allowlist based admin bypass (no Discord required).
+// Shown on AccessGate — email-allowlisted system admin entry into sandbox mode.
 export default function AdminLoginPanel({ onLogin, logging, error }) {
   const [expanded, setExpanded] = useState(false);
   const [email, setEmail] = useState('');
@@ -28,7 +28,7 @@ export default function AdminLoginPanel({ onLogin, logging, error }) {
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
         >
-          System Admin Access
+          System Admin Sandbox
         </button>
       </div>
     );
@@ -38,7 +38,10 @@ export default function AdminLoginPanel({ onLogin, logging, error }) {
     <div style={{ marginTop: 20 }}>
       <div style={{ height: '0.5px', background: 'rgba(232,228,220,0.08)', marginBottom: 16 }} />
       <div style={{ fontSize: 10, color: '#8A8478', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>
-        System Admin Access
+        System Admin Sandbox
+      </div>
+      <div style={{ fontSize: 11, color: '#8A8478', lineHeight: 1.5, marginBottom: 10 }}>
+        Use an allowlisted admin email to enter a local sandbox session without Discord. Modules render against sandbox data instead of live member auth.
       </div>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <input
@@ -81,7 +84,7 @@ export default function AdminLoginPanel({ onLogin, logging, error }) {
             transition: 'all 0.15s ease',
           }}
         >
-          {logging ? 'AUTHENTICATING...' : 'ENTER AS SYSTEM ADMIN'}
+          {logging ? 'AUTHENTICATING...' : 'ENTER SANDBOX AS SYSTEM ADMIN'}
         </button>
       </form>
       {error && (

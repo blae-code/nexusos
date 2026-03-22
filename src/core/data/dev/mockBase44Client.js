@@ -1,4 +1,4 @@
-import { clearDevPersona } from './index';
+import { clearDevPersona, getAdminSandboxUser } from './index';
 import { invokeDemoFunction } from './demoFunctionMocks';
 import { getLocalDemoUser } from './localDemoSession';
 import { getCurrentMockState, mockStore } from './mockStore';
@@ -100,6 +100,10 @@ export function createMockBase44Client() {
 
     auth: {
       async me() {
+        const adminUser = getAdminSandboxUser();
+        if (adminUser) {
+          return adminUser;
+        }
         return getLocalDemoUser();
       },
       logout(redirectUrl) {

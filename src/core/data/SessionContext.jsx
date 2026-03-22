@@ -4,7 +4,7 @@ import { withAppBase } from '@/core/data/app-base-path';
 import { getAppParams } from '@/core/data/app-params';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/core/data/auth-api';
 import { buildBase44Url, getBase44Headers } from '@/core/data/base44-host';
-import { IS_LOCAL_SIMULATION_MODE } from '@/core/data/dev';
+import { clearAdminSandboxProfile, getAdminSandboxProfile, IS_LOCAL_SIMULATION_MODE } from '@/core/data/dev';
 
 const SessionContext = createContext(null);
 const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
@@ -168,12 +168,19 @@ export function SessionProvider({ children }) {
     let nextSession = null;
     let transportIssue = '';
 
+    const adminSandboxProfile = getAdminSandboxProfile();
+    if (adminSandboxProfile) {
+      nextSession = toAdminSession(adminSandboxProfile);
+    }
+
     try {
-      const data = await authApi.getSession({ timeoutMs: SESSION_REFRESH_TIMEOUT_MS });
-      if (data?.authenticated) {
-        nextSession = data;
-      } else if (data?.status >= 500 && data?.error) {
-        transportIssue = data.error;
+      if (!nextSession) {
+        const data = await authApi.getSession({ timeoutMs: SESSION_REFRESH_TIMEOUT_MS });
+        if (data?.authenticated) {
+          nextSession = data;
+        } else if (data?.status >= 500 && data?.error) {
+          transportIssue = data.error;
+        }
       }
     } catch (error) {
       transportIssue = isAbortError(error) ? 'Session check timed out' : 'Session check unavailable';
@@ -219,12 +226,10 @@ export function SessionProvider({ children }) {
   const logout = useCallback(async (redirectTo = '/') => {
     const destination = withAppBase(redirectTo);
 
-    if (session?.source === 'admin') {
-      try {
-        base44.auth.logout(new URL(destination, window.location.origin).toString());
-      } catch {
-        window.location.assign(destination);
-      }
+    if (session?.source === 'admin' || getAdminSandboxProfile()) {
+      clearAdminSandboxProfile();
+      setSession(null);
+      window.location.assign(destination);
       return;
     }
 
