@@ -70,6 +70,8 @@ export default function AccessGate() {
   const [healthError, setHealthError] = useState('');
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [discordStatus, setDiscordStatus] = useState(null);
+  const [adminLogging, setAdminLogging] = useState(false);
+  const [adminError, setAdminError] = useState('');
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const authError = useMemo(
