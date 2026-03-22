@@ -61,6 +61,7 @@ function App() {
               <Route path="scout" element={<ScoutIntel />} />
               <Route path="scout/routes" element={<RoutePlanner />} />
               <Route path="ops" element={<OpBoard />} />
+              <Route path="ops/timeline" element={<OpsTimeline />} />
               <Route path="ops/new" element={<OpCreator />} />
               <Route path="ops/:id" element={<LiveOp />} />
               <Route path="ops/rescue" element={<RescueBoard />} />
