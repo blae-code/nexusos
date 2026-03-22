@@ -5,8 +5,10 @@ const SESSION_COOKIE_NAME = 'nexus_member_session';
 const STATE_COOKIE_NAME = 'nexus_oauth_state';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
+// Accept both "The Pioneer" and "Pioneer" as valid top-rank aliases
 const ROLE_PRIORITY = [
   { roleName: 'The Pioneer', nexusRank: 'PIONEER' },
+  { roleName: 'Pioneer', nexusRank: 'PIONEER' },
   { roleName: 'Founder', nexusRank: 'FOUNDER' },
   { roleName: 'Voyager', nexusRank: 'VOYAGER' },
   { roleName: 'Scout', nexusRank: 'SCOUT' },
@@ -100,26 +102,29 @@ function setCookieHeader(headers, name, value, req, options = {}) {
   headers.append('Set-Cookie', parts.join('; '));
 }
 
-function resolveAppUrl(req, appBase) {
+// Resolves the gate/root URL for error redirects
+function resolveGateUrl(req, appBase) {
   const configured = Deno.env.get('APP_URL') || new URL(req.url).origin;
   const configuredUrl = new URL(configured);
+  const origin = configuredUrl.origin;
   const base = appBase && appBase !== '/' ? appBase : '';
-  const path = base || (configuredUrl.pathname !== '/' ? configuredUrl.pathname : '');
-  const target = new URL(configuredUrl.origin);
-  target.pathname = path ? `${path}/` : '/';
+  const target = new URL(origin);
+  target.pathname = base ? `${base}/` : '/';
   return target;
 }
 
 function gateErrorRedirect(errorCode, req, headers = new Headers(), appBase = '') {
-  const target = resolveAppUrl(req, appBase);
+  const target = resolveGateUrl(req, appBase);
   target.searchParams.set('error', errorCode);
   headers.set('Location', target.toString());
   return new Response(null, { status: 302, headers });
 }
 
-function appRedirect(redirectPath, req, headers = new Headers(), appBase = '') {
+// Redirects DIRECTLY to the target path from APP_URL origin — no bounce through /?redirect_to=
+function appDirectRedirect(targetPath, req, headers = new Headers()) {
   const base = Deno.env.get('APP_URL') || new URL(req.url).origin;
-  const target = new URL(redirectPath, base);
+  const origin = new URL(base).origin;
+  const target = new URL(targetPath, origin);
   headers.set('Location', target.toString());
   return new Response(null, { status: 302, headers });
 }
@@ -266,11 +271,12 @@ Deno.serve(async (req) => {
     setCookieHeader(headers, SESSION_COOKIE_NAME, sessionValue, req, { maxAge: SESSION_MAX_AGE_SECONDS });
     setCookieHeader(headers, STATE_COOKIE_NAME, '', req, { maxAge: 0 });
 
+    // Redirect DIRECTLY to the target path — no /?redirect_to= bounce
     const redirectPath = nexusUser.onboarding_complete
       ? (signedState.redirect_to || '/app/industry')
       : '/onboarding';
 
-    return appRedirect(redirectPath, req, headers, signedState.app_base || '');
+    return appDirectRedirect(redirectPath, req, headers);
   } catch (error) {
     console.error('[auth/discord/callback]', error);
     return gateErrorRedirect('callback_failed', req, new Headers(), signedState.app_base || '');

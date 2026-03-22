@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const enc = new TextEncoder();
 
@@ -7,8 +7,10 @@ export const STATE_COOKIE_NAME = 'nexus_oauth_state';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const STATE_MAX_AGE_SECONDS = 60 * 10;
 
+// Accept both "The Pioneer" and "Pioneer" as the top-rank role name
 const ROLE_PRIORITY = [
   { roleName: 'The Pioneer', nexusRank: 'PIONEER' },
+  { roleName: 'Pioneer', nexusRank: 'PIONEER' },
   { roleName: 'Founder', nexusRank: 'FOUNDER' },
   { roleName: 'Voyager', nexusRank: 'VOYAGER' },
   { roleName: 'Scout', nexusRank: 'SCOUT' },
@@ -163,7 +165,7 @@ export function normalizeRedirectTo(raw: string | null): string {
   if (!raw) return '/app/industry';
   if (!raw.startsWith('/')) return '/app/industry';
   if (raw.startsWith('//')) return '/app/industry';
-  if (!raw.startsWith('/app')) return '/app/industry';
+  if (!raw.startsWith('/app') && raw !== '/onboarding') return '/app/industry';
   return raw;
 }
 
@@ -266,10 +268,10 @@ export async function fetchDiscordUser(accessToken: string): Promise<DiscordUser
 }
 
 export async function fetchGuildMember(userId: string): Promise<DiscordGuildMember | null> {
-  const { guildId } = getDiscordConfig();
+  const { guildId, botToken } = getDiscordConfig();
   const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${userId}`, {
     method: 'GET',
-    headers: { Authorization: `Bot ${getDiscordConfig().botToken}` },
+    headers: { Authorization: `Bot ${botToken}` },
   });
 
   if (response.status === 404) return null;
@@ -409,33 +411,39 @@ export function sessionNoStoreHeaders() {
   };
 }
 
-function resolveAppUrl(req: Request, appBase = '') {
+// Resolves the app root URL (gate page) for error redirects
+function resolveGateUrl(req: Request, appBase = '') {
   const configured = Deno.env.get('APP_URL') || new URL(req.url).origin;
-  const normalizedBase = normalizeAppBase(appBase);
-  if (normalizedBase) {
-    return new URL(`${normalizedBase}/`, configured);
-  }
-
   const configuredUrl = new URL(configured);
-  const configuredPath = configuredUrl.pathname && configuredUrl.pathname !== '/'
-    ? (configuredUrl.pathname.endsWith('/') ? configuredUrl.pathname : `${configuredUrl.pathname}/`)
-    : '/';
+  const base = normalizeAppBase(appBase);
+  if (base) {
+    const url = new URL(configuredUrl.origin);
+    url.pathname = `${base}/`;
+    return url;
+  }
+  const url = new URL(configuredUrl.origin);
+  url.pathname = configuredUrl.pathname !== '/' ? configuredUrl.pathname : '/';
+  return url;
+}
 
-  return new URL(configuredPath, configuredUrl);
+// Resolves an absolute URL from APP_URL + a target path, used for post-auth redirects
+function resolveAppUrl(targetPath: string, req: Request) {
+  const base = Deno.env.get('APP_URL') || new URL(req.url).origin;
+  // Strip any path from the base so we always redirect from the origin root
+  const origin = new URL(base).origin;
+  return new URL(targetPath, origin);
 }
 
 export function gateErrorRedirect(errorCode: string, req: Request, headers = new Headers(), appBase = '') {
-  const target = resolveAppUrl(req, appBase);
+  const target = resolveGateUrl(req, appBase);
   target.searchParams.set('error', errorCode);
   headers.set('Location', target.toString());
   return new Response(null, { status: 302, headers });
 }
 
-export function appRedirect(targetPath: string, req: Request, headers = new Headers(), appBase = '') {
-  const target = resolveAppUrl(req, appBase);
-  if (targetPath && targetPath !== '/') {
-    target.searchParams.set('redirect_to', targetPath);
-  }
+// Redirects directly to the target path — no intermediate /?redirect_to= bounce
+export function appRedirect(targetPath: string, req: Request, headers = new Headers()) {
+  const target = resolveAppUrl(targetPath, req);
   headers.set('Location', target.toString());
   return new Response(null, { status: 302, headers });
 }
