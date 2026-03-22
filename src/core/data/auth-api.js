@@ -40,7 +40,7 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
 
 export const authApi = {
   getDiscordStartUrl(redirectTo = '/app/industry') {
-    return buildFunctionUrl('auth/discord/start', {
+    return buildFunctionUrl('auth/discord/start/entry', {
       redirect_to: redirectTo,
       app_base: getAppBasePath(),
     }).toString();
@@ -51,7 +51,7 @@ export const authApi = {
       return { ok: true, status: 200, oauth_ready: true, guild_label: 'REDSCAR NOMADS', support_channel_label: '#nexusos-ops', invite_url: '#' };
     }
 
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/health'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/health/entry'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -72,7 +72,7 @@ export const authApi = {
       return { authenticated: false, status: 401 };
     }
 
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/session'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/session/entry'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -99,7 +99,7 @@ export const authApi = {
       return { ok: true };
     }
 
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout/entry'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
