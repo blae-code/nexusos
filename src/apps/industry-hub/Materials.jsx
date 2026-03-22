@@ -16,6 +16,7 @@ import {
 import EditRow from './MaterialEditRow';
 import OCRReviewTable from './OCRReviewTable';
 import DiscordPathCard from './DiscordPathCard';
+import MaterialContextPanel from '@/components/industry/MaterialContextPanel';
 
 // ─── Shared style constants ────────────────────────────────────────────────────
 
@@ -60,9 +61,10 @@ export default function Materials({ materials, onRefresh }) {
   const [sortBy,        setSortBy]        = useState('quality_pct');
   const [sortDir,       setSortDir]       = useState('desc');
 
-  // ── Inline edit / archive state ───────────────────────
+  // ── Inline edit / archive / context state ─────────────
   const [editingId,         setEditingId]         = useState(null);
   const [archiveConfirmId,  setArchiveConfirmId]  = useState(null);
+  const [contextId,         setContextId]         = useState(null);
 
   // ── Upload zone state ─────────────────────────────────
   const [uploadOpen,    setUploadOpen]    = useState(false);
