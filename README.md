@@ -28,6 +28,14 @@ Use GitHub as the source of truth. Base44 is downstream for later polish/publish
 2. Run `npm run dev`.
 3. Use the gate persona buttons or the top-right sandbox switcher to move between ranks.
 
+### Fastest no-auth local bypass
+1. Set `VITE_BYPASS_ACCESS_GATE=true` in `.env.local`.
+2. Run `npm run dev`.
+3. The app will skip the manual gate step and open as the default Voyager sandbox user.
+4. Use the top-right sandbox switcher if you need another rank.
+5. This is local-only convenience mode. It does not create shared state for collaborators.
+6. If you want to test the real gate or a signed-out state again, remove `VITE_BYPASS_ACCESS_GATE` and restart the dev server.
+
 ### Shared Vercel collaboration deployment
 1. Create a separate Vercel project for this repo.
 2. Set:

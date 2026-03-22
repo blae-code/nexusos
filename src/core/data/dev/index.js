@@ -1,5 +1,5 @@
 // Active in Vite dev server, a baked demo build, or an explicit temporary-access build.
-const meta = /** @type {{ env?: { DEV?: boolean; VITE_DEMO_MODE?: string; VITE_TEMP_ACCESS_MODE?: string; VITE_SANDBOX_MODE?: string; VITE_SANDBOX_API_BASE?: string } }} */ (import.meta);
+const meta = /** @type {{ env?: { DEV?: boolean; VITE_DEMO_MODE?: string; VITE_BYPASS_ACCESS_GATE?: string; VITE_TEMP_ACCESS_MODE?: string; VITE_SANDBOX_MODE?: string; VITE_SANDBOX_API_BASE?: string } }} */ (import.meta);
 import { safeLocalStorage } from '@/core/data/safe-storage';
 import {
   DEFAULT_TEMP_ACCESS_PERSONA_ID,
@@ -12,8 +12,9 @@ export {
   getDevPersonaById,
 } from './personas';
 
+export const IS_ACCESS_GATE_BYPASSED = meta.env?.VITE_BYPASS_ACCESS_GATE === 'true';
 export const IS_TEMP_ACCESS_MODE = meta.env?.VITE_TEMP_ACCESS_MODE === 'true';
-export const IS_LOCAL_SIMULATION_MODE = meta.env?.DEV === true || meta.env?.VITE_DEMO_MODE === 'true';
+export const IS_LOCAL_SIMULATION_MODE = meta.env?.DEV === true || meta.env?.VITE_DEMO_MODE === 'true' || IS_ACCESS_GATE_BYPASSED;
 export const SANDBOX_MODE = meta.env?.VITE_SANDBOX_MODE || (IS_TEMP_ACCESS_MODE ? 'shared' : 'local');
 export const IS_SHARED_SANDBOX_MODE = IS_TEMP_ACCESS_MODE && SANDBOX_MODE === 'shared';
 export const SANDBOX_API_BASE = meta.env?.VITE_SANDBOX_API_BASE || '';
@@ -27,13 +28,16 @@ export function getDevPersona() {
 
   const id = safeLocalStorage.getItem(DEV_SESSION_KEY);
   if (id === DEV_SIGNED_OUT_VALUE) {
+    if (IS_ACCESS_GATE_BYPASSED) {
+      return getDevPersonaById(DEFAULT_TEMP_ACCESS_PERSONA_ID);
+    }
     return null;
   }
   if (id) {
     return getDevPersonaById(id);
   }
 
-  if (IS_TEMP_ACCESS_MODE) {
+  if (IS_TEMP_ACCESS_MODE || IS_ACCESS_GATE_BYPASSED) {
     return getDevPersonaById(DEFAULT_TEMP_ACCESS_PERSONA_ID);
   }
 

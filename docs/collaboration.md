@@ -9,6 +9,13 @@ Support two humans and two AI agents working in parallel from GitHub, without re
 - Data is in-browser and resets on tab close.
 - Best for fast iteration and risky UI experiments.
 
+### Fastest local bypass
+- Use `VITE_BYPASS_ACCESS_GATE=true`.
+- The app auto-enters as the default Voyager sandbox user.
+- Use this when you want to work visually without touching Discord auth or the gate flow.
+- State remains local to your own browser.
+- If you need to test real login or signed-out behavior, remove the flag and restart the app.
+
 ### Shared collaboration deployment
 - Use a dedicated Vercel deployment.
 - Set `VITE_TEMP_ACCESS_MODE=true`.
