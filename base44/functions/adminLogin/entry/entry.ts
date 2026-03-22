@@ -1,11 +1,19 @@
-// Admin login bypass — for system admins who are not Discord guild members.
-// Authenticates via Base44 platform role (admin) and issues a NexusOS session directly.
+// Admin login bypass — email-allowlist based, no Discord required.
+// Allowed emails are hardcoded here; submit email to receive a NexusOS session.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const SESSION_COOKIE_NAME = 'nexus_member_session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const enc = new TextEncoder();
+
+// ── Allowlist ─────────────────────────────────────────────────────────────────
+const ADMIN_ALLOWLIST = [
+  { email: 'blae@katrasoluta.com',  callsign: 'BLAE',   rank: 'PIONEER' },
+  { email: 'nicdel26@gmail.com',    callsign: 'NICDEL', rank: 'PIONEER' },
+];
+
+// ── Crypto helpers ─────────────────────────────────────────────────────────────
 
 function toBase64Url(bytes) {
   const binary = Array.from(bytes, b => String.fromCharCode(b)).join('');
@@ -37,55 +45,53 @@ function isSecure(req) {
     (req.headers.get('x-forwarded-proto') || '').includes('https');
 }
 
-function apexOrigin() {
-  const appUrl = Deno.env.get('APP_URL') || '';
-  if (!appUrl) throw new Error('APP_URL not set');
-  return new URL(appUrl).origin;
-}
+// ── Handler ───────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  // 1. Must be an authenticated Base44 admin
-  let platformUser;
+  let body;
   try {
-    const base44 = createClientFromRequest(req);
-    platformUser = await base44.auth.me();
+    body = await req.json();
   } catch {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return Response.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  if (!platformUser || platformUser.role !== 'admin') {
-    return Response.json({ error: 'Forbidden — admin role required' }, { status: 403 });
+  const email = (body.email || '').trim().toLowerCase();
+  if (!email) {
+    return Response.json({ error: 'Email is required' }, { status: 400 });
+  }
+
+  // Check allowlist
+  const adminEntry = ADMIN_ALLOWLIST.find(a => a.email.toLowerCase() === email);
+  if (!adminEntry) {
+    return Response.json({ error: 'Access denied — email not authorised' }, { status: 403 });
   }
 
   try {
     const base44 = createClientFromRequest(req);
-
-    // 2. Synthetic discord_id for admin: "admin:<base44_user_id>"
-    const syntheticDiscordId = `admin:${platformUser.id}`;
+    const syntheticDiscordId = `admin:${email.replace(/[^a-z0-9]/g, '_')}`;
     const now = new Date().toISOString();
 
-    // 3. Upsert a NexusUser record for this admin
+    // Upsert NexusUser record
     const existing = (await base44.asServiceRole.entities.NexusUser.filter({ discord_id: syntheticDiscordId }))?.[0];
-
     if (!existing) {
       await base44.asServiceRole.entities.NexusUser.create({
         discord_id: syntheticDiscordId,
-        callsign: 'SYSADMIN',
-        discord_handle: platformUser.email || 'sysadmin',
+        callsign: adminEntry.callsign,
+        discord_handle: email,
         discord_avatar: null,
         discord_roles: ['SYSADMIN'],
-        nexus_rank: 'PIONEER',
+        nexus_rank: adminEntry.rank,
         joined_at: now,
         roles_synced_at: now,
         onboarding_complete: true,
       });
     }
 
-    // 4. Issue a NexusOS session cookie
+    // Issue session cookie
     const sessionValue = await encodeSignedPayload({
       discord_id: syntheticDiscordId,
       iat: Date.now(),
@@ -101,16 +107,13 @@ Deno.serve(async (req) => {
     ];
     if (isSecure(req)) cookieParts.push('Secure');
 
-    const headers = new Headers({
-      'Cache-Control': 'no-store',
-      'Content-Type': 'application/json',
-    });
+    const headers = new Headers({ 'Cache-Control': 'no-store', 'Content-Type': 'application/json' });
     headers.append('Set-Cookie', cookieParts.join('; '));
 
     return new Response(JSON.stringify({
       ok: true,
-      callsign: existing?.callsign || 'SYSADMIN',
-      rank: 'PIONEER',
+      callsign: existing?.callsign || adminEntry.callsign,
+      rank: adminEntry.rank,
       redirect: '/app/industry',
     }), { status: 200, headers });
 
