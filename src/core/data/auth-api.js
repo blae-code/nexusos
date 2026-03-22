@@ -167,10 +167,18 @@ export const authApi = {
     throw new Error('Demo persona switching is only available in collaboration mode.');
   },
 
-  async adminLogin({ email } = {}) {
-    // Use SDK invoke so it hits the correct app origin regardless of preview domain
-    const response = await base44.functions.invoke('adminLogin/entry', { email });
-    return response.data;
+  async adminLogin({ email, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    // Always hit the canonical app origin so the session cookie is set on the right domain
+    const origin = FALLBACK_AUTH_ORIGIN;
+    const url = new URL(`${origin}/api/functions/adminLogin/entry`);
+    const response = await fetchWithTimeout(url, {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }, timeoutMs);
+    return parseJson(response);
   },
 
   async resetDemoSandbox() {
