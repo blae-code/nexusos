@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { authApi } from '@/core/data/auth-api';
 import { base44 } from '@/core/data/base44Client';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
@@ -19,6 +20,7 @@ export default function NexusShell() {
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
+  const [sandboxMeta, setSandboxMeta] = useState(null);
   const seenLiveOpsRef = useRef(new Set());
   const seenScoutDepositsRef = useRef(new Set());
   const seenRescueCallsRef = useRef(new Set());
@@ -32,6 +34,40 @@ export default function NexusShell() {
       preloadCriticalTokens(user.rank, 6);
     }
   }, [user?.rank]);
+
+  useEffect(() => {
+    if (!IS_SHARED_SANDBOX_MODE) {
+      setSandboxMeta(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSandboxMeta = async () => {
+      try {
+        const payload = await authApi.getDemoState({ metaOnly: true });
+        if (!cancelled) {
+          setSandboxMeta(payload?.meta || null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[NexusShell] sandbox meta lookup failed:', error?.message || error);
+          setSandboxMeta({
+            persistence: 'unknown',
+            warnings: ['Collaboration sandbox metadata is unavailable. Verify the demo API deployment before inviting collaborators.'],
+          });
+        }
+      }
+    };
+
+    loadSandboxMeta();
+    const intervalId = window.setInterval(loadSandboxMeta, 30000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -243,25 +279,44 @@ export default function NexusShell() {
     }}>
       <div className="nexus-shell-frame">
         {IS_DEV_MODE ? (
-          <div
-            style={{
-              height: 22,
-              background: 'rgba(var(--warn-rgb), 0.07)',
-              borderBottom: '0.5px solid rgba(var(--warn-rgb), 0.22)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              flexShrink: 0,
-            }}
-          >
-            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-            <span style={{ fontSize: 9, color: 'var(--warn)', letterSpacing: '0.18em', userSelect: 'none' }}>
-              {IS_SHARED_SANDBOX_MODE
-                ? 'COLLABORATION SANDBOX · SYNTHETIC DATA · CHANGES SHARED ACROSS PREVIEW USERS'
-                : 'SIMULATION ENVIRONMENT · SYNTHETIC DATA · ALL CHANGES RESET ON TAB CLOSE'}
-            </span>
-            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            <div
+              style={{
+                height: 22,
+                background: 'rgba(var(--warn-rgb), 0.07)',
+                borderBottom: '0.5px solid rgba(var(--warn-rgb), 0.22)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
+              <span style={{ fontSize: 9, color: 'var(--warn)', letterSpacing: '0.18em', userSelect: 'none' }}>
+                {IS_SHARED_SANDBOX_MODE
+                  ? 'COLLABORATION SANDBOX · SYNTHETIC DATA · CHANGES SHARED ACROSS PREVIEW USERS'
+                  : 'SIMULATION ENVIRONMENT · SYNTHETIC DATA · ALL CHANGES RESET ON TAB CLOSE'}
+              </span>
+              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
+            </div>
+            {IS_SHARED_SANDBOX_MODE && sandboxMeta?.persistence === 'memory' ? (
+              <div
+                style={{
+                  height: 24,
+                  background: 'rgba(var(--danger-rgb), 0.12)',
+                  borderBottom: '0.5px solid rgba(var(--danger-rgb), 0.28)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 16px',
+                }}
+              >
+                <span style={{ fontSize: 9, color: 'var(--danger)', letterSpacing: '0.14em', textAlign: 'center' }}>
+                  KV NOT CONFIGURED · SHARED SANDBOX IS RUNNING IN MEMORY ONLY · COLLABORATION STATE MAY RESET OR SPLIT ACROSS INSTANCES
+                </span>
+              </div>
+            ) : null}
           </div>
         ) : null}
         {isPreview ? (

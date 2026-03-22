@@ -42,6 +42,10 @@ Use GitHub as the source of truth. Base44 is downstream for later polish/publish
    - use the top-right sandbox menu to switch between `PIONEER`, `FOUNDER`, `SCOUT`, `VOYAGER`, `VAGRANT`, and `AFFILIATE`
    - use `Replay Onboarding` to test onboarding
    - use `Reset Shared Sandbox` to restore the canonical seed
+6. Before inviting collaborators, run:
+   - `npm run build`
+   - `npm run build:collab`
+   - `npm run smoke:collab`
 
 ## Operational Docs
 - [Architecture](./docs/architecture.md)
