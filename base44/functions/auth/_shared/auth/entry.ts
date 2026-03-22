@@ -117,18 +117,6 @@ export function parseCookies(req: Request): Record<string, string> {
   }, {});
 }
 
-function getApexDomain(): string | null {
-  const appUrl = Deno.env.get('APP_URL') || '';
-  if (!appUrl) return null;
-  try {
-    const hostname = new URL(appUrl).hostname;
-    // Strip leading 'www.' to get apex domain
-    return hostname.replace(/^www\./, '');
-  } catch {
-    return null;
-  }
-}
-
 function cookieParts(name: string, value: string, req: Request, options: {
   httpOnly?: boolean;
   maxAge?: number;
@@ -140,14 +128,20 @@ function cookieParts(name: string, value: string, req: Request, options: {
     || reqUrl.protocol === 'https:'
     || (req.headers.get('x-forwarded-proto') || '').includes('https');
 
+  // Derive apex domain from APP_URL to share cookie across apex + www
+  let apexDomain: string | null = null;
+  if (appUrl) {
+    try {
+      apexDomain = new URL(appUrl).hostname.replace(/^www\./, '');
+    } catch { /* ignore */ }
+  }
+
   const parts = [
     `${name}=${encodeURIComponent(value)}`,
     `Path=${options.path || '/'}`,
     'SameSite=Lax',
   ];
 
-  // Stamp apex domain so cookie is shared across apex and www
-  const apexDomain = getApexDomain();
   if (apexDomain) {
     parts.push(`Domain=.${apexDomain}`);
   }
