@@ -9,8 +9,8 @@ const enc = new TextEncoder();
 
 // ── Allowlist ─────────────────────────────────────────────────────────────────
 const ADMIN_ALLOWLIST = [
-  { email: 'blae@katrasoluta.com',  callsign: 'BLAE',   rank: 'PIONEER' },
-  { email: 'nicdel26@gmail.com',    callsign: 'NICDEL', rank: 'PIONEER' },
+  { email: 'blae@katrasoluta.com',  callsign: 'SYSTEM-ADMIN', rank: 'PIONEER' },
+  { email: 'nicdel26@gmail.com',    callsign: 'NICDEL',       rank: 'PIONEER' },
 ];
 
 // ── Crypto helpers ─────────────────────────────────────────────────────────────
