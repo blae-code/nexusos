@@ -117,6 +117,18 @@ export function parseCookies(req: Request): Record<string, string> {
   }, {});
 }
 
+function getApexDomain(): string | null {
+  const appUrl = Deno.env.get('APP_URL') || '';
+  if (!appUrl) return null;
+  try {
+    const hostname = new URL(appUrl).hostname;
+    // Strip leading 'www.' to get apex domain
+    return hostname.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+}
+
 function cookieParts(name: string, value: string, req: Request, options: {
   httpOnly?: boolean;
   maxAge?: number;
@@ -133,6 +145,12 @@ function cookieParts(name: string, value: string, req: Request, options: {
     `Path=${options.path || '/'}`,
     'SameSite=Lax',
   ];
+
+  // Stamp apex domain so cookie is shared across apex and www
+  const apexDomain = getApexDomain();
+  if (apexDomain) {
+    parts.push(`Domain=.${apexDomain}`);
+  }
 
   if (typeof options.maxAge === 'number') {
     parts.push(`Max-Age=${options.maxAge}`);
