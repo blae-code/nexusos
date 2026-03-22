@@ -7,8 +7,6 @@ import { useSession } from '@/core/data/SessionContext';
 
 function buildStars() {
   if (typeof window === 'undefined') return [];
-  const width = Math.max(window.innerWidth, 1);
-  const height = Math.max(window.innerHeight, 1);
 
   // ~120 stars with varied sizes scattered across entire viewport
   const starCount = 120;
@@ -41,6 +39,26 @@ function getErrorMessage(errorCode, supportChannelLabel) {
   }
 }
 
+function normalizeAuthenticatedDestination(rawDestination, onboardingComplete) {
+  if (onboardingComplete === false) {
+    return '/onboarding';
+  }
+
+  if (!rawDestination) {
+    return '/app/industry';
+  }
+
+  if (!rawDestination.startsWith('/') || rawDestination.startsWith('//')) {
+    return '/app/industry';
+  }
+
+  if (rawDestination === '/onboarding' || rawDestination.startsWith('/app')) {
+    return rawDestination;
+  }
+
+  return '/app/industry';
+}
+
 export default function AccessGate() {
   const location = useLocation();
   const { isAuthenticated, loading, user, refreshSession } = useSession();
@@ -58,6 +76,11 @@ export default function AccessGate() {
     () => getErrorMessage(searchParams.get('error'), health?.support_channel_label || '#nexusos-ops'),
     [health?.support_channel_label, searchParams]
   );
+  const authenticatedDestination = useMemo(
+    () => normalizeAuthenticatedDestination(searchParams.get('redirect_to'), user?.onboarding_complete),
+    [searchParams, user?.onboarding_complete]
+  );
+  const canLaunchDiscord = !launching && !healthLoading && health?.oauth_ready !== false;
 
   useEffect(() => {
     setStars(buildStars());
@@ -91,35 +114,24 @@ export default function AccessGate() {
     let active = true;
     setHealthLoading(true);
 
-    Promise.all([
-    authApi.getHealth(),
-    fetch('https://discord.com/api/v10/users/@me', {
-      headers: { 'Authorization': `Bot ${process.env.VITE_DISCORD_BOT_TOKEN || ''}` }
-    }).then((r) => r.ok ? 'online' : 'offline').catch(() => 'offline')]
-    ).then(([response, discordCheck]) => {
+    authApi.getHealth().then((response) => {
       if (!active) return;
-      setHealth(response?.ok ? response : {
-        oauth_ready: true,
-        guild_label: 'REDSCAR NOMADS',
-        support_channel_label: '#nexusos-ops',
-        invite_url: 'https://discord.gg/redscar',
-      });
-      setHealthError('');
-      setDiscordStatus(discordCheck);
-    }).
-    catch((error) => {
+      setHealth(response);
+      if (response?.ok) {
+        setHealthError(response.oauth_ready === false ? 'Discord sign-in is not configured right now.' : '');
+        setDiscordStatus(response.oauth_ready === false ? 'offline' : 'online');
+        return;
+      }
+
+      setHealthError('Discord sign-in readiness could not be verified. You can still try continuing.');
+      setDiscordStatus('offline');
+    }).catch((error) => {
       if (!active) return;
       console.warn('[AccessGate] health check failed:', error?.message || error);
-      setHealth({
-        oauth_ready: true,
-        guild_label: 'REDSCAR NOMADS',
-        support_channel_label: '#nexusos-ops',
-        invite_url: 'https://discord.gg/redscar',
-      });
-      setHealthError('');
+      setHealth(null);
+      setHealthError(error?.message || 'Discord sign-in readiness could not be verified. You can still try continuing.');
       setDiscordStatus('offline');
-    }).
-    finally(() => {
+    }).finally(() => {
       if (active) {
         setHealthLoading(false);
       }
@@ -131,11 +143,17 @@ export default function AccessGate() {
   }, []);
 
   const handleDiscordContinue = () => {
-    window.location.href = authApi.getDiscordOAuthUrl('/app/industry');
+    if (!canLaunchDiscord) {
+      return;
+    }
+
+    setLaunching(true);
+    const redirectTo = searchParams.get('redirect_to') || '/app/industry';
+    window.location.assign(authApi.getDiscordStartUrl(redirectTo));
   };
 
   if (!loading && isAuthenticated) {
-    return <Navigate to={user?.onboarding_complete === false ? '/onboarding' : '/app/industry'} replace />;
+    return <Navigate to={authenticatedDestination} replace />;
   }
 
   return (
@@ -340,17 +358,17 @@ export default function AccessGate() {
 
         <button
           onClick={handleDiscordContinue}
-          disabled={launching || healthLoading}
+          disabled={!canLaunchDiscord}
           style={{
             display: 'block',
             width: '100%',
             animation: 'panel-fade-in 0.8s ease-out 0.7s both',
             background: launching || healthLoading ? '#5A2620' : '#C0392B',
             color: '#F0EDE5',
-            border: `1px solid ${launching || healthLoading ? 'rgba(192,57,43,0.3)' : 'rgba(192,57,43,0.7)'}`,
+            border: `1px solid ${canLaunchDiscord ? 'rgba(192,57,43,0.7)' : 'rgba(192,57,43,0.3)'}`,
             borderRadius: '3px',
             padding: '14px 24px',
-            cursor: launching || healthLoading ? 'not-allowed' : 'pointer',
+            cursor: canLaunchDiscord ? 'pointer' : 'not-allowed',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 600,
             fontSize: '12px',
@@ -358,21 +376,21 @@ export default function AccessGate() {
             textTransform: 'uppercase',
             marginBottom: '24px',
             transition: 'all 0.2s ease',
-            boxShadow: launching || healthLoading 
-              ? 'inset 0 1px 2px rgba(0,0,0,0.4)' 
-              : '0 8px 24px rgba(192,57,43,0.3), inset 0 1px 0 rgba(255,255,255,0.12)',
-            opacity: launching || healthLoading ? 0.65 : 1,
+            boxShadow: canLaunchDiscord
+              ? '0 8px 24px rgba(192,57,43,0.3), inset 0 1px 0 rgba(255,255,255,0.12)'
+              : 'inset 0 1px 2px rgba(0,0,0,0.4)',
+            opacity: canLaunchDiscord ? 1 : 0.65,
             textShadow: '0 1px 2px rgba(0,0,0,0.2)'
           }}
           onMouseEnter={(e) => {
-            if (!launching && !healthLoading) {
+            if (canLaunchDiscord) {
               e.currentTarget.style.background = '#E84C3D';
               e.currentTarget.style.boxShadow = '0 12px 32px rgba(192,57,43,0.4), inset 0 1px 0 rgba(255,255,255,0.15)';
               e.currentTarget.style.transform = 'translateY(-2px)';
             }
           }}
           onMouseLeave={(e) => {
-            if (!launching && !healthLoading) {
+            if (canLaunchDiscord) {
               e.currentTarget.style.background = '#C0392B';
               e.currentTarget.style.boxShadow = '0 8px 24px rgba(192,57,43,0.3), inset 0 1px 0 rgba(255,255,255,0.12)';
               e.currentTarget.style.transform = 'translateY(0)';
@@ -404,7 +422,7 @@ export default function AccessGate() {
         }
 
         {/* ERROR STATE */}
-        {authError &&
+        {(authError || healthError) &&
         <div
           style={{
             fontFamily: "'Barlow', sans-serif",
@@ -419,7 +437,7 @@ export default function AccessGate() {
             animation: 'panel-fade-in 0.8s ease-out 0.8s both'
           }}>
           
-            {authError}
+            {authError || healthError}
           </div>
         }
 

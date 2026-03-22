@@ -8,12 +8,12 @@ const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const STATE_MAX_AGE_SECONDS = 60 * 10;
 
 const ROLE_PRIORITY = [
-  { roleName: 'The Pioneer', nexusRank: 'PIONEER' },
-  { roleName: 'Founder', nexusRank: 'FOUNDER' },
-  { roleName: 'Voyager', nexusRank: 'VOYAGER' },
-  { roleName: 'Scout', nexusRank: 'SCOUT' },
-  { roleName: 'Vagrant', nexusRank: 'VAGRANT' },
-  { roleName: 'Affiliate', nexusRank: 'AFFILIATE' },
+  { roleNames: ['The Pioneer', 'Pioneer'], nexusRank: 'PIONEER' },
+  { roleNames: ['Founder'], nexusRank: 'FOUNDER' },
+  { roleNames: ['Voyager'], nexusRank: 'VOYAGER' },
+  { roleNames: ['Scout'], nexusRank: 'SCOUT' },
+  { roleNames: ['Vagrant'], nexusRank: 'VAGRANT' },
+  { roleNames: ['Affiliate'], nexusRank: 'AFFILIATE' },
 ];
 
 type SignedPayload = {
@@ -204,7 +204,7 @@ export async function buildDiscordAuthorizeUrl(req: Request, redirectTo: string,
   const url = new URL('https://discord.com/api/v10/oauth2/authorize');
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'identify guilds.members.read');
+  url.searchParams.set('scope', 'identify');
   url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('state', state);
   url.searchParams.set('prompt', 'consent');
@@ -281,13 +281,23 @@ export async function fetchGuildMember(userId: string): Promise<DiscordGuildMemb
   return response.json() as Promise<DiscordGuildMember>;
 }
 
+function normalizeRoleName(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
 export async function mapGuildRolesToRank(roleIds: string[]) {
   const { guildId } = getDiscordConfig();
   const guildRoles = await discordFetch(`/guilds/${guildId}/roles`, { method: 'GET' }, true) as DiscordRole[];
   const roleById = new Map(guildRoles.map(role => [role.id, role.name]));
   const roleNames = roleIds.map(id => roleById.get(id)).filter(Boolean) as string[];
+  const normalizedRoleNames = new Set(roleNames.map(normalizeRoleName));
 
-  const matched = ROLE_PRIORITY.find(({ roleName }) => roleNames.includes(roleName));
+  const matched = ROLE_PRIORITY.find(({ roleNames: candidateNames }) =>
+    candidateNames.some((candidateName) => normalizedRoleNames.has(normalizeRoleName(candidateName))),
+  );
   return {
     roleNames,
     nexusRank: matched?.nexusRank || null,
@@ -424,6 +434,17 @@ function resolveAppUrl(req: Request, appBase = '') {
   return new URL(configuredPath, configuredUrl);
 }
 
+function resolveTargetUrl(req: Request, targetPath: string, appBase = '') {
+  const baseTarget = resolveAppUrl(req, appBase);
+  if (!targetPath || targetPath === '/') {
+    return baseTarget;
+  }
+
+  const normalizedTargetPath = targetPath.startsWith('/') ? targetPath : `/${targetPath}`;
+  const normalizedBase = normalizeAppBase(appBase);
+  return new URL(`${normalizedBase}${normalizedTargetPath}`, baseTarget.origin);
+}
+
 export function gateErrorRedirect(errorCode: string, req: Request, headers = new Headers(), appBase = '') {
   const target = resolveAppUrl(req, appBase);
   target.searchParams.set('error', errorCode);
@@ -432,10 +453,7 @@ export function gateErrorRedirect(errorCode: string, req: Request, headers = new
 }
 
 export function appRedirect(targetPath: string, req: Request, headers = new Headers(), appBase = '') {
-  const target = resolveAppUrl(req, appBase);
-  if (targetPath && targetPath !== '/') {
-    target.searchParams.set('redirect_to', targetPath);
-  }
+  const target = resolveTargetUrl(req, targetPath, appBase);
   headers.set('Location', target.toString());
   return new Response(null, { status: 302, headers });
 }

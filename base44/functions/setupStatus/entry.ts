@@ -164,6 +164,21 @@ function hasEnv(name: string) {
   return Boolean(Deno.env.get(name)?.trim());
 }
 
+function getFirstEnv(names: string[]) {
+  for (const name of names) {
+    const value = Deno.env.get(name)?.trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return '';
+}
+
+function hasAnyEnv(names: string[]) {
+  return Boolean(getFirstEnv(names));
+}
+
 function isValidAbsoluteUrl(value: string | undefined | null) {
   if (!value) return false;
 
@@ -235,9 +250,9 @@ function applyChannelOverwrites(basePermissions: bigint, channel: DiscordChannel
 }
 
 async function discordBotFetch<T>(path: string): Promise<T> {
-  const token = Deno.env.get('HERALD_BOT_TOKEN');
+  const token = getFirstEnv(['DISCORD_BOT_TOKEN', 'HERALD_BOT_TOKEN']);
   if (!token) {
-    throw new Error('HERALD_BOT_TOKEN is not configured');
+    throw new Error('Discord bot token is not configured');
   }
 
   const response = await fetch(`${DISCORD_API}${path}`, {
@@ -271,8 +286,8 @@ function buildStaticStatus() {
   const publicUrl = Deno.env.get('NEXUSOS_PUBLIC_URL');
 
   const items: SetupItems = {
-    HERALD_BOT_TOKEN: hasEnv('HERALD_BOT_TOKEN'),
-    REDSCAR_GUILD_ID: hasEnv('REDSCAR_GUILD_ID'),
+    HERALD_BOT_TOKEN: hasAnyEnv(['DISCORD_BOT_TOKEN', 'HERALD_BOT_TOKEN']),
+    REDSCAR_GUILD_ID: hasAnyEnv(['DISCORD_GUILD_ID', 'REDSCAR_GUILD_ID']),
     DISCORD_CLIENT_ID: missingOauthFields.length === 0,
     DISCORD_PUBLIC_KEY: hasEnv('DISCORD_PUBLIC_KEY'),
     SESSION_SIGNING_SECRET: hasEnv('SESSION_SIGNING_SECRET'),
@@ -317,7 +332,7 @@ function buildStaticStatus() {
 }
 
 async function enrichDiscordDiagnostics(items: SetupItems, details: SetupDetails) {
-  const guildId = Deno.env.get('REDSCAR_GUILD_ID');
+  const guildId = getFirstEnv(['DISCORD_GUILD_ID', 'REDSCAR_GUILD_ID']);
   if (!items.HERALD_BOT_TOKEN || !guildId) {
     if (!items.HERALD_BOT_TOKEN) {
       details.HERALD_BOT_TOKEN = 'Bot token not configured, so Discord reachability checks were skipped.';

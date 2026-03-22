@@ -1,12 +1,19 @@
+import { getAppBasePath } from '@/core/data/app-base-path';
 import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/core/data/dev';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
-const DISCORD_CLIENT_ID = '1483421250301989057';
-const DISCORD_REDIRECT_URI = 'https://nexus-nomad-core.base44.app/api/functions/auth/discord/callback';
 
-function buildFunctionUrl(functionPath) {
+function buildFunctionUrl(functionPath, searchParams) {
   const base = 'https://nexus-nomad-core.base44.app/api/functions';
-  return `${base}/${functionPath}`;
+  const url = new URL(`${base}/${functionPath}`);
+  if (searchParams) {
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value != null && value !== '') {
+        url.searchParams.set(key, value);
+      }
+    });
+  }
+  return url;
 }
 
 async function parseJson(response) {
@@ -32,15 +39,11 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
 }
 
 export const authApi = {
-  getDiscordOAuthUrl(redirectTo = '/app/industry') {
-    const params = new URLSearchParams({
-      client_id: DISCORD_CLIENT_ID,
-      redirect_uri: DISCORD_REDIRECT_URI,
-      response_type: 'code',
-      scope: 'identify guilds guilds.members.read',
-      state: btoa(JSON.stringify({ redirectTo, timestamp: Date.now() })),
-    });
-    return `https://discord.com/oauth2/authorize?${params.toString()}`;
+  getDiscordStartUrl(redirectTo = '/app/industry') {
+    return buildFunctionUrl('auth/discord/start', {
+      redirect_to: redirectTo,
+      app_base: getAppBasePath(),
+    }).toString();
   },
 
   async getHealth({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
@@ -48,7 +51,7 @@ export const authApi = {
       return { ok: true, status: 200, oauth_ready: true, guild_label: 'REDSCAR NOMADS', support_channel_label: '#nexusos-ops', invite_url: '#' };
     }
 
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/health/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/health'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -69,7 +72,7 @@ export const authApi = {
       return { authenticated: false, status: 401 };
     }
 
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/session/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/session'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -96,7 +99,7 @@ export const authApi = {
       return { ok: true };
     }
 
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
