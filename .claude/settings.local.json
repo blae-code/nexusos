@@ -3,7 +3,14 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(echo \"EXIT_CODE:$?\")",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(cmd.exe /c \"where node 2>&1 && where npm 2>&1\")",
+      "Bash(powershell.exe -Command \"Get-Command node -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source; Get-Command npm -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell.exe -NoProfile -Command \"try { $n = Get-Command node -ErrorAction Stop; Write-Host $n.Source } catch { Write-Host ''node not found'' }; try { $m = Get-Command npm -ErrorAction Stop; Write-Host $m.Source } catch { Write-Host ''npm not found'' }\")",
+      "Bash(npm --version)",
+      "Bash(npm install:*)",
+      "Bash(timeout 30 npx vite --port 5173)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)"
     ]
   }
 }
