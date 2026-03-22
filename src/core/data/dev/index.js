@@ -1,48 +1,78 @@
-// Active in Vite dev server OR when VITE_DEMO_MODE=true is baked into the build.
-const meta = /** @type {{ env?: { DEV?: boolean; VITE_DEMO_MODE?: string } }} */ (import.meta);
+// Active in Vite dev server, a baked demo build, or an explicit temporary-access build.
+const meta = /** @type {{ env?: { DEV?: boolean; VITE_DEMO_MODE?: string; VITE_TEMP_ACCESS_MODE?: string; VITE_SANDBOX_MODE?: string; VITE_SANDBOX_API_BASE?: string } }} */ (import.meta);
+import { safeLocalStorage } from '@/core/data/safe-storage';
 
-export const IS_DEV_MODE = meta.env?.DEV === true || meta.env?.VITE_DEMO_MODE === 'true';
+export const IS_TEMP_ACCESS_MODE = meta.env?.VITE_TEMP_ACCESS_MODE === 'true';
+export const IS_LOCAL_SIMULATION_MODE = meta.env?.DEV === true || meta.env?.VITE_DEMO_MODE === 'true';
+export const SANDBOX_MODE = meta.env?.VITE_SANDBOX_MODE || (IS_TEMP_ACCESS_MODE ? 'shared' : 'local');
+export const IS_SHARED_SANDBOX_MODE = IS_TEMP_ACCESS_MODE && SANDBOX_MODE === 'shared';
+export const SANDBOX_API_BASE = meta.env?.VITE_SANDBOX_API_BASE || '';
+export const IS_DEV_MODE = IS_LOCAL_SIMULATION_MODE || IS_TEMP_ACCESS_MODE;
+export const DEFAULT_TEMP_ACCESS_PERSONA_ID = 'voyager';
 
 const DEV_SESSION_KEY = 'nexus_dev_persona';
+const DEV_SIGNED_OUT_VALUE = '__signed_out__';
 
 export const DEV_PERSONAS = [
-  { id: 'pioneer',   callsign: 'COMMODORE_BLAE', rank: 'PIONEER',   discordId: 'dev-pioneer-001',   label: 'Pioneer' },
-  { id: 'founder',   callsign: 'DEV_FOUNDER',    rank: 'FOUNDER',    discordId: 'dev-founder-001',   label: 'Founder' },
-  { id: 'scout',     callsign: 'DEV_SCOUT',      rank: 'SCOUT',      discordId: 'dev-scout-001',     label: 'Scout' },
-  { id: 'voyager',   callsign: 'DEV_VOYAGER',    rank: 'VOYAGER',    discordId: 'dev-voyager-001',   label: 'Voyager' },
-  { id: 'vagrant',   callsign: 'DEV_VAGRANT',    rank: 'VAGRANT',    discordId: 'dev-vagrant-001',   label: 'Vagrant' },
-  { id: 'affiliate', callsign: 'DEV_AFFILIATE',  rank: 'AFFILIATE',  discordId: 'dev-affiliate-001', label: 'Affiliate' },
+  { id: 'pioneer',   userId: 'u-pioneer',   callsign: 'COMMODORE_BLAE', rank: 'PIONEER',   discordId: 'dev-pioneer-001',   label: 'Pioneer' },
+  { id: 'founder',   userId: 'u-founder',   callsign: 'DEV_FOUNDER',    rank: 'FOUNDER',   discordId: 'dev-founder-001',   label: 'Founder' },
+  { id: 'scout',     userId: 'u-scout',     callsign: 'DEV_SCOUT',      rank: 'SCOUT',     discordId: 'dev-scout-001',     label: 'Scout' },
+  { id: 'voyager',   userId: 'u-voyager',   callsign: 'DEV_VOYAGER',    rank: 'VOYAGER',   discordId: 'dev-voyager-001',   label: 'Voyager' },
+  { id: 'vagrant',   userId: 'u-vagrant',   callsign: 'DEV_VAGRANT',    rank: 'VAGRANT',   discordId: 'dev-vagrant-001',   label: 'Vagrant' },
+  { id: 'affiliate', userId: 'u-affiliate', callsign: 'DEV_AFFILIATE',  rank: 'AFFILIATE', discordId: 'dev-affiliate-001', label: 'Affiliate' },
 ];
 
+export function getDevPersonaById(id) {
+  return DEV_PERSONAS.find((persona) => persona.id === id) || null;
+}
+
 export function getDevPersona() {
-  if (!IS_DEV_MODE || typeof sessionStorage === 'undefined') return null;
-  const id = sessionStorage.getItem(DEV_SESSION_KEY);
-  return DEV_PERSONAS.find(p => p.id === id) || null;
+  if (!IS_DEV_MODE) return null;
+
+  const id = safeLocalStorage.getItem(DEV_SESSION_KEY);
+  if (id === DEV_SIGNED_OUT_VALUE) {
+    return null;
+  }
+  if (id) {
+    return getDevPersonaById(id);
+  }
+
+  if (IS_TEMP_ACCESS_MODE) {
+    return getDevPersonaById(DEFAULT_TEMP_ACCESS_PERSONA_ID);
+  }
+
+  return null;
 }
 
 export function setDevPersona(id) {
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem(DEV_SESSION_KEY, id);
-  }
+  safeLocalStorage.setItem(DEV_SESSION_KEY, id);
 }
 
 export function clearDevPersona() {
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.removeItem(DEV_SESSION_KEY);
+  if (IS_TEMP_ACCESS_MODE) {
+    safeLocalStorage.setItem(DEV_SESSION_KEY, DEV_SIGNED_OUT_VALUE);
+    return;
   }
+
+  safeLocalStorage.removeItem(DEV_SESSION_KEY);
 }
 
-export function buildDevSession(persona) {
+export function buildDevSession(persona, userOverrides = {}) {
+  const joinedAt = userOverrides.joined_at || userOverrides.joinedAt || '2025-01-01T00:00:00Z';
+  const discordRoles = userOverrides.discord_roles || userOverrides.discordRoles || [persona.rank];
+  const onboardingComplete = userOverrides.onboarding_complete ?? true;
+
   return {
     authenticated: true,
     source: 'member',
     user: {
-      id: `dev-user-${persona.id}`,
-      discordId: persona.discordId,
-      callsign: persona.callsign,
-      rank: persona.rank,
-      discordRoles: [persona.rank],
-      joinedAt: '2025-01-01T00:00:00Z',
+      id: userOverrides.id || persona.userId,
+      discordId: userOverrides.discord_id || userOverrides.discordId || persona.discordId,
+      callsign: userOverrides.callsign || persona.callsign,
+      rank: userOverrides.nexus_rank || userOverrides.rank || persona.rank,
+      discordRoles,
+      joinedAt,
+      onboarding_complete: onboardingComplete,
     },
   };
 }

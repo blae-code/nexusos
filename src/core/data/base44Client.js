@@ -1,7 +1,8 @@
 import { createClient } from '@base44/sdk';
 import { getAppParams } from '@/core/data/app-params';
-import { IS_DEV_MODE } from '@/core/data/dev';
+import { IS_LOCAL_SIMULATION_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
 import { createMockBase44Client } from '@/core/data/dev/mockBase44Client';
+import { createSharedSandboxClient } from '@/core/data/dev/sharedSandboxClient';
 
 /** @typedef {ReturnType<typeof createClient>} Base44Client */
 
@@ -10,7 +11,11 @@ let cachedClient = null;
 
 /** @returns {Base44Client} */
 function createBase44Client() {
-  if (IS_DEV_MODE) {
+  if (IS_SHARED_SANDBOX_MODE) {
+    return /** @type {Base44Client} */ (/** @type {unknown} */ (createSharedSandboxClient()));
+  }
+
+  if (IS_LOCAL_SIMULATION_MODE) {
     return /** @type {Base44Client} */ (/** @type {unknown} */ (createMockBase44Client()));
   }
 

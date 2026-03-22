@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, LogOut, ScrollText, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { authApi } from '@/core/data/auth-api';
 import NexusCompass from '@/core/design/NexusCompass';
 import { RankBadge } from '@/core/design';
 import { useSession } from '@/core/data/SessionContext';
@@ -10,7 +11,7 @@ import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
 import { AltTabIcon, SecondMonitorIcon } from './NexusIcons';
 import { StatusPill, VersionPill } from './TopbarPills';
 import { LayoutButton, Divider, MenuLink, ChangelogPanel, DropdownContainer } from './TopbarMenu';
-import { IS_DEV_MODE } from '@/core/data/dev';
+import { DEV_PERSONAS, IS_DEV_MODE, IS_LOCAL_SIMULATION_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
 
 
 
@@ -103,7 +104,7 @@ function menuButtonStyle(active) {
 export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, source } = useSession();
+  const { user, logout, patchUser, refreshSession, source } = useSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
   const [onlineCount, setOnlineCount] = useState(null);
@@ -111,6 +112,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   const [walletBalance, setWalletBalance] = useState(null);
   const [rescueCount, setRescueCount] = useState(0);
   const [signingOut, setSigningOut] = useState(false);
+  const [sandboxBusy, setSandboxBusy] = useState(false);
   const userMenuRef = useRef(null);
   const changelogRef = useRef(null);
 
@@ -122,6 +124,49 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
 
 
   const showPtuPill = VERSE_BUILD_LABEL.toUpperCase().includes('PTU');
+  const sandboxLabel = IS_SHARED_SANDBOX_MODE ? 'COLLAB' : 'SIM';
+
+  const handlePersonaSwitch = async (personaId) => {
+    setSandboxBusy(true);
+    try {
+      await authApi.setDemoPersona(personaId);
+      await refreshSession();
+      navigate('/app/industry');
+      setUserMenuOpen(false);
+    } finally {
+      setSandboxBusy(false);
+    }
+  };
+
+  const handleReplayOnboarding = async () => {
+    if (!user?.id) return;
+
+    setSandboxBusy(true);
+    try {
+      await base44.entities.NexusUser.update(user.id, {
+        onboarding_complete: false,
+        consent_given: false,
+        consent_timestamp: null,
+      });
+      patchUser({ onboarding_complete: false });
+      setUserMenuOpen(false);
+      navigate('/onboarding');
+    } finally {
+      setSandboxBusy(false);
+    }
+  };
+
+  const handleSandboxReset = async () => {
+    setSandboxBusy(true);
+    try {
+      await authApi.resetDemoSandbox();
+      await refreshSession();
+      navigate('/app/industry');
+      setUserMenuOpen(false);
+    } finally {
+      setSandboxBusy(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -272,11 +317,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           {IS_DEV_MODE ? (
             <div
               className="nexus-pill nexus-pill-warn"
-              title="Simulation environment — data is synthetic"
+              title={IS_SHARED_SANDBOX_MODE ? 'Shared collaboration sandbox — data is synthetic and shared across collaborators' : 'Local simulation environment — data is synthetic'}
               style={{ display: 'flex', alignItems: 'center', gap: 4 }}
             >
               <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-              SIM
+              {sandboxLabel}
             </div>
           ) : null}
           {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
@@ -462,11 +507,11 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             </button>
 
             {userMenuOpen ? (
-              <DropdownContainer width={180}>
+              <DropdownContainer width={IS_DEV_MODE ? 240 : 180}>
                 <MenuLink
                   icon={User}
                   label="Profile"
-                  disabled={signingOut}
+                  disabled={signingOut || sandboxBusy}
                   onClick={() => {
                     navigate('/app/profile');
                     setUserMenuOpen(false);
@@ -475,7 +520,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 <MenuLink
                   icon={User}
                   label="Preferences"
-                  disabled={signingOut}
+                  disabled={signingOut || sandboxBusy}
                   onClick={() => {
                     navigate('/app/settings');
                     setUserMenuOpen(false);
@@ -484,19 +529,68 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 <MenuLink
                   icon={ScrollText}
                   label="Changelog"
-                  disabled={signingOut}
+                  disabled={signingOut || sandboxBusy}
                   onClick={() => {
                     setShowChangelog(true);
                     setUserMenuOpen(false);
                   }}
                 />
+                {IS_DEV_MODE ? (
+                  <>
+                    <Divider />
+                    <div style={{ padding: '7px 12px 4px', color: '#C8A84B', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                      {IS_SHARED_SANDBOX_MODE ? 'Sandbox Roles' : 'Local Personas'}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 12px 8px' }}>
+                      {DEV_PERSONAS.map((persona) => (
+                        <button
+                          key={persona.id}
+                          type="button"
+                          disabled={sandboxBusy || user?.rank === persona.rank}
+                          onClick={() => handlePersonaSwitch(persona.id)}
+                          style={{
+                            padding: '5px 8px',
+                            fontSize: 9,
+                            letterSpacing: '0.08em',
+                            fontFamily: "'Barlow Condensed', sans-serif",
+                            textTransform: 'uppercase',
+                            color: user?.rank === persona.rank ? '#E8E4DC' : '#9A9488',
+                            background: user?.rank === persona.rank ? 'rgba(192,57,43,0.10)' : 'rgba(200,170,100,0.04)',
+                            border: `0.5px solid ${user?.rank === persona.rank ? 'rgba(192,57,43,0.35)' : 'rgba(200,170,100,0.12)'}`,
+                            borderRadius: 3,
+                            cursor: sandboxBusy || user?.rank === persona.rank ? 'default' : 'pointer',
+                            opacity: sandboxBusy ? 0.65 : 1,
+                          }}
+                        >
+                          {persona.rank}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: 6 }}>
+                      <MenuLink
+                        icon={ScrollText}
+                        label="Replay Onboarding"
+                        disabled={signingOut || sandboxBusy}
+                        onClick={handleReplayOnboarding}
+                      />
+                      {IS_SHARED_SANDBOX_MODE ? (
+                        <MenuLink
+                          icon={ScrollText}
+                          label="Reset Shared Sandbox"
+                          disabled={signingOut || sandboxBusy}
+                          onClick={handleSandboxReset}
+                        />
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
                 <Divider />
                 <MenuLink
                   icon={LogOut}
                   label="Sign out"
                   danger
-                  disabled={signingOut}
-                  spinner={signingOut}
+                  disabled={signingOut || sandboxBusy}
+                  spinner={signingOut || sandboxBusy}
                   onClick={async () => {
                     setSigningOut(true);
                     await logout('/');

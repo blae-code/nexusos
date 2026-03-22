@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { IS_DEV_MODE } from '@/core/data/dev';
+import { IS_DEV_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
 import { RankBadge } from '@/core/design';
 import {
   OpBoardIcon,
@@ -288,7 +288,7 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
             userSelect: 'none',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 600,
-          }}>SIM</span>
+          }}>{IS_SHARED_SANDBOX_MODE ? 'CLB' : 'SIM'}</span>
         </div>
       ) : null}
     </nav>

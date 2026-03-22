@@ -1,4 +1,9 @@
-import { mockStore } from './mockStore';
+import { clearDevPersona } from './index';
+import { invokeDemoFunction } from './demoFunctionMocks';
+import { getLocalDemoUser } from './localDemoSession';
+import { getCurrentMockState, mockStore } from './mockStore';
+
+const demoSecretState = {};
 
 function sortItems(items, sortField) {
   if (!sortField) return items;
@@ -19,7 +24,7 @@ function createEntityController(entityType) {
       return sortItems(mockStore.getAll(entityType), sortField).slice(0, limit);
     },
     async filter(params, sortField = '-created_date', limit = 500) {
-      const filtered = mockStore.getAll(entityType).filter(item =>
+      const filtered = mockStore.getAll(entityType).filter((item) =>
         Object.entries(params).every(([key, value]) => item[key] === value),
       );
       return sortItems(filtered, sortField).slice(0, limit);
@@ -42,6 +47,22 @@ function createEntityController(entityType) {
   };
 }
 
+function createUploadResult(file) {
+  if (typeof window !== 'undefined' && file instanceof File) {
+    return {
+      file_url: URL.createObjectURL(file),
+      file_name: file.name,
+      content_type: file.type,
+    };
+  }
+
+  return {
+    file_url: `demo://upload/${file?.name || 'asset'}`,
+    file_name: file?.name || 'asset',
+    content_type: file?.type || 'application/octet-stream',
+  };
+}
+
 export function createMockBase44Client() {
   const entityCache = {};
 
@@ -57,18 +78,40 @@ export function createMockBase44Client() {
 
     functions: {
       async invoke(name, payload) {
-        // [DEV] mock functions.invoke: no-op in simulation mode
-        return { success: true, message: '[DEV] mock response' };
+        return invokeDemoFunction(name, payload, {
+          getState: async () => ({
+            entities: getCurrentMockState(),
+            meta: { mode: 'local', secrets: { ...demoSecretState } },
+          }),
+          saveSecret: async (secretId, value) => {
+            demoSecretState[secretId] = value;
+          },
+        });
+      },
+    },
+
+    integrations: {
+      Core: {
+        async UploadFile({ file }) {
+          return createUploadResult(file);
+        },
       },
     },
 
     auth: {
-      async me() { return null; },
-      logout(redirectUrl) {
-        if (redirectUrl) window.location.assign(redirectUrl);
+      async me() {
+        return getLocalDemoUser();
       },
-      redirectToLogin() {
-        window.location.assign('/');
+      logout(redirectUrl) {
+        clearDevPersona();
+        if (redirectUrl && typeof window !== 'undefined') {
+          window.location.assign(redirectUrl);
+        }
+      },
+      redirectToLogin(redirectUrl = '/') {
+        if (typeof window !== 'undefined') {
+          window.location.assign(redirectUrl);
+        }
       },
     },
   };

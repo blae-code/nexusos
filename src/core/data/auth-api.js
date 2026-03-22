@@ -1,5 +1,14 @@
 import { getAppBasePath } from '@/core/data/app-base-path';
-import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/core/data/dev';
+import {
+  IS_DEV_MODE,
+  IS_LOCAL_SIMULATION_MODE,
+  IS_SHARED_SANDBOX_MODE,
+  clearDevPersona,
+  getDevPersona,
+  setDevPersona,
+} from '@/core/data/dev';
+import { getLocalDemoSession } from '@/core/data/dev/localDemoSession';
+import { sharedSandboxApi } from '@/core/data/dev/sharedSandboxApi';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
@@ -66,8 +75,9 @@ export const authApi = {
         status: 200,
         oauth_ready: true,
         guild_label: 'REDSCAR NOMADS',
-        support_channel_label: '#nexusos-ops',
+        support_channel_label: '#nexusos-collab',
         invite_url: '#',
+        mode: IS_SHARED_SANDBOX_MODE ? 'shared_sandbox' : 'local_simulation',
       };
     }
 
@@ -86,9 +96,21 @@ export const authApi = {
   },
 
   async getSession({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    if (IS_DEV_MODE) {
-      const persona = getDevPersona();
-      if (persona) return buildDevSession(persona);
+    if (IS_SHARED_SANDBOX_MODE) {
+      try {
+        return await sharedSandboxApi.getSession();
+      } catch (error) {
+        return {
+          authenticated: false,
+          status: error?.status || 503,
+          error: error?.message || 'Sandbox session unavailable',
+        };
+      }
+    }
+
+    if (IS_LOCAL_SIMULATION_MODE) {
+      const session = getLocalDemoSession();
+      if (session) return session;
       return { authenticated: false, status: 401 };
     }
 
@@ -114,7 +136,11 @@ export const authApi = {
   },
 
   async logout({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    if (IS_DEV_MODE) {
+    if (IS_SHARED_SANDBOX_MODE) {
+      return sharedSandboxApi.logout();
+    }
+
+    if (IS_LOCAL_SIMULATION_MODE) {
       clearDevPersona();
       return { ok: true };
     }
@@ -126,5 +152,33 @@ export const authApi = {
     }, timeoutMs);
 
     return parseJson(response);
+  },
+  async setDemoPersona(personaId) {
+    if (IS_SHARED_SANDBOX_MODE) {
+      return sharedSandboxApi.setPersona(personaId);
+    }
+
+    if (IS_LOCAL_SIMULATION_MODE) {
+      setDevPersona(personaId);
+      return { ok: true, persona_id: personaId };
+    }
+
+    throw new Error('Demo persona switching is only available in collaboration mode.');
+  },
+
+  async resetDemoSandbox() {
+    if (!IS_SHARED_SANDBOX_MODE) {
+      return { ok: false, skipped: true };
+    }
+
+    return sharedSandboxApi.reset();
+  },
+
+  async getDemoState(options = {}) {
+    if (!IS_SHARED_SANDBOX_MODE) {
+      return null;
+    }
+
+    return sharedSandboxApi.getState(options);
   },
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { authApi } from '@/core/data/auth-api';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
-import { IS_DEV_MODE, DEV_PERSONAS, setDevPersona } from '@/core/data/dev';
+import { DEV_PERSONAS, IS_DEV_MODE, IS_SHARED_SANDBOX_MODE, IS_TEMP_ACCESS_MODE } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
 
 function buildStars() {
@@ -310,7 +310,9 @@ export default function AccessGate() {
             animation: 'panel-fade-in 0.8s ease-out 0.6s both'
           }}>
           
-          Continue with Discord to verify your Redscar Nomads membership and launch the app.
+          {IS_TEMP_ACCESS_MODE
+            ? 'Collaboration mode is active. Choose a sandbox persona to enter the shared demo environment without Discord or Base44 gating.'
+            : 'Continue with Discord to verify your Redscar Nomads membership and launch the app.'}
         </div>
 
         {/* CTA BUTTON */}
@@ -320,9 +322,9 @@ export default function AccessGate() {
           <button
             key={persona.id}
             type="button"
-            onClick={() => {
-              setDevPersona(persona.id);
-              refreshSession();
+            onClick={async () => {
+              await authApi.setDemoPersona(persona.id);
+              await refreshSession();
             }}
             style={{
               display: 'block',
@@ -355,6 +357,11 @@ export default function AccessGate() {
                 {persona.callsign} — {persona.rank}
               </button>
           )}
+          {IS_SHARED_SANDBOX_MODE ? (
+            <div style={{ color: '#8A8478', fontSize: 11, lineHeight: 1.6, padding: '2px 2px 0' }}>
+              Shared sandbox mode is live. Entity edits and onboarding changes are visible to collaborators until the sandbox is reset.
+            </div>
+          ) : null}
           </div> :
 
         <button

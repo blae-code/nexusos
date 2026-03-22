@@ -4,7 +4,7 @@ import { withAppBase } from '@/core/data/app-base-path';
 import { getAppParams } from '@/core/data/app-params';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/core/data/auth-api';
 import { buildBase44Url, getBase44Headers } from '@/core/data/base44-host';
-import { IS_DEV_MODE } from '@/core/data/dev';
+import { IS_LOCAL_SIMULATION_MODE } from '@/core/data/dev';
 
 const SessionContext = createContext(null);
 const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
@@ -142,7 +142,7 @@ export function SessionProvider({ children }) {
 
   // Immediately resolve loading in dev mode
   useEffect(() => {
-    if (IS_DEV_MODE) {
+    if (IS_LOCAL_SIMULATION_MODE) {
       setLoading(false);
     }
   }, []);

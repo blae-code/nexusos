@@ -10,7 +10,7 @@ import { useSession } from '@/core/data/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/core/data/layout-mode';
 import { useVerseStatus } from '@/core/data/useVerseStatus';
 import { preloadCriticalTokens } from '@/core/data/tokenMap';
-import { IS_DEV_MODE } from '@/core/data/dev';
+import { IS_DEV_MODE, IS_LOCAL_SIMULATION_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 export default function NexusShell() {
@@ -257,7 +257,9 @@ export default function NexusShell() {
           >
             <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
             <span style={{ fontSize: 9, color: 'var(--warn)', letterSpacing: '0.18em', userSelect: 'none' }}>
-              SIMULATION ENVIRONMENT · SYNTHETIC DATA · ALL CHANGES RESET ON TAB CLOSE
+              {IS_SHARED_SANDBOX_MODE
+                ? 'COLLABORATION SANDBOX · SYNTHETIC DATA · CHANGES SHARED ACROSS PREVIEW USERS'
+                : 'SIMULATION ENVIRONMENT · SYNTHETIC DATA · ALL CHANGES RESET ON TAB CLOSE'}
             </span>
             <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
           </div>
