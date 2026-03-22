@@ -1,5 +1,6 @@
 import { buildLogoutCookies, buildPersonaCookies, resolveDemoSession } from './_lib/session.js';
 import { getDemoState } from './_lib/store.js';
+import { isValidDevPersonaId } from '../../src/core/data/dev/personas.js';
 
 function readBody(req) {
   if (req.body && typeof req.body === 'object') {
@@ -39,8 +40,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'persona_id is required' });
   }
 
-  const availablePersonaIds = new Set(['pioneer', 'founder', 'scout', 'voyager', 'vagrant', 'affiliate']);
-  if (!availablePersonaIds.has(body.persona_id)) {
+  if (!isValidDevPersonaId(body.persona_id)) {
     return res.status(400).json({ error: 'Unknown persona_id' });
   }
 

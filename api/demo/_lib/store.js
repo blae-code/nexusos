@@ -14,6 +14,10 @@ function hasKvConfig() {
   return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 }
 
+function getPersistenceMode() {
+  return hasKvConfig() ? 'kv' : 'memory';
+}
+
 function buildSeedState() {
   return {
     version: 1,
@@ -22,7 +26,11 @@ function buildSeedState() {
     meta: {
       mode: 'shared',
       namespace: DEMO_NAMESPACE,
+      persistence: getPersistenceMode(),
       secrets: {},
+      warnings: getPersistenceMode() === 'memory'
+        ? ['Shared sandbox is running without KV; state may reset on cold starts or split across instances.']
+        : [],
     },
     entities: getInitialMockState(),
   };
@@ -58,6 +66,11 @@ export async function getDemoState() {
 
 export async function saveDemoState(state) {
   const next = clone(state);
+  next.meta = next.meta || {};
+  next.meta.persistence = getPersistenceMode();
+  next.meta.warnings = getPersistenceMode() === 'memory'
+    ? ['Shared sandbox is running without KV; state may reset on cold starts or split across instances.']
+    : [];
   if (!hasKvConfig()) {
     return setMemoryState(next);
   }

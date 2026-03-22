@@ -1,4 +1,8 @@
-import { DEFAULT_TEMP_ACCESS_PERSONA_ID, DEV_PERSONAS } from '../../../src/core/data/dev/index.js';
+import {
+  DEFAULT_TEMP_ACCESS_PERSONA_ID,
+  DEV_PERSONAS,
+  isValidDevPersonaId,
+} from '../../../src/core/data/dev/personas.js';
 import { isSecureRequest, parseCookies, serializeCookie } from './cookies.js';
 
 export const DEMO_PERSONA_COOKIE = 'nexus_demo_persona';

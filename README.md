@@ -35,11 +35,11 @@ Use GitHub as the source of truth. Base44 is downstream for later polish/publish
    - `VITE_SANDBOX_MODE=shared`
    - `DEMO_SANDBOX_NAMESPACE=<team-or-branch-name>`
    - `DEMO_SANDBOX_SEED_VERSION=v1`
-3. Add Vercel KV credentials if you want durable shared state across function cold starts.
+3. Add Vercel KV credentials. Without KV, the shared sandbox falls back to per-instance memory and is not reliable collaboration infrastructure.
 4. Deploy branches to Vercel previews and keep one stable shared demo deployment for team validation.
 5. In the shared demo:
    - default access resolves to a Voyager sandbox user
-   - use the top-right sandbox menu to switch ranks
+   - use the top-right sandbox menu to switch between `PIONEER`, `FOUNDER`, `SCOUT`, `VOYAGER`, `VAGRANT`, and `AFFILIATE`
    - use `Replay Onboarding` to test onboarding
    - use `Reset Shared Sandbox` to restore the canonical seed
 

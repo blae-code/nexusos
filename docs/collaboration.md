@@ -14,15 +14,18 @@ Support two humans and two AI agents working in parallel from GitHub, without re
 - Set `VITE_TEMP_ACCESS_MODE=true`.
 - Set `VITE_SANDBOX_MODE=shared`.
 - Back `/api/demo/*` with Vercel KV for durable shared state.
+- If KV is missing, the sandbox falls back to in-memory state and can split across cold starts or instances. Do not treat that as reliable shared collaboration.
 - This is the team preview surface for branch reviews and integration checks.
 
 ## Sandbox Behavior
 - Default session resolves to a Voyager sandbox user.
 - The top-right user menu exposes a sandbox role switcher for:
+  - `PIONEER`
+  - `FOUNDER`
   - `SCOUT`
   - `VOYAGER`
-  - `FOUNDER`
-  - `PIONEER`
+  - `VAGRANT`
+  - `AFFILIATE`
 - `Replay Onboarding` sends the current sandbox user back through onboarding.
 - `Reset Shared Sandbox` restores the canonical seeded state for the whole preview.
 
