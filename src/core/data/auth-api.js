@@ -2,10 +2,21 @@ import { getAppBasePath } from '@/core/data/app-base-path';
 import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/core/data/dev';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
+const FALLBACK_AUTH_ORIGIN = 'https://nexus-nomad-core.base44.app';
+
+function getAuthOrigin() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    const { hostname, origin } = window.location;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return origin;
+    }
+  }
+
+  return FALLBACK_AUTH_ORIGIN;
+}
 
 function buildFunctionUrl(functionPath, searchParams) {
-  const base = 'https://nexus-nomad-core.base44.app/api/functions';
-  const url = new URL(`${base}/${functionPath}`);
+  const url = new URL(`/api/functions/${functionPath}`, getAuthOrigin());
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
       if (value != null && value !== '') {
