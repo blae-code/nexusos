@@ -4,6 +4,7 @@ import { authApi } from '@/core/data/auth-api';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
 import { DEV_PERSONAS, IS_DEV_MODE, IS_SHARED_SANDBOX_MODE, IS_TEMP_ACCESS_MODE } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
+import AdminLoginPanel from '@/components/AdminLoginPanel';
 
 function buildStars() {
   if (typeof window === 'undefined') return [];
