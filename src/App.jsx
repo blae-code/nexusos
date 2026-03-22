@@ -35,6 +35,7 @@ import CrewScheduler from '@/pages/CrewScheduler';
 import TrainingHub from '@/pages/TrainingHub';
 import AdminSettings from '@/pages/AdminSettings';
 import OpsDashboard from '@/pages/OpsDashboard';
+import FleetReadiness from '@/pages/FleetReadiness';
 import BootScreen from '@/pages/BootScreen';
 
 function App() {
