@@ -65,6 +65,18 @@ export default function OrgFleet() {
             </p>
           </div>
           <button
+            onClick={() => navigate('/app/armory/readiness')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 16px', background: 'var(--bg2)',
+              border: '0.5px solid var(--b2)', borderRadius: 3,
+              color: '#C8A84B', cursor: 'pointer',
+              fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', marginRight: 8,
+            }}
+          >
+            <Gauge size={14} /> READINESS
+          </button>
+          <button
             onClick={() => syncMutation.mutate()}
             disabled={syncing || syncMutation.isPending}
             style={{
