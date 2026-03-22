@@ -13,6 +13,7 @@ Use this file to claim active work before editing shared surfaces.
 | Task ID | Status | Owner Human | Owner AI | Branch | Scope | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | COLLAB-001 | open | unassigned | unassigned | `feature/...` | `src/...` | Replace with your active task |
+| SCOUT-001 | in_progress | nickd | Claude Sonnet 4.6 | `feature/scout-intel-deposit-tooltips` | `src/apps/scout-intel/SystemMap.jsx`, `src/apps/scout-intel/SystemMapControls.jsx` | Deep polish: material chip tooltips (full name, type, tier, deposit stats, systems, use) + deposit marker hover tooltip (quality, location, volume, risk, scout, age, votes) |
 
 ## Handoff Template
 | Task ID | From | To | Files | Last Verified | Risks / Notes |
