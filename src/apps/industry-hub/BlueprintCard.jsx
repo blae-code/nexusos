@@ -136,26 +136,38 @@ export default function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete
               <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.12em', marginBottom: 6 }}>REQUIRED MATERIALS</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {materialStatus.map((req, i) => (
-                  <div key={i} style={{
-                    display: 'grid', gridTemplateColumns: '1fr 70px 70px 60px',
-                    gap: 8, padding: '5px 8px', borderRadius: 5,
-                    background: req.met ? 'var(--live-bg)' : 'var(--bg2)',
-                    border: `0.5px solid ${req.met ? 'var(--live-b)' : 'var(--b1)'}`,
-                    alignItems: 'center',
-                  }}>
-                    <span style={{ color: req.met ? 'var(--t0)' : 'var(--t1)', fontSize: 11 }}>{req.material}</span>
-                    <span style={{ color: 'var(--t2)', fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
-                      <span style={{ color: req.qtyOk ? 'var(--live)' : 'var(--danger)' }}>{req.totalScu.toFixed(1)}</span>
-                      /{req.quantity_scu || 0} SCU
-                    </span>
-                    <span style={{ color: 'var(--t2)', fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
-                      <span style={{ color: req.qualityOk ? 'var(--live)' : 'var(--danger)' }}>{req.bestQuality.toFixed(0)}</span>
-                      /{req.min_quality || 80}%
-                    </span>
-                    <span style={{ color: req.met ? 'var(--live)' : 'var(--t3)', fontSize: 9 }}>
-                      {req.met ? '✓ MET' : '✗ SHORT'}
-                    </span>
-                  </div>
+                  <React.Fragment key={i}>
+                    <div style={{
+                      display: 'grid', gridTemplateColumns: '1fr 70px 70px 60px auto',
+                      gap: 8, padding: '5px 8px', borderRadius: 5,
+                      background: req.met ? 'var(--live-bg)' : 'var(--bg2)',
+                      border: `0.5px solid ${req.met ? 'var(--live-b)' : 'var(--b1)'}`,
+                      alignItems: 'center',
+                    }}>
+                      <span style={{ color: req.met ? 'var(--t0)' : 'var(--t1)', fontSize: 11 }}>{req.material}</span>
+                      <span style={{ color: 'var(--t2)', fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
+                        <span style={{ color: req.qtyOk ? 'var(--live)' : 'var(--danger)' }}>{req.totalScu.toFixed(1)}</span>
+                        /{req.quantity_scu || 0} SCU
+                      </span>
+                      <span style={{ color: 'var(--t2)', fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
+                        <span style={{ color: req.qualityOk ? 'var(--live)' : 'var(--danger)' }}>{req.bestQuality.toFixed(0)}</span>
+                        /{req.min_quality || 80}%
+                      </span>
+                      <span style={{ color: req.met ? 'var(--live)' : 'var(--t3)', fontSize: 9 }}>
+                        {req.met ? '✓ MET' : '✗ SHORT'}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setContextMaterial(contextMaterial === req.material ? null : req.material); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: contextMaterial === req.material ? 'var(--acc2)' : 'var(--t3)', padding: 2, display: 'flex' }}
+                        title="View market & cross-module data"
+                      >
+                        <ExternalLink size={10} />
+                      </button>
+                    </div>
+                    {contextMaterial === req.material && (
+                      <MaterialContextPanel materialName={req.material} onClose={() => setContextMaterial(null)} />
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
             </div>
