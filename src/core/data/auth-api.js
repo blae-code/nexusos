@@ -167,15 +167,10 @@ export const authApi = {
     throw new Error('Demo persona switching is only available in collaboration mode.');
   },
 
-  async adminLogin({ email, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const response = await fetchWithTimeout(buildFunctionUrl('adminLogin/entry'), {
-      method: 'POST',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    }, timeoutMs);
-    return parseJson(response);
+  async adminLogin({ email } = {}) {
+    // Use SDK invoke so it hits the correct app origin regardless of preview domain
+    const response = await base44.functions.invoke('adminLogin/entry', { email });
+    return response.data;
   },
 
   async resetDemoSandbox() {
