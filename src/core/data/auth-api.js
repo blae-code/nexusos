@@ -2,21 +2,23 @@ import { getAppBasePath } from '@/core/data/app-base-path';
 import { IS_DEV_MODE, getDevPersona, buildDevSession, clearDevPersona } from '@/core/data/dev';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
+
+// Only fall back to the Base44 origin on localhost dev — never in production
 const FALLBACK_AUTH_ORIGIN = 'https://nexus-nomad-core.base44.app';
 
 function getAuthOrigin() {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    const { hostname, origin } = window.location;
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return origin;
-    }
+  if (typeof window === 'undefined') return FALLBACK_AUTH_ORIGIN;
+  const { hostname } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return FALLBACK_AUTH_ORIGIN;
   }
-
-  return FALLBACK_AUTH_ORIGIN;
+  // All non-localhost sessions use same-origin auth routes
+  return window.location.origin;
 }
 
 function buildFunctionUrl(functionPath, searchParams) {
-  const url = new URL(`/api/functions/${functionPath}`, getAuthOrigin());
+  const origin = getAuthOrigin();
+  const url = new URL(`${origin}/api/functions/${functionPath}`);
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
       if (value != null && value !== '') {
@@ -59,7 +61,14 @@ export const authApi = {
 
   async getHealth({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
     if (IS_DEV_MODE) {
-      return { ok: true, status: 200, oauth_ready: true, guild_label: 'REDSCAR NOMADS', support_channel_label: '#nexusos-ops', invite_url: '#' };
+      return {
+        ok: true,
+        status: 200,
+        oauth_ready: true,
+        guild_label: 'REDSCAR NOMADS',
+        support_channel_label: '#nexusos-ops',
+        invite_url: '#',
+      };
     }
 
     const response = await fetchWithTimeout(buildFunctionUrl('auth/health/entry'), {
