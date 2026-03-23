@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { IS_DEV_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
+import { useSession } from '@/core/data/SessionContext';
 import { RankBadge } from '@/core/design';
 import {
   OpBoardIcon,
@@ -17,12 +18,13 @@ const NAV_GROUPS = [
   ],
   [
     { icon: SettingsIcon, label: 'SETTINGS', path: '/app/profile' },
-    { icon: SettingsIcon, label: 'KEY MGMT', path: '/app/keys', badge: null, rank: ['PIONEER', 'FOUNDER'] },
-    { icon: SettingsIcon, label: 'ADMIN SETTINGS', path: '/app/admin/settings', badge: null, rank: ['PIONEER', 'FOUNDER'] },
+    { icon: SettingsIcon, label: 'KEY MGMT', path: '/app/keys', badge: null, adminOnly: true },
+    { icon: SettingsIcon, label: 'ADMIN SETTINGS', path: '/app/admin/settings', badge: null, adminOnly: true },
   ],
 ];
 
-export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
+export default function NexusSidebar({ currentPath }) {
+  const { isAdmin } = useSession();
   const [badges, setBadges] = useState({
     craft: false,
     live: false,
@@ -70,8 +72,8 @@ export default function NexusSidebar({ currentPath, rank = 'AFFILIATE' }) {
   };
 
   const canAccessItem = (item) => {
-    if (!item.rank) return true;
-    return item.rank.includes(rank);
+    if (!item.adminOnly) return true;
+    return isAdmin;
   };
 
   return (

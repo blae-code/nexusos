@@ -85,14 +85,19 @@ Deno.serve(async (req) => {
       return Response.json({ authenticated: false }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
     }
 
+    // Compute is_admin from rank/callsign
+    const is_admin = (user.nexus_rank === 'PIONEER' || user.callsign === 'SYSTEM_ADMIN');
+
     return Response.json({
       authenticated: true,
+      is_admin,
       user: {
         id: user.id,
         callsign: user.callsign,
         rank: user.nexus_rank || 'AFFILIATE',
         joinedAt: user.joined_at || null,
         onboarding_complete: user.onboarding_complete ?? false,
+        is_admin,
       },
     }, { status: 200, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {

@@ -249,17 +249,20 @@ export function SessionProvider({ children }) {
     });
   }, []);
 
+  const isAdmin = Boolean(session?.is_admin || session?.user?.is_admin);
+
   const value = useMemo(() => ({
     session,
     user: session?.user || null,
     source: session?.source || null,
     isAuthenticated: Boolean(session?.authenticated),
+    isAdmin,
     loading,
     startupIssue,
     refreshSession,
     logout,
     patchUser,
-  }), [loading, logout, patchUser, refreshSession, session, startupIssue]);
+  }), [isAdmin, loading, logout, patchUser, refreshSession, session, startupIssue]);
 
   return (
     <SessionContext.Provider value={value}>

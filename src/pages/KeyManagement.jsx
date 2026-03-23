@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useOutletContext } from 'react-router-dom';
+import { useSession } from '@/core/data/SessionContext';
 import { Copy, Shield, AlertTriangle } from 'lucide-react';
 
 const RANK_OPTIONS = ['FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
@@ -24,6 +25,7 @@ function userStatus(u) {
 export default function KeyManagement() {
   const ctx = useOutletContext() || {};
   const myCallsign = ctx.callsign || 'UNKNOWN';
+  const { isAdmin } = useSession();
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,6 +99,22 @@ export default function KeyManagement() {
     REGISTERED: '#C8A84B',
     REVOKED: '#C0392B',
   };
+
+  if (!isAdmin) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100%', width: '100%', background: '#0A0908',
+      }}>
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
+          color: '#C8A84B', letterSpacing: '0.2em', textTransform: 'uppercase',
+        }}>
+          ACCESS DENIED — PIONEER CLEARANCE REQUIRED
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="nexus-page-enter" style={{ padding: '24px 32px', maxWidth: 1100, margin: '0 auto' }}>

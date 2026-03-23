@@ -26,8 +26,8 @@ async function signValue(value) {
   return toBase64Url(new Uint8Array(sig));
 }
 
-async function createSessionToken(callsign) {
-  const payload = { callsign, iat: Date.now(), exp: Date.now() + SESSION_MAX_AGE * 1000 };
+async function createSessionToken(callsign, is_admin) {
+  const payload = { callsign, is_admin: !!is_admin, iat: Date.now(), exp: Date.now() + SESSION_MAX_AGE * 1000 };
   const body = toBase64Url(enc.encode(JSON.stringify(payload)));
   const signature = await signValue(body);
   return `${body}.${signature}`;
@@ -85,13 +85,17 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'invalid_credentials' }, { status: 401 });
   }
 
-  // Update last_seen
+  // Compute admin flag
+  const is_admin = (user.nexus_rank === 'PIONEER' || user.callsign === 'SYSTEM_ADMIN');
+
+  // Update last_seen and sync is_admin
   await base44.asServiceRole.entities.NexusUser.update(user.id, {
     last_seen_at: new Date().toISOString(),
+    is_admin,
   });
 
   // Create session
-  const token = await createSessionToken(user.callsign);
+  const token = await createSessionToken(user.callsign, is_admin);
   const headers = new Headers({ 'Cache-Control': 'no-store' });
   headers.append('Set-Cookie', buildCookie(SESSION_COOKIE_NAME, token, req, SESSION_MAX_AGE));
 
@@ -100,5 +104,6 @@ Deno.serve(async (req) => {
     isNew: false,
     onboarding_complete: user.onboarding_complete ?? false,
     nexus_rank: user.nexus_rank || 'AFFILIATE',
+    is_admin,
   }, { headers });
 });
