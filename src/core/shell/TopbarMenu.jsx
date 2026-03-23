@@ -17,28 +17,28 @@ export function LayoutButton({ active, title, onClick, icon }) {
       style={{
         width: 30,
         height: 28,
-        borderRadius: 3,
-        border: `0.5px solid ${active ? 'rgba(192,57,43,0.5)' : 'transparent'}`,
+        borderRadius: 2,
+        border: `0.5px solid ${active ? 'rgba(200,170,100,0.3)' : 'transparent'}`,
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         transition: 'all 0.12s',
-        background: active ? 'rgba(192,57,43,0.12)' : 'transparent',
-        color: active ? '#E8E4DC' : '#7A7470',
+        background: active ? 'rgba(200,170,100,0.08)' : 'transparent',
+        color: active ? '#C8A84B' : '#5A5850',
       }}
       onMouseEnter={(event) => {
         if (!active) {
-          event.currentTarget.style.background = 'rgba(200,170,100,0.07)';
-          event.currentTarget.style.borderColor = 'rgba(200,168,75,0.18)';
-          event.currentTarget.style.color = '#E8E4DC';
+          event.currentTarget.style.background = 'rgba(200,170,100,0.06)';
+          event.currentTarget.style.borderColor = 'rgba(200,170,100,0.15)';
+          event.currentTarget.style.color = '#C8A84B';
         }
       }}
       onMouseLeave={(event) => {
         if (!active) {
           event.currentTarget.style.background = 'transparent';
           event.currentTarget.style.borderColor = 'transparent';
-          event.currentTarget.style.color = '#7A7470';
+          event.currentTarget.style.color = '#5A5850';
         }
       }}
     >
@@ -62,7 +62,7 @@ export function DropdownContainer({ children, width }) {
         minWidth: width || 180,
         padding: '5px 0',
         zIndex: 100,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 40px rgba(192,57,43,0.08), inset 0 1px 0 rgba(232,228,220,0.05)',
+        /* no box-shadow */
       }}
     >
       {children}
@@ -158,7 +158,7 @@ export function ChangelogPanel({ onClose }) {
         flexDirection: 'column',
         overflow: 'hidden',
         zIndex: 160,
-        boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(192,57,43,0.10), inset 0 1px 0 rgba(232,228,220,0.06)',
+        /* no box-shadow */
       }}
     >
       <div

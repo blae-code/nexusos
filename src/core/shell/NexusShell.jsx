@@ -281,47 +281,7 @@ export default function NexusShell() {
       padding: 5,
     }}>
       <div className="nexus-shell-frame">
-        {IS_DEV_MODE ? (
-          <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-            <div
-              style={{
-                height: 22,
-                background: 'rgba(var(--warn-rgb), 0.07)',
-                borderBottom: '0.5px solid rgba(var(--warn-rgb), 0.22)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10,
-                flexShrink: 0,
-              }}
-            >
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-              <span style={{ fontSize: 9, color: 'var(--warn)', letterSpacing: '0.18em', userSelect: 'none' }}>
-                {IS_SHARED_SANDBOX_MODE
-                  ? 'COLLABORATION SANDBOX · SYNTHETIC DATA · CHANGES SHARED ACROSS PREVIEW USERS'
-                  : 'SIMULATION ENVIRONMENT · SYNTHETIC DATA · ALL CHANGES RESET ON TAB CLOSE'}
-              </span>
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
-            </div>
-            {IS_SHARED_SANDBOX_MODE && sandboxMeta?.persistence === 'memory' ? (
-              <div
-                style={{
-                  height: 24,
-                  background: 'rgba(var(--danger-rgb), 0.12)',
-                  borderBottom: '0.5px solid rgba(var(--danger-rgb), 0.28)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0 16px',
-                }}
-              >
-                <span style={{ fontSize: 9, color: 'var(--danger)', letterSpacing: '0.14em', textAlign: 'center' }}>
-                  KV NOT CONFIGURED · SHARED SANDBOX IS RUNNING IN MEMORY ONLY · COLLABORATION STATE MAY RESET OR SPLIT ACROSS INSTANCES
-                </span>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+
         {isPreview ? (
           <div
             style={{
@@ -350,28 +310,7 @@ export default function NexusShell() {
         <div className="nexus-shell-body">
           <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
           <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative' }}>
-            {IS_DEV_MODE ? (
-              <div
-                aria-hidden="true"
-                style={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%) rotate(-25deg)',
-                  fontSize: 110,
-                  fontWeight: 700,
-                  color: 'rgba(var(--warn-rgb), 0.028)',
-                  letterSpacing: '0.45em',
-                  pointerEvents: 'none',
-                  whiteSpace: 'nowrap',
-                  userSelect: 'none',
-                  zIndex: 0,
-                  fontFamily: 'var(--font)',
-                }}
-              >
-                SIMULATION
-              </div>
-            ) : null}
+
             <AppErrorBoundary compact>
               <Outlet context={outletContext} />
             </AppErrorBoundary>

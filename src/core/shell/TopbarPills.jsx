@@ -13,7 +13,33 @@ export function StatusPill({ verseStatus }) {
     return <div className="nexus-pill nexus-pill-warn">DEGRADED</div>;
   }
 
-  return <div className="nexus-pill nexus-pill-live">LIVE {VERSE_BUILD_LABEL}</div>;
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+      padding: '3px 8px',
+      background: 'rgba(192,57,43,0.2)',
+      border: '0.5px solid #C0392B',
+      borderRadius: 2,
+      fontFamily: "'Barlow Condensed', sans-serif",
+      fontWeight: 600,
+      fontSize: 11,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      color: '#C0392B',
+    }}>
+      <span style={{
+        width: 6,
+        height: 6,
+        borderRadius: '50%',
+        background: '#C0392B',
+        animation: 'pulse 2s ease-in-out infinite',
+        flexShrink: 0,
+      }} />
+      LIVE {VERSE_BUILD_LABEL}
+    </div>
+  );
 }
 
 export function VersionPill({ version, full, date }) {

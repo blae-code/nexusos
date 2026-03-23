@@ -142,13 +142,14 @@ scrollbar-color: var(--b2) var(--bg1);
   font-size: 9px;
   letter-spacing: .1em;
   padding: 3px 8px;
-  border-radius: 3px;
+  border-radius: 2px;
   border: 0.5px solid;
 }
 .nexus-pill-live {
-  background: var(--live-bg);
-  color: var(--live);
-  border-color: var(--live-b);
+  background: rgba(192,57,43,0.2);
+  color: #C0392B;
+  border-color: #C0392B;
+  border-radius: 2px;
 }
 .nexus-pill-warn {
   background: var(--warn-bg);
@@ -505,4 +506,9 @@ select.error:focus {
 
 [data-loading="false"] {
   animation: nexus-fade-in 0.15s ease-out both;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
