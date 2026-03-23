@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { authApi } from '@/core/data/auth-api';
 import { Copy, AlertTriangle, CheckCircle } from 'lucide-react';
 
 function buildStars() {
@@ -35,29 +35,34 @@ export default function Setup() {
   const handleBootstrap = async ({ recovery = false } = {}) => {
     setState('loading');
     setErrorMsg('');
-    const payload = recovery ? { recovery_token: recoveryToken.trim() } : {};
-    const res = await base44.functions.invoke('authBootstrap', payload);
-    const data = res.data;
+    try {
+      const data = await authApi.bootstrapSystemAdmin({
+        recoveryToken: recovery ? recoveryToken.trim() : undefined,
+      });
 
-    if (data?.success) {
-      setKey(data.key);
-      setLoginName(data.login_name || data.username || 'system-admin');
-      setCallsign(data.callsign || 'SYSTEM-ADMIN');
-      setRecoveryEnabled(Boolean(data.recovery_enabled));
-      setState('success');
-    } else if (data?.error === 'already_bootstrapped') {
-      setLoginName(data.login_name || data.username || 'system-admin');
-      setCallsign(data.callsign || 'SYSTEM-ADMIN');
-      setRecoveryEnabled(Boolean(data.recovery_enabled));
-      setState('already');
-    } else if (data?.error === 'invalid_recovery_token') {
-      setLoginName(data.login_name || data.username || 'system-admin');
-      setCallsign(data.callsign || 'SYSTEM-ADMIN');
-      setRecoveryEnabled(true);
-      setErrorMsg(data?.message || 'Recovery token rejected.');
-      setState('error');
-    } else {
-      setErrorMsg(data?.message || data?.error || 'Bootstrap failed.');
+      if (data?.key) {
+        setKey(data.key);
+        setLoginName(data.login_name || data.username || 'system-admin');
+        setCallsign(data.callsign || 'SYSTEM-ADMIN');
+        setRecoveryEnabled(Boolean(data.recovery_enabled));
+        setState('success');
+      } else if (data?.error === 'already_bootstrapped') {
+        setLoginName(data.login_name || data.username || 'system-admin');
+        setCallsign(data.callsign || 'SYSTEM-ADMIN');
+        setRecoveryEnabled(Boolean(data.recovery_enabled));
+        setState('already');
+      } else if (data?.error === 'invalid_recovery_token') {
+        setLoginName(data.login_name || data.username || 'system-admin');
+        setCallsign(data.callsign || 'SYSTEM-ADMIN');
+        setRecoveryEnabled(true);
+        setErrorMsg(data?.message || 'Recovery token rejected.');
+        setState('error');
+      } else {
+        setErrorMsg(data?.message || data?.error || 'Bootstrap failed.');
+        setState('error');
+      }
+    } catch (error) {
+      setErrorMsg(error?.message || 'Bootstrap failed.');
       setState('error');
     }
   };
