@@ -1,16 +1,4 @@
-import { sessionNoStoreHeaders } from '../_shared/auth.ts';
-
-const DEFAULT_INVITE_URL = 'https://discord.gg/redscar';
-const DEFAULT_SUPPORT_CHANNEL = '#nexusos-ops';
-const DEFAULT_GUILD_LABEL = 'REDSCAR NOMADS';
-
-function hasEnv(name: string) {
-  return Boolean(Deno.env.get(name)?.trim());
-}
-
-function getOptionalEnv(name: string, fallback: string) {
-  return Deno.env.get(name)?.trim() || fallback;
-}
+import { sessionNoStoreHeaders } from './_shared/issuedKey.ts';
 
 Deno.serve((req: Request) => {
   if (req.method !== 'GET') {
@@ -20,27 +8,18 @@ Deno.serve((req: Request) => {
     });
   }
 
-  const oauthReady = [
-    'DISCORD_CLIENT_ID',
-    'DISCORD_CLIENT_SECRET',
-    'DISCORD_REDIRECT_URI',
-    'DISCORD_GUILD_ID',
-    'DISCORD_BOT_TOKEN',
-    'SESSION_SIGNING_SECRET',
-    'APP_URL',
-  ].every(hasEnv);
+  const ready = Boolean(Deno.env.get('SESSION_SIGNING_SECRET')?.trim());
 
   return Response.json({
-    oauth_ready: oauthReady,
-    requires_membership: true,
-    guild_label: getOptionalEnv('NEXUSOS_GUILD_LABEL', DEFAULT_GUILD_LABEL),
-    support_channel_label: getOptionalEnv('NEXUSOS_SUPPORT_CHANNEL_LABEL', DEFAULT_SUPPORT_CHANNEL),
-    invite_url: getOptionalEnv('DISCORD_INVITE_URL', DEFAULT_INVITE_URL),
+    ok: ready,
+    auth_mode: 'issued_key',
+    remember_me_supported: true,
+    status: ready ? 'ok' : 'error',
     onboarding_steps: [
-      'Join the Redscar Discord server.',
-      'Make sure you have a Redscar member role in Discord.',
-      'Return here and continue with Discord to launch NexusOS.',
-      'After first login, confirm or edit your seeded callsign in Profile Settings.',
+      'Receive your issued username, rank, and auth key from a Pioneer.',
+      'Sign in with your issued username and auth key.',
+      'Complete onboarding on first login only.',
+      'If you lose your auth key, ask a Pioneer to revoke and regenerate it.',
     ],
   }, {
     headers: sessionNoStoreHeaders(),

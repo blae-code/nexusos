@@ -10,6 +10,8 @@ Deno.serve((req) => {
 
   return Response.json({
     ok: ready,
+    auth_mode: 'issued_key',
+    remember_me_supported: true,
     status: ready ? 'ok' : 'error',
   }, { headers: { 'Cache-Control': 'no-store' } });
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { DollarSign, Layers, Package, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
+import { DollarSign, Layers, Package, AlertTriangle, Clock } from 'lucide-react';
 
 function fmt(n) {
   if (n == null) return '—';

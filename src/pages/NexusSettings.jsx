@@ -50,7 +50,7 @@ export default function NexusSettings() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const layoutMode = outletContext.layoutMode;
   const setLayoutMode = outletContext.setLayoutMode;
-  const isAdmin = source === 'admin';
+  const isSystemAdmin = source === 'admin';
   const {
     preferences: notifications,
     permission: notificationPermission,
@@ -58,17 +58,17 @@ export default function NexusSettings() {
     setPreference,
     requestPermission,
   } = useNotificationPreferences();
-  const [draftCallsign, setDraftCallsign] = useState(isAdmin ? '' : (user?.callsign || ''));
+  const [draftCallsign, setDraftCallsign] = useState(isSystemAdmin ? '' : (user?.callsign || ''));
   const [savingCallsign, setSavingCallsign] = useState(false);
   const [callsignSaved, setCallsignSaved] = useState(false);
   const [requestingPermission, setRequestingPermission] = useState(false);
 
   useEffect(() => {
-    setDraftCallsign(isAdmin ? '' : (user?.callsign || ''));
-  }, [user?.callsign, isAdmin]);
+    setDraftCallsign(isSystemAdmin ? '' : (user?.callsign || ''));
+  }, [user?.callsign, isSystemAdmin]);
 
-  const rankColor = RANK_COLORS[isAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')];
-  const canEditCallsign = !isAdmin && Boolean(user?.id);
+  const rankColor = RANK_COLORS[isSystemAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE')];
+  const canEditCallsign = !isSystemAdmin && Boolean(user?.id);
 
   const toggleNotif = (key) => setPreference(key, (current) => !current);
 
@@ -107,17 +107,35 @@ export default function NexusSettings() {
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: rankColor }} />
           <div>
             <div style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600 }}>
-              {isAdmin ? 'System Administrator' : (user?.callsign || '—')}
+              {isSystemAdmin ? 'System Administrator' : (user?.callsign || '—')}
             </div>
             <div style={{ color: rankColor, fontSize: 10, letterSpacing: '0.08em' }}>
-              {isAdmin ? 'SUDO' : (user?.rank || '—')}
+              {isSystemAdmin ? 'SUDO' : (user?.rank || '—')}
             </div>
           </div>
         </div>
 
+        {!isSystemAdmin && (
+          <div>
+            <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 6 }}>Issued Username</div>
+            <div style={{
+              padding: '8px 10px',
+              background: 'var(--bg2)',
+              border: '0.5px solid var(--b1)',
+              borderRadius: 3,
+              color: 'var(--t1)',
+              fontFamily: 'monospace',
+              fontSize: 11,
+            }}>
+              {user?.login_name || user?.username || '—'}
+            </div>
+            <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
+              Your issued username is your fixed login identity. It does not change when you update your callsign.
+            </div>
+          </div>
+        )}
 
-
-        {!isAdmin && (
+        {!isSystemAdmin && (
           <div>
             <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 8 }}>Callsign</div>
             <div className="flex items-center gap-2">
@@ -140,8 +158,14 @@ export default function NexusSettings() {
               </button>
             </div>
             <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
-              First login seeds this from your Discord server nickname. After that, NexusOS keeps the saved callsign.
+              Your callsign is the display name used throughout NexusOS. It can be changed here without changing your login or auth key.
             </div>
+          </div>
+        )}
+
+        {!isSystemAdmin && (
+          <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+            Auth keys cannot be changed from this screen. If you lose your auth key, ask a Pioneer to revoke and regenerate it.
           </div>
         )}
       </Section>

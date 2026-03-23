@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Zap, Shield, Users, Package, ChevronDown, ChevronUp, Edit2, Check } from 'lucide-react';
+import { Zap, Users, Package, ChevronDown, ChevronUp, Edit2 } from 'lucide-react';
 
 const STATUS_CONFIG = {
   AVAILABLE:   { color: '#4AE830', bg: 'rgba(74,232,48,0.08)',   border: 'rgba(74,232,48,0.25)',   label: 'AVAILABLE',   stripe: '#4AE830' },

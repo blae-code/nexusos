@@ -95,6 +95,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
   });
 
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [publishedOpId, setPublishedOpId] = useState(null);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -155,6 +156,7 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
     }
 
     setSaving(true);
+    setError('');
 
     try {
       const payload = {
@@ -171,16 +173,18 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         phase_current:      0,
         status:             publish ? 'PUBLISHED' : 'DRAFT',
         created_by:         selfDiscordId,
-        reminders_enabled:  settings.reminder24h || settings.reminder1h,
-        post_phase_updates: settings.postPhaseUpdates,
-        auto_wrap_up:       settings.autoWrapUp,
-        at_here_on_go:      isPioneer ? settings.atHereOnGo : false,
+        require_discord_rsvp: settings.requireDiscordRsvp,
+        post_to_ops_board:    settings.postToOpsBoard,
+        allow_late_joins:     settings.allowLateJoins,
+        hide_from_non_members: settings.hideFromNonMembers,
+        log_loot_tally:       settings.logLootTally,
+        calc_split_on_close:  settings.calcSplitOnClose,
         session_log:        [],
       };
 
       const op = await base44.entities.Op.create(payload);
 
-      if (publish && settings.createDiscordEvent) {
+      if (publish && settings.postToOpsBoard) {
         base44.functions.invoke('heraldBot', {
           action:  'publishOp',
           payload: { ...payload, id: op.id },
@@ -202,9 +206,9 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
       }
     } catch {
       setError('Failed to save op. Please try again.');
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   };
 
   // ── Guard — Scout+ only ───────────────────────────

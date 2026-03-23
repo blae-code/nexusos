@@ -1,59 +1,49 @@
-Purpose: Personal and org financial management.
-Inspired by EVE Tycoon and EVE market tools.
+# Commerce — App Context
 
-Modules:
-  Wallet — personal aUEC balance, transaction
-    history, pending op payouts from split calc
-  Coffer — org treasury, contribution history,
-    approved expenditure records (surfaces the
-    existing CofferLog entity properly)
-  Trade — commodity prices via StarHead and UEX
-    APIs, buy/sell route analysis, arbitrage
-    finder between systems
-  Contracts — item exchange listings, auctions
-    with bid history, courier contracts with
-    collateral system
+**Route:** `/app/industry/commerce`
+**Directory:** `src/apps/commerce/` plus [Commerce.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Commerce.jsx)
+**Status:** COMPLETE for sandbox-backed use; graceful read-only fallback when wallet/contract entities are missing in a non-sandbox deployment
 
-Entities owned:
-  Wallet: member_id, balance_aUEC, last_updated
-  Transaction: wallet_id, type (CREDIT/DEBIT/
-    PENDING), amount_aUEC, description,
-    reference_id, reference_type, created_at
-  Contract: contract_type (EXCHANGE/COURIER/
-    AUCTION), status (OPEN/ACTIVE/IN_TRANSIT/
-    COMPLETE/FAILED/EXPIRED), issuer_id,
-    assignee_id, title, description,
-    reward_aUEC, collateral_aUEC,
-    cargo_manifest (array), pickup_location,
-    delivery_location, expires_at, created_at,
-    accepted_at, completed_at
+## Purpose
 
-Entities read (not owned):
-  NexusUser — callsign, nexus_rank
-  CofferLog — existing entity surfaced here
-  Material — for cargo appraisal valuations
+Commerce is the finance layer of NexusOS. It owns:
+- Personal wallet visibility and transaction logging
+- Org treasury handoff into the Coffer ledger
+- Trade planning visibility and cargo-profit snapshots
+- Contract issuance for courier, exchange, and auction flows
 
-External integrations:
-  StarHead API — live commodity prices (primary)
-  UEX API — commodity prices (secondary)
-  Reference: docs/integrations.md
+## Active Modules
 
-Cross-app integrations:
-  OPERATIONS — split calculator writes to Wallet
-  LOGISTICS — contract fulfilment updates here
-  INDUSTRY — material valuations for appraisal
+- `Wallet` — active member balance, pending entries, manual credits/debits
+- `Coffer` — deep link into the dedicated coffer ledger route
+- `Trade Desk` — route map plus logged cargo-profit context
+- `Contracts` — issue, accept, complete, and expire finance work orders
 
-Known issues / next tasks:
-  1. StarHead API client to be built in
-     src/core/data/starhead.js
-  2. UEX API client in src/core/data/uex.js
-  3. Wallet entity needs to be added to Base44
-     data model
-  4. Transaction entity needs to be added
-  5. Contract entity needs to be added
+## Entities
 
-What NOT to touch:
-  CofferLog entity — owned by INDUSTRY/OPERATIONS
-  NexusUser entity — owned by core shell
-  Any src/apps/operations/ files
-  Any src/apps/industry/ files
+Primary owned entities:
+- `Wallet`
+- `Transaction`
+- `Contract`
+
+Read dependencies:
+- `NexusUser`
+- `CofferLog`
+- `CargoLog`
+
+## Cross-App Links
+
+- `OPERATIONS` writes split outcomes that can be reflected in wallet activity and the coffer
+- `LOGISTICS` consumes courier contracts and handles fulfilment / dispatch
+- `INDUSTRY` continues to own the coffer ledger and material-value context
+
+## Current Implementation Notes
+
+- The routed page lives in [Commerce.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Commerce.jsx); `src/apps/commerce/components/TradeRouteMap.jsx` is now actively used there.
+- In sandbox mode, wallet/transaction/contract CRUD is fully backed by the generic entity client.
+- In deployments where those entities are unavailable, the page shows a warning and degrades to read-only behavior instead of crashing.
+
+## Remaining External Work
+
+- StarHead / UEX live market clients are still optional follow-on work.
+- Real non-sandbox deployments still require the corresponding Base44 entity schema to exist if write access is desired.

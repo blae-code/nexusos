@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/core/data/base44Client';
-import { useSession } from '@/core/data/SessionContext';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, AlertCircle, Gauge } from 'lucide-react';
 
@@ -26,14 +25,16 @@ const CLASS_ICONS = {
 };
 
 export default function OrgFleet() {
-  const { user } = useSession();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(false);
 
   const { data: ships = [], isLoading, error } = useQuery({
     queryKey: ['org-ships'],
-    queryFn: () => base44.entities.OrgShip.list('-last_synced', 200),
+    queryFn: async () => {
+      const result = await base44.entities.OrgShip.list('-last_synced', 200);
+      return Array.isArray(result) ? result : [];
+    },
   });
 
   const syncMutation = useMutation({

@@ -6,6 +6,7 @@ const srcRoot = path.join(repoRoot, 'src');
 const indexHtmlPath = path.join(repoRoot, 'index.html');
 const allowedDirectStorage = new Set([
   path.join(srcRoot, 'lib', 'safe-storage.js'),
+  path.join(srcRoot, 'core', 'data', 'safe-storage.js'),
 ]);
 
 function readText(filePath) {
@@ -61,7 +62,7 @@ for (const filePath of srcFiles) {
   }
 
   if (!allowedDirectStorage.has(filePath) && (/\bwindow\.localStorage\b/.test(source) || /\blocalStorage\b/.test(source) || /\bsessionStorage\b/.test(source))) {
-    failures.push(`${relativePath} touches browser storage directly. Route storage access through src/lib/safe-storage.js.`);
+    failures.push(`${relativePath} touches browser storage directly. Route storage access through the safe-storage helper.`);
   }
 }
 

@@ -1,78 +1,48 @@
-Purpose: Cargo movement, hauling jobs, and
-consignment operations. Inspired by EVE
-Online's courier contract system and
-professional hauling services Push X and
-Red Frog.
+# Logistics — App Context
 
-Modules:
-  Cargo Board — post and claim hauling jobs,
-    risk-tiered GREEN/AMBER/RED, collateral
-    required based on tier and cargo value,
-    visible to Scout rank and above
-  Manifest — active hauls in progress, pickup
-    confirmed, in-transit, delivered, failed.
-    Both parties must confirm delivery.
-    Failed delivery triggers automatic
-    collateral transfer via Commerce Wallet.
-  Consignment — member deposits goods with org
-    for sale on their behalf, org takes
-    configurable commission rate, proceeds
-    auto-transferred to member Wallet on sale
-  Dispatch — assign org ships and crew to
-    active cargo jobs, reads fleet data from
-    ARMORY, Pioneer/Founder rank only
+**Route:** `/app/industry/logistics`
+**Directory:** `src/apps/logistics/` plus [Logistics.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Logistics.jsx)
+**Status:** COMPLETE for sandbox-backed use; graceful read-only fallback when logistics entities are missing in a non-sandbox deployment
 
-Cargo appraisal tool (available in Cargo Board
-and Manifest views):
-  Paste a cargo manifest of material names and
-  quantities, system cross-references Material
-  entity and current StarHead/UEX prices,
-  returns instant aUEC valuation.
+## Purpose
 
-Risk tier system:
-  GREEN — safe systems, cargo under 500k aUEC,
-    10% collateral required
-  AMBER — contested systems or 500k–5M aUEC,
-    25% collateral required
-  RED — active PvP zones or over 5M aUEC,
-    50% collateral, Voyager/Pioneer only
+Logistics is the cargo-movement workspace for NexusOS. It now covers:
+- Cargo job posting and claiming
+- Manifest progression from claim to delivery confirmation
+- Consignment intake, listing, sale, and return handling
+- Dispatch planning against available org haulers
 
-Entities owned:
-  CargoJob: job_type (HAUL/COLLECT/DELIVER),
-    status (OPEN/CLAIMED/IN_TRANSIT/DELIVERED/
-    FAILED/CANCELLED), risk_tier (GREEN/AMBER/
-    RED), issuer_id, courier_id,
-    cargo_manifest (array), pickup_location,
-    delivery_location, reward_aUEC,
-    collateral_aUEC, claimed_at, delivered_at,
-    confirmed_at, failed_at, notes
+## Active Modules
 
-Entities read (not owned):
-  NexusUser — callsign, rank
-  Material — for cargo appraisal
-  Contract — from COMMERCE
-  FleetBuild — from ARMORY for Dispatch
+- `Cargo Board` — post open haul / collect / deliver work with auto collateral guidance
+- `Manifest` — advance jobs through claimed, in-transit, delivered, and confirmed states
+- `Consignment` — track seller goods, commission rate, and payout value
+- `Dispatch` — assign available ships from org fleet into active cargo jobs
 
-External integrations:
-  StarHead API — cargo appraisal pricing
-  UEX API — secondary price source
-  Reference: docs/integrations.md
+## Entities
 
-Cross-app integrations:
-  COMMERCE — collateral transfers on failure,
-    consignment proceeds to Wallet
-  ARMORY — Dispatch reads fleet assets
-  INDUSTRY — material valuations for appraisal
+Primary owned entities:
+- `CargoJob`
+- `Consignment`
 
-Known issues / next tasks:
-  1. CargoJob entity needs to be added to
-     Base44 data model
-  2. Collateral transfer logic requires Wallet
-     entity (Commerce) to exist first
-  3. Dispatch module requires FleetBuild entity
-     (ARMORY) to exist first — Phase 2
+Read dependencies:
+- `OrgShip`
+- `Material`
+- `GameCacheCommodity`
 
-What NOT to touch:
-  Wallet/Transaction — owned by COMMERCE
-  FleetBuild — owned by ARMORY
-  NexusUser — owned by core shell
+## Cross-App Links
+
+- `COMMERCE` issues courier contracts and owns wallet-side finance state
+- `ARMORY` supplies org ship availability and capacity data
+- `INDUSTRY` contributes material and commodity value context for manifest appraisal
+
+## Current Implementation Notes
+
+- The routed page lives in [Logistics.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Logistics.jsx).
+- Manifest values are derived from material / commodity lookup data when available; missing pricing data degrades to ad hoc manifests instead of failing.
+- Dispatch assignments persist ship name / id directly onto the job record in sandbox mode so the workflow remains testable without waiting on a separate FleetBuild surface.
+
+## Remaining External Work
+
+- Real non-sandbox deployments still require `CargoJob` and `Consignment` entity schema to exist if write access is desired.
+- Commerce-side automated collateral transfer and seller wallet settlement remain deeper finance integrations beyond the current routed workflow.

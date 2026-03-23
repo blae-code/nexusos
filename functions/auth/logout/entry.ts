@@ -1,26 +1,18 @@
 /**
- * POST /auth/logout — Clear session cookie.
+ * POST /auth/logout — Clear issued-key session cookie.
  */
-const SESSION_COOKIE_NAME = 'nexus_member_session';
-
-function isSecure(req) {
-  const appUrl = Deno.env.get('APP_URL') || '';
-  return appUrl.startsWith('https://') || new URL(req.url).protocol === 'https:' || (req.headers.get('x-forwarded-proto') || '').includes('https');
-}
-
-function clearCookieHeader(headers, name, req) {
-  const parts = [`${name}=`, 'Path=/', 'SameSite=Lax', 'Max-Age=0', 'HttpOnly'];
-  if (isSecure(req)) parts.push('Secure');
-  headers.append('Set-Cookie', parts.join('; '));
-}
+import {
+  clearSessionCookie,
+  sessionNoStoreHeaders,
+} from '../_shared/issuedKey.ts';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
   }
 
-  const headers = new Headers({ 'Cache-Control': 'no-store' });
-  clearCookieHeader(headers, SESSION_COOKIE_NAME, req);
+  const headers = new Headers(sessionNoStoreHeaders());
+  clearSessionCookie(headers, req);
 
   return Response.json({ success: true }, { headers });
 });

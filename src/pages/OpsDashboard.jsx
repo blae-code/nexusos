@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/core/data/base44Client';
-import { Activity, AlertTriangle, Zap, Users, TrendingUp } from 'lucide-react';
+import { Activity, Zap, Users, TrendingUp } from 'lucide-react';
 
 const OP_STATUS_COLORS = {
   LIVE: { bg: 'rgba(74,232,48,0.1)', text: '#4AE830', border: 'rgba(74,232,48,0.3)' },
@@ -19,25 +19,37 @@ const FLEET_STATUS_COLORS = {
 export default function OpsDashboard() {
   const { data: ops = [] } = useQuery({
     queryKey: ['ops-live'],
-    queryFn: () => base44.entities.Op.filter({ status: 'LIVE' }),
+    queryFn: async () => {
+      const result = await base44.entities.Op.filter({ status: 'LIVE' });
+      return Array.isArray(result) ? result : [];
+    },
     refetchInterval: 30000,
   });
 
   const { data: publishedOps = [] } = useQuery({
     queryKey: ['ops-published'],
-    queryFn: () => base44.entities.Op.filter({ status: 'PUBLISHED' }),
+    queryFn: async () => {
+      const result = await base44.entities.Op.filter({ status: 'PUBLISHED' });
+      return Array.isArray(result) ? result : [];
+    },
     refetchInterval: 30000,
   });
 
   const { data: ships = [] } = useQuery({
     queryKey: ['org-ships'],
-    queryFn: () => base44.entities.OrgShip.list('-last_synced', 200),
+    queryFn: async () => {
+      const result = await base44.entities.OrgShip.list('-last_synced', 200);
+      return Array.isArray(result) ? result : [];
+    },
     refetchInterval: 45000,
   });
 
   const { data: members = [] } = useQuery({
     queryKey: ['nexus-members'],
-    queryFn: () => base44.entities.NexusUser.list('-joined_at', 200),
+    queryFn: async () => {
+      const result = await base44.entities.NexusUser.list('-joined_at', 200);
+      return Array.isArray(result) ? result : [];
+    },
     refetchInterval: 60000,
   });
 
@@ -48,7 +60,7 @@ export default function OpsDashboard() {
       const allOps = [...ops, ...publishedOps];
       for (const op of allOps) {
         const opRsvps = await base44.entities.OpRsvp.filter({ op_id: op.id });
-        allRsvps.push(...opRsvps);
+        allRsvps.push(...(Array.isArray(opRsvps) ? opRsvps : []));
       }
       return allRsvps;
     },

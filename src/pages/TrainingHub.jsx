@@ -12,6 +12,7 @@ const TRAINING_MODULES = [
     color: '#C0392B',
     duration: '8 min',
     lessons: 4,
+    href: '/app/ops',
   },
   {
     id: 'industry-101',
@@ -22,6 +23,7 @@ const TRAINING_MODULES = [
     color: '#C8A84B',
     duration: '10 min',
     lessons: 5,
+    href: '/app/industry',
   },
   {
     id: 'scout-101',
@@ -32,6 +34,7 @@ const TRAINING_MODULES = [
     color: '#4A8C5C',
     duration: '7 min',
     lessons: 3,
+    href: '/app/scout',
   },
   {
     id: 'commerce-101',
@@ -42,6 +45,7 @@ const TRAINING_MODULES = [
     color: '#5A7A90',
     duration: '9 min',
     lessons: 4,
+    href: '/app/industry/commerce',
   },
   {
     id: 'crew-101',
@@ -52,6 +56,7 @@ const TRAINING_MODULES = [
     color: '#C0392B',
     duration: '6 min',
     lessons: 3,
+    href: '/app/armory/schedule',
   },
   {
     id: 'armory-101',
@@ -62,6 +67,7 @@ const TRAINING_MODULES = [
     color: '#9A9488',
     duration: '6 min',
     lessons: 3,
+    href: '/app/armory',
   },
 ];
 
@@ -152,7 +158,7 @@ function ModuleCard({ module, onSelect }) {
   );
 }
 
-function TrainingModal({ module, onClose }) {
+function TrainingModal({ module, onClose, onLaunch }) {
   if (!module) return null;
 
   const Icon = module.icon;
@@ -293,6 +299,8 @@ function TrainingModal({ module, onClose }) {
                     </div>
                   </div>
                   <button
+                    type="button"
+                    onClick={() => onLaunch(module.href)}
                     style={{
                       padding: '6px 12px',
                       background: `${module.color}20`,
@@ -315,6 +323,8 @@ function TrainingModal({ module, onClose }) {
 
           {/* CTA */}
           <button
+            type="button"
+            onClick={() => onLaunch(module.href)}
             style={{
               marginTop: 24,
               width: '100%',
@@ -340,7 +350,17 @@ function TrainingModal({ module, onClose }) {
 }
 
 export default function TrainingHub() {
+  const navigate = useNavigate();
   const [selectedModule, setSelectedModule] = useState(null);
+
+  const handleLaunch = (href) => {
+    if (!href) {
+      return;
+    }
+
+    setSelectedModule(null);
+    navigate(href);
+  };
 
   return (
     <div
@@ -487,7 +507,7 @@ export default function TrainingHub() {
       </div>
 
       {/* Modal */}
-      <TrainingModal module={selectedModule} onClose={() => setSelectedModule(null)} />
+      <TrainingModal module={selectedModule} onClose={() => setSelectedModule(null)} onLaunch={handleLaunch} />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap');

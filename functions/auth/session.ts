@@ -1,7 +1,8 @@
 import {
-  resolveMemberSession,
+  resolveIssuedKeySession,
   sessionNoStoreHeaders,
-} from '../_shared/auth.ts';
+  toSessionResponse,
+} from './_shared/issuedKey.ts';
 
 Deno.serve(async (req: Request) => {
   if (req.method !== 'GET') {
@@ -12,16 +13,16 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const result = await resolveMemberSession(req);
+    const resolved = await resolveIssuedKeySession(req);
 
-    if (!result) {
+    if (!resolved) {
       return Response.json({ authenticated: false }, {
         status: 401,
         headers: sessionNoStoreHeaders(),
       });
     }
 
-    return Response.json(result, {
+    return Response.json(toSessionResponse(resolved.user), {
       status: 200,
       headers: sessionNoStoreHeaders(),
     });

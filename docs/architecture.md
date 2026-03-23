@@ -5,10 +5,10 @@ NexusOS is a Base44-backed operations console for Redscar Nomads. The app is str
 ## Client Layers
 
 - `src/App.jsx` defines the public gate and authenticated `/app/*` route tree.
-- `src/lib/SessionContext.jsx` owns member/admin session hydration and gate enforcement.
-- `src/components/shell/*` provides the persistent shell, nav, topbar, alerts, and session-aware chrome.
-- `src/pages/*` contains routed surfaces for Industry, Op Board, Scout, Rescue, Coffer, Roster, Archive, Settings, and admin setup.
-- `src/app/modules/*` contains larger domain modules reused across routed pages, especially Op Board and Scout Intel.
+- `src/core/data/SessionContext.jsx` owns member/admin session hydration and gate enforcement.
+- `src/core/shell/*` provides the persistent shell, nav, topbar, alerts, and session-aware chrome.
+- `src/pages/*` contains routed surfaces for commerce, logistics, coffer, roster, archive, settings, admin setup, and shell-owned pages.
+- `src/apps/*` contains larger domain modules reused across routed pages, especially Industry Hub, Op Board, and Scout Intel.
 
 ## Visual Architecture Direction
 
@@ -17,8 +17,8 @@ The visual direction is now defined in two layers:
 - `NEXUSOS_AI_HANDOFF.md` is authoritative for design principles and sequencing.
 - `docs/design-system.md` is the implementation summary for the active repo.
 
-Current UI code still lives mainly under `src/components/shell/*`, `src/pages/*`,
-and `src/app/modules/*`, but future shared visual primitives should converge on:
+Current UI code still lives mainly under `src/core/shell/*`, `src/pages/*`,
+and `src/apps/*`, but future shared visual primitives should converge on:
 
 - `src/core/shell/components/AmbientBackground.jsx`
 - `src/core/shell/useOperationalState.js`
@@ -39,7 +39,7 @@ These targets support the current visual roadmap:
 
 ## Shared Data Model
 
-- `Op`, `OpRsvp`, `CraftQueue`, `RefineryOrder`, `ScoutDeposit`, and `NexusUser` are the primary Base44 entities used by the UI.
+- `Op`, `OpRsvp`, `CraftQueue`, `RefineryOrder`, `ScoutDeposit`, `NexusUser`, `Wallet`, `Transaction`, `Contract`, `CargoJob`, and `Consignment` are the main entities surfaced by the current UI.
 - Rescue supports a dual-mode path: if a `RescueCall` entity exists, the board behaves as shared org state; otherwise it falls back to browser-backed local state so the page still works in incomplete environments.
 - Route surfaces subscribe to entity updates where live state matters, especially Op Board, Coffer, Rescue, and Roster.
 
@@ -51,14 +51,14 @@ These targets support the current visual roadmap:
 
 ## Simulation / Demo Mode
 
-When `VITE_DEMO_MODE=true` (set in `.env`, baked into the build), `IS_DEV_MODE` in `src/lib/dev/index.js` is `true`. In this mode:
+When local simulation or temporary-access sandboxing is enabled through `VITE_DEMO_MODE`, `VITE_BYPASS_ACCESS_GATE`, `VITE_TEMP_ACCESS_MODE`, or the System Admin sandbox bootstrap, `IS_DEV_MODE` in `src/core/data/dev/index.js` is `true`. In this mode:
 
 - `authApi.getSession/logout/getHealth` short-circuit to in-memory mock responses; no real auth server is contacted.
-- `base44Client` returns `createMockBase44Client()` instead of the real SDK client. All entity CRUD works against an in-memory store (`src/lib/dev/mockStore.js`) seeded with synthetic data.
+- `base44Client` returns `createMockBase44Client()` or the shared sandbox client instead of the real SDK client. Local entity CRUD works against an in-memory store (`src/core/data/dev/mockStore.js`) seeded with synthetic data.
 - `SessionContext.refreshSession` skips the Base44 admin fallback fetches so the gate loads instantly.
 - The Access Gate shows a persona picker (Pioneer → Affiliate) instead of the Discord login button.
 - Shell chrome shows four SIMULATION indicators: amber banner above topbar, pulsing `SIM` pill in topbar, `SIM` foot at bottom of sidebar, diagonal watermark in content area.
-- To disable: set `VITE_DEMO_MODE=false` in `.env` and redeploy.
+- To disable: remove the relevant sandbox flag or runtime bypass toggle and redeploy or hard-refresh.
 
 ## Discord / Backend Functions
 

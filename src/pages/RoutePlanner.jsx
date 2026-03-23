@@ -20,8 +20,8 @@ const SHIP_CLASSES = ['Fighter', 'Heavy Fighter', 'Miner', 'Hauler', 'Salvager',
 export default function RoutePlanner() {
   const [selectedStations, setSelectedStations] = useState([]);
   const [shipClass, setShipClass] = useState('Hauler');
-  const [cargoAmount, setCargoAmount] = useState(100);
-  const [commodityPrice, setCommodityPrice] = useState(150);
+  const [cargoAmount, setCargoAmount] = useState('100');
+  const [commodityPrice, setCommodityPrice] = useState('150');
   const [route, setRoute] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,8 +48,8 @@ export default function RoutePlanner() {
       const res = await base44.functions.invoke('routePlanner', {
         stations: selectedStations,
         shipClass,
-        cargoAmount: parseInt(cargoAmount),
-        commodityPrice: parseFloat(commodityPrice),
+        cargoAmount: Number(cargoAmount),
+        commodityPrice: Number(commodityPrice),
       });
       setRoute(res.data?.route);
     } catch (err) {

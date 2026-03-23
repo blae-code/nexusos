@@ -30,8 +30,9 @@ export default function AccessGate() {
 
   const [stars, setStars] = useState([]);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [callsign, setCallsign] = useState('');
+  const [username, setUsername] = useState('');
   const [authKey, setAuthKey] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [systemReady, setSystemReady] = useState(null);
@@ -55,14 +56,13 @@ export default function AccessGate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!callsign.trim() || !authKey.trim() || submitting) return;
+    if (!username.trim() || !authKey.trim() || submitting) return;
 
     setSubmitting(true);
     setError('');
 
     try {
-      // Try login first
-      const loginRes = await authApi.login(callsign.trim(), authKey.trim());
+      const loginRes = await authApi.login(username.trim(), authKey.trim(), { rememberMe });
 
       if (loginRes.error === 'key_revoked') {
         setError('This access key has been revoked. Contact leadership.');
@@ -70,50 +70,21 @@ export default function AccessGate() {
         return;
       }
 
-      if (loginRes.error === 'invalid_credentials') {
-        // Try register
-        const regRes = await authApi.register(callsign.trim(), authKey.trim());
-
-        if (regRes.error === 'key_revoked') {
-          setError('This access key has been revoked. Contact leadership.');
-          setSubmitting(false);
-          return;
-        }
-
-        if (regRes.error === 'already_registered') {
-          setError('Invalid callsign or key.');
-          setSubmitting(false);
-          return;
-        }
-
-        if (regRes.error) {
-          setError('Invalid callsign or key.');
-          setSubmitting(false);
-          return;
-        }
-
-        if (regRes.success && regRes.isNew) {
-          await refreshSession();
-          window.location.assign(withAppBase('/onboarding'));
-          return;
-        }
-      }
-
       if (loginRes.error) {
-        setError('Invalid callsign or key.');
+        setError('Invalid username or auth key.');
         setSubmitting(false);
         return;
       }
 
       if (loginRes.success) {
         await refreshSession();
-        const dest = loginRes.onboarding_complete ? '/app/industry' : '/onboarding';
+        const dest = loginRes.onboarding_complete === false ? '/onboarding' : '/app/industry';
         window.location.assign(withAppBase(dest));
         return;
       }
 
       setError('Authentication failed. Try again.');
-    } catch (err) {
+    } catch {
       setError('Connection error. Try again.');
     }
 
@@ -216,16 +187,16 @@ export default function AccessGate() {
           fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: '14px', color: '#9A9488',
           lineHeight: 1.7, marginBottom: '32px', animation: 'panel-fade-in 0.8s ease-out 0.6s both',
         }}>
-          Enter your callsign and access key to launch NexusOS. Keys are issued by Redscar leadership.
+          Enter your issued username and auth key to launch NexusOS. Your initial username and callsign match when your invite is issued. After that, your callsign can change without changing your login.
         </div>
 
         {/* LOGIN FORM */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, animation: 'panel-fade-in 0.8s ease-out 0.7s both' }}>
           <input
             type="text"
-            value={callsign}
-            onChange={(e) => setCallsign(e.target.value)}
-            placeholder="ENTER CALLSIGN"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="ENTER USERNAME"
             autoComplete="username"
             style={{
               width: '100%', padding: '12px 16px', background: '#141410',
@@ -236,6 +207,42 @@ export default function AccessGate() {
             onFocus={(e) => { e.target.style.borderColor = 'rgba(192,57,43,0.5)'; }}
             onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.10)'; }}
           />
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            color: '#9A9488',
+            fontSize: '11px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            fontFamily: "'Barlow Condensed', sans-serif",
+          }}>
+            <button
+              type="button"
+              onClick={() => setRememberMe((current) => !current)}
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: 2,
+                border: `1px solid ${rememberMe ? 'rgba(192,57,43,0.6)' : 'rgba(200,170,100,0.16)'}`,
+                background: rememberMe ? '#C0392B' : 'transparent',
+                color: '#F0EDE5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                padding: 0,
+                fontSize: 10,
+                lineHeight: 1,
+              }}
+              aria-pressed={rememberMe}
+              aria-label="Remember me"
+            >
+              {rememberMe ? '✓' : ''}
+            </button>
+            <span>Remember Me On This Device</span>
+          </div>
 
           <input
             type="password"
@@ -255,7 +262,7 @@ export default function AccessGate() {
 
           <button
             type="submit"
-            disabled={submitting || !callsign.trim() || !authKey.trim()}
+            disabled={submitting || !username.trim() || !authKey.trim()}
             style={{
               display: 'block', width: '100%',
               background: submitting ? '#5A2620' : '#C0392B',
@@ -266,7 +273,7 @@ export default function AccessGate() {
               fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase',
               marginTop: '4px', transition: 'all 0.2s ease',
               boxShadow: '0 8px 24px rgba(192,57,43,0.3), inset 0 1px 0 rgba(255,255,255,0.12)',
-              opacity: (!callsign.trim() || !authKey.trim()) ? 0.5 : 1,
+              opacity: (!username.trim() || !authKey.trim()) ? 0.5 : 1,
               textShadow: '0 1px 2px rgba(0,0,0,0.2)',
             }}
             onMouseEnter={(e) => {

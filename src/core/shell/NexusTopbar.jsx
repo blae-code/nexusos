@@ -8,6 +8,7 @@ import { RankBadge } from '@/core/design';
 import { useSession } from '@/core/data/SessionContext';
 import { appVersion } from '@/core/data/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
+import { getActiveRescueCount, refreshRescueCalls } from '@/core/data/rescue-board-store';
 import { AltTabIcon, SecondMonitorIcon } from './NexusIcons';
 import { StatusPill, VersionPill } from './TopbarPills';
 import { LayoutButton, Divider, MenuLink, ChangelogPanel, DropdownContainer } from './TopbarMenu';
@@ -28,6 +29,8 @@ function getBreadcrumb(pathname, search) {
     coffer: 'Coffer',
     ledger: 'Material Ledger',
     commerce: 'Commerce',
+    logistics: 'Logistics',
+    cargo: 'Cargo Tracker',
     profit: 'Profit Calc',
   };
 
@@ -39,6 +42,7 @@ function getBreadcrumb(pathname, search) {
   const opsTabLabels = {
     rescue: 'Rescue Board',
     archive: 'Archive',
+    timeline: 'Timeline',
     new: 'New Op',
   };
 
@@ -49,6 +53,7 @@ function getBreadcrumb(pathname, search) {
     fleet: 'Fleet Forge',
     schedule: 'Crew Scheduler',
     'org-fleet': 'Org Fleet',
+    readiness: 'Readiness',
   };
 
   // Nested routes
@@ -66,7 +71,8 @@ function getBreadcrumb(pathname, search) {
     if (segment === 'new') return { module: 'Operations', tab: 'New Op' };
     if (segment === 'rescue') return { module: 'Operations', tab: 'Rescue Board' };
     if (segment === 'archive') return { module: 'Operations', tab: 'Archive' };
-    if (segment && segment !== 'new' && !segment.match(/^[a-z0-9]+$/i)) return { module: 'Operations', tab: 'Live Op' };
+    if (segment === 'timeline') return { module: 'Operations', tab: 'Timeline' };
+    if (segment) return { module: 'Operations', tab: 'Live Op' };
     return { module: 'Operations', tab: null };
   }
   if (pathname.startsWith('/app/armory')) {
@@ -173,20 +179,21 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
 
     const loadMetrics = async () => {
       try {
-        const [members, cofferEntries, rescueCalls, userWallet] = await Promise.all([
+        const [members, cofferRecentRaw, rescueCalls, userWallet] = await Promise.all([
           base44.entities.NexusUser.list('-joined_at', 200),
-          base44.entities.CofferLog.list('-logged_at', 1),
-          base44.entities.Op.filter({ status: 'LIVE' }),
+          base44.entities.CofferLog.list('-logged_at', 100),
+          refreshRescueCalls(),
           base44.auth.me(),
         ]);
         
         if (cancelled) return;
+
+        const memberList = Array.isArray(members) ? members : [];
+        const cofferRecent = Array.isArray(cofferRecentRaw) ? cofferRecentRaw : [];
         
-        setOnlineCount((members || []).length);
+        setOnlineCount(memberList.length);
         
-        // Sum recent coffer entries (last 100 to get org balance)
-        const cofferRecent = await base44.entities.CofferLog.list('-logged_at', 100);
-        const balance = (cofferRecent || []).reduce((sum, entry) => {
+        const balance = cofferRecent.reduce((sum, entry) => {
           return entry.entry_type === 'SALE' || entry.entry_type === 'CRAFT_SALE' 
             ? sum + (entry.amount_aUEC || 0)
             : sum - (entry.amount_aUEC || 0);
@@ -196,8 +203,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
         // Personal wallet balance
         setWalletBalance(userWallet?.wallet_balance || 0);
         
-        // Count active rescue calls
-        setRescueCount((rescueCalls || []).length);
+        setRescueCount(getActiveRescueCount(Array.isArray(rescueCalls) ? rescueCalls : []));
       } catch (error) {
         if (!cancelled) {
           console.warn('[NexusTopbar] metrics load failed:', error?.message || error);
@@ -332,7 +338,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           {/* Personal Wallet */}
           {walletBalance !== null && (
             <div
-              onClick={() => navigate('/app/profile')}
+              onClick={() => navigate('/app/industry/commerce')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -415,7 +421,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
           {/* Rescue */}
           {rescueCount > 0 && (
             <div
-              onClick={() => navigate('/app/rescue')}
+              onClick={() => navigate('/app/ops/rescue')}
               style={{
                 display: 'flex',
                 alignItems: 'center',

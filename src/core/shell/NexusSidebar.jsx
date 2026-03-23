@@ -44,9 +44,12 @@ export default function NexusSidebar({ currentPath }) {
           return;
         }
 
+        const craftQueueItems = Array.isArray(craftQueue) ? craftQueue : [];
+        const liveOpItems = Array.isArray(liveOps) ? liveOps : [];
+
         setBadges({
-          craft: (craftQueue || []).some((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)),
-          live: Array.isArray(liveOps) && liveOps.length > 0,
+          craft: craftQueueItems.some((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)),
+          live: liveOpItems.length > 0,
         });
       } catch (error) {
         if (!cancelled) {

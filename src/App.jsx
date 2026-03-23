@@ -13,11 +13,10 @@ import Commerce from '@/pages/Commerce';
 import CargoTracker from '@/pages/CargoTracker';
 import EpicArchive from '@/pages/EpicArchive';
 import FleetForge from '@/pages/FleetForge';
-import Fleet from '@/pages/Fleet';
+import Logistics from '@/pages/Logistics';
 import OrgFleet from '@/pages/OrgFleet';
 import RoutePlanner from '@/pages/RoutePlanner';
 import IndustryHub from '@/apps/industry-hub/IndustryHub';
-import Logistics from '@/pages/Logistics';
 import MaterialLedger from '@/pages/MaterialLedger';
 import NexusSettings from '@/pages/NexusSettings';
 import NexusTodo from '@/pages/NexusTodo';
@@ -60,6 +59,7 @@ function App() {
               <Route path="industry/coffer" element={<CofferLedger />} />
               <Route path="industry/ledger" element={<MaterialLedger />} />
               <Route path="industry/commerce" element={<Commerce />} />
+              <Route path="industry/logistics" element={<Logistics />} />
               <Route path="industry/cargo" element={<CargoTracker />} />
               <Route path="industry/profit" element={<ProfitCalc />} />
               <Route path="scout" element={<ScoutIntel />} />

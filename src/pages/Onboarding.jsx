@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { withAppBase } from '@/core/data/app-base-path';
 import { useSession } from '@/core/data/SessionContext';
 
 const PRIVACY_DISCLOSURE = `NexusOS Privacy & Data Usage Disclosure
@@ -11,7 +12,7 @@ NexusOS is a private operational coordination platform built exclusively for Red
 
 1. DATA COLLECTION
 NexusOS collects and stores the following information:
-- Callsign and auth key (hashed)
+- Issued username, mutable callsign, and auth key (hashed)
 - Rank and role assignments managed by org leadership
 - Operational participation and session logs
 - Resource tracking and inventory data
@@ -126,8 +127,6 @@ function Step1Welcome({ callsign, onContinue }) {
           boxShadow: '0 8px 24px rgba(192, 57, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
           transition: 'all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}
-        onMouseEnter2={() => {}}
-        onMouseLeave2={() => {}}
       >
         CONTINUE
         <span style={{ display: 'inline-block', transform: arrowShift ? 'translateX(4px)' : 'translateX(0)', transition: 'transform 150ms ease' }}>
@@ -141,7 +140,7 @@ function Step1Welcome({ callsign, onContinue }) {
 function Step2HowItWorks({ onContinue }) {
   const bullets = [
     'Coordinates ops and tracks org resources across Industry, Scout Intel, and the Op Board.',
-    'Does not read your Discord messages or act on your behalf in any way.',
+    'Uses your issued username and hashed auth key for account access. Pioneer rank is treated as administrator access.',
     'All data is private to Redscar Nomads and is never shared outside the org.',
   ];
 
@@ -545,7 +544,7 @@ export default function Onboarding() {
   }
 
   const handleComplete = () => {
-    window.location.href = '/app/industry';
+    window.location.href = withAppBase('/app/industry');
   };
 
   return (

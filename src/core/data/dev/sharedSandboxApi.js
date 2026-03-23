@@ -1,5 +1,7 @@
 import { SANDBOX_API_BASE } from './index';
 
+/** @typedef {Error & { status?: number, payload?: any }} SandboxApiError */
+
 function getSandboxBaseUrl() {
   if (SANDBOX_API_BASE) {
     return SANDBOX_API_BASE.endsWith('/') ? SANDBOX_API_BASE : `${SANDBOX_API_BASE}/`;
@@ -46,7 +48,7 @@ async function request(path, init = {}, searchParams) {
 
   const data = await parseJson(response);
   if (!response.ok) {
-    const error = new Error(data?.error || `Demo API request failed with ${response.status}`);
+    const error = /** @type {SandboxApiError} */ (new Error(data?.error || `Demo API request failed with ${response.status}`));
     error.status = response.status;
     error.payload = data;
     throw error;

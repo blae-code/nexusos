@@ -27,7 +27,7 @@ export default function InventoryManager() {
     component_type: 'weapon',
     vessel_location: '',
     description: '',
-    quantity: 1,
+    quantity: '1',
     condition: 'operational',
   });
 
@@ -40,7 +40,7 @@ export default function InventoryManager() {
       
       // Load fleet vessels
       const fleetRes = await base44.functions.invoke('fleetyardsSync', { action: 'ships' });
-      const shipList = (fleetRes.data?.ships || []).map(s => s.name || s.label);
+      const shipList = (Array.isArray(fleetRes?.data?.ships) ? fleetRes.data.ships : []).map(s => s.name || s.label);
       
       setItems(armoryItems || []);
       setVessels(shipList);
@@ -73,7 +73,7 @@ export default function InventoryManager() {
         component_type: 'weapon',
         vessel_location: '',
         description: '',
-        quantity: 1,
+        quantity: '1',
         condition: 'operational',
       });
       setShowForm(false);

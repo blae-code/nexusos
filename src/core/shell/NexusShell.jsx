@@ -84,7 +84,8 @@ export default function NexusShell() {
       try {
         const liveOps = await base44.entities.Op.filter({ status: 'LIVE' });
         if (!cancelled) {
-          seenLiveOpsRef.current = new Set((liveOps || []).map((item) => item.id));
+          const liveOpItems = Array.isArray(liveOps) ? liveOps : [];
+          seenLiveOpsRef.current = new Set(liveOpItems.map((item) => item.id));
         }
       } catch (error) {
         if (!cancelled) {
@@ -105,7 +106,8 @@ export default function NexusShell() {
         }
 
         const nextSeen = new Set();
-        (liveOps || []).forEach((op) => {
+        const liveOpItems = Array.isArray(liveOps) ? liveOps : [];
+        liveOpItems.forEach((op) => {
           nextSeen.add(op.id);
           if (!seenLiveOpsRef.current.has(op.id)) {
             notifyIfBackgrounded({
@@ -128,7 +130,8 @@ export default function NexusShell() {
       try {
         const deposits = await base44.entities.ScoutDeposit.list('-reported_at', 25);
         if (!cancelled) {
-          seenScoutDepositsRef.current = new Set((deposits || []).map((item) => item.id));
+          const depositItems = Array.isArray(deposits) ? deposits : [];
+          seenScoutDepositsRef.current = new Set(depositItems.map((item) => item.id));
         }
       } catch (error) {
         if (!cancelled) {
@@ -149,7 +152,8 @@ export default function NexusShell() {
         }
 
         const nextSeen = new Set();
-        (deposits || []).forEach((deposit) => {
+        const depositItems = Array.isArray(deposits) ? deposits : [];
+        depositItems.forEach((deposit) => {
           nextSeen.add(deposit.id);
           const quality = Number(deposit.quality_pct || 0);
           if (!seenScoutDepositsRef.current.has(deposit.id) && quality >= 80) {
@@ -176,7 +180,7 @@ export default function NexusShell() {
       }
 
       seenRescueCallsRef.current = new Set(
-        (calls || [])
+        (Array.isArray(calls) ? calls : [])
           .filter((call) => call.status === 'OPEN')
           .map((call) => call.id),
       );
@@ -184,8 +188,9 @@ export default function NexusShell() {
 
     const handleRescueCalls = (calls) => {
       const nextOpenIds = new Set();
+      const rescueCalls = Array.isArray(calls) ? calls : [];
 
-      calls
+      rescueCalls
         .filter((call) => call.status === 'OPEN')
         .forEach((call) => {
           nextOpenIds.add(call.id);
@@ -195,7 +200,7 @@ export default function NexusShell() {
               title: 'NexusOS · Distress Call',
               body: `${call.callsign || 'UNKNOWN'} requests help${call.location ? ` · ${call.location}` : ''}`,
               tag: `nexus-rescue-${call.id}`,
-              onClickUrl: withAppBase('/app/rescue'),
+              onClickUrl: withAppBase('/app/ops/rescue'),
             });
           }
         });

@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
-import { Plus, TrendingUp, BarChart3, DollarSign } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
 const COMMON_COMMODITIES = [
   'Aluminum', 'Hadanite', 'Medical Supplies', 'Industrial Materials',
@@ -10,38 +10,47 @@ const COMMON_COMMODITIES = [
   'Waste', 'Hydrogen Fuel', 'Quantum Matter', 'NexFiber'
 ];
 
+const INITIAL_FORM_DATA = {
+  commodity: '',
+  transaction_type: 'OFFLOAD',
+  quantity_scu: '',
+  purchase_price_scu: '',
+  sale_price_scu: '',
+  origin_station: '',
+  destination_station: '',
+  notes: '',
+};
+
+/** @typedef {typeof INITIAL_FORM_DATA} CargoLogForm */
+
 export default function CargoTracker() {
   const { user } = useSession();
   const queryClient = useQueryClient();
+  const cargoLogEntity = /** @type {any} */ (base44.entities.CargoLog);
   const [activeTab, setActiveTab] = useState('log');
-  const [formData, setFormData] = useState({
-    commodity: '',
-    transaction_type: 'OFFLOAD',
-    quantity_scu: '',
-    purchase_price_scu: '',
-    sale_price_scu: '',
-    origin_station: '',
-    destination_station: '',
-    notes: '',
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
   const { data: logs = [] } = useQuery({
     queryKey: ['cargo-logs'],
-    queryFn: () => base44.entities.CargoLog.list('-logged_at', 500),
+    queryFn: async () => {
+      const result = await cargoLogEntity.list('-logged_at', 500);
+      return Array.isArray(result) ? result : [];
+    },
     refetchInterval: 30000,
   });
 
-  const createMutation = useMutation({
+  const createMutation = useMutation(
+    /** @type {import('@tanstack/react-query').UseMutationOptions<any, Error, CargoLogForm>} */ ({
     mutationFn: async (data) => {
       const quantity = parseFloat(data.quantity_scu);
-      const purchasePrice = parseFloat(data.purchase_price_scu || 0);
-      const salePrice = parseFloat(data.sale_price_scu || 0);
+      const purchasePrice = parseFloat(data.purchase_price_scu || '0');
+      const salePrice = parseFloat(data.sale_price_scu || '0');
       const totalCost = Math.round(quantity * purchasePrice);
       const totalRevenue = Math.round(quantity * salePrice);
       const profitLoss = totalRevenue - totalCost;
       const marginPct = purchasePrice > 0 ? ((salePrice - purchasePrice) / purchasePrice) * 100 : 0;
 
-      return base44.entities.CargoLog.create({
+      return cargoLogEntity.create({
         commodity: data.commodity,
         transaction_type: data.transaction_type,
         quantity_scu: quantity,
@@ -61,18 +70,11 @@ export default function CargoTracker() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cargo-logs'] });
-      setFormData({
-        commodity: '',
-        transaction_type: 'OFFLOAD',
-        quantity_scu: '',
-        purchase_price_scu: '',
-        sale_price_scu: '',
-        origin_station: '',
-        destination_station: '',
-        notes: '',
-      });
+      setFormData(INITIAL_FORM_DATA);
     },
-  });
+  }));
+
+  const safeLogs = Array.isArray(logs) ? logs : [];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -81,14 +83,13 @@ export default function CargoTracker() {
   };
 
   // Analytics
-  const totalProfit = logs.reduce((sum, log) => sum + (log.profit_loss || 0), 0);
-  const totalRevenue = logs.reduce((sum, log) => sum + (log.total_revenue || 0), 0);
-  const totalCost = logs.reduce((sum, log) => sum + (log.total_cost || 0), 0);
-  const avgMargin = logs.length > 0
-    ? logs.reduce((sum, log) => sum + (log.margin_pct || 0), 0) / logs.length
+  const totalProfit = safeLogs.reduce((sum, log) => sum + (log.profit_loss || 0), 0);
+  const totalRevenue = safeLogs.reduce((sum, log) => sum + (log.total_revenue || 0), 0);
+  const avgMargin = safeLogs.length > 0
+    ? safeLogs.reduce((sum, log) => sum + (log.margin_pct || 0), 0) / safeLogs.length
     : 0;
 
-  const commodityBreakdown = logs.reduce((acc, log) => {
+  const commodityBreakdown = safeLogs.reduce((acc, log) => {
     const key = log.commodity;
     if (!acc[key]) {
       acc[key] = { profit: 0, revenue: 0, volume: 0, count: 0 };
@@ -379,7 +380,7 @@ export default function CargoTracker() {
               <div style={{ fontSize: 28, fontWeight: 700, color: totalProfit >= 0 ? '#4AE830' : '#C0392B' }}>
                 {(totalProfit / 1000000).toFixed(2)}M
               </div>
-              <div style={{ fontSize: 10, color: 'var(--t2)', marginTop: 8 }}>aUEC across {logs.length} trades</div>
+              <div style={{ fontSize: 10, color: 'var(--t2)', marginTop: 8 }}>aUEC across {safeLogs.length} trades</div>
             </div>
 
             {/* TOTAL REVENUE */}
@@ -425,7 +426,7 @@ export default function CargoTracker() {
                 TOTAL VOLUME
               </div>
               <div style={{ fontSize: 28, fontWeight: 700, color: '#9DA1CD' }}>
-                {logs.reduce((sum, log) => sum + (log.quantity_scu || 0), 0).toLocaleString()}
+                {safeLogs.reduce((sum, log) => sum + (log.quantity_scu || 0), 0).toLocaleString()}
               </div>
               <div style={{ fontSize: 10, color: 'var(--t2)', marginTop: 8 }}>SCU traded</div>
             </div>
@@ -482,12 +483,12 @@ export default function CargoTracker() {
         {/* HISTORY TAB */}
         {activeTab === 'history' && (
           <div style={{ display: 'grid', gap: 8 }}>
-            {logs.length === 0 ? (
+            {safeLogs.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>
                 No cargo logs yet. Start tracking trades to see history.
               </div>
             ) : (
-              logs.slice(0, 50).map((log) => (
+              safeLogs.slice(0, 50).map((log) => (
                 <div key={log.id} style={{
                   padding: 14,
                   background: 'var(--bg1)',

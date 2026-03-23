@@ -5,6 +5,7 @@
  * Returns: { key, key_prefix, user_id }
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { normalizeCallsign, normalizeLoginName } from './auth/_shared/issuedKey.ts';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const enc = new TextEncoder();
@@ -46,14 +47,19 @@ Deno.serve(async (req) => {
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: 'Invalid body' }, { status: 400 }); }
 
-  const { callsign, nexus_rank, issued_by_callsign } = body;
-  if (!callsign || !nexus_rank) {
-    return Response.json({ error: 'callsign and nexus_rank are required' }, { status: 400 });
+  const loginName = normalizeLoginName(body.username || body.login_name || body.callsign);
+  const callsign = normalizeCallsign(body.callsign || body.username || body.login_name);
+  const { nexus_rank, issued_by_callsign } = body;
+  if (!loginName || !callsign || !nexus_rank) {
+    return Response.json({ error: 'username/callsign and nexus_rank are required' }, { status: 400 });
   }
 
   // Check callsign uniqueness
   const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
-  const existing = (allUsers || []).find(u => u.callsign && u.callsign.toLowerCase() === callsign.trim().toLowerCase());
+  const existing = (allUsers || []).find((u) =>
+    normalizeLoginName(u.login_name || u.username || u.callsign) === loginName
+    || normalizeCallsign(u.callsign || '') === callsign
+  );
   if (existing) {
     return Response.json({ error: 'callsign_taken' }, { status: 409 });
   }
@@ -65,7 +71,8 @@ Deno.serve(async (req) => {
 
   // Create NexusUser
   const newUser = await base44.asServiceRole.entities.NexusUser.create({
-    callsign: callsign.trim(),
+    login_name: loginName,
+    callsign,
     auth_key_hash: authKeyHash,
     key_prefix: keyPrefix,
     nexus_rank,

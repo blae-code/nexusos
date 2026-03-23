@@ -106,7 +106,7 @@ export default function FleetReadinessHeader({
   );
 }
 
-function StatPill({ icon: Icon, label, value, color, detail }) {
+function StatPill({ icon: Icon, label, value, color, detail = null }) {
   return (
     <div style={{
       padding: '8px 10px', background: 'var(--bg2)',

@@ -1,17 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { useSession } from '@/core/data/SessionContext';
-import {
-  RefreshCw, Zap, Shield, Anchor, Users, Package,
-  AlertTriangle, CheckCircle, Clock, Gauge, Fuel
-} from 'lucide-react';
+import { AlertTriangle, Anchor } from 'lucide-react';
 import ShipReadinessCard from '@/components/fleet/ShipReadinessCard';
 import FleetReadinessHeader from '@/components/fleet/FleetReadinessHeader';
 
 const REFRESH_INTERVAL = 90000; // 90s
 
 export default function FleetReadiness() {
-  const { user } = useSession();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

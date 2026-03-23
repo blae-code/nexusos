@@ -4,6 +4,7 @@
  * DELETE THIS FUNCTION after first login.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { normalizeLoginName } from '../_shared/issuedKey.ts';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const enc = new TextEncoder();
@@ -64,6 +65,7 @@ Deno.serve(async (req) => {
   const now = new Date().toISOString();
 
   await base44.asServiceRole.entities.NexusUser.update(admin.id, {
+    login_name: admin.login_name || normalizeLoginName(admin.callsign || 'system-admin'),
     auth_key_hash: hash,
     key_prefix: plainKey.slice(0, 8),
     is_admin: true,
