@@ -3,7 +3,7 @@
  * Body: { callsign: string, key: string }
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import { compare } from 'npm:bcrypt@0.4.1';
+import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 const SESSION_COOKIE_NAME = 'nexus_member_session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
   }
 
   // Compare key against bcrypt hash
-  const keyMatch = await compare(key, user.auth_key_hash);
+  const keyMatch = await bcrypt.compare(key, user.auth_key_hash);
   if (!keyMatch) {
     return Response.json({ error: 'invalid_credentials' }, { status: 401 });
   }

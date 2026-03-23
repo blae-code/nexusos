@@ -5,10 +5,10 @@
  * Returns: { key, key_prefix, user_id }
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import { hash } from 'npm:bcrypt@0.4.1';
+import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 function randomBlock(len) {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I/O/0/1 for readability
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let result = '';
   const bytes = new Uint8Array(len);
   crypto.getRandomValues(bytes);
@@ -48,7 +48,8 @@ Deno.serve(async (req) => {
 
   // Generate key and hash
   const authKey = generateAuthKey();
-  const authKeyHash = await hash(authKey, 10);
+  const salt = await bcrypt.genSalt(10);
+  const authKeyHash = await bcrypt.hash(authKey, salt);
   const keyPrefix = authKey.slice(0, 8);
 
   // Create NexusUser
