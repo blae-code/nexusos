@@ -1,19 +1,34 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { withAppBase } from '@/core/data/app-base-path';
 import { authApi } from '@/core/data/auth-api';
-import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
+
 import { useSession } from '@/core/data/SessionContext';
 
 function buildStars() {
   if (typeof window === 'undefined') return [];
-  return Array.from({ length: 120 }, (_, id) => ({
-    id,
-    top: Math.random() * 100,
-    left: Math.random() * 100,
-    size: Math.random() * 1.4 + 0.8,
-    opacity: Math.random() * 0.4 + 0.3,
-  }));
+  const stars = [];
+  for (let i = 0; i < 80; i++) {
+    stars.push({
+      id: i,
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      size: Math.random() * 0.6 + 0.8,
+      opacity: Math.random() * 0.3 + 0.15,
+      duration: Math.random() * 3 + 2,
+    });
+  }
+  for (let i = 80; i < 120; i++) {
+    stars.push({
+      id: i,
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      size: Math.random() * 0.7 + 1.5,
+      opacity: Math.random() * 0.3 + 0.3,
+      duration: Math.random() * 3 + 2,
+    });
+  }
+  return stars;
 }
 
 function normalizeAuthenticatedDestination(rawDestination, onboardingComplete) {
@@ -28,8 +43,7 @@ export default function AccessGate() {
   const location = useLocation();
   const { isAuthenticated, loading, user, refreshSession } = useSession();
 
-  const [stars, setStars] = useState([]);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const stars = useMemo(() => buildStars(), []);
   const [username, setUsername] = useState('');
   const [authKey, setAuthKey] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -43,12 +57,7 @@ export default function AccessGate() {
     [searchParams, user?.onboarding_complete],
   );
 
-  useEffect(() => {
-    setStars(buildStars());
-    const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+
 
   useEffect(() => {
     authApi.getHealth().then(r => setSystemReady(r?.ok ?? false)).catch(() => setSystemReady(false));
@@ -95,155 +104,122 @@ export default function AccessGate() {
     return <Navigate to={authenticatedDestination} replace />;
   }
 
-  const winW = typeof window !== 'undefined' ? window.innerWidth : 1920;
-  const winH = typeof window !== 'undefined' ? window.innerHeight : 1080;
-
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#0A0908', overflow: 'hidden', fontFamily: "'Barlow Condensed', 'Barlow', sans-serif" }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#08080A', overflow: 'hidden' }}>
 
-      {/* CINEMATIC BACKGROUND */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: `
-          radial-gradient(ellipse 150% 80% at 30% 20%, rgba(139,40,40,0.15) 0%, transparent 40%),
-          radial-gradient(ellipse 100% 100% at 70% 70%, rgba(50,30,60,0.08) 0%, transparent 50%),
-          linear-gradient(180deg, #0A0908 0%, #12090D 50%, #0A0908 100%)
-        `,
-        zIndex: 0,
-      }} />
+      {/* LAYER 1 — Background video */}
+      <video
+        autoPlay muted loop playsInline
+        src="/video/nexus-boot-loop.mp4"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.18 }}
+      />
 
-      {/* STARFIELD */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+      {/* LAYER 2 — Stars */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
         {stars.map((star) => (
           <div key={star.id} style={{
-            position: 'absolute', top: `${star.top}%`, left: `${star.left}%`,
-            width: `${star.size}px`, height: `${star.size}px`, borderRadius: '50%',
-            background: '#F0EDE5',
-            boxShadow: `0 0 ${star.size * 1.5}px rgba(240,237,229,${star.opacity * 0.6})`,
+            position: 'absolute',
+            top: `${star.top}%`,
+            left: `${star.left}%`,
+            width: star.size,
+            height: star.size,
+            borderRadius: '50%',
+            background: '#E8E4DC',
             opacity: star.opacity,
-            animation: `twinkle ${2 + Math.random() * 2}s ease-in-out infinite`,
+            animation: `twinkle ${star.duration}s ease-in-out infinite`,
           }} />
         ))}
       </div>
 
-      {/* RED NEBULA — Interactive */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(ellipse 50% 40% at ${mousePos.x / winW * 100}% ${mousePos.y / winH * 100}%, rgba(192,57,43,0.15) 0%, transparent 65%)`,
-        filter: 'blur(40px)', transition: 'background 50ms ease-out',
-      }} />
+      {/* LAYER 3 — Ambient blooms */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'radial-gradient(ellipse 70% 60% at 50% 100%, rgba(180,90,20,0.11), transparent)', zIndex: 2, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '50%', height: '40%', background: 'radial-gradient(ellipse 60% 50% at 80% 10%, rgba(192,57,43,0.07), transparent)', zIndex: 2, pointerEvents: 'none' }} />
 
-      {/* AMBER CORE */}
+      {/* LAYER 4 — Panel */}
       <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse 70% 50% at 50% 85%, rgba(200,168,75,0.08) 0%, transparent 60%)',
-        filter: 'blur(50px)',
-      }} />
-
-      {/* LEFT-ANCHORED PANEL */}
-      <div style={{
-        position: 'absolute', left: '10vw', top: '50%', transform: 'translateY(-50%)',
-        width: '420px',
-        background: 'rgba(15, 15, 13, 0.92)', backdropFilter: 'blur(12px)',
-        borderLeft: '2.5px solid #C0392B',
-        borderTop: '1px solid rgba(232, 228, 220, 0.08)',
-        borderRight: '1px solid rgba(232, 228, 220, 0.04)',
-        borderBottom: '1px solid rgba(232, 228, 220, 0.04)',
-        boxShadow: '0 0 60px rgba(192, 57, 43, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(232, 228, 220, 0.1)',
-        padding: '56px 44px 48px 44px', boxSizing: 'border-box', zIndex: 1,
-        animation: 'panel-fade-in 0.8s ease-out',
+        position: 'absolute',
+        left: '10vw',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        width: 400,
+        background: '#0F0F0D',
+        borderLeft: '2px solid #C0392B',
+        borderTop: '0.5px solid rgba(200,170,100,0.10)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        borderRadius: 2,
+        padding: '52px 40px 44px',
+        zIndex: 10,
+        boxSizing: 'border-box',
       }}>
 
-        {/* LOGO */}
-        <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'panel-fade-in 0.8s ease-out 0.1s both' }}>
-          <img src="https://www.redscar.org/images/RedScarFUll.png" alt="Redscar Nomads" style={{
-            height: 48, width: 'auto', filter: 'brightness(1.05) drop-shadow(0 2px 8px rgba(192,57,43,0.3))',
-          }} />
+        {/* 1. EMBLEM */}
+        <div style={{ marginBottom: 18, display: 'flex', justifyContent: 'center' }}>
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="20" stroke="#E8E4DC" strokeWidth="0.75" opacity="0.4" />
+            <circle cx="22" cy="22" r="14" stroke="#C0392B" strokeWidth="0.75" opacity="0.55" />
+            <circle cx="22" cy="22" r="7" fill="#C0392B" opacity="0.85" />
+            <circle cx="22" cy="22" r="3" fill="#E8E4DC" />
+            <line x1="22" y1="2" x2="22" y2="8" stroke="#E8E4DC" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="22" y1="36" x2="22" y2="42" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.4" />
+            <line x1="2" y1="22" x2="8" y2="22" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.4" />
+            <line x1="36" y1="22" x2="42" y2="22" stroke="#E8E4DC" strokeWidth="1" strokeLinecap="round" opacity="0.4" />
+            <polygon points="22,2 20.2,12.5 22,10.8 23.8,12.5" fill="#E8E4DC" opacity="0.9" />
+          </svg>
         </div>
 
-        {/* RED RULE */}
-        <div style={{ height: '1px', background: '#C0392B', marginBottom: '40px', opacity: 0.8, animation: 'panel-fade-in 0.8s ease-out 0.2s both' }} />
+        {/* 2. RED RULE */}
+        <div style={{ height: 1, background: '#C0392B', opacity: 0.7, marginBottom: 16 }} />
 
-        {/* TITLE */}
+        {/* 3. ORG LABEL */}
         <div style={{
-          fontFamily: "'Beyond Mars', 'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: '62px',
-          color: '#E8E4DC', letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1,
-          animation: 'panel-fade-in 0.8s ease-out 0.4s both',
+          fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
+          fontSize: 11, fontWeight: 500, color: '#C8A84B', letterSpacing: '0.28em',
+          textTransform: 'uppercase', marginBottom: 8,
+        }}>
+          REDSCAR NOMADS
+        </div>
+
+        {/* 4. TITLE */}
+        <div style={{
+          fontFamily: "'Beyond Mars','Barlow Condensed',sans-serif",
+          fontSize: 58, fontWeight: 700, color: '#E8E4DC', letterSpacing: '0.05em',
+          textTransform: 'uppercase', lineHeight: 1, marginBottom: 6,
         }}>
           NEXUSOS
         </div>
 
-        {/* SUBTITLE */}
+        {/* 5. SUBTITLE */}
         <div style={{
-          fontFamily: "'Earth Orbiter', 'EarthOrbiter', 'Barlow Condensed', sans-serif", fontWeight: 400,
-          fontSize: '12px', color: '#C8A84B', letterSpacing: '0.25em', textTransform: 'uppercase',
-          marginTop: '6px', marginBottom: '28px', animation: 'panel-fade-in 0.8s ease-out 0.5s both',
+          fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
+          fontSize: 12, color: '#C8A84B', letterSpacing: '0.22em',
+          textTransform: 'uppercase', marginBottom: 32,
         }}>
           ACCESS GATE
         </div>
 
-        {/* BODY TEXT */}
-        <div style={{
-          fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: '14px', color: '#9A9488',
-          lineHeight: 1.7, marginBottom: '32px', animation: 'panel-fade-in 0.8s ease-out 0.6s both',
-        }}>
-          Enter your issued username and auth key to launch NexusOS. Your initial username and callsign match when your invite is issued. After that, your callsign can change without changing your login.
-        </div>
-
-        {/* LOGIN FORM */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, animation: 'panel-fade-in 0.8s ease-out 0.7s both' }}>
+        {/* 6. FORM */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* 6a. USERNAME */}
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="ENTER USERNAME"
+            placeholder="ENTER CALLSIGN"
             autoComplete="username"
             style={{
-              width: '100%', padding: '12px 16px', background: '#141410',
-              border: '0.5px solid rgba(200,170,100,0.10)', borderRadius: '2px',
-              color: '#E8E4DC', fontSize: '12px', fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', outline: 'none',
+              width: '100%', background: '#141410',
+              border: '0.5px solid rgba(200,170,100,0.12)', borderRadius: 2,
+              color: '#E8E4DC', fontFamily: "'Barlow Condensed',sans-serif",
+              fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase',
+              padding: '11px 14px', outline: 'none', boxSizing: 'border-box',
+              marginBottom: 10,
             }}
-            onFocus={(e) => { e.target.style.borderColor = 'rgba(192,57,43,0.5)'; }}
-            onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.10)'; }}
+            onFocus={(e) => { e.target.style.borderColor = '#C8A84B'; }}
+            onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.12)'; }}
           />
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            color: '#9A9488',
-            fontSize: '11px',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            fontFamily: "'Barlow Condensed', sans-serif",
-          }}>
-            <button
-              type="button"
-              onClick={() => setRememberMe((current) => !current)}
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 2,
-                border: `1px solid ${rememberMe ? 'rgba(192,57,43,0.6)' : 'rgba(200,170,100,0.16)'}`,
-                background: rememberMe ? '#C0392B' : 'transparent',
-                color: '#F0EDE5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                padding: 0,
-                fontSize: 10,
-                lineHeight: 1,
-              }}
-              aria-pressed={rememberMe}
-              aria-label="Remember me"
-            >
-              {rememberMe ? '✓' : ''}
-            </button>
-            <span>Remember Me On This Device</span>
-          </div>
-
+          {/* 6b. KEY */}
           <input
             type="password"
             value={authKey}
@@ -251,102 +227,91 @@ export default function AccessGate() {
             placeholder="ENTER ACCESS KEY"
             autoComplete="current-password"
             style={{
-              width: '100%', padding: '12px 16px', background: '#141410',
-              border: '0.5px solid rgba(200,170,100,0.10)', borderRadius: '2px',
-              color: '#E8E4DC', fontSize: '12px', fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 500, letterSpacing: '0.1em', outline: 'none',
+              width: '100%', background: '#141410',
+              border: '0.5px solid rgba(200,170,100,0.12)', borderRadius: 2,
+              color: '#E8E4DC', fontFamily: "'Barlow Condensed',sans-serif",
+              fontSize: 13, letterSpacing: '0.12em',
+              padding: '11px 14px', outline: 'none', boxSizing: 'border-box',
+              marginBottom: 24,
             }}
-            onFocus={(e) => { e.target.style.borderColor = 'rgba(192,57,43,0.5)'; }}
-            onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.10)'; }}
+            onFocus={(e) => { e.target.style.borderColor = '#C8A84B'; }}
+            onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.12)'; }}
           />
 
+          {/* 6c. CTA */}
           <button
             type="submit"
             disabled={submitting || !username.trim() || !authKey.trim()}
             style={{
-              display: 'block', width: '100%',
-              background: submitting ? '#5A2620' : '#C0392B',
-              color: '#F0EDE5',
-              border: '1px solid rgba(192,57,43,0.7)', borderRadius: '2px',
-              padding: '14px 24px', cursor: submitting ? 'wait' : 'pointer',
-              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-              fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase',
-              marginTop: '4px', transition: 'all 0.2s ease',
-              boxShadow: '0 8px 24px rgba(192,57,43,0.3), inset 0 1px 0 rgba(255,255,255,0.12)',
-              opacity: (!username.trim() || !authKey.trim()) ? 0.5 : 1,
-              textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+              width: '100%', background: submitting ? 'rgba(192,57,43,0.7)' : '#C0392B',
+              color: '#E8E4DC', border: 'none', borderRadius: 2,
+              fontFamily: "'Barlow Condensed',sans-serif",
+              fontSize: 13, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase',
+              padding: '13px 20px', cursor: submitting ? 'not-allowed' : 'pointer',
+              transition: 'background 150ms',
+              opacity: (!username.trim() || !authKey.trim()) ? 0.5 : submitting ? 0.7 : 1,
             }}
-            onMouseEnter={(e) => {
-              if (!submitting) {
-                e.currentTarget.style.background = '#E84C3D';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!submitting) {
-                e.currentTarget.style.background = '#C0392B';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }
-            }}
+            onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.background = '#9B2D20'; }}
+            onMouseLeave={(e) => { if (!submitting) e.currentTarget.style.background = '#C0392B'; }}
           >
-            {submitting ? 'CONNECTING...' : 'CONTINUE →'}
+            {submitting ? 'AUTHENTICATING...' : 'CONTINUE →'}
           </button>
         </form>
 
-        {/* ERROR STATE */}
+        {/* 7. ERROR */}
         {error && (
           <div style={{
-            fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px', color: '#C8A84B',
-            letterSpacing: '0.06em', textTransform: 'uppercase',
-            marginTop: '16px', lineHeight: 1.6, padding: '12px 14px',
-            background: 'rgba(200,168,75,0.08)', border: '0.5px solid rgba(200,168,75,0.2)',
-            borderRadius: '2px',
+            fontFamily: "'Barlow Condensed',sans-serif", fontSize: 12,
+            color: '#C8A84B', letterSpacing: '0.12em', textTransform: 'uppercase',
+            marginTop: 14,
           }}>
             {error}
           </div>
         )}
       </div>
 
-      {/* FIXED FOOTER */}
+      {/* LAYER 5 — Footer */}
       <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, height: '32px',
-        background: '#0A0908', borderTop: '0.5px solid rgba(200,170,100,0.12)',
+        position: 'fixed', bottom: 0, left: 0, right: 0, height: 32,
+        background: 'rgba(8,8,10,0.9)', borderTop: '0.5px solid rgba(200,170,100,0.08)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 24px', zIndex: 100,
+        padding: '0 24px', zIndex: 20,
       }}>
-        <div style={{
-          fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: '#C8A84B',
-          letterSpacing: '0.15em', textTransform: 'uppercase',
-          display: 'flex', alignItems: 'center', gap: '6px',
+        <span style={{
+          fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 500,
+          color: '#C8A84B', letterSpacing: '0.15em', animation: 'pulse 3s ease-in-out infinite',
         }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: systemReady ? '#4AE830' : '#C8A84B',
-            animation: 'pulse 2s ease-in-out infinite', display: 'inline-block',
-          }} />
-          {systemReady ? 'SYSTEM ONLINE' : 'VERSE ' + VERSE_BUILD_LABEL}
-        </div>
-        <div style={{
-          fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: '#8A8478',
-          letterSpacing: '0.15em', textTransform: 'uppercase',
+          ● VERSE 4.7.0
+        </span>
+        <span style={{
+          fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, fontWeight: 400,
+          color: '#5A5850', letterSpacing: '0.15em',
         }}>
           REDSCAR · NOMADS · ETERNAL VOYAGE
-        </div>
+        </span>
       </div>
 
+      {/* FONT IMPORTS + KEYFRAMES */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
         @import url('https://fonts.cdnfonts.com/css/beyond-mars');
         @import url('https://fonts.cdnfonts.com/css/earth-orbiter');
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500&display=swap');
 
         @keyframes twinkle {
-          0%, 100% { opacity: var(--star-opacity, 0.6); }
-          50% { opacity: calc(var(--star-opacity, 0.6) * 0.4); }
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
-        @keyframes panel-fade-in {
-          0% { opacity: 0; transform: translateY(-50%) translateX(-20px); }
-          100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+        input::placeholder {
+          color: #5A5850;
         }
       `}</style>
     </div>
