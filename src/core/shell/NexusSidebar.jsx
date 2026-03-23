@@ -17,6 +17,7 @@ const NAV_GROUPS = [
   ],
   [
     { icon: SettingsIcon, label: 'SETTINGS', path: '/app/profile' },
+    { icon: SettingsIcon, label: 'KEY MGMT', path: '/app/keys', badge: null, rank: ['PIONEER', 'FOUNDER'] },
     { icon: SettingsIcon, label: 'ADMIN SETTINGS', path: '/app/admin/settings', badge: null, rank: ['PIONEER', 'FOUNDER'] },
   ],
 ];

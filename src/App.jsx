@@ -34,6 +34,7 @@ import InventoryManager from '@/pages/InventoryManager';
 import CrewScheduler from '@/pages/CrewScheduler';
 import TrainingHub from '@/pages/TrainingHub';
 import AdminSettings from '@/pages/AdminSettings';
+import KeyManagement from '@/pages/KeyManagement';
 import OpsDashboard from '@/pages/OpsDashboard';
 import FleetReadiness from '@/pages/FleetReadiness';
 import BootScreen from '@/pages/BootScreen';
@@ -77,6 +78,7 @@ function App() {
               <Route path="settings" element={<NexusSettings />} />
               <Route path="admin/todo" element={<NexusTodo />} />
               <Route path="admin/settings" element={<AdminSettings />} />
+              <Route path="keys" element={<KeyManagement />} />
               <Route path="command" element={<OpsDashboard />} />
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="training" element={<TrainingHub />} />

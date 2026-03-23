@@ -1,5 +1,4 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
 import { withAppBase } from '@/core/data/app-base-path';
 import { getAppParams } from '@/core/data/app-params';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/core/data/auth-api';
@@ -54,10 +53,8 @@ function toAdminSession(adminUser) {
     source: 'admin',
     user: {
       id: adminUser.id || 'admin',
-      discordId: 'SYSTEM_ADMIN',
       callsign: adminUser.full_name || adminUser.name || adminUser.email || 'SYS-ADMIN',
       rank: 'PIONEER',
-      discordRoles: ['Base44 Admin'],
       joinedAt: null,
     },
   };
@@ -93,10 +90,8 @@ function toPreviewMockSession() {
     source: 'preview',
     user: {
       id: 'preview-mock',
-      discordId: 'PREVIEW_MOCK',
       callsign: 'PREVIEW-USER',
       rank: 'PIONEER',
-      discordRoles: ['Preview Mode'],
       joinedAt: null,
       onboarding_complete: true,
     },
