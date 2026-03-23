@@ -10,6 +10,7 @@ import IndustryOverview from '@/apps/industry-hub/IndustryOverview';
 import PriceTracker from '@/apps/industry-hub/PriceTracker';
 import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 import ProductionTab from '@/apps/industry-hub/ProductionTab';
+import PredictiveAnalytics from '@/apps/industry-hub/analytics/PredictiveAnalytics';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -20,6 +21,7 @@ const TABS = [
   { id: 'refinery', label: 'REFINERY' },
   { id: 'prices', label: 'PRICE TRACKER' },
   { id: 'cargo', label: 'CARGO MARGINS' },
+  { id: 'analytics', label: 'ANALYTICS' },
 ];
 
 function RefineryTab({ refineryOrders, materials, callsign }) {
@@ -283,6 +285,8 @@ export default function IndustryHub() {
         {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} callsign={callsign} /> : null}
         {tab === 'production' ? <ProductionTab blueprints={blueprints} materials={materials} callsign={callsign} onRefresh={load} /> : null}
         {tab === 'prices' ? <PriceTracker /> : null}
+        {tab === 'cargo' ? <CargoMarginTracker /> : null}
+        {tab === 'analytics' ? <PredictiveAnalytics /> : null}
       </div>
     </div>
   );
