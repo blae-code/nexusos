@@ -1,48 +1,15 @@
-// Self-contained health/readiness handler — no local imports
-const DEFAULT_INVITE_URL = 'https://discord.gg/redscar';
-const DEFAULT_SUPPORT_CHANNEL = '#nexusos-ops';
-const DEFAULT_GUILD_LABEL = 'REDSCAR NOMADS';
-
-function hasEnv(name) {
-  return Boolean(Deno.env.get(name)?.trim());
-}
-
-function getOptionalEnv(name, fallback) {
-  return Deno.env.get(name)?.trim() || fallback;
-}
-
+/**
+ * GET /auth/health — Simple readiness check.
+ */
 Deno.serve((req) => {
   if (req.method !== 'GET') {
-    return Response.json({ error: 'Method not allowed' }, {
-      status: 405,
-      headers: { 'Cache-Control': 'no-store' },
-    });
+    return Response.json({ error: 'Method not allowed' }, { status: 405, headers: { 'Cache-Control': 'no-store' } });
   }
 
-  const oauthReady = [
-    'DISCORD_CLIENT_ID',
-    'DISCORD_CLIENT_SECRET',
-    'DISCORD_REDIRECT_URI',
-    'DISCORD_GUILD_ID',
-    'DISCORD_BOT_TOKEN',
-    'SESSION_SIGNING_SECRET',
-    'APP_URL',
-  ].every(hasEnv);
+  const ready = Boolean(Deno.env.get('SESSION_SIGNING_SECRET')?.trim());
 
   return Response.json({
-    ok: true,
-    oauth_ready: oauthReady,
-    requires_membership: true,
-    guild_label: getOptionalEnv('NEXUSOS_GUILD_LABEL', DEFAULT_GUILD_LABEL),
-    support_channel_label: getOptionalEnv('NEXUSOS_SUPPORT_CHANNEL_LABEL', DEFAULT_SUPPORT_CHANNEL),
-    invite_url: getOptionalEnv('DISCORD_INVITE_URL', DEFAULT_INVITE_URL),
-    onboarding_steps: [
-      'Join the Redscar Discord server.',
-      'Make sure you have a Redscar member role in Discord.',
-      'Return here and continue with Discord to launch NexusOS.',
-      'After first login, confirm or edit your seeded callsign in Profile Settings.',
-    ],
-  }, {
-    headers: { 'Cache-Control': 'no-store' },
-  });
+    ok: ready,
+    status: ready ? 'ok' : 'error',
+  }, { headers: { 'Cache-Control': 'no-store' } });
 });
