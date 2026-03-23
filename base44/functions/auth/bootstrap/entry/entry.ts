@@ -4,19 +4,28 @@
  * DELETE THIS FUNCTION after first login.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const enc = new TextEncoder();
+
+function randomBlock(len) {
+  const bytes = new Uint8Array(len);
+  crypto.getRandomValues(bytes);
+  let s = '';
+  for (let i = 0; i < len; i++) s += CHARS[bytes[i] % CHARS.length];
+  return s;
+}
 
 function generateKey() {
-  const block = () => {
-    let s = '';
-    for (let i = 0; i < 4; i++) {
-      s += CHARS[Math.floor(Math.random() * CHARS.length)];
-    }
-    return s;
-  };
-  return `RSN-${block()}-${block()}-${block()}`;
+  return `RSN-${randomBlock(4)}-${randomBlock(4)}-${randomBlock(4)}`;
+}
+
+async function hmacHash(key, secret) {
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(key));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 Deno.serve(async (req) => {
@@ -24,9 +33,13 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'method_not_allowed' }, { status: 405 });
   }
 
+  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+  if (!secret) {
+    return Response.json({ error: 'SESSION_SIGNING_SECRET not configured' }, { status: 500 });
+  }
+
   const base44 = createClientFromRequest(req);
 
-  // Find the SYSTEM-ADMIN user
   const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
   const admin = (allUsers || []).find(
     u => u.callsign && u.callsign.toUpperCase() === 'SYSTEM-ADMIN'
@@ -39,7 +52,6 @@ Deno.serve(async (req) => {
     }, { status: 404 });
   }
 
-  // Already bootstrapped?
   if (admin.auth_key_hash) {
     return Response.json({
       error: 'already_bootstrapped',
@@ -47,9 +59,8 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Generate and hash the key
   const plainKey = generateKey();
-  const hash = await bcrypt.hash(plainKey, 10);
+  const hash = await hmacHash(plainKey, secret);
   const now = new Date().toISOString();
 
   await base44.asServiceRole.entities.NexusUser.update(admin.id, {

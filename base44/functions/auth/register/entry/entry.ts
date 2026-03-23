@@ -3,7 +3,6 @@
  * Body: { callsign: string, key: string }
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 
 const SESSION_COOKIE_NAME = 'nexus_member_session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
@@ -14,22 +13,28 @@ function toBase64Url(bytes) {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-async function getSigningKey() {
-  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
-  if (!secret) throw new Error('SESSION_SIGNING_SECRET not configured');
+async function getSigningKey(secret) {
   return crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
 }
 
-async function signValue(value) {
-  const key = await getSigningKey();
+async function signValue(value, secret) {
+  const key = await getSigningKey(secret);
   const sig = await crypto.subtle.sign('HMAC', key, enc.encode(value));
   return toBase64Url(new Uint8Array(sig));
 }
 
-async function createSessionToken(callsign, is_admin) {
+async function hmacHash(key, secret) {
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(key));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function createSessionToken(callsign, is_admin, secret) {
   const payload = { callsign, is_admin: !!is_admin, iat: Date.now(), exp: Date.now() + SESSION_MAX_AGE * 1000 };
   const body = toBase64Url(enc.encode(JSON.stringify(payload)));
-  const signature = await signValue(body);
+  const signature = await signValue(body, secret);
   return `${body}.${signature}`;
 }
 
@@ -42,7 +47,7 @@ function buildCookie(name, value, req, maxAge) {
   const parts = [`${name}=${encodeURIComponent(value)}`, 'Path=/', 'SameSite=Lax', 'HttpOnly', `Max-Age=${maxAge}`];
   const appUrl = Deno.env.get('APP_URL');
   if (appUrl) {
-    try { parts.push(`Domain=.${new URL(appUrl).hostname.replace(/^www\./, '')}`); } catch {}
+    try { parts.push(`Domain=.${new URL(appUrl).hostname.replace(/^www\./, '')}`); } catch { /* ignore */ }
   }
   if (isSecure(req)) parts.push('Secure');
   return parts.join('; ');
@@ -51,6 +56,11 @@ function buildCookie(name, value, req, maxAge) {
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return Response.json({ error: 'method_not_allowed' }, { status: 405 });
+  }
+
+  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+  if (!secret) {
+    return Response.json({ error: 'SESSION_SIGNING_SECRET not configured' }, { status: 500 });
   }
 
   let body;
@@ -63,7 +73,6 @@ Deno.serve(async (req) => {
 
   const base44 = createClientFromRequest(req);
 
-  // Find user by callsign
   const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
   const user = (allUsers || []).find(u => u.callsign && u.callsign.toLowerCase() === callsign.trim().toLowerCase());
 
@@ -75,7 +84,6 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'key_revoked' }, { status: 403 });
   }
 
-  // If user has already registered (has joined_at set)
   if (user.joined_at) {
     return Response.json({ error: 'already_registered' }, { status: 409 });
   }
@@ -84,15 +92,13 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'invalid_key' }, { status: 401 });
   }
 
-  const keyMatch = await bcrypt.compare(key, user.auth_key_hash);
-  if (!keyMatch) {
+  const keyHash = await hmacHash(key, secret);
+  if (keyHash !== user.auth_key_hash) {
     return Response.json({ error: 'invalid_key' }, { status: 401 });
   }
 
-  // Compute admin flag
-  const is_admin = (user.nexus_rank === 'PIONEER' || user.callsign === 'SYSTEM_ADMIN');
+  const is_admin = (user.nexus_rank === 'PIONEER' || user.callsign === 'SYSTEM_ADMIN' || user.callsign === 'SYSTEM-ADMIN');
 
-  // Mark as registered and sync is_admin
   const now = new Date().toISOString();
   await base44.asServiceRole.entities.NexusUser.update(user.id, {
     joined_at: now,
@@ -100,8 +106,7 @@ Deno.serve(async (req) => {
     is_admin,
   });
 
-  // Create session
-  const token = await createSessionToken(user.callsign, is_admin);
+  const token = await createSessionToken(user.callsign, is_admin, secret);
   const headers = new Headers({ 'Cache-Control': 'no-store' });
   headers.append('Set-Cookie', buildCookie(SESSION_COOKIE_NAME, token, req, SESSION_MAX_AGE));
 

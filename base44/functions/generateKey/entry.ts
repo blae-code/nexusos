@@ -5,16 +5,15 @@
  * Returns: { key, key_prefix, user_id }
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+
+const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const enc = new TextEncoder();
 
 function randomBlock(len) {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let result = '';
   const bytes = new Uint8Array(len);
   crypto.getRandomValues(bytes);
-  for (let i = 0; i < len; i++) {
-    result += chars[bytes[i] % chars.length];
-  }
+  let result = '';
+  for (let i = 0; i < len; i++) result += CHARS[bytes[i] % CHARS.length];
   return result;
 }
 
@@ -22,9 +21,22 @@ function generateAuthKey() {
   return `RSN-${randomBlock(4)}-${randomBlock(4)}-${randomBlock(4)}`;
 }
 
+async function hmacHash(key, secret) {
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(key));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+  if (!secret) {
+    return Response.json({ error: 'SESSION_SIGNING_SECRET not configured' }, { status: 500 });
   }
 
   const base44 = createClientFromRequest(req);
@@ -46,10 +58,9 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'callsign_taken' }, { status: 409 });
   }
 
-  // Generate key and hash
+  // Generate key and hash with HMAC-SHA256
   const authKey = generateAuthKey();
-  const salt = await bcrypt.genSalt(10);
-  const authKeyHash = await bcrypt.hash(authKey, salt);
+  const authKeyHash = await hmacHash(authKey, secret);
   const keyPrefix = authKey.slice(0, 8);
 
   // Create NexusUser
