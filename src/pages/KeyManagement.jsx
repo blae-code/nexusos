@@ -4,6 +4,8 @@ import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
 
 const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
+const SYSTEM_ADMIN_LOGIN = 'system-admin';
+const SYSTEM_ADMIN_CALLSIGN = 'SYSTEM-ADMIN';
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';
@@ -94,6 +96,10 @@ export default function KeyManagement() {
   const [generatedKey, setGeneratedKey] = useState(null);
   const [copied, setCopied] = useState(false);
   const [revokeConfirm, setRevokeConfirm] = useState(null);
+  const [systemAdminRecoveryToken, setSystemAdminRecoveryToken] = useState('');
+  const [showSystemAdminRecovery, setShowSystemAdminRecovery] = useState(false);
+  const [systemAdminRecoveryEnabled, setSystemAdminRecoveryEnabled] = useState(false);
+  const [systemAdminMessage, setSystemAdminMessage] = useState('');
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -126,6 +132,7 @@ export default function KeyManagement() {
     setSubmitting(true);
     setWorkingUserId('issue');
     setError('');
+    setSystemAdminMessage('');
     setGeneratedKey(null);
 
     try {
@@ -162,6 +169,7 @@ export default function KeyManagement() {
     setSubmitting(true);
     setWorkingUserId(managedUser.id);
     setError('');
+    setSystemAdminMessage('');
     setGeneratedKey(null);
 
     try {
@@ -189,6 +197,7 @@ export default function KeyManagement() {
     setSubmitting(true);
     setWorkingUserId(managedUser.id);
     setError('');
+    setSystemAdminMessage('');
 
     try {
       const res = await authApi.revokeAuthKey({ userId: managedUser.id });
@@ -210,6 +219,54 @@ export default function KeyManagement() {
     INVITED: '#4AE830',
     REGISTERED: '#C8A84B',
     REVOKED: '#C0392B',
+  };
+
+  const systemAdminUser = users.find((managedUser) =>
+    String(managedUser?.username || '').trim().toLowerCase() === SYSTEM_ADMIN_LOGIN
+    || String(managedUser?.callsign || '').trim().toUpperCase() === SYSTEM_ADMIN_CALLSIGN,
+  );
+
+  const handleSystemAdminBootstrap = async ({ recovery = false } = {}) => {
+    setSubmitting(true);
+    setWorkingUserId(recovery ? 'system-admin-recovery' : 'system-admin-bootstrap');
+    setError('');
+    setSystemAdminMessage('');
+    setGeneratedKey(null);
+
+    try {
+      const res = await authApi.bootstrapSystemAdmin({
+        recoveryToken: recovery ? systemAdminRecoveryToken.trim() : undefined,
+      });
+
+      if (res?.error === 'already_bootstrapped') {
+        setSystemAdminRecoveryEnabled(Boolean(res.recovery_enabled));
+        setSystemAdminMessage('System Admin already exists. Use the row action below, or use emergency recovery if the bootstrap secret is configured.');
+        await loadUsers();
+      } else if (res?.error === 'invalid_recovery_token') {
+        setSystemAdminRecoveryEnabled(true);
+        setSystemAdminMessage(res.message || 'Recovery token rejected.');
+      } else if (res?.error) {
+        setSystemAdminMessage(res.message || res.error);
+      } else if (res?.key) {
+        setSystemAdminRecoveryEnabled(Boolean(res.recovery_enabled));
+        setGeneratedKey({
+          key: res.key,
+          contextLabel: `${res.recovered ? 'Recovered' : 'Bootstrapped'} For ${SYSTEM_ADMIN_LOGIN.toUpperCase()} · PIONEER`,
+        });
+        setSystemAdminMessage(res.recovered
+          ? 'System Admin key regenerated through bootstrap recovery.'
+          : 'System Admin account created or repaired successfully.');
+        setSystemAdminRecoveryToken('');
+        await loadUsers();
+      } else {
+        setSystemAdminMessage('System Admin bootstrap failed.');
+      }
+    } catch (err) {
+      setSystemAdminMessage(err?.message || 'System Admin bootstrap failed.');
+    } finally {
+      setSubmitting(false);
+      setWorkingUserId('');
+    }
   };
 
   if (!isAdmin) {
@@ -352,6 +409,185 @@ export default function KeyManagement() {
         ) : null}
 
         <GeneratedKeyPanel generatedKey={generatedKey} copied={copied} onCopy={handleCopy} />
+      </div>
+
+      <div style={{
+        background: '#0F0F0D',
+        borderLeft: '2px solid #C0392B',
+        borderTop: '0.5px solid rgba(200,170,100,0.10)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        borderRadius: 2,
+        padding: '20px 24px',
+        marginBottom: 24,
+      }}>
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 11,
+          color: '#C8A84B',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          marginBottom: 10,
+          fontWeight: 600,
+        }}>
+          System Admin Recovery
+        </div>
+
+        <div style={{ color: '#9A9488', fontSize: 11, lineHeight: 1.6, marginBottom: 16 }}>
+          Creates or repairs the fixed Base44 development administrator account: username <strong style={{ color: '#E8E4DC' }}>{SYSTEM_ADMIN_LOGIN}</strong>, callsign <strong style={{ color: '#E8E4DC' }}>{SYSTEM_ADMIN_CALLSIGN}</strong>, rank <strong style={{ color: '#E8E4DC' }}>PIONEER</strong>. Use this if the record is missing, malformed, or needs a guarded recovery from the bootstrap secret.
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 260, flex: 1 }}>
+            <label style={{ fontSize: 9, color: '#9A9488', letterSpacing: '0.1em', display: 'block', marginBottom: 4, fontFamily: "'Barlow Condensed', sans-serif" }}>
+              Current Record
+            </label>
+            <div style={{
+              minHeight: 39,
+              padding: '10px 12px',
+              background: '#141410',
+              border: '0.5px solid rgba(200,170,100,0.10)',
+              borderRadius: 2,
+              color: '#E8E4DC',
+              fontSize: 12,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              letterSpacing: '0.08em',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              {systemAdminUser
+                ? `${systemAdminUser.username} · ${systemAdminUser.nexus_rank} · ${userStatus(systemAdminUser)}`
+                : 'No System Admin record detected'}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleSystemAdminBootstrap()}
+            disabled={submitting}
+            style={{
+              padding: '10px 20px',
+              background: submitting && workingUserId === 'system-admin-bootstrap' ? '#5A2620' : '#C0392B',
+              border: '1px solid rgba(192,57,43,0.6)',
+              borderRadius: 2,
+              color: '#F0EDE5',
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              fontSize: 12,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              cursor: submitting ? 'wait' : 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {submitting && workingUserId === 'system-admin-bootstrap' ? 'Repairing…' : 'Bootstrap / Repair'}
+          </button>
+
+          {systemAdminUser ? (
+            <button
+              type="button"
+              onClick={() => handleRegenerate(systemAdminUser)}
+              disabled={submitting}
+              style={{
+                padding: '10px 20px',
+                background: 'transparent',
+                border: '0.5px solid rgba(200,168,75,0.3)',
+                borderRadius: 2,
+                color: '#C8A84B',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 600,
+                fontSize: 12,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: submitting ? 'wait' : 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {submitting && workingUserId === systemAdminUser.id ? 'Regenerating…' : 'Regenerate Key'}
+            </button>
+          ) : null}
+        </div>
+
+        {systemAdminRecoveryEnabled ? (
+          <div style={{ marginTop: 16 }}>
+            <button
+              type="button"
+              onClick={() => setShowSystemAdminRecovery((current) => !current)}
+              style={{
+                padding: '8px 12px',
+                background: 'transparent',
+                border: '0.5px solid rgba(200,168,75,0.25)',
+                borderRadius: 2,
+                color: '#C8A84B',
+                cursor: 'pointer',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {showSystemAdminRecovery ? 'Hide Emergency Recovery' : 'Emergency Recovery'}
+            </button>
+
+            {showSystemAdminRecovery ? (
+              <div style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 260 }}>
+                  <label style={{ fontSize: 9, color: '#9A9488', letterSpacing: '0.1em', display: 'block', marginBottom: 4, fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    SYSTEM_ADMIN_BOOTSTRAP_SECRET
+                  </label>
+                  <input
+                    value={systemAdminRecoveryToken}
+                    onChange={(event) => setSystemAdminRecoveryToken(event.target.value)}
+                    placeholder="Recovery token"
+                    type="password"
+                    autoComplete="off"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      background: '#141410',
+                      border: '0.5px solid rgba(200,170,100,0.10)',
+                      borderRadius: 2,
+                      color: '#E8E4DC',
+                      fontSize: 12,
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      letterSpacing: '0.08em',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSystemAdminBootstrap({ recovery: true })}
+                  disabled={submitting || !systemAdminRecoveryToken.trim()}
+                  style={{
+                    padding: '10px 20px',
+                    background: submitting && workingUserId === 'system-admin-recovery' ? '#5A2620' : '#C0392B',
+                    border: '1px solid rgba(192,57,43,0.6)',
+                    borderRadius: 2,
+                    color: '#F0EDE5',
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontWeight: 600,
+                    fontSize: 12,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    cursor: submitting ? 'wait' : 'pointer',
+                    whiteSpace: 'nowrap',
+                    opacity: !systemAdminRecoveryToken.trim() ? 0.6 : 1,
+                  }}
+                >
+                  {submitting && workingUserId === 'system-admin-recovery' ? 'Recovering…' : 'Recover Via Secret'}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {systemAdminMessage ? (
+          <div style={{ marginTop: 12, color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.06em' }}>
+            {systemAdminMessage}
+          </div>
+        ) : null}
       </div>
 
       <div style={{

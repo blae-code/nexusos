@@ -13,6 +13,8 @@ export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
 const FALLBACK_AUTH_ORIGIN = 'https://nexus-nomad-core.base44.app';
 const DEV_KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const SYSTEM_ADMIN_LOGIN = 'system-admin';
+const SYSTEM_ADMIN_CALLSIGN = 'SYSTEM-ADMIN';
 
 function getAuthOrigin() {
   if (typeof window === 'undefined') return FALLBACK_AUTH_ORIGIN;
@@ -143,6 +145,82 @@ async function regenerateAuthKeyInSandbox(userId) {
   };
 }
 
+async function bootstrapSystemAdminInSandbox(options = {}) {
+  const recoveryToken = String(options?.recoveryToken || '').trim();
+  const users = await base44.entities.NexusUser.list('-created_date', 500);
+  let admin = (users || []).find((candidate) =>
+    normalizeLoginName(candidate?.login_name || candidate?.username || candidate?.callsign) === SYSTEM_ADMIN_LOGIN
+    || normalizeCallsign(candidate?.callsign || '') === SYSTEM_ADMIN_CALLSIGN,
+  );
+  const now = new Date().toISOString();
+
+  if (!admin) {
+    admin = await base44.entities.NexusUser.create({
+      login_name: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
+      full_name: 'System Admin',
+      nexus_rank: 'PIONEER',
+      is_admin: true,
+      key_revoked: false,
+      onboarding_complete: true,
+      joined_at: now,
+      last_seen_at: now,
+      auth_key_hash: null,
+    });
+  } else {
+    await base44.entities.NexusUser.update(admin.id, {
+      login_name: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
+      full_name: admin.full_name || 'System Admin',
+      nexus_rank: 'PIONEER',
+      is_admin: true,
+      key_revoked: false,
+      onboarding_complete: true,
+      joined_at: admin.joined_at || now,
+      last_seen_at: admin.last_seen_at || now,
+    });
+  }
+
+  if (admin.auth_key_hash && !recoveryToken) {
+    return {
+      error: 'already_bootstrapped',
+      message: 'System Admin is already bootstrapped. Use regenerate or provide a recovery token.',
+      login_name: SYSTEM_ADMIN_LOGIN,
+      username: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
+      recovery_enabled: false,
+      user: serializeManagedUser(admin),
+    };
+  }
+
+  const key = generateDevAuthKey();
+  await base44.entities.NexusUser.update(admin.id, {
+    auth_key_hash: 'dev-only',
+    key_prefix: key.slice(0, 8),
+    key_issued_by: 'DEV-SANDBOX',
+    key_issued_at: now,
+    key_revoked: false,
+    session_invalidated_at: now,
+    revoked_at: null,
+    joined_at: admin.joined_at || now,
+    last_seen_at: now,
+    onboarding_complete: true,
+    nexus_rank: 'PIONEER',
+    is_admin: true,
+  });
+
+  const refreshed = await base44.entities.NexusUser.filter({ id: admin.id });
+  return {
+    success: true,
+    recovered: Boolean(recoveryToken),
+    login_name: SYSTEM_ADMIN_LOGIN,
+    username: SYSTEM_ADMIN_LOGIN,
+    callsign: SYSTEM_ADMIN_CALLSIGN,
+    key,
+    user: refreshed?.[0] ? serializeManagedUser(refreshed[0]) : null,
+  };
+}
+
 async function parseJson(response) {
   try { return await response.json(); } catch { return null; }
 }
@@ -162,6 +240,7 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
 /** @typedef {{ rememberMe?: boolean, timeoutMs?: number }} LoginOptions */
 /** @typedef {{ username: string, callsign?: string, nexusRank: string, timeoutMs?: number }} KeyIssueOptions */
 /** @typedef {{ userId: string, timeoutMs?: number }} KeyMutationOptions */
+/** @typedef {{ recoveryToken?: string, timeoutMs?: number }} BootstrapSystemAdminOptions */
 
 export const authApi = {
   async getHealth(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
@@ -342,6 +421,23 @@ export const authApi = {
         action: 'regenerate',
         user_id: userId,
       }),
+    }, timeoutMs);
+
+    return (await parseJson(response)) || {};
+  },
+
+  async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    if (isSandboxManagedMode()) {
+      return bootstrapSystemAdminInSandbox({ recoveryToken });
+    }
+
+    const payload = recoveryToken ? { recovery_token: recoveryToken } : {};
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/bootstrap/entry'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     }, timeoutMs);
 
     return (await parseJson(response)) || {};
