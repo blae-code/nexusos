@@ -16,17 +16,17 @@ export default function AccessGate() {
   const location = useLocation();
   const { isAuthenticated, loading, user, refreshSession } = useSession();
 
-  const [stars] = useState(() =>
-    Array.from({ length: 120 }, (_, i) => ({
+  const stars = useMemo(() => {
+    return Array.from({ length: 120 }, (_, i) => ({
       id: i,
       top: Math.random() * 100,
       left: Math.random() * 100,
       size: Math.random() * 1.4 + 0.8,
-      opacity: Math.random() * 0.5 + 0.2,
-      duration: Math.random() * 4 + 3,
+      opacity: Math.random() * 0.4 + 0.15,
+      duration: Math.random() * 3 + 2,
       delay: Math.random() * 4,
-    }))
-  );
+    }));
+  }, []);
 
   const [username, setUsername] = useState('');
   const [authKey, setAuthKey] = useState('');
@@ -98,19 +98,24 @@ export default function AccessGate() {
       }} src="/video/nexus-boot-loop.mp4" />
 
       {/* STARFIELD */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
-        {stars.map(s => (
-          <div key={s.id} style={{
-            position: 'absolute', borderRadius: '50%',
+      {stars.map(star => (
+        <div
+          key={star.id}
+          style={{
+            position: 'absolute',
+            top: `${star.top}%`,
+            left: `${star.left}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            borderRadius: '50%',
             background: '#E8E4DC',
-            width: s.size, height: s.size,
-            top: `${s.top}%`, left: `${s.left}%`,
-            opacity: s.opacity,
-            animation: `starPulse ${s.duration}s ease-in-out infinite`,
-            animationDelay: `${s.delay}s`,
-          }} />
-        ))}
-      </div>
+            opacity: star.opacity,
+            zIndex: 1,
+            animation: `twinkle ${star.duration}s ${star.delay}s ease-in-out infinite`,
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
 
       {/* AMBIENT BLOOM — warm amber lower-centre */}
       <div style={{
@@ -309,9 +314,9 @@ export default function AccessGate() {
         @import url('https://fonts.cdnfonts.com/css/earth-orbiter');
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap');
 
-        @keyframes starPulse {
-          0%, 100% { opacity: var(--op, 0.4); }
-          50% { opacity: calc(var(--op, 0.4) * 0.3); }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.08; }
         }
         @keyframes pulse {
           0%, 100% { opacity: 1; }
