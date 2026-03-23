@@ -16,7 +16,7 @@ import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 export default function NexusShell() {
   const location = useLocation();
-  const { session, user, source, isAuthenticated, loading } = useSession();
+  const { session, user, source, isAuthenticated, isAdmin, loading } = useSession();
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
@@ -253,19 +253,17 @@ export default function NexusShell() {
     return <Navigate to={redirectTo} replace />;
   }
 
-  const isAdmin = source === 'admin';
+  const isSourceAdmin = source === 'admin';
   const isPreview = source === 'preview';
-  const isElevated = isAdmin || isPreview || ['PIONEER', 'FOUNDER'].includes(user?.rank);
-  if (location.pathname.startsWith('/app/admin') && !isElevated) {
+  if (location.pathname.startsWith('/app/admin') && !isAdmin && !isPreview) {
     return <Navigate to="/app/industry" replace />;
   }
 
   const outletContext = {
     layoutMode,
     setLayoutMode: updateLayoutMode,
-    callsign: isAdmin ? 'System Administrator' : (user?.callsign || 'UNKNOWN'),
-    rank: isAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE'),
-    discordId: isAdmin ? null : (user?.discordId || null),
+    callsign: isSourceAdmin ? 'System Administrator' : (user?.callsign || 'UNKNOWN'),
+    rank: isSourceAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE'),
     isAdmin,
     source: source || session?.source || 'member',
     sessionUserId: user?.id || null,
@@ -345,7 +343,7 @@ export default function NexusShell() {
           verseStatus={verseStatus}
         />
         <div className="nexus-shell-body">
-          <NexusSidebar currentPath={location.pathname} currentSearch={location.search} rank={outletContext.rank} />
+          <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
           <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative' }}>
             {IS_DEV_MODE ? (
               <div
