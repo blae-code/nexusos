@@ -20,6 +20,9 @@ export default function Setup() {
   const [key, setKey] = useState('');
   const [loginName, setLoginName] = useState('');
   const [callsign, setCallsign] = useState('');
+  const [recoveryToken, setRecoveryToken] = useState('');
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [recoveryEnabled, setRecoveryEnabled] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -29,21 +32,30 @@ export default function Setup() {
     return () => window.removeEventListener('mousemove', handle);
   }, []);
 
-  const handleBootstrap = async () => {
+  const handleBootstrap = async ({ recovery = false } = {}) => {
     setState('loading');
     setErrorMsg('');
-    const res = await base44.functions.invoke('authBootstrap', {});
+    const payload = recovery ? { recovery_token: recoveryToken.trim() } : {};
+    const res = await base44.functions.invoke('authBootstrap', payload);
     const data = res.data;
 
     if (data?.success) {
       setKey(data.key);
       setLoginName(data.login_name || data.username || 'system-admin');
       setCallsign(data.callsign || 'SYSTEM-ADMIN');
+      setRecoveryEnabled(Boolean(data.recovery_enabled));
       setState('success');
     } else if (data?.error === 'already_bootstrapped') {
       setLoginName(data.login_name || data.username || 'system-admin');
       setCallsign(data.callsign || 'SYSTEM-ADMIN');
+      setRecoveryEnabled(Boolean(data.recovery_enabled));
       setState('already');
+    } else if (data?.error === 'invalid_recovery_token') {
+      setLoginName(data.login_name || data.username || 'system-admin');
+      setCallsign(data.callsign || 'SYSTEM-ADMIN');
+      setRecoveryEnabled(true);
+      setErrorMsg(data?.message || 'Recovery token rejected.');
+      setState('error');
     } else {
       setErrorMsg(data?.message || data?.error || 'Bootstrap failed.');
       setState('error');
@@ -155,13 +167,13 @@ export default function Setup() {
           fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: 14, color: '#9A9488',
           lineHeight: 1.7, marginBottom: 32,
         }}>
-          Generate the SYSTEM-ADMIN credentials. The access key is shown once, while the issued username remains fixed as the admin login for Base44 development.
+          Generate the SYSTEM-ADMIN credentials. The access key is shown once, while the issued username remains fixed as the admin login for Base44 development. If this account is already bootstrapped, an optional recovery token can mint a fresh key.
         </div>
 
         {/* === IDLE STATE === */}
         {state === 'idle' && (
           <button
-            onClick={handleBootstrap}
+            onClick={() => handleBootstrap()}
             style={{
               display: 'block', width: '100%',
               background: '#C0392B', color: '#F0EDE5',
@@ -278,6 +290,75 @@ export default function Setup() {
             <div style={{ fontSize: 12, color: '#9A9488', lineHeight: 1.6 }}>
               The admin account already exists. Sign in with username <strong style={{ color: '#E8E4DC' }}>{loginName || 'system-admin'}</strong>, or regenerate the key from Key Management after login.
             </div>
+            {recoveryEnabled && (
+              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRecovery((current) => !current)}
+                  style={{
+                    padding: '10px 14px',
+                    background: 'transparent',
+                    border: '0.5px solid rgba(200,168,75,0.25)',
+                    borderRadius: 2,
+                    color: '#C8A84B',
+                    cursor: 'pointer',
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: 11,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {showRecovery ? 'Hide Emergency Recovery' : 'Emergency Recovery'}
+                </button>
+                {showRecovery && (
+                  <>
+                    <div style={{ fontSize: 11, color: '#9A9488', lineHeight: 1.6 }}>
+                      Enter the `SYSTEM_ADMIN_BOOTSTRAP_SECRET` value from Base44 environment settings to mint a fresh auth key without any existing admin session.
+                    </div>
+                    <input
+                      type="password"
+                      value={recoveryToken}
+                      onChange={(e) => setRecoveryToken(e.target.value)}
+                      placeholder="ENTER RECOVERY TOKEN"
+                      autoComplete="off"
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        background: '#141410',
+                        border: '0.5px solid rgba(200,170,100,0.10)',
+                        borderRadius: 2,
+                        color: '#E8E4DC',
+                        fontSize: 12,
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 500,
+                        letterSpacing: '0.08em',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      disabled={!recoveryToken.trim()}
+                      onClick={() => handleBootstrap({ recovery: true })}
+                      style={{
+                        padding: '12px 16px',
+                        background: recoveryToken.trim() ? '#C0392B' : '#5A2620',
+                        border: '1px solid rgba(192,57,43,0.7)',
+                        borderRadius: 2,
+                        color: '#F0EDE5',
+                        cursor: recoveryToken.trim() ? 'pointer' : 'not-allowed',
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Regenerate System Admin Key
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 
