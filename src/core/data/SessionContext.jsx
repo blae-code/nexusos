@@ -1,8 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { withAppBase } from '@/core/data/app-base-path';
-import { getAppParams } from '@/core/data/app-params';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/core/data/auth-api';
-import { buildBase44Url, getBase44Headers } from '@/core/data/base44-host';
 import { clearAdminSandboxProfile, getAdminSandboxProfile, IS_LOCAL_SIMULATION_MODE } from '@/core/data/dev';
 
 const SessionContext = createContext(null);
