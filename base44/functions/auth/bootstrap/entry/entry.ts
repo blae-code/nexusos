@@ -1,6 +1,6 @@
 /**
- * GET /auth/bootstrap — One-time SYSTEM-ADMIN key generator.
- * No auth required. Returns plaintext key ONCE, then refuses.
+ * POST /auth/bootstrap — One-time SYSTEM-ADMIN key generator.
+ * No auth required. Creates the admin record if missing, generates key ONCE.
  * DELETE THIS FUNCTION after first login.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
@@ -47,6 +47,15 @@ Deno.serve(async (req) => {
 
   let targetUser = admin;
 
+  // Step 2: already bootstrapped
+  if (targetUser && targetUser.auth_key_hash) {
+    return Response.json({
+      error: 'already_bootstrapped',
+      message: 'Bootstrap already completed. Delete this function after first login.',
+    });
+  }
+
+  // Step 4: no record exists — create one
   if (!targetUser) {
     targetUser = await base44.asServiceRole.entities.NexusUser.create({
       callsign: 'SYSTEM-ADMIN',
@@ -58,14 +67,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  if (targetUser.auth_key_hash) {
-    return Response.json({
-      error: 'already_bootstrapped',
-      message: 'Bootstrap already completed. Delete this function after first login.',
-    });
-  });
-  }
-
+  // Step 5: generate key, hash, update record
   const plainKey = generateKey();
   const hash = await hmacHash(plainKey, secret);
   const now = new Date().toISOString();
@@ -80,6 +82,7 @@ Deno.serve(async (req) => {
     last_seen_at: now,
   });
 
+  // Step 6: return key
   return Response.json({
     success: true,
     callsign: 'SYSTEM-ADMIN',
