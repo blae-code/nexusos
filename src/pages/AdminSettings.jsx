@@ -105,12 +105,10 @@ function SecretInput({ secret, value, onSave }) {
 }
 
 export default function AdminSettings() {
-  const { user } = useSession();
+  const { isAdmin } = useSession();
   const [secrets, setSecrets] = useState({});
   const [loading, setLoading] = useState(true);
   const [testResults, setTestResults] = useState({});
-
-  const isAdmin = user?.rank === 'PIONEER' || user?.rank === 'FOUNDER';
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -128,8 +126,16 @@ export default function AdminSettings() {
 
   if (!isAdmin) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>
-        Admin access required. Only Pioneer or Founder can modify system configuration.
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100%', width: '100%', background: '#0A0908',
+      }}>
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
+          color: '#C8A84B', letterSpacing: '0.2em', textTransform: 'uppercase',
+        }}>
+          ACCESS DENIED — PIONEER CLEARANCE REQUIRED
+        </span>
       </div>
     );
   }
