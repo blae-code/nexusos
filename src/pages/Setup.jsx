@@ -18,6 +18,8 @@ export default function Setup() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [state, setState] = useState('idle'); // idle | loading | success | already | error
   const [key, setKey] = useState('');
+  const [loginName, setLoginName] = useState('');
+  const [callsign, setCallsign] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -35,8 +37,12 @@ export default function Setup() {
 
     if (data?.success) {
       setKey(data.key);
+      setLoginName(data.login_name || data.username || 'system-admin');
+      setCallsign(data.callsign || 'SYSTEM-ADMIN');
       setState('success');
     } else if (data?.error === 'already_bootstrapped') {
+      setLoginName(data.login_name || data.username || 'system-admin');
+      setCallsign(data.callsign || 'SYSTEM-ADMIN');
       setState('already');
     } else {
       setErrorMsg(data?.message || data?.error || 'Bootstrap failed.');
@@ -149,7 +155,7 @@ export default function Setup() {
           fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: 14, color: '#9A9488',
           lineHeight: 1.7, marginBottom: 32,
         }}>
-          Generate the SYSTEM-ADMIN access key. This key is shown once — store it immediately. After generation, use it to log in at the Access Gate.
+          Generate the SYSTEM-ADMIN credentials. The access key is shown once, while the issued username remains fixed as the admin login for Base44 development.
         </div>
 
         {/* === IDLE STATE === */}
@@ -212,7 +218,14 @@ export default function Setup() {
                 CALLSIGN
               </div>
               <div style={{ fontSize: 16, color: '#E8E4DC', fontWeight: 600, letterSpacing: '0.1em', marginBottom: 16 }}>
-                SYSTEM-ADMIN
+                {callsign || 'SYSTEM-ADMIN'}
+              </div>
+
+              <div style={{ fontSize: 9, color: '#9A9488', letterSpacing: '0.15em', marginBottom: 8, textTransform: 'uppercase' }}>
+                USERNAME
+              </div>
+              <div style={{ fontSize: 16, color: '#E8E4DC', fontWeight: 600, letterSpacing: '0.08em', marginBottom: 16 }}>
+                {loginName || 'system-admin'}
               </div>
 
               <div style={{ fontSize: 9, color: '#9A9488', letterSpacing: '0.15em', marginBottom: 8, textTransform: 'uppercase' }}>
@@ -247,7 +260,7 @@ export default function Setup() {
               fontSize: 12, color: '#9A9488', lineHeight: 1.7,
               fontFamily: "'Barlow', sans-serif",
             }}>
-              Use these credentials at the <a href="/" style={{ color: '#C8A84B', textDecoration: 'underline' }}>Access Gate</a> to log in for the first time.
+              Use username <strong style={{ color: '#E8E4DC' }}>{loginName || 'system-admin'}</strong> and this key at the <a href="/" style={{ color: '#C8A84B', textDecoration: 'underline' }}>Access Gate</a> to log in.
             </div>
           </div>
         )}
@@ -263,7 +276,7 @@ export default function Setup() {
               SYSTEM ALREADY INITIALISED
             </div>
             <div style={{ fontSize: 12, color: '#9A9488', lineHeight: 1.6 }}>
-              The admin key has already been generated. <a href="/" style={{ color: '#C8A84B', textDecoration: 'underline' }}>Log in normally</a>.
+              The admin account already exists. Sign in with username <strong style={{ color: '#E8E4DC' }}>{loginName || 'system-admin'}</strong>, or regenerate the key from Key Management after login.
             </div>
           </div>
         )}

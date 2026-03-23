@@ -1,12 +1,15 @@
 /**
  * GET /auth/bootstrap — One-time SYSTEM-ADMIN key generator.
- * No auth required. Returns plaintext key ONCE, then refuses.
+ * No auth required. Creates or repairs the SYSTEM-ADMIN record, then
+ * returns the plaintext key ONCE.
  * DELETE THIS FUNCTION after first login.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import { normalizeLoginName } from '../_shared/issuedKey.ts';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const SYSTEM_ADMIN_CALLSIGN = 'SYSTEM-ADMIN';
+const SYSTEM_ADMIN_LOGIN = 'system-admin';
 const enc = new TextEncoder();
 
 function randomBlock(len) {
@@ -42,42 +45,75 @@ Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
 
   const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
-  const admin = (allUsers || []).find(
-    u => u.callsign && u.callsign.toUpperCase() === 'SYSTEM-ADMIN'
+  let admin = (allUsers || []).find((candidate) =>
+    normalizeLoginName(candidate.login_name || candidate.username || '') === SYSTEM_ADMIN_LOGIN
+    || String(candidate.callsign || '').trim().toUpperCase() === SYSTEM_ADMIN_CALLSIGN,
   );
+  const now = new Date().toISOString();
 
   if (!admin) {
-    return Response.json({
-      error: 'no_admin_record',
-      message: 'No NexusUser with callsign SYSTEM-ADMIN exists. Create the record first with callsign=SYSTEM-ADMIN, nexus_rank=PIONEER.',
-    }, { status: 404 });
+    admin = await base44.asServiceRole.entities.NexusUser.create({
+      login_name: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
+      full_name: 'System Admin',
+      nexus_rank: 'PIONEER',
+      is_admin: true,
+      key_revoked: false,
+      onboarding_complete: true,
+      joined_at: now,
+      last_seen_at: now,
+      ai_features_enabled: true,
+    });
+  } else {
+    await base44.asServiceRole.entities.NexusUser.update(admin.id, {
+      login_name: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
+      full_name: admin.full_name || 'System Admin',
+      nexus_rank: 'PIONEER',
+      is_admin: true,
+      key_revoked: false,
+      onboarding_complete: true,
+      joined_at: admin.joined_at || now,
+      last_seen_at: admin.last_seen_at || now,
+      ai_features_enabled: admin.ai_features_enabled ?? true,
+    });
   }
 
   if (admin.auth_key_hash) {
     return Response.json({
       error: 'already_bootstrapped',
-      message: 'Bootstrap already completed. Delete this function after first login.',
+      message: 'Bootstrap already completed. Use the issued username at the Access Gate or regenerate the key from Key Management.',
+      login_name: SYSTEM_ADMIN_LOGIN,
+      username: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
     });
   }
 
   const plainKey = generateKey();
   const hash = await hmacHash(plainKey, secret);
-  const now = new Date().toISOString();
 
   await base44.asServiceRole.entities.NexusUser.update(admin.id, {
-    login_name: admin.login_name || normalizeLoginName(admin.callsign || 'system-admin'),
+    login_name: SYSTEM_ADMIN_LOGIN,
+    callsign: SYSTEM_ADMIN_CALLSIGN,
+    full_name: admin.full_name || 'System Admin',
     auth_key_hash: hash,
     key_prefix: plainKey.slice(0, 8),
+    key_issued_by: SYSTEM_ADMIN_CALLSIGN,
+    key_issued_at: now,
     is_admin: true,
     nexus_rank: 'PIONEER',
+    key_revoked: false,
     onboarding_complete: true,
-    joined_at: now,
+    joined_at: admin.joined_at || now,
     last_seen_at: now,
+    ai_features_enabled: admin.ai_features_enabled ?? true,
   });
 
   return Response.json({
     success: true,
-    callsign: 'SYSTEM-ADMIN',
+    login_name: SYSTEM_ADMIN_LOGIN,
+    username: SYSTEM_ADMIN_LOGIN,
+    callsign: SYSTEM_ADMIN_CALLSIGN,
     key: plainKey,
   });
 });
