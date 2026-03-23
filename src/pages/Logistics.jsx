@@ -113,7 +113,7 @@ export default function Logistics() {
     if (shipsResult.status === 'fulfilled') setShips(toArray(shipsResult.value)); else { setShips([]); unavailable.push('OrgShip'); }
     if (materialsResult.status === 'fulfilled') setMaterials(toArray(materialsResult.value)); else { setMaterials([]); unavailable.push('Material'); }
     if (commoditiesResult.status === 'fulfilled') setCommodities(toArray(commoditiesResult.value)); else { setCommodities([]); unavailable.push('GameCacheCommodity'); }
-    setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Logistics will stay fully usable in sandbox mode and degrade to read-only elsewhere.` : '');
+    setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Logistics will degrade to read-only until those entities are available.` : '');
     setLoading(false);
   }, []);
 
@@ -254,8 +254,8 @@ export default function Logistics() {
         <div className="nexus-section-header">LOGISTICS</div>
         <div style={{ color: 'var(--t0)', fontSize: 15, fontWeight: 600 }}>Cargo Movement And Hauling Coordination</div>
         <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7, maxWidth: 820 }}>
-          Logistics is now a routed sandbox workspace instead of a placeholder. Cargo jobs, manifests, consignments, and dispatch-ready
-          ships all render against the shared entity layer and can be updated end-to-end in sandbox mode.
+          Logistics is now a routed live-data workspace instead of a placeholder. Cargo jobs, manifests, consignments, and dispatch-ready
+          ships all render against the shared entity layer and can be updated end-to-end when the required entities are present.
         </div>
       </div>
 
@@ -358,7 +358,7 @@ export default function Logistics() {
 
           <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {openJobs.length === 0 ? (
-              <EmptyState icon={Truck} title="No open cargo jobs" detail="Post a new job or wait for another courier order to arrive in the sandbox." action actionLabel="Post Job" actionOnClick={() => setShowJobForm(true)} />
+              <EmptyState icon={Truck} title="No open cargo jobs" detail="Post a new job or wait for another courier order to arrive." action actionLabel="Post Job" actionOnClick={() => setShowJobForm(true)} />
             ) : (
               openJobs.map((job) => (
                 <div key={job.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.9fr) auto', gap: 12, padding: '12px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'start' }}>
@@ -477,7 +477,7 @@ export default function Logistics() {
 
           <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {consignments.length === 0 ? (
-              <EmptyState icon={Package} title="No consignments posted" detail="Create a consignment to test seller payout and commission workflows in sandbox mode." action actionLabel="Post Consignment" actionOnClick={() => setShowConsignmentForm(true)} />
+              <EmptyState icon={Package} title="No consignments posted" detail="Create a consignment to start seller payout and commission workflows." action actionLabel="Post Consignment" actionOnClick={() => setShowConsignmentForm(true)} />
             ) : (
               consignments
                 .slice()

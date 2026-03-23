@@ -20,11 +20,11 @@ Base44 is not the source of truth for feature development. GitHub is.
 ## What Not To Do
 - Do not prototype major features only in Base44.
 - Do not let Base44 drift from GitHub for more than a single edit session.
-- Do not let collaborators without Base44 access depend on editor-only changes.
+- Do not use Base44-only auth shortcuts or editor-only sample data as a substitute for real staging validation.
 
 ## Checklist Before Base44 Publish
 1. GitHub branch merged or ready.
-2. Shared preview verified.
+2. Real invitation-auth flow verified.
 3. Base44 impact noted in the PR.
 4. Any editor-side changes copied back into the repo.
 5. Repo checks rerun after the sync-back.

@@ -2,7 +2,7 @@
 
 **Route:** `/app/industry/logistics`
 **Directory:** `src/apps/logistics/` plus [Logistics.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Logistics.jsx)
-**Status:** COMPLETE for sandbox-backed use; graceful read-only fallback when logistics entities are missing in a non-sandbox deployment
+**Status:** COMPLETE for live Base44 use; graceful read-only fallback when logistics entities are missing in a deployment
 
 ## Purpose
 
@@ -40,9 +40,9 @@ Read dependencies:
 
 - The routed page lives in [Logistics.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Logistics.jsx).
 - Manifest values are derived from material / commodity lookup data when available; missing pricing data degrades to ad hoc manifests instead of failing.
-- Dispatch assignments persist ship name / id directly onto the job record in sandbox mode so the workflow remains testable without waiting on a separate FleetBuild surface.
+- Dispatch assignments persist ship name / id directly onto the job record so the workflow remains testable without waiting on a separate FleetBuild surface.
 
 ## Remaining External Work
 
-- Real non-sandbox deployments still require `CargoJob` and `Consignment` entity schema to exist if write access is desired.
+- `CargoJob` and `Consignment` entity schema must exist if write access is desired.
 - Commerce-side automated collateral transfer and seller wallet settlement remain deeper finance integrations beyond the current routed workflow.

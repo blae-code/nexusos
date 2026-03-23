@@ -6,8 +6,8 @@ This runbook packages the in-repo flow for a real Rockbreaker operation when pat
 Launch, execute, and wrap a Rockbreaker op with enough operational discipline that Industry, Scout, Op Board, and Herald all stay in sync.
 
 ## Preflight
-- Confirm `/app/admin/todo` has no remaining critical Discord or auth items.
-- Confirm member auth and System Admin bypass both work from `/gate`.
+- Confirm `/app/admin/todo` has no remaining critical auth or runtime items.
+- Confirm issued-key login works from `/`.
 - In Industry:
   - review blueprint ownership and craft queue blockers
   - verify refinery status and hauling capacity
@@ -54,7 +54,7 @@ Launch, execute, and wrap a Rockbreaker op with enough operational discipline th
 - Discord env drift: publish succeeds in-app but Herald cannot post.
 - Patch drift: Scout deposits were logged pre-LIVE and are stale after release.
 - Supply drift: blueprint or refinery blockers were cleared in PTU but not revalidated on LIVE.
-- Auth drift: member OAuth or System Admin bypass regressed after deploy.
+- Auth drift: invitation-based login or session persistence regressed after deploy.
 
 ## Minimum Rehearsal Before LIVE
 - One full dry run with a published Rockbreaker op

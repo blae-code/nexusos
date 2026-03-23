@@ -106,7 +106,7 @@ export default function Commerce() {
     if (contractsResult.status === 'fulfilled') setContracts(toArray(contractsResult.value)); else { setContracts([]); unavailable.push('Contract'); }
     if (cofferResult.status === 'fulfilled') setCofferEntries(toArray(cofferResult.value)); else { setCofferEntries([]); unavailable.push('CofferLog'); }
     if (cargoLogsResult.status === 'fulfilled') setCargoLogs(toArray(cargoLogsResult.value)); else { setCargoLogs([]); unavailable.push('CargoLog'); }
-    setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Commerce stays fully usable in sandbox mode and degrades to read-only elsewhere.` : '');
+    setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Commerce will degrade to read-only until those entities are available.` : '');
     setLoading(false);
   }, []);
 
@@ -254,8 +254,8 @@ export default function Commerce() {
         <div className="nexus-section-header">COMMERCE</div>
         <div style={{ color: 'var(--t0)', fontSize: 15, fontWeight: 600 }}>Financial Operations Surface</div>
         <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7, maxWidth: 820 }}>
-          Commerce now runs as a real sandbox-backed hub. Wallet activity stays tied to the active member profile, trade planning
-          surfaces logged profitability plus the dormant route map, and contract issuance feeds directly into logistics execution.
+          Commerce now runs directly against the live entity layer. Wallet activity stays tied to the active member profile, trade planning
+          surfaces logged profitability plus the route map, and contract issuance feeds directly into logistics execution.
         </div>
       </div>
 
@@ -327,7 +327,7 @@ export default function Commerce() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div className="nexus-section-header">WALLET</div>
-            <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.6 }}>Member-level aUEC visibility with manual ledger entries for sandbox finance testing.</div>
+            <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.6 }}>Member-level aUEC visibility with manual ledger entries against the live finance record.</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
@@ -340,7 +340,7 @@ export default function Commerce() {
           <div className="nexus-card-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{viewerCallsign}</div>
-              <div style={{ color: 'var(--t2)', fontSize: 10 }}>Wallet entries are sandbox-backed and update the active profile balance when supported.</div>
+              <div style={{ color: 'var(--t2)', fontSize: 10 }}>Wallet entries update the active profile balance when the live entity surface is available.</div>
             </div>
             <button type="button" onClick={() => setShowTransactionForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }}>
               <Plus size={12} />
@@ -379,7 +379,7 @@ export default function Commerce() {
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Transaction History</div>
             </div>
             {walletTransactions.length === 0 ? (
-              <EmptyState icon={ArrowRightLeft} title="No wallet activity logged" detail="Create sandbox credits, debits, or pending payouts to verify member finance flows." action actionLabel="Create Entry" actionOnClick={() => setShowTransactionForm(true)} />
+              <EmptyState icon={ArrowRightLeft} title="No wallet activity logged" detail="Create credits, debits, or pending payouts to start the live member finance ledger." action actionLabel="Create Entry" actionOnClick={() => setShowTransactionForm(true)} />
             ) : (
               walletTransactions.map((entry) => (
                 <div key={entry.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 120px 160px', gap: 10, padding: '10px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'center' }}>
@@ -428,7 +428,7 @@ export default function Commerce() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div className="nexus-section-header">CONTRACTS</div>
-            <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.6 }}>Issue courier, exchange, and auction work orders that the sandbox can route into logistics execution.</div>
+            <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.6 }}>Issue courier, exchange, and auction work orders that route directly into logistics execution.</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>

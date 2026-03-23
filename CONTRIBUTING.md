@@ -7,8 +7,8 @@ GitHub is the source of truth for all active development. Base44 is downstream a
 1. Claim work in [TASK_LEDGER.md](./TASK_LEDGER.md) before editing.
 2. Work on a Git branch, not in Base44.
 3. Keep ownership scoped to a feature slice or support slice.
-4. Validate in local simulation or the shared Vercel collaboration deployment.
-5. Open a PR with demo-mode test notes and Base44 impact called out explicitly.
+4. Validate against the real invitation-auth flow and real Base44 data.
+5. Open a PR with verification notes and Base44 impact called out explicitly.
 6. Merge to GitHub first.
 7. Only then apply optional Base44 polish and mirror it back into GitHub the same day.
 
@@ -25,21 +25,14 @@ GitHub is the source of truth for all active development. Base44 is downstream a
 - Shared infrastructure:
   - `src/core/data/*`
   - `src/core/shell/*`
-  - `api/demo/*`
   - docs and repo workflow files
   These require explicit ledger ownership before editing.
-
-## Demo Runtime Rules
-1. Use `VITE_DEMO_MODE=true` for local mock-only work.
-2. Use `VITE_TEMP_ACCESS_MODE=true` and `VITE_SANDBOX_MODE=shared` for the shared Vercel demo.
-3. Do not point the collaboration demo at production auth or production Base44 writes.
-4. Treat all sandbox data as disposable.
 
 ## PR Requirements
 Each PR must include:
 - task ID and owner
 - affected surfaces
-- demo-mode verification notes
+- verification notes
 - Base44 impact:
   - `none`
   - `later sync needed`

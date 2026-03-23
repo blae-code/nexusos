@@ -17,102 +17,20 @@ const MANUAL_STORAGE_KEY = 'nexus_todo_checked';
 
 const TODOS = [
   {
-    category: 'Discord OAuth + Herald Setup',
-    color: 'var(--info)',
+    category: 'Invitation Auth + Runtime',
+    color: 'var(--danger)',
     items: [
-      {
-        id: 'HERALD_BOT_TOKEN',
-        label: 'Set HERALD_BOT_TOKEN secret',
-        detail: 'Discord Developer Portal → Bot → Reset Token, then store it in Base44 environment variables. Required for guild membership checks and Herald Bot notifications.',
-        priority: 'CRITICAL',
-        link: 'https://discord.com/developers/applications',
-      },
-      {
-        id: 'REDSCAR_GUILD_ID',
-        label: 'Set REDSCAR_GUILD_ID secret',
-        detail: 'Enable Developer Mode in Discord, right-click the Redscar Nomads server, and copy the server ID.',
-        priority: 'CRITICAL',
-      },
-      {
-        id: 'DISCORD_CLIENT_ID',
-        label: 'Set DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, and DISCORD_REDIRECT_URI',
-        detail: 'Discord Developer Portal → OAuth2. The redirect URI must point to the deployed callback endpoint for NexusOS member login.',
-        priority: 'CRITICAL',
-        link: 'https://discord.com/developers/applications',
-      },
-      {
-        id: 'DISCORD_PUBLIC_KEY',
-        label: 'Set DISCORD_PUBLIC_KEY for signed Discord interactions',
-        detail: 'Discord Developer Portal → General Information. Required so Herald Bot can verify button and interaction requests from Discord.',
-        priority: 'HIGH',
-        link: 'https://discord.com/developers/applications',
-      },
       {
         id: 'SESSION_SIGNING_SECRET',
         label: 'Set SESSION_SIGNING_SECRET',
-        detail: 'Add a long random secret in Base44 environment variables. This signs the NexusOS member session cookie and OAuth state cookie.',
+        detail: 'Add a long random secret in Base44 environment variables. This signs the invitation-auth session cookie.',
         priority: 'CRITICAL',
       },
-      {
-        id: 'BOT_PERMISSIONS',
-        label: 'Invite Herald Bot with message, thread, and event permissions',
-        detail: 'Required permissions: Send Messages, Embed Links, Use External Emojis, Create Events, Manage Events, Create Public Threads.',
-        priority: 'HIGH',
-        link: 'https://discord.com/developers/applications',
-      },
-    ],
-  },
-  {
-    category: 'Discord Channels — NexusOS Category',
-    color: 'var(--warn)',
-    items: [
-      {
-        id: 'CREATE_NEXUSOS_CATEGORY',
-        label: 'Create | NexusOS | category in Discord',
-        detail: 'Create a dedicated category for NexusOS channels. Make it visible to members and writable only by Herald Bot plus officers.',
-        priority: 'CRITICAL',
-      },
-      {
-        id: 'NEXUSOS_OPS_CHANNEL_ID',
-        label: 'Create #nexusos-ops and set NEXUSOS_OPS_CHANNEL_ID',
-        detail: 'Primary op announcements, RSVP notices, and access-routing copy live here.',
-        priority: 'CRITICAL',
-      },
-      {
-        id: 'NEXUSOS_OCR_CHANNEL_ID',
-        label: 'Create #nexusos-ocr and set NEXUSOS_OCR_CHANNEL_ID',
-        detail: 'Members drop screenshots here for OCR extraction and queue capture.',
-        priority: 'HIGH',
-      },
-      {
-        id: 'NEXUSOS_INTEL_CHANNEL_ID',
-        label: 'Create #nexusos-intel and set NEXUSOS_INTEL_CHANNEL_ID',
-        detail: 'Scout deposit reports and high-value pings are posted here.',
-        priority: 'HIGH',
-      },
-      {
-        id: 'NEXUSOS_LOG_CHANNEL_ID',
-        label: 'Create #nexusos-log and set NEXUSOS_LOG_CHANNEL_ID',
-        detail: 'System log for refinery ready alerts, wrap-up notices, and stock warnings.',
-        priority: 'HIGH',
-      },
-    ],
-  },
-  {
-    category: 'Base App Environment',
-    color: 'var(--acc2)',
-    items: [
       {
         id: 'APP_URL',
         label: 'Set APP_URL to the deployed NexusOS URL',
-        detail: 'Used for OAuth redirects, secure session cookie redirects, and member launcher routing.',
+        detail: 'Used for secure session cookie redirects and launcher routing.',
         priority: 'CRITICAL',
-      },
-      {
-        id: 'NEXUSOS_PUBLIC_URL',
-        label: 'Set NEXUSOS_PUBLIC_URL for Herald Bot embed assets',
-        detail: 'Used by Herald Bot token thumbnails and deep links embedded in Discord posts.',
-        priority: 'HIGH',
       },
       {
         id: 'VITE_BASE44_APP_ID',
@@ -120,6 +38,69 @@ const TODOS = [
         detail: 'Ensure the deployed frontend has VITE_BASE44_APP_ID, VITE_BASE44_APP_BASE_URL, and VITE_BASE44_FUNCTIONS_VERSION configured so the client boots cleanly.',
         priority: 'HIGH',
       },
+      {
+        id: 'SYSTEM_ADMIN_BOOTSTRAP_SECRET',
+        label: 'Set SYSTEM_ADMIN_BOOTSTRAP_SECRET',
+        detail: 'Optional but recommended. Enables emergency regeneration of the fixed system-admin auth key without another admin session.',
+        priority: 'HIGH',
+      },
+      {
+        id: 'NEXUSOS_PUBLIC_URL',
+        label: 'Set NEXUSOS_PUBLIC_URL',
+        detail: 'Used for public links and optional outbound integration assets.',
+        priority: 'LOW',
+      },
+    ],
+  },
+  {
+    category: 'Optional Discord / Herald Bot Backlog',
+    color: 'var(--info)',
+    items: [
+      {
+        id: 'HERALD_BOT_TOKEN',
+        label: 'Set HERALD_BOT_TOKEN secret',
+        detail: 'Only needed if outbound Discord notifications are being enabled.',
+        priority: 'FUTURE',
+        link: 'https://discord.com/developers/applications',
+      },
+      {
+        id: 'REDSCAR_GUILD_ID',
+        label: 'Set REDSCAR_GUILD_ID secret',
+        detail: 'Only needed if Herald Bot is being connected to the guild.',
+        priority: 'FUTURE',
+      },
+      {
+        id: 'DISCORD_PUBLIC_KEY',
+        label: 'Set DISCORD_PUBLIC_KEY for signed Discord interactions',
+        detail: 'Required only if Herald interaction endpoints are enabled.',
+        priority: 'FUTURE',
+        link: 'https://discord.com/developers/applications',
+      },
+      {
+        id: 'BOT_PERMISSIONS',
+        label: 'Invite Herald Bot with message, thread, and event permissions',
+        detail: 'Only required for the optional Discord automation path.',
+        priority: 'FUTURE',
+        link: 'https://discord.com/developers/applications',
+      },
+      {
+        id: 'CREATE_NEXUSOS_CATEGORY',
+        label: 'Create | NexusOS | category in Discord',
+        detail: 'Optional Herald Bot channel organization.',
+        priority: 'FUTURE',
+      },
+      {
+        id: 'NEXUSOS_OPS_CHANNEL_ID',
+        label: 'Create #nexusos-ops and set NEXUSOS_OPS_CHANNEL_ID',
+        detail: 'Primary op announcement channel if Herald Bot notifications are enabled.',
+        priority: 'FUTURE',
+      },
+    ],
+  },
+  {
+    category: 'Base App Environment',
+    color: 'var(--acc2)',
+    items: [
       {
         id: 'SC_API_KEY',
         label: 'Set SC_API_KEY for verse status polling',
@@ -130,19 +111,7 @@ const TODOS = [
     ],
   },
   {
-    category: 'Existing Channel IDs — Env Vars',
-    color: 'var(--t2)',
-    items: [
-      { id: 'ARMORY_CHANNEL_ID', label: 'Set ARMORY_CHANNEL_ID', detail: '| AUEC and Armory | → #ARMORY', priority: 'MEDIUM' },
-      { id: 'COFFER_CHANNEL_ID', label: 'Set COFFER_CHANNEL_ID', detail: '| AUEC and Armory | → #COFFER', priority: 'MEDIUM' },
-      { id: 'INVOICES_CHANNEL_ID', label: 'Set INVOICES_CHANNEL_ID', detail: '| AUEC and Armory | → #INVOICES', priority: 'MEDIUM' },
-      { id: 'INDUSTRY_CHANNEL_ID', label: 'Set INDUSTRY_CHANNEL_ID', detail: '| Professions | → #INDUSTRY', priority: 'LOW' },
-      { id: 'RANGERS_CHANNEL_ID', label: 'Set RANGERS_CHANNEL_ID', detail: '| Professions | → #RANGERS', priority: 'LOW' },
-      { id: 'ANNOUNCEMENTS_CHANNEL_ID', label: 'Set ANNOUNCEMENTS_CHANNEL_ID', detail: 'Announcement channel where Herald Bot can post embeds.', priority: 'LOW' },
-    ],
-  },
-  {
-    category: 'Features — Remaining Integrations',
+    category: 'Optional Integrations Backlog',
     color: 'var(--t2)',
     items: [
       {
@@ -167,7 +136,7 @@ const TODOS = [
         id: 'PATCH_WATCHER',
         label: 'Enable the scheduled patch watcher and digest cron',
         detail: 'rssCheck, patchDigest, and Herald Bot alerting are implemented. Remaining work is enabling the scheduled job in Base44.',
-        priority: 'MEDIUM',
+        priority: 'FUTURE',
       },
     ],
   },
@@ -384,7 +353,7 @@ export default function NexusTodo() {
     <div className="nexus-page-enter flex flex-col h-full overflow-auto p-5 gap-5" style={{ maxWidth: 900 }}>
       <div>
         <div style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 6 }}>
-          NEXUSOS — SETUP TODO
+          NEXUSOS — PRODUCTION READINESS
         </div>
         <div className="flex items-center gap-4 flex-wrap" style={{ color: 'var(--t1)', fontSize: 12 }}>
           <span>{doneCount}/{totalItems} complete</span>

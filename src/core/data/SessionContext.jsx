@@ -1,130 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { withAppBase } from '@/core/data/app-base-path';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/core/data/auth-api';
-import { getAppParams } from '@/core/data/app-params';
-import { buildBase44Url, getBase44Headers } from '@/core/data/base44-host';
-import { clearAdminSandboxProfile, getAdminSandboxProfile, IS_LOCAL_SIMULATION_MODE } from '@/core/data/dev';
 
 const SessionContext = createContext(null);
-const ADMIN_MARKERS = new Set(['admin', 'system_admin', 'app_admin', 'super_admin', 'sudo']);
 const SESSION_REFRESH_TIMEOUT_MS = AUTH_REQUEST_TIMEOUT_MS;
-
-function normalizeAdminValue(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, '_');
-}
-
-function isBase44Admin(user) {
-  if (!user) return false;
-
-  if (user.is_admin === true || user.isAdmin === true || user.is_system_admin === true || user.isSystemAdmin === true) {
-    return true;
-  }
-
-  const scalarFields = [
-    user.role,
-    user.access_level,
-    user.accessLevel,
-    user.app_role,
-    user.appRole,
-    user.user_role,
-    user.userRole,
-    user.permission_level,
-    user.permissionLevel,
-    user.level,
-    user.type,
-  ];
-
-  if (scalarFields.some((value) => ADMIN_MARKERS.has(normalizeAdminValue(value)))) {
-    return true;
-  }
-
-  const roleCollections = [user.roles, user.permissions, user.access];
-  return roleCollections.some((collection) =>
-    Array.isArray(collection) && collection.some((value) => ADMIN_MARKERS.has(normalizeAdminValue(value))),
-  );
-}
-
-function toAdminSession(adminUser) {
-  return {
-    authenticated: true,
-    source: 'admin',
-    user: {
-      id: adminUser.id || 'admin',
-      callsign: adminUser.full_name || adminUser.name || adminUser.email || 'SYS-ADMIN',
-      rank: 'PIONEER',
-      joinedAt: null,
-    },
-  };
-}
 
 function isAbortError(error) {
   return error?.name === 'AbortError';
-}
-
-function withTimeout(task, timeoutMs, label) {
-  return new Promise((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-
-    Promise.resolve()
-      .then(task)
-      .then(resolve, reject)
-      .finally(() => {
-        window.clearTimeout(timeoutId);
-      });
-  });
-}
-
-function isBase44Preview() {
-  if (typeof window === 'undefined') return false;
-  return window.location.hostname.includes('base44.com') || window.location.hostname === 'localhost';
-}
-
-function toPreviewMockSession() {
-  return {
-    authenticated: true,
-    source: 'preview',
-    user: {
-      id: 'preview-mock',
-      callsign: 'PREVIEW-USER',
-      rank: 'PIONEER',
-      joinedAt: null,
-      onboarding_complete: true,
-    },
-  };
-}
-
-async function fetchPreviewAdminUser(timeoutMs = SESSION_REFRESH_TIMEOUT_MS) {
-  const { appId } = getAppParams();
-  if (!appId) {
-    return null;
-  }
-
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
-
-  let response;
-  try {
-    response = await fetch(buildBase44Url(`/api/apps/${appId}/entities/User/me`), {
-      method: 'GET',
-      credentials: 'include',
-      cache: 'no-store',
-      signal: controller.signal,
-      headers: getBase44Headers(),
-    });
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
-
-  if (!response.ok) {
-    return null;
-  }
-
-  return response.json();
 }
 
 export function SessionProvider({ children }) {
@@ -134,13 +16,6 @@ export function SessionProvider({ children }) {
   const isMountedRef = useRef(true);
   const refreshRequestIdRef = useRef(0);
   const sessionRef = useRef(null);
-
-  // Immediately resolve loading in dev mode
-  useEffect(() => {
-    if (IS_LOCAL_SIMULATION_MODE) {
-      setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
     sessionRef.current = session;
@@ -163,26 +38,17 @@ export function SessionProvider({ children }) {
     let nextSession = null;
     let transportIssue = '';
 
-    const adminSandboxProfile = getAdminSandboxProfile();
-    if (adminSandboxProfile) {
-      nextSession = toAdminSession(adminSandboxProfile);
-    }
-
     try {
-      if (!nextSession) {
-        const data = await authApi.getSession({ timeoutMs: SESSION_REFRESH_TIMEOUT_MS });
-        if (data?.authenticated) {
-          nextSession = data;
-        } else if (data?.status >= 500 && data?.error) {
-          transportIssue = data.error;
-        }
+      const data = await authApi.getSession({ timeoutMs: SESSION_REFRESH_TIMEOUT_MS });
+      if (data?.authenticated) {
+        nextSession = data;
+      } else if (data?.status >= 500 && data?.error) {
+        transportIssue = data.error;
       }
     } catch (error) {
       transportIssue = isAbortError(error) ? 'Session check timed out' : 'Session check unavailable';
       console.warn('[SessionProvider] refresh failed:', error);
     }
-
-
 
     if (!isMountedRef.current || requestId !== refreshRequestIdRef.current) {
       return;
@@ -221,13 +87,6 @@ export function SessionProvider({ children }) {
   const logout = useCallback(async (redirectTo = '/') => {
     const destination = withAppBase(redirectTo);
 
-    if (session?.source === 'admin' || getAdminSandboxProfile()) {
-      clearAdminSandboxProfile();
-      setSession(null);
-      window.location.assign(destination);
-      return;
-    }
-
     try {
       await authApi.logout();
     } catch (error) {
@@ -236,10 +95,10 @@ export function SessionProvider({ children }) {
 
     setSession(null);
     window.location.assign(destination);
-  }, [session]);
+  }, []);
 
   const patchUser = useCallback((partial) => {
-    setSession(current => {
+    setSession((current) => {
       if (!current?.user) return current;
       return {
         ...current,

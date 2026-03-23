@@ -12,20 +12,14 @@ Herald Bot is the Discord delivery layer for NexusOS. The implementation lives p
 - Validate Discord setup and reachability through `functions/setupStatus.ts`
 
 ## Auth Relationship
-- Member auth uses Discord OAuth through `functions/auth/*`.
-- Herald Bot and OAuth are separate concerns:
-  - OAuth proves member identity and rank access
-  - Herald handles outbound Discord comms and interaction plumbing
+- Invitation-based auth is now handled through the issued-key flow in `functions/auth/*`.
+- Herald Bot is no longer part of the active login path.
+- Herald remains an optional outbound Discord integration for notifications and interaction plumbing.
 
 ## Required Environment
 - `HERALD_BOT_TOKEN`
 - `REDSCAR_GUILD_ID`
-- `DISCORD_CLIENT_ID`
-- `DISCORD_CLIENT_SECRET`
-- `DISCORD_REDIRECT_URI`
 - `DISCORD_PUBLIC_KEY`
-- `SESSION_SIGNING_SECRET`
-- `APP_URL`
 - `NEXUSOS_PUBLIC_URL`
 
 ## Channel Expectations

@@ -6,10 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:collab": "vite build --outDir dist-collab",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
-    "smoke:collab": "node ./scripts/collaboration/smoke-demo-runtime.mjs",
     "typecheck": "tsc -p ./jsconfig.json",
     "base44:check": "node ./scripts/base44-editor/check-base44-editor.mjs",
     "preview": "vite preview",

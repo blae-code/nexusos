@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { IS_DEV_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
 import { useSession } from '@/core/data/SessionContext';
-import { RankBadge } from '@/core/design';
 import {
   OpBoardIcon,
   SettingsIcon,
@@ -238,39 +236,6 @@ export default function NexusSidebar({ currentPath }) {
           </React.Fragment>
         ))}
       </div>
-
-
-
-      {/* Dev sim indicator */}
-      {IS_DEV_MODE ? (
-        <div style={{
-          width: '100%',
-          borderTop: '0.5px solid rgba(200,170,100,0.10)',
-          paddingTop: 8,
-          paddingBottom: 7,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 3.5,
-          flexShrink: 0,
-        }}>
-          <div style={{
-            width: 5,
-            height: 5,
-            borderRadius: '50%',
-            background: '#C8A84B',
-            animation: 'pulse-dot 2.5s ease-in-out infinite',
-          }} />
-          <span style={{
-            fontSize: 7,
-            color: 'rgba(200,168,75,0.65)',
-            letterSpacing: '0.25em',
-            userSelect: 'none',
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 600,
-          }}>{IS_SHARED_SANDBOX_MODE ? 'CLB' : 'SIM'}</span>
-        </div>
-      ) : null}
     </nav>
   );
 }

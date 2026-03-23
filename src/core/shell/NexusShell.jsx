@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { authApi } from '@/core/data/auth-api';
 import { base44 } from '@/core/data/base44Client';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
@@ -11,7 +10,6 @@ import { useSession } from '@/core/data/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/core/data/layout-mode';
 import { useVerseStatus } from '@/core/data/useVerseStatus';
 import { preloadCriticalTokens } from '@/core/data/tokenMap';
-import { IS_DEV_MODE, IS_LOCAL_SIMULATION_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 export default function NexusShell() {
@@ -20,7 +18,6 @@ export default function NexusShell() {
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
-  const [sandboxMeta, setSandboxMeta] = useState(null);
   const seenLiveOpsRef = useRef(new Set());
   const seenScoutDepositsRef = useRef(new Set());
   const seenRescueCallsRef = useRef(new Set());
@@ -34,40 +31,6 @@ export default function NexusShell() {
       preloadCriticalTokens(user.rank, 6);
     }
   }, [user?.rank]);
-
-  useEffect(() => {
-    if (!IS_SHARED_SANDBOX_MODE) {
-      setSandboxMeta(null);
-      return;
-    }
-
-    let cancelled = false;
-
-    const loadSandboxMeta = async () => {
-      try {
-        const payload = await authApi.getDemoState({ metaOnly: true });
-        if (!cancelled) {
-          setSandboxMeta(payload?.meta || null);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.warn('[NexusShell] sandbox meta lookup failed:', error?.message || error);
-          setSandboxMeta({
-            persistence: 'unknown',
-            warnings: ['Collaboration sandbox metadata is unavailable. Verify the demo API deployment before inviting collaborators.'],
-          });
-        }
-      }
-    };
-
-    loadSandboxMeta();
-    const intervalId = window.setInterval(loadSandboxMeta, 30000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -258,17 +221,15 @@ export default function NexusShell() {
     return <Navigate to={redirectTo} replace />;
   }
 
-  const isSourceAdmin = source === 'admin';
-  const isPreview = source === 'preview';
-  if (location.pathname.startsWith('/app/admin') && !isAdmin && !isPreview) {
+  if (location.pathname.startsWith('/app/admin') && !isAdmin) {
     return <Navigate to="/app/industry" replace />;
   }
 
   const outletContext = {
     layoutMode,
     setLayoutMode: updateLayoutMode,
-    callsign: isSourceAdmin ? 'System Administrator' : (user?.callsign || 'UNKNOWN'),
-    rank: isSourceAdmin ? 'SYSTEM_ADMIN' : (user?.rank || 'AFFILIATE'),
+    callsign: user?.callsign || 'UNKNOWN',
+    rank: user?.rank || 'AFFILIATE',
     isAdmin,
     source: source || session?.source || 'member',
     sessionUserId: user?.id || null,
@@ -281,27 +242,6 @@ export default function NexusShell() {
       padding: 5,
     }}>
       <div className="nexus-shell-frame">
-
-        {isPreview ? (
-          <div
-            style={{
-              height: 22,
-              background: 'rgba(210, 180, 0, 0.08)',
-              borderBottom: '0.5px solid rgba(210, 180, 0, 0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              flexShrink: 0,
-            }}
-          >
-            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgb(210, 180, 0)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-            <span style={{ fontSize: 9, color: 'rgb(210, 180, 0)', letterSpacing: '0.18em', userSelect: 'none' }}>
-              PREVIEW MODE — AUTH BYPASSED · MOCK PIONEER USER
-            </span>
-            <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgb(210, 180, 0)', animation: 'pulse-dot 2.5s ease-in-out infinite 1.25s' }} />
-          </div>
-        ) : null}
         <NexusTopbar
           layoutMode={layoutMode}
           onSelectLayout={updateLayoutMode}
@@ -310,7 +250,6 @@ export default function NexusShell() {
         <div className="nexus-shell-body">
           <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
           <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative' }}>
-
             <AppErrorBoundary compact>
               <Outlet context={outletContext} />
             </AppErrorBoundary>

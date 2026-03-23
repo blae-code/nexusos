@@ -2,7 +2,7 @@
 
 **Route:** `/app/industry/commerce`
 **Directory:** `src/apps/commerce/` plus [Commerce.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Commerce.jsx)
-**Status:** COMPLETE for sandbox-backed use; graceful read-only fallback when wallet/contract entities are missing in a non-sandbox deployment
+**Status:** COMPLETE for live Base44 use; graceful read-only fallback when wallet/contract entities are missing in a deployment
 
 ## Purpose
 
@@ -40,10 +40,10 @@ Read dependencies:
 ## Current Implementation Notes
 
 - The routed page lives in [Commerce.jsx](/C:/Users/Owner/Desktop/NexusOS/nexusos/src/pages/Commerce.jsx); `src/apps/commerce/components/TradeRouteMap.jsx` is now actively used there.
-- In sandbox mode, wallet/transaction/contract CRUD is fully backed by the generic entity client.
+- Wallet/transaction/contract CRUD is backed by the live Base44 entity client.
 - In deployments where those entities are unavailable, the page shows a warning and degrades to read-only behavior instead of crashing.
 
 ## Remaining External Work
 
 - StarHead / UEX live market clients are still optional follow-on work.
-- Real non-sandbox deployments still require the corresponding Base44 entity schema to exist if write access is desired.
+- The corresponding Base44 entity schema must exist if write access is desired.

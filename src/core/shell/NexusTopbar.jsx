@@ -2,17 +2,14 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, LogOut, ScrollText, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { authApi } from '@/core/data/auth-api';
-import NexusCompass from '@/core/design/NexusCompass';
 import { RankBadge } from '@/core/design';
 import { useSession } from '@/core/data/SessionContext';
-import { appVersion } from '@/core/data/generated/versioning';
 import { VERSE_BUILD_LABEL } from '@/core/data/useVerseStatus';
 import { getActiveRescueCount, refreshRescueCalls } from '@/core/data/rescue-board-store';
 import { AltTabIcon, SecondMonitorIcon } from './NexusIcons';
-import { StatusPill, VersionPill } from './TopbarPills';
+import { StatusPill } from './TopbarPills';
 import { LayoutButton, Divider, MenuLink, ChangelogPanel, DropdownContainer } from './TopbarMenu';
-import { DEV_PERSONAS, IS_DEV_MODE, IS_LOCAL_SIMULATION_MODE, IS_SHARED_SANDBOX_MODE } from '@/core/data/dev';
+ 
 
 
 
@@ -84,33 +81,17 @@ function getBreadcrumb(pathname, search) {
   // Legacy fallbacks
   if (pathname === '/app/roster') return { module: 'Roster', tab: null };
   if (pathname === '/app/profile' || pathname === '/app/settings') return { module: 'Settings', tab: null };
-  if (pathname === '/app/admin/todo') return { module: 'Admin', tab: 'Setup TODO' };
+  if (pathname === '/app/admin/todo') return { module: 'Admin', tab: 'Production Readiness' };
   if (pathname === '/app/admin/settings') return { module: 'Admin', tab: 'Settings' };
   if (pathname === '/app/handbook') return { module: 'Org Handbook', tab: null };
   if (pathname === '/app/training') return { module: 'Training', tab: null };
   return { module: 'NexusOS', tab: null };
 }
 
-function menuButtonStyle(active) {
-  return {
-    width: 30,
-    height: 28,
-    borderRadius: 3,
-    border: `0.5px solid ${active ? 'var(--b2)' : 'transparent'}`,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.12s',
-    background: active ? 'var(--bg3)' : 'transparent',
-    color: active ? 'var(--t1)' : 'var(--t2)',
-  };
-}
-
 export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, patchUser, refreshSession, source } = useSession();
+  const { user, logout } = useSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
   const [onlineCount, setOnlineCount] = useState(null);
@@ -118,7 +99,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
   const [walletBalance, setWalletBalance] = useState(null);
   const [rescueCount, setRescueCount] = useState(0);
   const [signingOut, setSigningOut] = useState(false);
-  const [sandboxBusy, setSandboxBusy] = useState(false);
   const userMenuRef = useRef(null);
   const changelogRef = useRef(null);
 
@@ -126,53 +106,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
     () => getBreadcrumb(location.pathname, location.search),
     [location.pathname, location.search],
   );
-
-
-
   const showPtuPill = VERSE_BUILD_LABEL.toUpperCase().includes('PTU');
-
-
-  const handlePersonaSwitch = async (personaId) => {
-    setSandboxBusy(true);
-    try {
-      await authApi.setDemoPersona(personaId);
-      await refreshSession();
-      navigate('/app/industry');
-      setUserMenuOpen(false);
-    } finally {
-      setSandboxBusy(false);
-    }
-  };
-
-  const handleReplayOnboarding = async () => {
-    if (!user?.id) return;
-
-    setSandboxBusy(true);
-    try {
-      await base44.entities.NexusUser.update(user.id, {
-        onboarding_complete: false,
-        consent_given: false,
-        consent_timestamp: null,
-      });
-      patchUser({ onboarding_complete: false });
-      setUserMenuOpen(false);
-      navigate('/onboarding');
-    } finally {
-      setSandboxBusy(false);
-    }
-  };
-
-  const handleSandboxReset = async () => {
-    setSandboxBusy(true);
-    try {
-      await authApi.resetDemoSandbox();
-      await refreshSession();
-      navigate('/app/industry');
-      setUserMenuOpen(false);
-    } finally {
-      setSandboxBusy(false);
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -310,7 +244,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
         {/* ORG METRICS SECTION */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <StatusPill verseStatus={verseStatus} />
-
           {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
 
           {/* Separator */}
@@ -473,26 +406,26 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
               }}
             >
               <RankBadge
-                rank={source === 'admin' ? 'PIONEER' : (user?.rank || 'AFFILIATE')}
+                rank={user?.rank || 'AFFILIATE'}
                 size={16}
               />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
                 <span style={{ fontSize: 11, color: '#E8E4DC', lineHeight: 1, fontFamily: 'inherit' }}>
-                  {source === 'admin' ? 'System Administrator' : (user?.callsign || 'UNKNOWN')}
+                  {user?.callsign || 'UNKNOWN'}
                 </span>
                 <span style={{ fontSize: 9, color: '#9A9488', lineHeight: 1, letterSpacing: '0.08em' }}>
-                  {source === 'admin' ? 'SUDO' : (user?.rank || 'AFFILIATE')}
+                  {user?.rank || 'AFFILIATE'}
                 </span>
               </div>
               <ChevronDown size={11} style={{ color: 'var(--t3)', marginLeft: 2 }} />
             </button>
 
             {userMenuOpen ? (
-              <DropdownContainer width={IS_DEV_MODE ? 240 : 180}>
+              <DropdownContainer width={180}>
                 <MenuLink
                   icon={User}
                   label="Profile"
-                  disabled={signingOut || sandboxBusy}
+                  disabled={signingOut}
                   onClick={() => {
                     navigate('/app/profile');
                     setUserMenuOpen(false);
@@ -501,7 +434,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 <MenuLink
                   icon={User}
                   label="Preferences"
-                  disabled={signingOut || sandboxBusy}
+                  disabled={signingOut}
                   onClick={() => {
                     navigate('/app/settings');
                     setUserMenuOpen(false);
@@ -510,68 +443,19 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
                 <MenuLink
                   icon={ScrollText}
                   label="Changelog"
-                  disabled={signingOut || sandboxBusy}
+                  disabled={signingOut}
                   onClick={() => {
                     setShowChangelog(true);
                     setUserMenuOpen(false);
                   }}
                 />
-                {IS_DEV_MODE ? (
-                  <>
-                    <Divider />
-                    <div style={{ padding: '7px 12px 4px', color: '#C8A84B', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                      {IS_SHARED_SANDBOX_MODE ? 'Sandbox Roles' : 'Local Personas'}
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 12px 8px' }}>
-                      {DEV_PERSONAS.map((persona) => (
-                        <button
-                          key={persona.id}
-                          type="button"
-                          disabled={sandboxBusy || user?.rank === persona.rank}
-                          onClick={() => handlePersonaSwitch(persona.id)}
-                          style={{
-                            padding: '5px 8px',
-                            fontSize: 9,
-                            letterSpacing: '0.08em',
-                            fontFamily: "'Barlow Condensed', sans-serif",
-                            textTransform: 'uppercase',
-                            color: user?.rank === persona.rank ? '#E8E4DC' : '#9A9488',
-                            background: user?.rank === persona.rank ? 'rgba(192,57,43,0.10)' : 'rgba(200,170,100,0.04)',
-                            border: `0.5px solid ${user?.rank === persona.rank ? 'rgba(192,57,43,0.35)' : 'rgba(200,170,100,0.12)'}`,
-                            borderRadius: 3,
-                            cursor: sandboxBusy || user?.rank === persona.rank ? 'default' : 'pointer',
-                            opacity: sandboxBusy ? 0.65 : 1,
-                          }}
-                        >
-                          {persona.rank}
-                        </button>
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: 6 }}>
-                      <MenuLink
-                        icon={ScrollText}
-                        label="Replay Onboarding"
-                        disabled={signingOut || sandboxBusy}
-                        onClick={handleReplayOnboarding}
-                      />
-                      {IS_SHARED_SANDBOX_MODE ? (
-                        <MenuLink
-                          icon={ScrollText}
-                          label="Reset Shared Sandbox"
-                          disabled={signingOut || sandboxBusy}
-                          onClick={handleSandboxReset}
-                        />
-                      ) : null}
-                    </div>
-                  </>
-                ) : null}
                 <Divider />
                 <MenuLink
                   icon={LogOut}
                   label="Sign out"
                   danger
-                  disabled={signingOut || sandboxBusy}
-                  spinner={signingOut || sandboxBusy}
+                  disabled={signingOut}
+                  spinner={signingOut}
                   onClick={async () => {
                     setSigningOut(true);
                     await logout('/');

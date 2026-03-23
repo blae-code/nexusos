@@ -30,9 +30,10 @@ export default function AccessGate() {
 
   const [username, setUsername] = useState('');
   const [authKey, setAuthKey] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [systemReady, setSystemReady] = useState(null);
+  const [health, setHealth] = useState(null);
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const authenticatedDestination = useMemo(
@@ -41,7 +42,7 @@ export default function AccessGate() {
   );
 
   useEffect(() => {
-    authApi.getHealth().then(r => setSystemReady(r?.ok ?? false)).catch(() => setSystemReady(false));
+    authApi.getHealth().then((result) => setHealth(result || { ok: false })).catch(() => setHealth({ ok: false }));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -52,7 +53,7 @@ export default function AccessGate() {
     setError('');
 
     try {
-      const loginRes = await authApi.login(username.trim(), authKey.trim(), { rememberMe: false });
+      const loginRes = await authApi.login(username.trim(), authKey.trim(), { rememberMe });
 
       if (loginRes.error === 'key_revoked') {
         setError('This access key has been revoked. Contact leadership.');
@@ -190,6 +191,28 @@ export default function AccessGate() {
           marginBottom: '32px',
         }}>Access Gate</div>
 
+        <div style={{
+          color: '#9A9488',
+          fontSize: '11px',
+          lineHeight: 1.7,
+          marginBottom: '18px',
+        }}>
+          Sign in with your issued username and auth key. Your callsign can change later, but your issued username remains your fixed login identity.
+        </div>
+
+        {health?.ok === false ? (
+          <div style={{
+            marginBottom: '18px',
+            padding: '10px 12px',
+            border: '0.5px solid rgba(192,57,43,0.3)',
+            background: 'rgba(192,57,43,0.08)',
+            color: '#C8A84B',
+            fontSize: '11px',
+            lineHeight: 1.6,
+          }}>
+            Authentication services are not reporting healthy status. Verify the deployed auth functions and try again.
+          </div>
+        ) : null}
 
 
         {/* FORM */}
@@ -197,7 +220,7 @@ export default function AccessGate() {
           {/* USERNAME INPUT */}
           <input
             type="text"
-            placeholder="ENTER CALLSIGN"
+            placeholder="ENTER USERNAME"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
@@ -243,6 +266,27 @@ export default function AccessGate() {
             onFocus={(e) => { e.target.style.borderColor = '#C8A84B'; }}
             onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.12)'; }}
           />
+
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '24px',
+            color: '#9A9488',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '11px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+          }}>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+              style={{ accentColor: '#C0392B' }}
+            />
+            Remember Me
+          </label>
 
           {/* CTA BUTTON */}
           <button
