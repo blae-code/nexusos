@@ -130,7 +130,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
 
 
   const showPtuPill = VERSE_BUILD_LABEL.toUpperCase().includes('PTU');
-  const sandboxLabel = IS_SHARED_SANDBOX_MODE ? 'COLLAB' : 'SIM';
+
 
   const handlePersonaSwitch = async (personaId) => {
     setSandboxBusy(true);
@@ -310,16 +310,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
         {/* ORG METRICS SECTION */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <StatusPill verseStatus={verseStatus} />
-          {IS_DEV_MODE ? (
-            <div
-              className="nexus-pill nexus-pill-warn"
-              title={IS_SHARED_SANDBOX_MODE ? 'Shared collaboration sandbox — data is synthetic and shared across collaborators' : 'Local simulation environment — data is synthetic'}
-              style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-            >
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--warn)', animation: 'pulse-dot 2.5s ease-in-out infinite' }} />
-              {sandboxLabel}
-            </div>
-          ) : null}
+
           {showPtuPill ? <div className="nexus-pill nexus-pill-warn">PTU</div> : null}
 
           {/* Separator */}
@@ -350,7 +341,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
               }}
               title="Personal Wallet"
             >
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8A84B', flexShrink: 0 }} />
               <span style={{ color: '#C8A84B', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', fontFamily: "'Barlow Condensed', sans-serif", textTransform: 'uppercase' }}>
                 {(walletBalance / 1000000).toFixed(1)}M aUEC
               </span>
@@ -382,7 +372,6 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
               }}
               title="Organization Coffer"
             >
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8A84B', flexShrink: 0 }} />
               <span style={{ color: '#C8A84B', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', fontFamily: "'Barlow Condensed', sans-serif", textTransform: 'uppercase' }}>
                 {(cofferBalance / 1000000).toFixed(1)}M aUEC
               </span>
@@ -402,8 +391,7 @@ export default function NexusTopbar({ layoutMode, onSelectLayout, verseStatus })
             }}
             title="Active Members"
           >
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#C8A84B', animation: 'pulse-dot 2.5s ease-in-out infinite', flexShrink: 0 }} />
-            <span style={{ color: '#C8A84B', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', fontFamily: "'Barlow Condensed', sans-serif", textTransform: 'uppercase' }}>
+            <span style={{ color: '#C8A84B', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', fontFamily: "'Barlow Condensed', sans-serif", textTransform: 'uppercase' }}>
               {onlineCount ?? '—'}
             </span>
           </div>
