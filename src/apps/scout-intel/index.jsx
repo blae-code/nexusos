@@ -16,10 +16,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { Plus } from 'lucide-react';
+import { Plus, Route } from 'lucide-react';
 
 import SystemMap    from './SystemMap';
 import DepositPanel from './DepositPanel';
+import DepositRouteOptimizer from './DepositRouteOptimizer';
+import DepositRouteResults from './DepositRouteResults';
 
 // ─── Initial filter state ─────────────────────────────────────────────────────
 
@@ -47,8 +49,9 @@ export default function ScoutIntel() {
   const [loading,    setLoading]    = useState(true);
 
   const [filterState,      setFilterState]      = useState(DEFAULT_FILTERS);
-  const [panelMode,        setPanelMode]         = useState('default'); // 'default' | 'detail' | 'log'
+  const [panelMode,        setPanelMode]         = useState('default'); // 'default' | 'detail' | 'log' | 'route' | 'route-results'
   const [selectedDeposit,  setSelectedDeposit]  = useState(null);
+  const [optimizedRoute,   setOptimizedRoute]   = useState(null);
 
   // ── Data fetch ─────────────────────────────────────────────────────────────
 
@@ -121,7 +124,28 @@ export default function ScoutIntel() {
         {/* Map area with action button */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 12 }}>
           {/* Top action row — Log Deposit button sits top-right of map area */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
+            <button
+              onClick={() => {
+                if (panelMode === 'route' || panelMode === 'route-results') {
+                  setPanelMode('default');
+                  setOptimizedRoute(null);
+                } else {
+                  setPanelMode('route');
+                }
+              }}
+              className="nexus-btn"
+              style={{
+                padding: '5px 12px', fontSize: 10, letterSpacing: '0.07em',
+                display: 'flex', alignItems: 'center', gap: 4,
+                background: (panelMode === 'route' || panelMode === 'route-results') ? 'rgba(200,168,75,0.08)' : undefined,
+                borderColor: (panelMode === 'route' || panelMode === 'route-results') ? 'rgba(200,168,75,0.3)' : undefined,
+                color: (panelMode === 'route' || panelMode === 'route-results') ? '#C8A84B' : undefined,
+              }}
+            >
+              <Route size={11} />
+              {(panelMode === 'route' || panelMode === 'route-results') ? 'CLOSE ROUTE' : 'OPTIMIZE ROUTE'}
+            </button>
             <button
               onClick={() => setPanelMode(panelMode === 'log' ? 'default' : 'log')}
               className="nexus-btn primary"
@@ -152,21 +176,58 @@ export default function ScoutIntel() {
         </div>
       </div>
 
-      {/* Right: deposit panel */}
-      <DepositPanel
-        mode={panelMode}
-        selectedDeposit={selectedDeposit}
-        deposits={deposits}
-        materials={materials}
-        blueprints={blueprints}
-        liveOp={liveOp}
-        callsign={callsign}
-        rank={rank}
-        discordId={discordId}
-        onModeChange={setPanelMode}
-        onSelectDeposit={setSelectedDeposit}
-        onDepositUpdated={handleDepositUpdated}
-      />
+      {/* Right: panel — route optimizer or deposit panel */}
+      {panelMode === 'route' ? (
+        <div style={{
+          width: 280, flexShrink: 0,
+          background: 'var(--bg0)',
+          borderLeft: '0.5px solid var(--b0)',
+          display: 'flex', flexDirection: 'column',
+          height: '100%', overflow: 'hidden',
+        }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
+            <DepositRouteOptimizer
+              deposits={deposits}
+              onRouteCalculated={(route) => {
+                setOptimizedRoute(route);
+                setPanelMode('route-results');
+              }}
+              onClose={() => { setPanelMode('default'); setOptimizedRoute(null); }}
+            />
+          </div>
+        </div>
+      ) : panelMode === 'route-results' && optimizedRoute ? (
+        <div style={{
+          width: 280, flexShrink: 0,
+          background: 'var(--bg0)',
+          borderLeft: '0.5px solid var(--b0)',
+          display: 'flex', flexDirection: 'column',
+          height: '100%', overflow: 'hidden',
+        }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
+            <DepositRouteResults
+              route={optimizedRoute}
+              onBack={() => setPanelMode('route')}
+              onClose={() => { setPanelMode('default'); setOptimizedRoute(null); }}
+            />
+          </div>
+        </div>
+      ) : (
+        <DepositPanel
+          mode={panelMode}
+          selectedDeposit={selectedDeposit}
+          deposits={deposits}
+          materials={materials}
+          blueprints={blueprints}
+          liveOp={liveOp}
+          callsign={callsign}
+          rank={rank}
+          discordId={discordId}
+          onModeChange={setPanelMode}
+          onSelectDeposit={setSelectedDeposit}
+          onDepositUpdated={handleDepositUpdated}
+        />
+      )}
     </div>
   );
 }
