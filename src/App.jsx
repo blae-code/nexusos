@@ -38,6 +38,7 @@ import KeyManagement from '@/pages/KeyManagement';
 import OpsDashboard from '@/pages/OpsDashboard';
 import FleetReadiness from '@/pages/FleetReadiness';
 import BootScreen from '@/pages/BootScreen';
+import Setup from '@/pages/Setup';
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
             <Route path="/" element={<AccessGate />} />
             <Route path="/gate" element={<AccessGate />} />
             <Route path="/boot" element={<BootScreen />} />
+            <Route path="/setup" element={<Setup />} />
             <Route path="/training" element={<TrainingHub />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />
