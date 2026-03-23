@@ -5,14 +5,14 @@ import { useSession } from '@/core/data/SessionContext';
 
 const PRIVACY_DISCLOSURE = `NexusOS Privacy & Data Usage Disclosure
 
-Last Updated: 2026-03-16
+Last Updated: 2026-03-23
 
 NexusOS is a private operational coordination platform built exclusively for Redscar Nomads members. This disclosure outlines how member data is collected, stored, and used within the system.
 
 1. DATA COLLECTION
 NexusOS collects and stores the following information:
-- Discord user ID and callsign (server nickname)
-- Rank and role assignments synchronized from Discord
+- Callsign and auth key (hashed)
+- Rank and role assignments managed by org leadership
 - Operational participation and session logs
 - Resource tracking and inventory data
 - Communication preferences and consent records
@@ -309,8 +309,6 @@ function Step4Consent({ user, onComplete }) {
     setSubmitting(true);
     try {
       const now = new Date().toISOString();
-      // base44.auth.updateMe() only works for email/password (Base44 native) accounts.
-      // Discord SSO members must be updated via the NexusUser entity directly.
       await base44.entities.NexusUser.update(user.id, {
         consent_given: true,
         consent_timestamp: now,
@@ -444,7 +442,7 @@ function Step4Consent({ user, onComplete }) {
             style={{ display: 'none' }}
           />
           <span style={{ color: 'var(--t1)', fontSize: 11, fontFamily: 'inherit' }}>
-            I understand that my Redscar roles determine my access level within NexusOS
+            I understand that my assigned rank determines my access level within NexusOS
           </span>
         </label>
 
