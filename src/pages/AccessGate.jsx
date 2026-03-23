@@ -185,12 +185,7 @@ export default function AccessGate() {
           marginBottom: '32px',
         }}>Access Gate</div>
 
-        {/* BODY COPY */}
-        <div style={{
-          fontFamily: "'Barlow', sans-serif",
-          fontSize: '13px', color: '#9A9488',
-          lineHeight: 1.65, marginBottom: '28px',
-        }}>Enter your callsign and access key to launch.</div>
+
 
         {/* FORM */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -279,13 +274,7 @@ export default function AccessGate() {
           }}>{error}</div>
         )}
 
-        {/* SUPPORT LINE */}
-        <div style={{
-          marginTop: error ? '12px' : '20px',
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontSize: '11px', color: '#5A5850',
-          letterSpacing: '0.10em', textAlign: 'center',
-        }}>Request access via #nexusos-ops</div>
+
 
       </div>
 
