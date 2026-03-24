@@ -415,12 +415,20 @@ export default function AccessGate() {
       }}>
         <div style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          fontSize: '11px', fontWeight: 500, color: '#C8A84B',
+          fontSize: '11px', fontWeight: 500,
           letterSpacing: '0.15em',
-          display: 'flex', alignItems: 'center', gap: '6px',
+          display: 'flex', alignItems: 'center', gap: '10px',
         }}>
-          <span style={{ animation: 'pulse 3s ease-in-out infinite', color: '#C8A84B' }}>{"\u25CF"}</span>
-          VERSE 4.7.0
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#C8A84B' }}>
+            <span style={{ animation: 'pulse 3s ease-in-out infinite', color: '#C8A84B' }}>{"\u25CF"}</span>
+            VERSE 4.7.0
+          </span>
+          {health && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: health.ok ? '#4A8C5C' : '#C0392B' }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: health.ok ? '#4A8C5C' : '#C0392B' }} />
+              {health.ok ? 'AUTH ONLINE' : 'AUTH OFFLINE'}
+            </span>
+          )}
         </div>
         <div style={{
           fontFamily: "'Barlow Condensed', sans-serif",
