@@ -4,6 +4,7 @@ const isNode = typeof window === 'undefined';
 const importMetaWithEnv = /** @type {{ env?: Record<string, string | undefined> }} */ (import.meta);
 const viteEnv = importMetaWithEnv.env || {};
 let cachedAppParams = null;
+const INVALID_PARAM_SENTINELS = new Set(['null', 'undefined', 'nan']);
 
 function toSnakeCase(str) {
   return str.replace(/([A-Z])/g, '_$1').toLowerCase();
@@ -23,6 +24,39 @@ function replaceUrlSearch(nextSearchParams) {
   }
 }
 
+function normalizeUrlValue(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeAppParamValue(paramName, value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  const trimmedValue = String(value).trim();
+  if (!trimmedValue) {
+    return null;
+  }
+
+  if (INVALID_PARAM_SENTINELS.has(trimmedValue.toLowerCase())) {
+    return null;
+  }
+
+  switch (paramName) {
+    case 'server_url':
+    case 'app_base_url':
+    case 'from_url':
+      return normalizeUrlValue(trimmedValue);
+    default:
+      return trimmedValue;
+  }
+}
+
 function readAppParamValue(paramName, options = {}) {
   const {
     defaultValue = undefined,
@@ -37,28 +71,41 @@ function readAppParamValue(paramName, options = {}) {
   const storageKey = `base44_${toSnakeCase(paramName)}`;
   const urlParams = new URLSearchParams(window.location.search);
   const searchParam = urlParams.get(paramName);
+  const normalizedSearchParam = normalizeAppParamValue(paramName, searchParam);
 
-  if (searchParam !== null && searchParam !== '') {
-    safeLocalStorage.setItem(storageKey, searchParam);
+  if (normalizedSearchParam !== null) {
+    safeLocalStorage.setItem(storageKey, normalizedSearchParam);
 
     if (removeFromUrl) {
       urlParams.delete(paramName);
       replaceUrlSearch(urlParams);
     }
 
-    return searchParam;
+    return normalizedSearchParam;
+  }
+
+  if (searchParam !== null) {
+    safeLocalStorage.removeItem(storageKey);
+    urlParams.delete(paramName);
+    replaceUrlSearch(urlParams);
   }
 
   const storedValue = safeLocalStorage.getItem(storageKey);
-  if (storedValue) {
-    return storedValue;
+  const normalizedStoredValue = normalizeAppParamValue(paramName, storedValue);
+  if (normalizedStoredValue !== null) {
+    return normalizedStoredValue;
   }
 
-  if (defaultValue !== undefined && defaultValue !== null && defaultValue !== '') {
+  if (storedValue !== null) {
+    safeLocalStorage.removeItem(storageKey);
+  }
+
+  const normalizedDefaultValue = normalizeAppParamValue(paramName, defaultValue);
+  if (normalizedDefaultValue !== null) {
     if (persistDefault) {
-      safeLocalStorage.setItem(storageKey, String(defaultValue));
+      safeLocalStorage.setItem(storageKey, normalizedDefaultValue);
     }
-    return defaultValue;
+    return normalizedDefaultValue;
   }
 
   return null;
