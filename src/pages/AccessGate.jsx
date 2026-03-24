@@ -61,8 +61,14 @@ export default function AccessGate() {
         return;
       }
 
+      if (loginRes.error === 'login_failed') {
+        setError('Login service error. Try again in a moment.');
+        setSubmitting(false);
+        return;
+      }
+
       if (loginRes.error) {
-        setError('Invalid username or auth key.');
+        setError('Invalid callsign or auth key. Check both and try again.');
         setSubmitting(false);
         return;
       }
