@@ -17,6 +17,10 @@ import CofferLedger from '@/pages/CofferLedger';
 import Logistics from '@/pages/Logistics';
 import CargoTracker from '@/pages/CargoTracker';
 import ProfitCalc from '@/pages/ProfitCalc';
+import MaterialLifecycleTracker from '@/apps/industry-hub/MaterialLifecycleTracker';
+import BlueprintOwnershipPanel from '@/apps/industry-hub/BlueprintOwnershipPanel';
+import OrgTreasuryDashboard from '@/apps/industry-hub/OrgTreasuryDashboard';
+import RequisitionManager from '@/pages/RequisitionManager';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -32,6 +36,10 @@ const TABS = [
   { id: 'production', label: 'PRODUCTION' },
   { id: 'prices', label: 'PRICES' },
   { id: 'analytics', label: 'ANALYTICS' },
+  { id: 'lifecycle', label: 'LIFECYCLE' },
+  { id: 'ownership', label: 'OWNERSHIP' },
+  { id: 'treasury', label: 'TREASURY' },
+  { id: 'requisitions', label: 'REQUISITIONS' },
 ];
 
 const METHOD_STYLE = {
@@ -258,6 +266,24 @@ export default function IndustryHub() {
         {tab === 'production' ? <ProductionTab blueprints={blueprints} materials={materials} callsign={callsign} onRefresh={load} /> : null}
         {tab === 'prices' ? <PriceTracker /> : null}
         {tab === 'analytics' ? <PredictiveAnalytics /> : null}
+        {tab === 'lifecycle' ? (
+          <div style={{ padding: '14px 16px' }}>
+            <MaterialLifecycleTracker
+              materials={materials}
+              refineryOrders={refineryOrders}
+              craftQueue={craftQueue}
+              cofferLogs={[]}
+              scoutDeposits={scoutDeposits}
+            />
+          </div>
+        ) : null}
+        {tab === 'ownership' ? (
+          <div style={{ padding: '14px 16px' }}>
+            <BlueprintOwnershipPanel blueprints={blueprints} callsign={callsign} rank={rank} />
+          </div>
+        ) : null}
+        {tab === 'treasury' ? <OrgTreasuryDashboard /> : null}
+        {tab === 'requisitions' ? <RequisitionManager /> : null}
       </div>
     </div>
   );
