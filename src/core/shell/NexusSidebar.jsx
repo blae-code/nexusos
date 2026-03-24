@@ -48,7 +48,12 @@ const NAV = [
     label: 'ORG',
     collapsed: true,
     items: [
-      { icon: Users, label: 'ORG ROSTER', path: '/app/roster' },
+      {
+        icon: Users, label: 'ORG ROSTER', path: '/app/roster',
+        children: [
+          { label: 'DEBT TRACKER', path: '/app/roster/debts' },
+        ],
+      },
       { icon: BookOpen, label: 'HANDBOOK', path: '/app/handbook' },
       { icon: GraduationCap, label: 'TRAINING', path: '/app/training' },
     ],
