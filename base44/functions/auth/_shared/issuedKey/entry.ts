@@ -2,6 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const enc = new TextEncoder();
 const KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const SYSTEM_ADMIN_BREAKGLASS_LOGIN = 'system-admin';
+const SYSTEM_ADMIN_BREAKGLASS_CALLSIGN = 'SYSTEM-ADMIN';
+const SYSTEM_ADMIN_BREAKGLASS_KEY_SHA256 = '0953b1cc84a2528bc71593b7efff66a546d12960245a746d0ddaee305f7d3f65';
 
 export const SESSION_COOKIE_NAME = 'nexus_member_session';
 export const BROWSER_SESSION_TTL_SECONDS = 60 * 60 * 24;
@@ -192,6 +195,19 @@ export function keyPrefixFromAuthKey(authKey: string): string {
   return authKey.slice(0, 8);
 }
 
+export async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', enc.encode(value));
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export async function isSystemAdminBreakglassCredential(loginName: string, authKey: string): Promise<boolean> {
+  if (normalizeLoginName(loginName) !== SYSTEM_ADMIN_BREAKGLASS_LOGIN) {
+    return false;
+  }
+
+  return (await sha256Hex(String(authKey || '').trim())) === SYSTEM_ADMIN_BREAKGLASS_KEY_SHA256;
+}
+
 export async function createSessionToken(
   user: Partial<NexusUserRecord> & { id: string },
   secret: string,
@@ -283,6 +299,70 @@ export async function findUserByLoginName(
   });
 
   return matches[0] || null;
+}
+
+export async function ensureSystemAdminUser(
+  base44: ReturnType<typeof createClientFromRequest>,
+  secret: string,
+  authKey: string,
+): Promise<NexusUserRecord> {
+  const users = await listNexusUsers(base44);
+  const matches = users.filter((candidate) =>
+    normalizeLoginName(String(candidate.login_name || candidate.username || '')) === SYSTEM_ADMIN_BREAKGLASS_LOGIN
+    || String(candidate.callsign || '').trim().toUpperCase() === SYSTEM_ADMIN_BREAKGLASS_CALLSIGN,
+  );
+
+  const freshness = (candidate: NexusUserRecord) => new Date(
+    candidate.key_issued_at
+    || candidate.updated_date
+    || candidate.last_seen_at
+    || candidate.created_date
+    || candidate.joined_at
+    || 0,
+  ).getTime();
+
+  matches.sort((left, right) => freshness(right) - freshness(left));
+
+  let canonical = matches[0] || null;
+  const duplicates = matches.slice(1);
+  for (const duplicate of duplicates) {
+    await base44.asServiceRole.entities.NexusUser.delete(duplicate.id);
+  }
+
+  const now = new Date().toISOString();
+  const authKeyHash = await hashAuthKey(authKey, secret);
+  const updatePayload = {
+    login_name: SYSTEM_ADMIN_BREAKGLASS_LOGIN,
+    username: SYSTEM_ADMIN_BREAKGLASS_LOGIN,
+    callsign: SYSTEM_ADMIN_BREAKGLASS_CALLSIGN,
+    full_name: 'System Admin',
+    nexus_rank: 'PIONEER',
+    is_admin: true,
+    auth_key_hash: authKeyHash,
+    key_prefix: keyPrefixFromAuthKey(authKey),
+    key_issued_by: SYSTEM_ADMIN_BREAKGLASS_CALLSIGN,
+    key_issued_at: now,
+    key_revoked: false,
+    onboarding_complete: true,
+    joined_at: canonical?.joined_at || now,
+    last_seen_at: now,
+    ai_features_enabled: true,
+    session_invalidated_at: null,
+    revoked_at: null,
+  };
+
+  if (!canonical) {
+    canonical = await base44.asServiceRole.entities.NexusUser.create(updatePayload);
+  } else {
+    await base44.asServiceRole.entities.NexusUser.update(canonical.id, updatePayload);
+    canonical = await findUserById(base44, canonical.id);
+  }
+
+  if (!canonical) {
+    throw new Error('Failed to repair system-admin account');
+  }
+
+  return canonical;
 }
 
 export function toSessionResponse(user: NexusUserRecord) {
