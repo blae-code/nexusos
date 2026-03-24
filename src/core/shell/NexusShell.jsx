@@ -1,3 +1,4 @@
+// NexusOS v1.0 — Production build
 import React, { useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
