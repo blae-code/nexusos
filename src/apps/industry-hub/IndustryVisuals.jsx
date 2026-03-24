@@ -105,18 +105,27 @@ export function getMaterialStatus(material) {
 
 export function MaterialStatusPill({ material }) {
   const status = getMaterialStatus(material);
+  const isCraftReady = status.label === 'CRAFT-READY';
+  const isRefineFirst = status.label === 'REFINE FIRST';
+
+  const pillBg = isCraftReady ? 'rgba(200,168,75,0.12)' : isRefineFirst ? 'rgba(192,57,43,0.15)' : 'var(--bg2)';
+  const pillBorder = isCraftReady ? '#C8A84B' : isRefineFirst ? '#C0392B' : 'var(--b1)';
+  const pillColor = isCraftReady ? '#C8A84B' : isRefineFirst ? '#C0392B' : '#9A9488';
 
   return (
     <span
       style={{
-        fontSize: 9,
-        padding: '3px 7px',
-        borderRadius: 3,
-        border: `0.5px solid ${status.borderColor}`,
+        fontSize: 10,
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        padding: '2px 6px',
+        borderRadius: 2,
+        border: `0.5px solid ${pillBorder}`,
         textAlign: 'center',
         whiteSpace: 'nowrap',
-        color: status.color,
-        background: status.background,
+        color: pillColor,
+        background: pillBg,
       }}
     >
       {status.label}
@@ -144,12 +153,15 @@ export function BlueprintPriorityTag() {
   return (
     <span
       style={{
-        fontSize: 9,
-        color: 'var(--warn)',
-        padding: '1px 5px',
-        border: '0.5px solid var(--warn-b)',
-        background: 'var(--warn-bg)',
+        fontSize: 10,
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        color: '#E8E4DC',
+        background: '#C0392B',
+        padding: '2px 6px',
         borderRadius: 2,
+        border: 'none',
       }}
     >
       PRIORITY
@@ -161,11 +173,14 @@ export function BlueprintHolderChip({ holder }) {
   return (
     <span
       style={{
-        fontSize: 9,
-        color: 'var(--acc)',
-        padding: '1px 5px',
-        border: '0.5px solid var(--b2)',
-        background: 'var(--bg3)',
+        fontSize: 10,
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        color: '#C8A84B',
+        background: 'rgba(200,168,75,0.12)',
+        border: '0.5px solid #C8A84B',
+        padding: '2px 6px',
         borderRadius: 2,
       }}
     >

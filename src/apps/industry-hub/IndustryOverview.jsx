@@ -29,8 +29,8 @@ export default function IndustryOverview({
   const readyOrders = refineryOrders.filter((item) => item.status === 'READY').length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 14px', background: 'var(--bg0)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 14px', background: '#08080A' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
         <StatCard
           label="ORG STOCKPILE"
           value={totalSCU.toFixed(0)}
@@ -38,7 +38,6 @@ export default function IndustryOverview({
           detail={`${topMaterials.length} tracked materials`}
           indicator="up"
           barPercent={Math.min(100, (totalSCU / 500) * 100)}
-          barColor="var(--acc)"
         />
         <StatCard
           label="AVG QUALITY"
@@ -47,7 +46,6 @@ export default function IndustryOverview({
           detail={avgQuality >= 80 ? 'T2 extraction baseline met' : 'Below org target threshold'}
           indicator={avgQuality >= 80 ? 'up' : 'down'}
           barPercent={avgQuality}
-          barColor={avgQuality < 80 ? 'var(--warn)' : 'var(--acc)'}
         />
         <StatCard
           label="BLUEPRINT COVERAGE"
@@ -56,7 +54,6 @@ export default function IndustryOverview({
           detail={`${blueprints.filter((item) => item.is_priority).length} marked priority`}
           indicator="info"
           barPercent={blueprints.length ? (ownedBlueprints / blueprints.length) * 100 : 0}
-          barColor="var(--acc)"
         />
         <StatCard
           label="CRAFT OUTPUT"
@@ -65,21 +62,23 @@ export default function IndustryOverview({
           detail={`${queueDepth} active queue items · ${readyOrders} ready`}
           indicator={queueDepth > 0 ? 'up' : 'info'}
           barPercent={Math.min(100, completedCrafts * 10)}
-          barColor="var(--acc)"
         />
       </div>
 
       <InsightStrip />
 
       <section>
-        <div className="nexus-section-header">MATERIAL STOCKPILE</div>
+        <div style={{ color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>MATERIAL STOCKPILE</div>
         <div
           style={{
             padding: '0 10px 6px',
-            color: 'var(--t3)',
-            fontSize: 9,
-            letterSpacing: '0.12em',
-            borderBottom: '0.5px solid var(--b0)',
+            color: '#9A9488',
+            fontSize: 10,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 500,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            borderBottom: '0.5px solid rgba(200,170,100,0.08)',
             display: 'grid',
             gridTemplateColumns: '1fr 76px 110px 68px 88px',
             gap: 8,
@@ -94,13 +93,13 @@ export default function IndustryOverview({
         <div style={{ marginTop: 6 }}>
           {topMaterials.map((material) => <MaterialPreviewRow key={material.id} material={material} />)}
           {topMaterials.length === 0 ? (
-            <div style={{ color: 'var(--t2)', fontSize: 12, padding: '12px 10px' }}>No material stock logged.</div>
+            <div style={{ color: '#9A9488', fontSize: 12, padding: '12px 10px' }}>No material stock logged.</div>
           ) : null}
         </div>
       </section>
 
       <section>
-        <div className="nexus-section-header">BLUEPRINT REGISTRY</div>
+        <div style={{ color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>BLUEPRINT REGISTRY</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
           <BlueprintGroup label="WEAPONS" items={weaponBlueprints} />
           <BlueprintGroup label="ARMOR & COMPONENTS" items={supportBlueprints} />
@@ -108,11 +107,11 @@ export default function IndustryOverview({
       </section>
 
       <section>
-        <div className="nexus-section-header">SCOUT INTEL FEED</div>
+        <div style={{ color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>SCOUT INTEL FEED</div>
         <div>
           {recentDeposits.map((deposit) => <ScoutIntelRow key={deposit.id} deposit={deposit} />)}
           {recentDeposits.length === 0 ? (
-            <div style={{ color: 'var(--t2)', fontSize: 12, padding: '12px 10px' }}>No fresh scout intel.</div>
+            <div style={{ color: '#9A9488', fontSize: 12, padding: '12px 10px' }}>No fresh scout intel.</div>
           ) : null}
         </div>
       </section>

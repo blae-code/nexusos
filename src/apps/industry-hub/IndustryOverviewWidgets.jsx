@@ -55,48 +55,71 @@ function StatSkeleton() {
 
 export function StatCard({ icon: Icon, label, value, unit, detail, indicator, barPercent, barColor, loading }) {
   const indicatorSymbol = indicator === 'up' ? '↑' : indicator === 'down' ? '↓' : '•';
-  const indicatorColor = indicator === 'up' ? 'var(--live)' : indicator === 'down' ? 'var(--warn)' : 'var(--info)';
+  const indicatorColor = indicator === 'up' ? '#C8A84B' : indicator === 'down' ? '#C0392B' : '#9A9488';
 
   return (
     <div
       style={{
-        background: 'var(--bg1)',
-        border: '0.5px solid var(--b1)',
-        borderRadius: 3,
-        padding: '14px 14px 12px',
+        background: '#0F0F0D',
+        borderLeft: '2px solid #C0392B',
+        borderTop: '0.5px solid rgba(200,170,100,0.10)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        borderRadius: 2,
+        padding: '20px 24px',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, var(--red) 0%, rgba(192,57,43,0.3) 60%, transparent 100%)', opacity: 0.6 }} />
-
       {loading ? (
         <StatSkeleton />
       ) : (
         <div style={{ animation: 'nexus-fade-in 150ms ease-out both' }}>
-          {Icon ? (
-            <div style={{ marginBottom: 10 }}>
-              <Icon size={20} style={{ color: 'var(--acc)' }} />
-            </div>
-          ) : null}
-          <div style={{ color: 'var(--t0)', fontSize: 28, fontWeight: 500, lineHeight: 1, fontVariantNumeric: 'tabular-nums', marginBottom: 6 }}>
-            {value}
-            {unit ? <span style={{ color: 'var(--t2)', fontSize: 13, fontWeight: 400, marginLeft: 5 }}>{unit}</span> : null}
-          </div>
-          <div style={{ color: 'var(--t2)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>
+          <div style={{
+            color: '#9A9488',
+            fontSize: 11,
+            fontWeight: 500,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            marginBottom: 8,
+          }}>
             {label}
           </div>
-          <div style={{ fontSize: 9, color: 'var(--t3)' }}>
-            <span style={{ color: indicatorColor, marginRight: 4 }}>{indicatorSymbol}</span>
+          <div style={{
+            fontFamily: "'Beyond Mars','Barlow Condensed',sans-serif",
+            fontSize: 36,
+            fontWeight: 700,
+            color: '#E8E4DC',
+            lineHeight: 1,
+            fontVariantNumeric: 'tabular-nums',
+            marginBottom: 6,
+          }}>
+            {value}
+            {unit ? (
+              <span style={{
+                color: '#9A9488',
+                fontSize: 13,
+                fontWeight: 500,
+                fontFamily: "'Barlow Condensed', sans-serif",
+                textTransform: 'uppercase',
+                marginLeft: 4,
+              }}>
+                {unit}
+              </span>
+            ) : null}
+          </div>
+          <div style={{ fontSize: 12, fontFamily: "'Barlow', sans-serif", fontWeight: 400, color: indicatorColor }}>
+            <span style={{ marginRight: 4 }}>{indicatorSymbol}</span>
             <span>{detail}</span>
           </div>
-          <div style={{ height: 2, background: 'var(--b1)', borderRadius: 1, marginTop: 8, overflow: 'hidden' }}>
+          <div style={{ height: 2, background: 'rgba(200,170,100,0.10)', borderRadius: 1, marginTop: 10, overflow: 'hidden' }}>
             <div
               style={{
                 height: '100%',
                 borderRadius: 1,
                 width: `${Math.max(0, Math.min(100, barPercent))}%`,
-                background: barColor,
+                background: '#C0392B',
                 transition: 'width .4s ease-out',
               }}
             />
@@ -150,10 +173,12 @@ export function InsightStrip() {
   return (
     <div
       style={{
-        background: 'var(--bg1)',
-        border: '0.5px solid var(--b1)',
+        background: 'rgba(192,57,43,0.06)',
         borderLeft: '2px solid rgba(192,57,43,0.4)',
-        borderRadius: 3,
+        borderTop: '0.5px solid rgba(192,57,43,0.15)',
+        borderRight: '0.5px solid rgba(192,57,43,0.15)',
+        borderBottom: '0.5px solid rgba(192,57,43,0.15)',
+        borderRadius: 2,
         padding: '11px 13px',
         display: 'flex',
         alignItems: 'center',
@@ -162,10 +187,10 @@ export function InsightStrip() {
     >
       <div
         style={{
-          width: 5,
-          height: 5,
+          width: 6,
+          height: 6,
           borderRadius: '50%',
-          background: 'var(--acc)',
+          background: '#C0392B',
           animation: 'pulse-dot 2s ease-in-out infinite',
           flexShrink: 0,
         }}
@@ -176,7 +201,7 @@ export function InsightStrip() {
           height: 28,
           background: 'var(--bg3)',
           border: '0.5px solid var(--b2)',
-          borderRadius: 3,
+          borderRadius: 2,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -187,10 +212,10 @@ export function InsightStrip() {
         <InsightInfoIcon />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ color: 'var(--t0)', fontSize: 11, marginBottom: 3 }}>
+        <div style={{ color: '#E8E4DC', fontSize: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, marginBottom: 3 }}>
           {insight?.title || 'No readiness signal available'}
         </div>
-        <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.5 }}>
+        <div style={{ color: '#9A9488', fontSize: 10, lineHeight: 1.5, fontFamily: "'Barlow', sans-serif" }}>
           {insight?.detail || 'Refresh when new industry data has been logged.'}
         </div>
       </div>
@@ -223,21 +248,17 @@ export function MaterialPreviewRow({ material }) {
         gridTemplateColumns: '1fr 76px 110px 68px 88px',
         gap: 8,
         padding: '8px 10px',
-        background: 'var(--bg1)',
-        border: '0.5px solid var(--b1)',
-        borderRadius: 2,
-        marginBottom: 3,
+        background: 'transparent',
+        borderBottom: '0.5px solid rgba(200,170,100,0.08)',
         alignItems: 'center',
         cursor: 'pointer',
-        transition: 'background .1s, border-color .1s',
+        transition: 'background 150ms ease',
       }}
       onMouseEnter={(event) => {
-        event.currentTarget.style.background = 'var(--bg2)';
-        event.currentTarget.style.borderColor = 'var(--b1)';
+        event.currentTarget.style.background = '#1A1A16';
       }}
       onMouseLeave={(event) => {
-        event.currentTarget.style.background = 'var(--bg1)';
-        event.currentTarget.style.borderColor = 'var(--b0)';
+        event.currentTarget.style.background = 'transparent';
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
@@ -247,7 +268,7 @@ export function MaterialPreviewRow({ material }) {
             height: 24,
             background: 'var(--bg3)',
             border: '0.5px solid var(--b1)',
-            borderRadius: 3,
+            borderRadius: 2,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -258,29 +279,41 @@ export function MaterialPreviewRow({ material }) {
           <MaterialGlyph material={material} materialName={material.material_name} type={material.material_type} />
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ color: 'var(--t0)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ color: '#E8E4DC', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {material.material_name}
           </div>
-          <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 1 }}>
+          <div style={{ color: '#5A5850', fontSize: 11, fontFamily: "'Barlow', sans-serif", fontWeight: 400, marginTop: 1 }}>
             {material.location || material.source_type || 'Unspecified source'}
           </div>
         </div>
       </div>
 
       <div>
-        <span className="nexus-tag">{material.material_type}</span>
+        <span style={{
+          fontSize: 10,
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          color: '#C8A84B',
+          background: 'rgba(200,170,100,0.08)',
+          border: '0.5px solid rgba(200,170,100,0.15)',
+          borderRadius: 2,
+          padding: '2px 6px',
+        }}>
+          {material.material_type}
+        </span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <div style={{ height: 3, background: 'var(--bg4)', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{ width: `${quality}%`, height: '100%', background: qualityBarColour(quality) }} />
+        <div style={{ height: 3, background: 'rgba(200,170,100,0.10)', borderRadius: 1, overflow: 'hidden' }}>
+          <div style={{ width: `${quality}%`, height: '100%', background: '#C0392B', borderRadius: 1 }} />
         </div>
         <div style={{ color: 'var(--t2)', fontSize: 9, fontVariantNumeric: 'tabular-nums' }}>{quality.toFixed(0)}%</div>
       </div>
 
-      <div style={{ textAlign: 'right', color: 'var(--t1)', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+      <div style={{ textAlign: 'right', color: '#E8E4DC', fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
         {(material.quantity_scu || 0).toFixed(1)}
-        <span style={{ color: 'var(--t3)', fontSize: 9, marginLeft: 4 }}>SCU</span>
+        <span style={{ color: '#9A9488', fontSize: 9, marginLeft: 4 }}>SCU</span>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -292,14 +325,22 @@ export function MaterialPreviewRow({ material }) {
 
 export function BlueprintGroup({ label, items }) {
   return (
-    <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 3, padding: '11px 12px' }}>
+    <div style={{
+      background: '#0F0F0D',
+      borderLeft: '2px solid #C0392B',
+      borderTop: '0.5px solid rgba(200,170,100,0.10)',
+      borderRight: '0.5px solid rgba(200,170,100,0.10)',
+      borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+      borderRadius: 2,
+      padding: '11px 12px',
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.12em' }}>{label}</span>
-        <span style={{ color: 'var(--t2)', fontSize: 9 }}>{items.length}</span>
+        <span style={{ color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{label}</span>
+        <span style={{ color: '#9A9488', fontSize: 9 }}>{items.length}</span>
       </div>
 
       {items.length === 0 ? (
-        <div style={{ color: 'var(--t2)', fontSize: 11, padding: '6px 7px' }}>No entries</div>
+        <div style={{ color: '#9A9488', fontSize: 11, padding: '6px 7px' }}>No entries</div>
       ) : (
         items.map((blueprint) => {
           const owned = Boolean(blueprint.owned_by || blueprint.owned_by_callsign);
@@ -312,19 +353,19 @@ export function BlueprintGroup({ label, items }) {
                 alignItems: 'center',
                 gap: 8,
                 padding: '6px 7px',
-                borderRadius: 3,
+                borderRadius: 2,
                 cursor: 'pointer',
-                transition: 'background .1s',
+                transition: 'background 150ms ease',
               }}
               onMouseEnter={(event) => {
-                event.currentTarget.style.background = 'var(--bg2)';
+                event.currentTarget.style.background = '#1A1A16';
               }}
               onMouseLeave={(event) => {
                 event.currentTarget.style.background = 'transparent';
               }}
             >
               <BlueprintStatusDot isPriority={blueprint.is_priority} owned={owned} />
-              <div style={{ flex: 1, minWidth: 0, fontSize: 11, color: owned ? 'var(--t0)' : 'var(--t2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ flex: 1, minWidth: 0, fontSize: 11, color: owned ? '#E8E4DC' : '#9A9488', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {blueprint.item_name}
               </div>
               {blueprint.is_priority ? (
@@ -332,7 +373,7 @@ export function BlueprintGroup({ label, items }) {
               ) : owned ? (
                 <BlueprintHolderChip holder={blueprint.owned_by_callsign || 'owned'} />
               ) : (
-                <span style={{ color: 'var(--t3)', fontSize: 9 }}>unowned</span>
+                <span style={{ color: '#5A5850', fontSize: 9 }}>unowned</span>
               )}
             </div>
           );
@@ -344,6 +385,7 @@ export function BlueprintGroup({ label, items }) {
 
 export function ScoutIntelRow({ deposit }) {
   const quality = deposit.quality_pct || 0;
+  const qualityColor = quality > 80 ? '#4A8C5C' : quality >= 50 ? '#C8A84B' : '#C0392B';
 
   return (
     <div
@@ -352,47 +394,77 @@ export function ScoutIntelRow({ deposit }) {
         alignItems: 'flex-start',
         gap: 10,
         padding: '9px 10px',
-        background: 'var(--bg1)',
-        border: '0.5px solid var(--b1)',
-        borderRadius: 2,
-        marginBottom: 3,
+        background: 'transparent',
+        borderBottom: '0.5px solid rgba(200,170,100,0.08)',
         cursor: 'pointer',
-        transition: 'all .1s',
+        transition: 'background 150ms ease',
       }}
       onMouseEnter={(event) => {
-        event.currentTarget.style.background = 'var(--bg2)';
-        event.currentTarget.style.borderColor = 'var(--b1)';
+        event.currentTarget.style.background = '#1A1A16';
       }}
       onMouseLeave={(event) => {
-        event.currentTarget.style.background = 'var(--bg1)';
-        event.currentTarget.style.borderColor = 'var(--b0)';
+        event.currentTarget.style.background = 'transparent';
       }}
     >
-      <div style={{ color: 'var(--t3)', fontSize: 9, whiteSpace: 'nowrap', minWidth: 38, paddingTop: 1 }}>
+      <div style={{ color: '#5A5850', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, whiteSpace: 'nowrap', minWidth: 38, paddingTop: 1 }}>
         {relativeTime(deposit.reported_at)}
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ color: 'var(--t0)', fontSize: 11, marginBottom: 2 }}>
+        <div style={{ color: '#E8E4DC', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, marginBottom: 2 }}>
           {deposit.material_name}{deposit.location_detail ? ` · ${deposit.location_detail}` : ''}
         </div>
-        <div style={{ color: 'var(--t2)', fontSize: 9 }}>
+        <div style={{ color: '#9A9488', fontSize: 11, fontFamily: "'Barlow', sans-serif", fontWeight: 400 }}>
           {[deposit.reported_by_callsign, deposit.ship_type, deposit.system_name].filter(Boolean).join(' · ')}
         </div>
         <div style={{ display: 'flex', gap: 4, marginTop: 5, flexWrap: 'wrap' }}>
-          {deposit.volume_estimate ? <span className="nexus-tag">{deposit.volume_estimate}</span> : null}
+          {deposit.volume_estimate ? (
+            <span style={{
+              fontSize: 10,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              color: '#C8A84B',
+              background: 'rgba(200,170,100,0.08)',
+              border: '0.5px solid rgba(200,170,100,0.15)',
+              borderRadius: 2,
+              padding: '2px 6px',
+            }}>
+              {deposit.volume_estimate}
+            </span>
+          ) : null}
           {quality >= 80 ? (
-            <span className="nexus-tag" style={{ color: 'var(--acc2)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>
+            <span style={{
+              fontSize: 10,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              color: '#C8A84B',
+              background: 'rgba(200,168,75,0.12)',
+              border: '0.5px solid #C8A84B',
+              borderRadius: 2,
+              padding: '2px 6px',
+            }}>
               HIGH QUALITY
             </span>
           ) : null}
           {['HIGH', 'EXTREME'].includes(deposit.risk_level) ? (
-            <span className="nexus-tag" style={{ color: 'var(--warn)', borderColor: 'var(--warn-b)', background: 'var(--warn-bg)' }}>
+            <span style={{
+              fontSize: 10,
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              color: '#C0392B',
+              background: 'rgba(192,57,43,0.12)',
+              border: '0.5px solid #C0392B',
+              borderRadius: 2,
+              padding: '2px 6px',
+            }}>
               {deposit.risk_level} RISK
             </span>
           ) : null}
         </div>
       </div>
-      <div style={{ color: qualityColour(quality), fontSize: 13, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
+      <div style={{ color: qualityColor, fontSize: 13, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", fontVariantNumeric: 'tabular-nums' }}>
         {quality.toFixed(0)}%
       </div>
     </div>
