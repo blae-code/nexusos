@@ -8,18 +8,15 @@
  * No user auth — service role background job.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { fetchUexData } from '../_shared/uexRetry/entry.ts';
 
 const UEX_API_BASE  = 'https://uexcorp.space/api/2.0';
 const FETCH_TIMEOUT = 20_000;
 
 async function fetchUEX(path) {
-  const res = await fetch(`${UEX_API_BASE}${path}`, {
-    signal: AbortSignal.timeout(FETCH_TIMEOUT),
-    headers: { 'User-Agent': 'NexusOS/1.0 (Redscar Nomads)' },
+  return await fetchUexData(`${UEX_API_BASE}${path}`, {
+    timeoutMs: FETCH_TIMEOUT,
   });
-  if (!res.ok) throw new Error(`UEX ${path} returned ${res.status}`);
-  const json = await res.json();
-  return json?.data ?? [];
 }
 
 Deno.serve(async (req) => {

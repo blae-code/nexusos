@@ -8,6 +8,7 @@
  * No user auth — service role background job.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { fetchUexData } from '../_shared/uexRetry/entry.ts';
 
 const UEX_API_BASE   = 'https://uexcorp.space/api/2.0';
 const FETCH_TIMEOUT  = 15_000;
@@ -21,13 +22,9 @@ Deno.serve(async (req) => {
     // ── 1. Fetch commodity list from UEX ─────────────────────────────────────
     let commodities = [];
     try {
-      const res = await fetch(`${UEX_API_BASE}/commodities`, {
-        signal: AbortSignal.timeout(FETCH_TIMEOUT),
-        headers: { 'User-Agent': 'NexusOS/1.0 (Redscar Nomads)' },
+      commodities = await fetchUexData(`${UEX_API_BASE}/commodities`, {
+        timeoutMs: FETCH_TIMEOUT,
       });
-      if (!res.ok) throw new Error(`UEX API ${res.status}`);
-      const data = await res.json();
-      commodities = data?.data ?? [];
     } catch (e) {
       console.warn('[commodityPriceSync] UEX commodity fetch failed:', e.message);
       return Response.json({ success: false, error: e.message }, { status: 502 });
@@ -41,14 +38,9 @@ Deno.serve(async (req) => {
     // ── 2. Fetch best prices from UEX price endpoint ──────────────────────────
     let prices = [];
     try {
-      const res = await fetch(`${UEX_API_BASE}/commodities_prices_all`, {
-        signal: AbortSignal.timeout(FETCH_TIMEOUT),
-        headers: { 'User-Agent': 'NexusOS/1.0 (Redscar Nomads)' },
+      prices = await fetchUexData(`${UEX_API_BASE}/commodities_prices_all`, {
+        timeoutMs: FETCH_TIMEOUT,
       });
-      if (res.ok) {
-        const data = await res.json();
-        prices = data?.data ?? [];
-      }
     } catch (e) {
       console.warn('[commodityPriceSync] UEX price fetch failed (non-fatal):', e.message);
       // Continue — we can still upsert commodity metadata without prices
