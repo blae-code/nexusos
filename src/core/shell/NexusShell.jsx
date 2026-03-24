@@ -13,6 +13,7 @@ import { useVerseStatus } from '@/core/data/useVerseStatus';
 import { preloadCriticalTokens } from '@/core/data/tokenMap';
 import { qualityPercentFromRecord } from '@/core/data/quality';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
+import { showToast } from '@/components/NexusToast';
 
 export default function NexusShell() {
   const location = useLocation();
@@ -55,6 +56,7 @@ export default function NexusShell() {
       } catch (error) {
         if (!cancelled) {
           console.warn('[NexusShell] live-op notification seed failed:', error?.message || error);
+          showToast('Failed to load live ops data — check connection', 'warning', 4000);
         }
       }
     };
