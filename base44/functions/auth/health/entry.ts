@@ -3,7 +3,7 @@
  * Self-contained.
  */
 Deno.serve((req) => {
-  if (req.method !== 'GET') {
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: { 'Cache-Control': 'no-store' } });
   }
 
