@@ -21,6 +21,7 @@ import MaterialLifecycleTracker from '@/apps/industry-hub/MaterialLifecycleTrack
 import BlueprintOwnershipPanel from '@/apps/industry-hub/BlueprintOwnershipPanel';
 import OrgTreasuryDashboard from '@/apps/industry-hub/OrgTreasuryDashboard';
 import RequisitionManager from '@/pages/RequisitionManager';
+import ProductionForecast from '@/apps/industry-hub/ProductionForecast';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -40,6 +41,7 @@ const TABS = [
   { id: 'ownership', label: 'OWNERSHIP' },
   { id: 'treasury', label: 'TREASURY' },
   { id: 'requisitions', label: 'REQUISITIONS' },
+  { id: 'forecast', label: 'FORECAST' },
 ];
 
 const METHOD_STYLE = {
@@ -284,6 +286,7 @@ export default function IndustryHub() {
         ) : null}
         {tab === 'treasury' ? <OrgTreasuryDashboard /> : null}
         {tab === 'requisitions' ? <RequisitionManager /> : null}
+        {tab === 'forecast' ? <ProductionForecast craftQueue={craftQueue} blueprints={blueprints} materials={materials} /> : null}
       </div>
     </div>
   );

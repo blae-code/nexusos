@@ -15,6 +15,7 @@ import ThreatPanel from './ThreatPanel';
 import LiveOpTopbar from './LiveOpTopbar';
 import MissionControlPanel from './MissionControlPanel';
 import RoleReassignPanel from './RoleReassignPanel';
+import OpWrapUpPanel from './OpWrapUpPanel';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
@@ -264,6 +265,8 @@ export default function LiveOp() {
   const splitCalcProps = { op, rsvps };
   const missionControlProps = { op, rsvps, callsign, rank };
   const roleReassignProps = { op, rsvps, rank, onUpdate: fetchOp };
+  const wrapUpProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
+  const isComplete = op.status === 'COMPLETE';
 
   const hero = (
     <div
@@ -372,6 +375,15 @@ export default function LiveOp() {
         layoutMode={layoutMode}
         onLayoutChange={handleLayoutChange}
       />
+
+      {/* Financial wrap-up panel for completed ops */}
+      {isComplete && (
+        <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          <Panel title="FINANCIAL WRAP-UP">
+            <OpWrapUpPanel {...wrapUpProps} />
+          </Panel>
+        </div>
+      )}
 
       {layoutMode === 'ALT-TAB' ? (
         // Standard 2-column layout
