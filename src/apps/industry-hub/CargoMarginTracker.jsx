@@ -2,13 +2,30 @@ import React, { useState } from 'react';
 import { Plus, Trash2, TrendingUp, TrendingDown, Package } from 'lucide-react';
 
 const COMMON_SHIPS = [
-  'Caterpillar', 'Hull C', 'Hull B', 'Freelancer MAX', 'Cutlass Black',
-  'Constellation Taurus', 'RAFT', 'Hercules C2', 'MSR', 'Carrack',
+  // Dedicated cargo
+  'Hull A', 'Hull B', 'Hull C', 'Hull D',
+  'Freelancer', 'Freelancer MAX', 'Freelancer MIS',
+  'Caterpillar', 'Hercules C2', 'Hercules M2',
+  'RAFT', 'Constellation Taurus', 'Corsair',
+  // Multi-role with cargo
+  'Cutlass Black', 'Cutlass Blue', 'MSR',
+  'Carrack', 'Hammerhead',
+  // Mining / industrial cargo
+  'Prospector', 'MOLE', 'Reclaimer',
 ];
 
+// Star Citizen 4.7 active trade locations
 const COMMON_DESTINATIONS = [
-  'Port Olisar', 'Grim Hex', 'Lorville', 'Area18', 'New Babbage',
-  'Pyro Gateway', 'Ruin Station', 'Checkmate Station', 'TDD Lorville', 'TDD Area18',
+  // Stanton — stations
+  'Seraphim Station', 'Grim Hex', 'Baijini Point', 'Port Tressler', 'Everus Harbor',
+  // Stanton — landing zones
+  'Area18', 'Lorville', 'New Babbage', 'Orison',
+  // Stanton — TDDs
+  'TDD Area18', 'TDD Lorville', 'TDD New Babbage', 'TDD Orison',
+  // Pyro
+  'Ruin Station', 'Checkmate Station', 'Pyro Gateway',
+  // Nyx
+  'Levski',
 ];
 
 const EMPTY_ROW = {

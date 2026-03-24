@@ -24,14 +24,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid material or quantity' }, { status: 400 });
     }
 
-    // Base yield percentages by refinery method
-    const methodYields = {
-      CORMACK: 75,      // Balanced
-      DINYX: 60,        // High speed
-      PLATINIZED: 85,   // Maximum purity
+    // Star Citizen 4.7 refinery methods — yield%, time multiplier, cost per SCU
+    const METHOD_DATA: Record<string, { yield: number; timeMultiplier: number; costPerScu: number }> = {
+      CORMACK:    { yield: 75, timeMultiplier: 1.0, costPerScu: 50  }, // Standard balanced
+      DINYX:      { yield: 60, timeMultiplier: 0.7, costPerScu: 35  }, // Fastest, lower yield
+      ELECTRODES: { yield: 88, timeMultiplier: 2.5, costPerScu: 80  }, // High yield, slow
+      FERRON:     { yield: 92, timeMultiplier: 4.0, costPerScu: 150 }, // Maximum yield, slowest
+      GCCS:       { yield: 80, timeMultiplier: 1.5, costPerScu: 65  }, // Gas & volatile compounds
+      GRASE:      { yield: 82, timeMultiplier: 2.0, costPerScu: 70  }, // Greycat automated
+      PYROMETRIC: { yield: 85, timeMultiplier: 3.0, costPerScu: 95  }, // Refractory ores
+      THERMONITE: { yield: 90, timeMultiplier: 5.0, costPerScu: 180 }, // Extreme heat processing
+      XCR:        { yield: 72, timeMultiplier: 1.2, costPerScu: 55  }, // Dense ore compression
     };
 
-    const baseYield = methodYields[refinery_method] || 75;
+    const method = METHOD_DATA[refinery_method] ?? METHOD_DATA.CORMACK;
+    const baseYield = method.yield;
 
     // Quality bonus (80%+ gets T2 bonus)
     const qualityBonus = material_quality >= 80 ? 1.10 : 1.0;
@@ -40,9 +47,16 @@ Deno.serve(async (req) => {
     const yieldPct = Math.round((baseYield * qualityBonus) * 100) / 100;
     const refinedScu = Math.round((raw_scu * (yieldPct / 100)) * 100) / 100;
 
-    // Estimate processing time and cost
-    const processingMinutes = Math.ceil(raw_scu / 10) + (refinery_method === 'DINYX' ? 5 : 15);
-    const costAUEC = Math.round(raw_scu * 50); // Rough estimate per SCU
+    // Processing time and cost based on method table
+    const baseMinutes = Math.ceil(raw_scu / 10) + 10;
+    const processingMinutes = Math.ceil(baseMinutes * method.timeMultiplier);
+    const costAUEC = Math.round(raw_scu * method.costPerScu);
+
+    const METHOD_LABELS: Record<string, string> = {
+      CORMACK: 'Cormack Method', DINYX: 'Dinyx Solventation', ELECTRODES: 'Electrodes',
+      FERRON: 'Ferron Exchange', GCCS: 'GCCS', GRASE: 'GRASE',
+      PYROMETRIC: 'Pyrometric', THERMONITE: 'Thermonite', XCR: 'XCR',
+    };
 
     // Use Claude for market value analysis and profit projection
     const prompt = `You are a Star Citizen commodity market analyst for Redscar Nomads.
@@ -50,7 +64,7 @@ Deno.serve(async (req) => {
 REFINERY OPERATION:
 Material: ${material_name}
 Input: ${raw_scu} SCU (${material_quality}% quality)
-Method: ${refinery_method}
+Method: ${METHOD_LABELS[refinery_method] ?? refinery_method} (${yieldPct}% effective yield)
 Expected Output: ${refinedScu} SCU
 Refining Cost: ${costAUEC} aUEC
 Processing Time: ${processingMinutes} minutes

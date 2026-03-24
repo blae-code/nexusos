@@ -7,9 +7,11 @@ Claude API (hidden AI layer), VS Code + Claude Code (this environment).
 
 ## Critical architecture decisions
 - TWO auth tiers: blae@katrasoluta.com uses Base44 native email auth only.
-  All org members use Discord OAuth2 SSO. No passwords, credential keys,
-  or manual login secrets for members ever.
-- Discord is the SINGLE source of truth for rank. Bot syncs roles every 30min.
+  All org members use invitation-based auth: issued username + auth key
+  (RSN-XXXX-XXXX-XXXX format). No email, no passwords, no Discord OAuth2
+  login flow for members. Keys issued by Pioneer+, bcrypt-hashed, never stored plain.
+- Discord is the rank authority. Bot syncs roles every 30min. Discord is NOT
+  part of the login flow — auth is purely invitation-key-based.
 - Claude API is NEVER surfaced to users. All AI outputs appear as system
   features — insights, recommendations, OCR results. No "AI" label anywhere.
 - Status colours only: green = live/ready, amber = warn, red = danger.
@@ -25,8 +27,11 @@ Claude API (hidden AI layer), VS Code + Claude Code (this environment).
   only; labels, controls, timestamps, and body copy stay on the mono stack.
 
 ## Member auth model
-Discord OAuth2 SSO is the only member authentication flow.
-Discord roles remain the canonical source of NexusOS rank access.
+Invitation-based auth is the member authentication standard.
+Members log in at /gate with an issued username + auth key (RSN-XXXX-XXXX-XXXX).
+Keys are issued and revoked by Pioneer+ via Key Management (/app/keys).
+Discord roles remain the canonical source of NexusOS rank, synced on login
+and every 30 minutes in the background. Discord is not a login step.
 
 ## Discord channel bindings
 #nexusos-ops   → op embeds, RSVP, phase updates, wrap-up
@@ -35,16 +40,28 @@ Discord roles remain the canonical source of NexusOS rank access.
 #nexusos-log   → system log (refinery ready, blueprint drops, etc.)
 Existing: #ARMORY #COFFER #INVOICES #INDUSTRY #RANGERS #PTU-CHAT
 
-## Modules to build (priority order)
-1. Access Gate (/gate) — login page with star field bg
-2. Industry Hub (/app/industry) — Overview, Materials, Blueprints, Queue
-3. Op Board (/app/ops) — create, live op, phase tracker, readiness gate
-4. Scout Intel (/app/scout) — SVG system map, deposit logging
-5. Commerce (/app/commerce) — wallet, coffer, trade, contracts
-6. Logistics (/app/logistics) — cargo jobs, manifests, dispatch
-7. Armory (/app/armory) — org inventory and fleet support
-8. Epic Archive (/app/archive) — completed ops, leaderboards, patch history
-9. Herald Bot (src/bot/) — discord.js v14, slash commands, OCR listener
+## Module status
+
+All core frontend modules are built. Remaining work is shell polish and Herald Bot.
+
+Built (routed and live):
+
+1. Access Gate (/gate) — invitation auth, star field bg, verse status bar
+2. Industry Hub (/app/industry) — Materials, Blueprints, CraftQueue, RefineryOrders, OCR, Analytics
+3. Op Board (/app/ops) — create, live op, phase tracker, readiness gate, crew grid, split calc
+4. Scout Intel (/app/scout) — SVG system map, deposit logging, route planner
+5. Commerce (/app/industry/commerce) — wallet, trade desk, contracts
+6. Logistics (/app/industry/logistics) — cargo board, manifest, consignment, dispatch
+7. Armory (/app/armory) — inventory, checkouts, fleet sub-pages
+8. Epic Archive (/app/ops/archive) — completed ops, leaderboards, patch history
+
+Not yet built:
+9. Herald Bot (functions/heraldBot.ts) — currently a stub; full spec in docs/discord-bot.md
+
+Shell visual design (see NEXUSOS_AI_HANDOFF.md for priority order):
+
+- AmbientBackground, operational colour temperature, data animation hooks,
+  Barlow Condensed display font, spatial depth system — all pending
 
 ## OCR pipeline
 Discord attachment → Herald Bot → Base44 OCR endpoint → Claude Vision API

@@ -93,6 +93,7 @@ Deno.serve(async (req) => {
     const RELEVANT_TYPES = new Set([
       'weapon', 'armor', 'component', 'module', 'consumable',
       'fps_weapon', 'fps_armor', 'gadget', 'medical',
+      'focusing_lens', 'ammo',
     ]);
 
     const relevantItems = items.filter(it => {

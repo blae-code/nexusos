@@ -3,9 +3,15 @@ import { base44 } from '@/core/data/base44Client';
 import { AlertCircle, Zap } from 'lucide-react';
 
 const REFINERY_METHODS = [
-  { id: 'CORMACK', label: 'Cormack — Balanced (75%)', description: 'Good speed & yield' },
-  { id: 'DINYX', label: 'Dinyx — High Speed (60%)', description: 'Fastest processing' },
-  { id: 'PLATINIZED', label: 'Platinized — Purity (85%)', description: 'Maximum output' },
+  { id: 'CORMACK',    label: 'Cormack — Balanced (75%)',        description: 'Standard balanced speed & yield' },
+  { id: 'DINYX',     label: 'Dinyx Solventation — Fast (60%)', description: 'Fastest processing, lower output' },
+  { id: 'ELECTRODES',label: 'Electrodes — High Yield (88%)',   description: 'High yield, slow process' },
+  { id: 'FERRON',    label: 'Ferron Exchange — Max (92%)',      description: 'Maximum yield, slowest & costliest' },
+  { id: 'GCCS',      label: 'GCCS — Gas (80%)',                description: 'Optimised for gas & volatile compounds' },
+  { id: 'GRASE',     label: 'GRASE — Moderate (82%)',          description: 'Greycat automated, steady efficiency' },
+  { id: 'PYROMETRIC',label: 'Pyrometric — Refractory (85%)',   description: 'High-temp for refractory ores' },
+  { id: 'THERMONITE',label: 'Thermonite — Extreme (90%)',      description: 'Extreme heat, premium output' },
+  { id: 'XCR',       label: 'XCR — Dense Ore (72%)',           description: 'High compression for dense minerals' },
 ];
 
 export default function RefineryEfficiencyCalculator() {
@@ -133,7 +139,7 @@ export default function RefineryEfficiencyCalculator() {
       </div>
 
       {/* Method Descriptions */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 12 }}>
         {REFINERY_METHODS.map(m => (
           <div
             key={m.id}

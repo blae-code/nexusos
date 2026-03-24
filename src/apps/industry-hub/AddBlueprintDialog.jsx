@@ -138,8 +138,8 @@ export default function AddBlueprintDialog({ onClose, onCreated }) {
                 onChange={e => set('category', e.target.value)}
                 style={{ cursor: 'pointer', width: '100%' }}
               >
-                {['WEAPON', 'ARMOR', 'GEAR', 'COMPONENT', 'CONSUMABLE'].map(c => (
-                  <option key={c} value={c}>{c}</option>
+                {['WEAPON', 'ARMOR', 'GEAR', 'COMPONENT', 'CONSUMABLE', 'FOCUSING_LENS', 'SHIP_COMPONENT', 'OTHER'].map(c => (
+                  <option key={c} value={c}>{c.replace('_', ' ')}</option>
                 ))}
               </select>
             </div>

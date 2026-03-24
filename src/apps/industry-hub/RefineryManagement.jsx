@@ -2,17 +2,29 @@ import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { AlertCircle, Zap } from 'lucide-react';
 
+// Star Citizen 4.7 refinery methods — must stay in sync with refineryEfficiencyCalculator/entry.ts
 const REFINERY_METHODS = [
-  { id: 'CORMACK', label: 'Cormack - Balanced', base_yield: 75 },
-  { id: 'DINYX', label: 'Dinyx - High Speed', base_yield: 60 },
-  { id: 'PLATINIZED', label: 'Platinized - Maximum Purity', base_yield: 85 },
+  { id: 'CORMACK',    label: 'Cormack Method',       base_yield: 75, speed: 'Standard' },
+  { id: 'DINYX',     label: 'Dinyx Solventation',   base_yield: 60, speed: 'Fastest'  },
+  { id: 'ELECTRODES',label: 'Electrodes',            base_yield: 88, speed: 'Slow'     },
+  { id: 'FERRON',    label: 'Ferron Exchange',       base_yield: 92, speed: 'Slowest'  },
+  { id: 'GCCS',      label: 'GCCS',                  base_yield: 80, speed: 'Moderate' },
+  { id: 'GRASE',     label: 'GRASE',                 base_yield: 82, speed: 'Moderate' },
+  { id: 'PYROMETRIC',label: 'Pyrometric',            base_yield: 85, speed: 'Slow'     },
+  { id: 'THERMONITE',label: 'Thermonite',            base_yield: 90, speed: 'Slowest'  },
+  { id: 'XCR',       label: 'XCR',                   base_yield: 72, speed: 'Fast'     },
 ];
 
+// Star Citizen 4.7 refinery deck stations
 const STATIONS = {
-  'ARC-L1': { name: 'Arc L1', bonus: 5 },
-  'LORVILLE': { name: 'Lorville', bonus: 3 },
-  'NEW-BABBAGE': { name: 'New Babbage', bonus: 2 },
-  'GRIM-HEX': { name: 'Grim Hex', bonus: 0 },
+  'ARC-L1':     { name: 'ARC-L1 Wide Forest',  bonus: 5 },
+  'MIC-L1':     { name: 'MIC-L1 Shallow Frontier', bonus: 4 },
+  'CRU-L1':     { name: 'CRU-L1 Ambitious Dream', bonus: 3 },
+  'HUR-L1':     { name: 'HUR-L1 Hearts of Hope', bonus: 3 },
+  'LORVILLE':   { name: 'Lorville',             bonus: 3 },
+  'NEW-BABBAGE':{ name: 'New Babbage',          bonus: 2 },
+  'GRIM-HEX':   { name: 'Grim Hex',             bonus: 0 },
+  'RUIN':       { name: 'Ruin Station (Pyro)',   bonus: 2 },
 };
 
 export default function RefineryManagement({ materials = [], callsign = '' }) {

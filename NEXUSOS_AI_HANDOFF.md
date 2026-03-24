@@ -1,10 +1,11 @@
 # NexusOS — AI Handoff Document
-**Project:** nexusos-redscar  
-**Repo:** https://github.com/blae-code/nexusos  
-**Owner:** blae@katrasoluta.com (System Administrator)  
-**Org:** Redscar Nomads — Star Citizen industrial org  
-**Stack:** Base44 Elite 1 · React · discord.js v14 · Claude API · Deno (Base44 functions)  
-**Last updated by:** Claude Sonnet 4.6 (claude.ai session, March 2026)
+
+**Project:** nexusos-redscar
+**Repo:** <https://github.com/blae-code/nexusos>
+**Owner:** <blae@katrasoluta.com> (System Administrator)
+**Org:** Redscar Nomads — Star Citizen industrial org
+**Stack:** Base44 Elite 1 · React · discord.js v14 · Claude API · Deno (Base44 functions)
+**Last updated by:** Claude Sonnet 4.6 (Claude Code session, March 2026)
 
 ---
 
@@ -30,47 +31,55 @@ it with 4.7 crafting economy features. Members use it on a second monitor
 during Star Citizen gameplay. The aesthetic is a ship's onboard computer —
 mil-spec terminal, not a gaming website.
 
-Core modules (in priority order):
-1. Access Gate — full-screen login at /gate
-2. Industry Hub — materials, blueprints, craft queue, refinery at /app/industry
-3. Op Board — operation creation, live op management at /app/ops
-4. Scout Intel — SVG system map, deposit logging at /app/scout
-5. Armory — inventory, checkouts, fleet support at /app/armory
-6. Commerce — wallet, coffer, trade, contracts at /app/commerce
-7. Logistics — cargo jobs, manifests, dispatch at /app/logistics
-8. Epic Archive — completed ops, leaderboards at /app/archive
-9. Herald Bot — discord.js v14 bot at src/bot/
+Module status (all core frontend modules are built):
+
+1. Access Gate — invitation auth, star field bg, verse status bar — **BUILT**
+2. Industry Hub — materials, blueprints, craft queue, refinery — **BUILT**
+3. Op Board — create, live op, phase tracker, readiness gate — **BUILT**
+4. Scout Intel — SVG system map, deposit logging, route planner — **BUILT**
+5. Armory — inventory, checkouts, fleet sub-pages — **BUILT**
+6. Commerce — wallet, trade desk, contracts — **BUILT**
+7. Logistics — cargo board, manifest, consignment, dispatch — **BUILT**
+8. Epic Archive — completed ops, leaderboards, patch history — **BUILT**
+9. Herald Bot — `functions/heraldBot.ts` — **STUB, needs full implementation**
+
+Shell visual design work (see Visual Design Direction section) is pending.
 
 ---
 
 ## What is already built and committed
 
 ### functions/ocrExtract.ts — COMPLETE, PATCHED
-Full OCR pipeline. Takes a file_url, sends to Claude Vision via Base44
+
+Full OCR pipeline. Takes a file\_url, sends to Claude Vision via Base44
 InvokeLLM, extracts structured data, writes to appropriate entity tables.
 
 Screen types handled:
-- INVENTORY → Material entity (bulk insert, t2_eligible auto-flagged at 80%)
-- REFINERY_ORDER → RefineryOrder entity
+
+- INVENTORY → Material entity (bulk insert, t2\_eligible auto-flagged at 80%)
+- REFINERY\_ORDER → RefineryOrder entity
 - TRANSACTION → CofferLog entity
-- MINING_SCAN → returns pending_confirmation (user confirms before saving)
-- CRAFT_QUEUE → returns pending_confirmation (user confirms before saving)
-- SHIP_STATUS → returns pending_confirmation (user confirms before saving)
+- MINING\_SCAN → returns pending\_confirmation (user confirms before saving)
+- CRAFT\_QUEUE → returns pending\_confirmation (user confirms before saving)
+- SHIP\_STATUS → returns pending\_confirmation (user confirms before saving)
 
 Patches applied:
-- Callsign fallback uses user.callsign NOT user.email (members have no email)
-- CRAFT_QUEUE and SHIP_STATUS handlers added after MINING_SCAN block
-- All six screen types present in the response_json_schema enum
 
-DO NOT revert the callsign fix. Members authenticate via Discord OAuth2 SSO.
-There is no email field for regular users in the system.
+- Callsign fallback uses user.callsign NOT user.email (members have no email)
+- CRAFT\_QUEUE and SHIP\_STATUS handlers added after MINING\_SCAN block
+- All six screen types present in the response\_json\_schema enum
+
+DO NOT revert the callsign fix. Members have no email field. Auth is
+invitation-key-based — there is no email for regular users in the system.
 
 ### functions/generateInsight.ts — COMPLETE, PATCHED
+
 Reads current org state (Materials, CraftQueue, RefineryOrders, ScoutDeposits)
 and generates one actionable insight via Claude InvokeLLM.
 
 Patches applied:
-- action_1_prompt and action_2_prompt added to response_json_schema
+
+- action\_1\_prompt and action\_2\_prompt added to response\_json\_schema
 - LLM prompt instructs Claude to populate those fields with specific follow-up
   questions that fire when users click action buttons in the UI
 
@@ -78,15 +87,29 @@ The insight block in the UI must NOT be labelled "AI" or "Powered by Claude".
 It appears as a system alert. This is intentional. See AI visibility rules below.
 
 ### functions/heraldBot.ts — STUB, NEEDS BUILDING
+
 Currently minimal. Full Herald Bot spec is in docs/discord-bot.md.
 
-### src/components/shell/NexusSidebar.jsx — BASE SCAFFOLD
-Base44-generated sidebar shell. Needs styling updated to match design tokens.
+### src/core/shell/ — BUILT
 
-### src/pages/NexusTodo.jsx — PLACEHOLDER
-Base44-generated page. Can be removed or repurposed.
+NexusShell, NexusSidebar, NexusTopbar, TopbarPills, TopbarMenu are all built
+and styled to design tokens. Shell visual design principles (ambient background,
+operational colour temperature, animation hooks) are pending — see Visual Design
+Direction section for implementation order.
+
+### src/core/design/components/MFDPanel.jsx — BUILT
+
+MFD panel component exists and is available for use. Apply to: dashboard stat
+sections, live op crew grid, phase tracker, session log, loot tally, split calc,
+intel deposit panel.
+
+### src/pages/NexusTodo.jsx — PRODUCTION READINESS TRACKER
+
+Lives at `/app/admin/todo`. Tracks env var setup status, Discord integration
+backlog, and integration readiness. Not a placeholder — actively used.
 
 ### CLAUDE.md — PROJECT MEMORY
+
 Read this file at the start of every Claude Code session. It contains the
 condensed version of this document for fast context loading.
 
@@ -97,35 +120,46 @@ condensed version of this document for fast context loading.
 ### Two tiers — completely separate, never mixed
 
 **TIER 1 — System Administrator only:**
-- Account: blae@katrasoluta.com
+
+- Account: <blae@katrasoluta.com>
 - Auth: Base44 native email/password (Base44 handles this, no custom code)
 - Entry: /admin (Base44 default admin panel)
 - Display name: "System Administrator" — hardcoded, not an org rank
 - Permissions: sudo all, dev mode, Base44 editor
-- This account does NOT appear in the nexus_users table
+- This account does NOT appear in the nexus\_users table
 - Never add email auth for any other user. Never.
 
-**TIER 2 — All org members:**
-- Auth: Discord OAuth2 SSO only
+**TIER 2 — All org members — INVITATION-BASED AUTH (CONFIRMED FINAL STANDARD):**
+
+- Auth: issued username + auth key (format: RSN-XXXX-XXXX-XXXX)
 - Entry: /gate (the Access Gate page)
-- No email stored. No password stored. No Base44 native auth.
+- No email stored. No password stored. No Base44 native auth. No Discord OAuth2 login flow.
 - Flow:
-  1. Member visits /gate
-  2. Discord OAuth2 SSO redirects to Discord
-  3. Server reads Discord ID + guild roles
-  4. Session created. nexus_users record created or updated.
-  5. Discord role sync runs on login + every 30 minutes background
+  1. Pioneer+ generates a key for the member via Key Management (`/app/keys`)
+  2. Key is delivered (e.g. via Herald Bot DM or directly)
+  3. Member enters their issued username + auth key at /gate
+  4. Server compares against bcrypt hash — never stores plain key
+  5. Session created. nexus\_users record created or updated.
+  6. Discord role sync runs on login + every 30 minutes background
+- Keys may be revoked or regenerated by Pioneer+ at any time
+- Auth key prefix (RSN-XXXX) stored separately for display/lookup; full key not retrievable after issuance
 
 **Discord as rank authority:**
+
 Discord server roles are the ONLY source of truth for org rank.
+Discord is NOT part of the login flow — auth is purely invitation-key-based.
 Bot reads roles on every login + background sync every 30 minutes.
-Rank mapping (Discord role → nexus_rank enum):
-  "The Pioneer" → PIONEER  (all perms, delete, invite, gate control)
-  "Founder"     → FOUNDER  (all perms, invite)
-  "Voyager"     → VOYAGER  (invite, create op, scout log, armory edit)
-  "Scout"       → SCOUT    (RSVP, scout log, armory view)
-  "Vagrant"     → VAGRANT  (RSVP, scout view)
-  "Affiliate"   → AFFILIATE (public tabs only)
+
+Rank mapping (Discord role → nexus\_rank enum):
+
+```text
+"The Pioneer" → PIONEER  (all perms, delete, invite, gate control)
+"Founder"     → FOUNDER  (all perms, invite)
+"Voyager"     → VOYAGER  (invite, create op, scout log, armory edit)
+"Scout"       → SCOUT    (RSVP, scout log, armory view)
+"Vagrant"     → VAGRANT  (RSVP, scout view)
+"Affiliate"   → AFFILIATE (public tabs only)
+```
 
 ---
 
@@ -133,7 +167,7 @@ Rank mapping (Discord role → nexus_rank enum):
 
 All tables live in Base44. Full schema below.
 
-```
+```sql
 nexus_users
   discord_id        BIGINT PK
   callsign          VARCHAR(40)
@@ -231,26 +265,35 @@ discord_posts_log
 These rules were established through multiple iteration rounds and are final.
 
 ### Colour
+
 Status colours ONLY for semantic meaning. Never decorative.
-  --live  : #27c96a  (green)  → server online, ready, craft-ready, confirmed
-  --warn  : #e8a020  (amber)  → below threshold, timer counting, pending
-  --danger: #e04848  (red)    → threat, error, danger
-  --info  : #4a8fd0  (blue)   → informational, links, Discord-related
+
+```text
+--live  : #27c96a  (green)  → server online, ready, craft-ready, confirmed
+--warn  : #e8a020  (amber)  → below threshold, timer counting, pending
+--danger: #e04848  (red)    → threat, error, danger
+--info  : #4a8fd0  (blue)   → informational, links, Discord-related
+```
 
 Everything else uses the neutral slate-blue-grey ramp:
-  --bg0: #07080b   --bg1: #0c0e13   --bg2: #10121a
-  --bg3: #161921   --bg4: #1c1f2a   --bg5: #222535
-  --b0:  #161820   --b1:  #1e2130   --b2:  #272b3c   --b3: #323648
-  --t0:  #dde1f0   --t1:  #8890a8   --t2:  #4a5068   --t3: #2a2e40
-  --acc: #5a6080   --acc2: #7a8098
+
+```text
+--bg0: #07080b   --bg1: #0c0e13   --bg2: #10121a
+--bg3: #161921   --bg4: #1c1f2a   --bg5: #222535
+--b0:  #161820   --b1:  #1e2130   --b2:  #272b3c   --b3: #323648
+--t0:  #dde1f0   --t1:  #8890a8   --t2:  #4a5068   --t3: #2a2e40
+--acc: #5a6080   --acc2: #7a8098
+```
 
 ### Typography
+
 Font: 'SF Mono', ui-monospace, monospace — ALL UI text, everywhere.
 No serif. No system sans-serif. The terminal aesthetic is non-negotiable.
 Border width: 0.5px solid throughout (never 1px for structural borders).
 Border radius: 6–8px tags/buttons, 8–12px cards, 50% avatars.
 
 ### Components
+
 - No white card backgrounds. Cards use --bg1 or --bg2.
 - No gradients anywhere. Flat solid fills only.
 - No drop shadows. Depth is created with background steps, not shadows.
@@ -265,7 +308,9 @@ Border radius: 6–8px tags/buttons, 8–12px cards, 50% avatars.
 - Section headers: 9px, --t3, letter-spacing .15em, ::after line fills remaining width.
 
 ### AI visibility rule — CRITICAL
+
 Claude API is invisible to users. Every AI output appears as a system feature.
+
 - The insight strip is labelled "OP READINESS" or similar — never "AI Insight"
 - Action buttons say "Plan run", "Full costing" — never "Ask AI"
 - OCR results appear as extracted data — never "AI extracted"
@@ -303,7 +348,7 @@ recede. This is achieved through:
 - No decorative box-shadows. Depth is communicated
   through opacity, scale, and z-position only.
 
-Implementation location: src/core/shell/depth.css
+Implementation location: `src/core/shell/depth.css` — **NOT YET BUILT**
 
 ---
 
@@ -315,6 +360,7 @@ This is ambient — it should only be noticed when
 content is absent.
 
 Specification:
+
 - A canvas or SVG layer rendered behind all app
   content at z-index -1
 - 60–80 particles distributed across the viewport,
@@ -334,10 +380,9 @@ Specification:
 - Particle canvas fades out to opacity 0 when
   a modal overlay is active
 
-Implementation location:
-  src/core/shell/components/AmbientBackground.jsx
-  Rendered once in Shell.jsx, never in individual
-  app pages.
+Implementation location: `src/core/shell/components/AmbientBackground.jsx` — **NOT YET BUILT**
+
+Rendered once in NexusShell.jsx, never in individual app pages.
 
 ---
 
@@ -349,29 +394,27 @@ This is the single most powerful way to make the
 interface feel responsive to real-world events.
 
 Specification:
+
 - Default state (no live op): cool palette as
   currently defined in tokens.css
 - Live op active state: three CSS variable
   overrides applied to :root over 400ms ease:
-    --acc shifts 8 degrees warmer on the hue wheel
-    --bg0 gains rgba(var(--warn-rgb), 0.012) tint
-    --b1 gains rgba(var(--warn-rgb), 0.04) tint
+  - --acc shifts 8 degrees warmer on the hue wheel
+  - --bg0 gains rgba(var(--warn-rgb), 0.012) tint
+  - --b1 gains rgba(var(--warn-rgb), 0.04) tint
 - The shift is subtle enough that most users
   will not consciously notice it — but its
   absence would make the interface feel flat
 - The shift reverses when no live op is active
 - Implemented as a global state listener in
-  Shell.jsx that watches for any Op with
+  NexusShell.jsx that watches for any Op with
   status === 'LIVE' in the org
 
-Implementation location:
-  src/core/shell/useOperationalState.js
-  Applied via a CSS class on the root element:
-  document.documentElement.classList.toggle(
-    'op-live', hasLiveOp
-  )
-  With corresponding :root.op-live overrides
-  in tokens.css
+Implementation location: `src/core/shell/useOperationalState.js` — **NOT YET BUILT**
+
+Applied via a CSS class on the root element:
+`document.documentElement.classList.toggle('op-live', hasLiveOp)`
+with corresponding `:root.op-live` overrides in tokens.css.
 
 ---
 
@@ -382,6 +425,7 @@ animated. Static data updates are not acceptable
 in NexusOS. The interface must feel alive.
 
 Rules:
+
 - All numeric values that update in real time
   use a count-up animation from previous value
   to new value over 600ms ease-out. Use
@@ -402,13 +446,11 @@ Rules:
   values count up. Subsequent updates animate
   between states rather than re-drawing.
 
-Implementation location:
-  src/core/design/animations.css — keyframe
-  definitions
-  src/core/design/hooks/useCountUp.js — numeric
-  count-up hook
-  src/core/design/hooks/useAnimatedList.js —
-  list materialise/remove hook
+Implementation locations — **NOT YET BUILT**:
+
+- `src/core/design/animations.css` — keyframe definitions
+- `src/core/design/hooks/useCountUp.js` — numeric count-up hook
+- `src/core/design/hooks/useAnimatedList.js` — list materialise/remove hook
 
 ---
 
@@ -419,6 +461,7 @@ primary layout metaphor, especially on data-dense
 views (dashboard, live op, industry, intel).
 
 An MFD panel is a self-contained unit with:
+
 - A machined-corner aesthetic: border-radius 2px
   on the outer container, 0px on inner elements
 - A top-edge inner highlight: a 1px line at the
@@ -439,15 +482,14 @@ An MFD panel is a self-contained unit with:
   position relative z-index 1
 
 The MFDPanel component is defined at:
-  src/core/design/components/MFDPanel.jsx
+`src/core/design/components/MFDPanel.jsx` — **BUILT**
 
 It accepts: label (string), action (node, optional),
 statusDot (colour string, optional), children.
 
 Use MFDPanel for: all dashboard stat sections,
 the live op crew grid, phase tracker, session log,
-loot tally, split calculator, and intel deposit
-panel.
+loot tally, split calculator, and intel deposit panel.
 
 ---
 
@@ -459,6 +501,7 @@ added for large numeric values and primary
 headings only.
 
 Specification:
+
 - Import 'Barlow Condensed' weight 600 and 700
   from Google Fonts
 - Apply to: stat card large numbers (28px+),
@@ -470,11 +513,11 @@ Specification:
 - The contrast between condensed display and
   monospace data creates visual hierarchy without
   adding colour
-- CSS variable: --font-display: 'Barlow Condensed',
-  sans-serif
+- CSS variable: `--font-display: 'Barlow Condensed', sans-serif`
   Added to tokens.css and applied via
-  font-family: var(--font-display) wherever
-  specified above
+  `font-family: var(--font-display)` wherever specified above
+
+**NOT YET IMPLEMENTED** — tokens.css and component usage both pending.
 
 ---
 
@@ -486,6 +529,7 @@ is used as a secondary tactical accent in
 addition to the primary cyan/blue accent.
 
 Rules:
+
 - Amber (var(--warn)) is used for: countdowns,
   phase advancement prompts, readiness gate
   below 100%, buy-in deduction lines, threat
@@ -506,18 +550,12 @@ Rules:
 Apply these in this sequence to maximise visual
 impact per unit of effort:
 
-1. Living background (AmbientBackground.jsx) —
-   affects every page simultaneously
-2. Operational colour temperature shift —
-   single shell-level state change, high impact
-3. MFDPanel component — replace existing card
-   usage on dashboard and live op view
-4. Data animation hooks — useCountUp and
-   useAnimatedList applied to live data views
-5. Barlow Condensed display typeface — stat
-   cards and op names
-6. Spatial depth system — depth.css and
-   panel open/close transitions
+1. Living background (AmbientBackground.jsx) — affects every page simultaneously
+2. Operational colour temperature shift — single shell-level state change, high impact
+3. MFDPanel component — replace existing card usage on dashboard and live op view (**already built**)
+4. Data animation hooks — useCountUp and useAnimatedList applied to live data views
+5. Barlow Condensed display typeface — stat cards and op names
+6. Spatial depth system — depth.css and panel open/close transitions
 
 Do not implement all six simultaneously.
 Implement in order, confirm build passes,
@@ -529,24 +567,19 @@ commit, then proceed to the next.
 
 - Gradients on surfaces (already prohibited)
 - Animations that delay access to information
-- Visual effects that compete with content
-  for attention
-- A design that looks impressive in a screenshot
-  but feels noisy in daily use
-- Anything that increases cognitive load during
-  a live op when decisions are time-critical
+- Visual effects that compete with content for attention
+- A design that looks impressive in a screenshot but feels noisy in daily use
+- Anything that increases cognitive load during a live op when decisions are time-critical
 
-The test: if a crew member is mid-extraction
-in the Aaron Halo and needs to check the
-split calculator, every visual element in
-NexusOS must serve that task or get out of
-the way.
+The test: if a crew member is mid-extraction in the Aaron Halo and needs to
+check the split calculator, every visual element in NexusOS must serve that
+task or get out of the way.
 
 ---
 
 ## External API integrations
 
-```
+```text
 starcitizen-api.com     SC_API_KEY env       roster, ships, roadmap
                                              GET /auto/organization_members/RSNM
                                              Org tag: RSNM
@@ -577,20 +610,22 @@ No API keys in frontend code. No raw external responses reach the browser.
 
 Model: claude-sonnet-4-20250514 (or latest Sonnet available)
 All calls via Base44 InvokeLLM or direct Anthropic SDK in functions/.
-ANTHROPIC_API_KEY env var.
+ANTHROPIC\_API\_KEY env var.
 
 Use cases:
+
 1. OCR extraction — functions/ocrExtract.ts (DONE)
 2. Org insight generation — functions/generateInsight.ts (DONE)
 3. Comm-Link patch digest — parse new patch notes, extract industry changes
-4. Op wrap-up report — end-of-session summary from session_log
+4. Op wrap-up report — end-of-session summary from session\_log
 5. Route planning — on-demand from Scout Intel action buttons
 6. Crafting optimisation — on-demand from Industry Hub action buttons
 
 Pattern for all Claude calls:
+
 - Input: structured org data (never raw user content without sanitisation)
 - System prompt: role as "Redscar Nomads operations system" — never "AI assistant"
-- Output: structured JSON via response_json_schema — never free text to UI
+- Output: structured JSON via response\_json\_schema — never free text to UI
 - Frontend receives processed data objects — never raw LLM responses
 
 ---
@@ -599,53 +634,76 @@ Pattern for all Claude calls:
 
 Redscar Nomads Discord server. Herald Bot (Nexus-Herald) env vars:
 
-NEW channels to create under "| NexusOS | 🖥️" category:
-  NEXUSOS_OPS_CHANNEL_ID     #nexusos-ops   op embeds, RSVP, phase updates
-  NEXUSOS_OCR_CHANNEL_ID     #nexusos-ocr   screenshot OCR drop zone
-  NEXUSOS_INTEL_CHANNEL_ID   #nexusos-intel scout pings, deposit alerts
-  NEXUSOS_LOG_CHANNEL_ID     #nexusos-log   system log (refinery, blueprints)
+New channels to create under "| NexusOS |" category:
+
+```text
+NEXUSOS_OPS_CHANNEL_ID     #nexusos-ops   op embeds, RSVP, phase updates
+NEXUSOS_OCR_CHANNEL_ID     #nexusos-ocr   screenshot OCR drop zone
+NEXUSOS_INTEL_CHANNEL_ID   #nexusos-intel scout pings, deposit alerts
+NEXUSOS_LOG_CHANNEL_ID     #nexusos-log   system log (refinery, blueprints)
+```
 
 Existing channels:
-  ARMORY_CHANNEL_ID          #ARMORY        armory delta posts after OCR
-  COFFER_CHANNEL_ID          #COFFER        aUEC split embeds, transactions
-  INVOICES_CHANNEL_ID        #INVOICES      craft job completion invoices
-  INDUSTRY_CHANNEL_ID        #INDUSTRY      patch digests, high-quality deposits
-  RANGERS_CHANNEL_ID         #RANGERS       ranger op readiness pings
-  ANNOUNCEMENTS_CHANNEL_ID   #! ANNOUNCEMENTS  major patches, NexusOS updates
-  PTU_CHANNEL_ID             #PTU-CHAT      full patch digest on new patch
-  BONFIRE_CHANNEL_ID         #BONFIRE-CHAT-🔥  monthly Bonfire reminder
-  REDSCAR_ONLY_CHANNEL_ID    #REDSCAR-ONLY-🚩  new member join notifications
+
+```text
+ARMORY_CHANNEL_ID          #ARMORY        armory delta posts after OCR
+COFFER_CHANNEL_ID          #COFFER        aUEC split embeds, transactions
+INVOICES_CHANNEL_ID        #INVOICES      craft job completion invoices
+INDUSTRY_CHANNEL_ID        #INDUSTRY      patch digests, high-quality deposits
+RANGERS_CHANNEL_ID         #RANGERS       ranger op readiness pings
+ANNOUNCEMENTS_CHANNEL_ID   #! ANNOUNCEMENTS  major patches, NexusOS updates
+PTU_CHANNEL_ID             #PTU-CHAT      full patch digest on new patch
+BONFIRE_CHANNEL_ID         #BONFIRE-CHAT  monthly Bonfire reminder
+REDSCAR_ONLY_CHANNEL_ID    #REDSCAR-ONLY  new member join notifications
+```
 
 Voice channels:
-  VOICE_INDUSTRY_ID          Industry Bonfire  (Focused Voice category)
-  VOICE_RANGERS_ID           Rangers Bonfire   (Focused Voice category)
-  VOICE_EMERGENCY_ID         ! Responding      (Emergency Comms category)
-  VOICE_CASUAL_ID            Redscar Only      (Casual Voice category)
+
+```text
+VOICE_INDUSTRY_ID          Industry Bonfire  (Focused Voice category)
+VOICE_RANGERS_ID           Rangers Bonfire   (Focused Voice category)
+VOICE_EMERGENCY_ID         ! Responding      (Emergency Comms category)
+VOICE_CASUAL_ID            Redscar Only      (Casual Voice category)
+```
 
 Bot permissions required:
-  GUILDS, GUILD_MEMBERS (privileged), GUILD_VOICE_STATES, GUILD_MESSAGES,
-  MESSAGE_CONTENT (privileged), Manage Events
-  Send Messages in announcement channels (explicit permission needed)
+GUILDS, GUILD\_MEMBERS (privileged), GUILD\_VOICE\_STATES, GUILD\_MESSAGES,
+MESSAGE\_CONTENT (privileged), Manage Events.
+Send Messages in announcement channels (explicit permission needed).
 
 Op type → channel routing:
-  INDUSTRY/MINING/ROCKBREAKER/SALVAGE → #nexusos-ops + #INDUSTRY
-  PATROL/COMBAT/ESCORT/S17            → #nexusos-ops + #RANGERS
-  RESCUE/EMERGENCY                    → #nexusos-ops + #nexusos-log + voice move
-  RACING                              → #nexusos-ops only (no profession channel yet)
+
+```text
+INDUSTRY/MINING/ROCKBREAKER/SALVAGE → #nexusos-ops + #INDUSTRY
+PATROL/COMBAT/ESCORT/S17            → #nexusos-ops + #RANGERS
+RESCUE/EMERGENCY                    → #nexusos-ops + #nexusos-log + voice move
+RACING                              → #nexusos-ops only (no profession channel yet)
+```
 
 ---
 
 ## PWA configuration
 
 manifest.json:
-  display: fullscreen | orientation: landscape | start_url: /gate
-  background_color: #07080b | theme_color: #07080b
+
+```json
+{
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "start_url": "/gate",
+  "background_color": "#07080b",
+  "theme_color": "#07080b"
+}
+```
 
 Service worker cache strategy:
-  CACHE_FIRST:             / /app /icons/* /fonts/* CSS JS bundles
-  NETWORK_FIRST:           /api/*
-  STALE_WHILE_REVALIDATE:  /api/wiki/* /api/status
-  NEVER CACHE:             /auth/* /api/auth/*
+
+```text
+CACHE_FIRST:            / /app /icons/ /fonts/ CSS JS bundles
+NETWORK_FIRST:          /api/
+STALE_WHILE_REVALIDATE: /api/wiki/ /api/status
+NEVER CACHE:            /auth/ /api/auth/
+```
 
 Session: encrypted IndexedDB. Re-auth only on key revocation.
 
@@ -653,82 +711,80 @@ Session: encrypted IndexedDB. Re-auth only on key revocation.
 
 ## Directory structure
 
-```
+```text
 nexusos-redscar/
 ├── CLAUDE.md                        ← AI session context (read first)
 ├── NEXUSOS_AI_HANDOFF.md            ← this file
 ├── .env.example                     ← all env vars with descriptions
 ├── docs/
-│   ├── architecture.md              ← full Base44 plan prompt
-│   ├── discord-bot.md               ← full Discord channel mapping prompt
+│   ├── architecture.md              ← runtime model, auth model, data layer
+│   ├── discord-bot.md               ← Herald Bot spec and validation order
 │   └── design-system.md            ← design token reference
 ├── functions/                       ← Base44 Deno edge functions
 │   ├── ocrExtract.ts               ← DONE + PATCHED
 │   ├── generateInsight.ts          ← DONE + PATCHED
 │   └── heraldBot.ts                ← STUB — needs full implementation
 ├── src/
-│   ├── App.jsx
-│   ├── app/
-│   │   ├── Shell.jsx               ← topbar + sidebar + layout modes
-│   │   ├── AccessGate.jsx          ← /gate login page — BUILD NEXT
-│   │   └── modules/
-│   │       ├── IndustryHub/        ← Overview, Materials, Blueprints, Queue
-│   │       ├── ScoutIntel/         ← SVG system map + deposit panel
-│   │       ├── OpBoard/            ← create + live op + phase tracker
-│   │       ├── FleetForge/         ← ship fitting
-│   │       ├── ProfitCalc/
-│   │       └── EpicArchive/
-│   ├── bot/                        ← Herald Bot (discord.js v14)
-│   │   ├── index.js
-│   │   ├── commands/
-│   │   ├── events/
-│   │   ├── embeds/
-│   │   └── jobs/
-│   ├── api/                        ← Base44 API routes
-│   │   ├── auth/
-│   │   ├── ocr/
-│   │   ├── sync/
-│   │   └── webhooks/
-│   ├── jobs/                       ← Base44 background jobs
-│   └── styles/
-│       ├── tokens.css              ← CSS custom properties
-│       └── global.css
+│   ├── App.jsx                      ← route tree
+│   ├── core/
+│   │   ├── shell/                   ← NexusShell, NexusSidebar, NexusTopbar
+│   │   ├── design/                  ← tokens, components (MFDPanel), design system
+│   │   └── data/                    ← SessionContext, auth-api, base44Client, entities
+│   ├── apps/
+│   │   ├── industry-hub/            ← BUILT — full module
+│   │   ├── ops-board/               ← BUILT — full module
+│   │   └── scout-intel/             ← BUILT — full module
+│   └── pages/                       ← routed surfaces (Commerce, Logistics, Armory, etc.)
 └── scripts/
-    └── create-nexusos-channels.js  ← one-time Discord channel setup
+    └── create-nexusos-channels.js   ← one-time Discord channel setup
 ```
 
 ---
 
-## Immediate next build tasks
+## Remaining build tasks
 
-### NEXT: AccessGate.jsx (/gate)
-Full-screen login. Spec:
-- Background: #07080b with 80-point animated star field (CSS only, no canvas)
-- Centred card (~360px): NexusOS compass SVG emblem (slate-grey, no status colour),
-  "REDSCAR NOMADS" label (9px, --t3, letter-spacing .2em),
-  "NEXUSOS" title (22px, --t0, font-weight 500, letter-spacing .2em),
-  "ACCESS GATE" subtitle (10px, --t2, letter-spacing .15em),
-  Discord SSO launcher button (full width, --bg3 bg, --b2 border),
-  "Request access via #nexusos-ops" link (--acc, 10px)
-- Inline error: amber border + warning text on SSO failure states
-- Bottom status bar (fixed, 32px): live verse status dot + version + org name
-- On success: redirect to /app (or last visited module)
-- Submit to Base44 auth endpoint via Discord OAuth2 SSO start/callback handlers
+### Herald Bot — `functions/heraldBot.ts`
 
-### THEN: Industry Hub Overview tab
-See design reference in docs/architecture.md.
-The insight strip data comes from functions/generateInsight.ts — no AI label.
+Currently a stub. Full spec in docs/discord-bot.md. Required env vars:
+
+- `HERALD_BOT_TOKEN`
+- `REDSCAR_GUILD_ID`
+- `DISCORD_PUBLIC_KEY`
+- `NEXUSOS_OPS_CHANNEL_ID` (and other channel IDs)
+
+### Shell visual design (in priority order)
+
+1. `src/core/shell/components/AmbientBackground.jsx` — particle star field behind all content
+2. `src/core/shell/useOperationalState.js` — live-op colour temperature shift
+3. `src/core/design/hooks/useCountUp.js` + `useAnimatedList.js` — data animation
+4. Barlow Condensed — `--font-display` in tokens.css, applied to stat numbers and op names
+5. `src/core/shell/depth.css` — spatial depth system for panel transitions
+
+### Integration setup
+
+- Register Discord Interactions Endpoint URL in the Developer Portal (RSVP buttons — code done, portal config pending)
+- Enable patch watcher scheduled job in Base44 (rssCheck/patchDigest — code done, job not enabled)
 
 ---
 
 ## Design decisions log
+
 (Why we built it this way — for any AI continuing this work)
+
+**Why invitation-key auth instead of Discord OAuth2?**
+Discord OAuth2 requires a persistent callback server and a registered OAuth2
+application with a public redirect URI. The invitation-key model works entirely
+within Base44 serverless functions with no external OAuth dependency. Members
+get a callsign and key issued by a Pioneer, enter it once, and never deal with
+auth again. Keys can be revoked instantly without touching Discord. Discord
+remains the rank authority — roles are synced on every login and every 30 minutes
+— but the login credential is the issued key, not a Discord redirect.
 
 **Why no email for members?**
 Voice-first org. Members are gamers, not enterprise users. Email creates
-friction and a GDPR surface. Discord identity is canonical and already trusted.
-Discord SSO keeps identity and access control aligned with the org's live role
-structure without introducing a second credential system.
+friction and a GDPR surface. Discord identity is canonical and already trusted
+for rank — the invitation-key model keeps auth simple and fully controlled
+within the org without introducing a second credential system.
 
 **Why is AI hidden?**
 Members should feel like the system is smart, not that they're being assisted
@@ -763,16 +819,16 @@ it into the split calculator.
 
 ## Environment variables (.env.example)
 
-```
-SC_API_KEY=                    # starcitizen-api.com key
-ANTHROPIC_API_KEY=             # Claude API key
-HERALD_BOT_TOKEN=              # Discord bot token (Nexus-Herald)
-DISCORD_CLIENT_ID=             # OAuth2 app client ID
-DISCORD_CLIENT_SECRET=         # OAuth2 app client secret
-APP_URL=                       # Deployed app base URL (e.g. https://nexusos.redscar.gg)
+```bash
+SESSION_SIGNING_SECRET=        # CRITICAL — signs session cookies
+APP_URL=                       # CRITICAL — deployed NexusOS URL (e.g. https://nexusos.redscar.gg)
+ANTHROPIC_API_KEY=             # Claude API key (server-side only)
+SC_API_KEY=                    # starcitizen-api.com key (optional, improves verse status)
 ADMIN_EMAIL=blae@katrasoluta.com
 
-REDSCAR_GUILD_ID=              # Redscar Nomads server ID
+HERALD_BOT_TOKEN=              # Discord bot token (Nexus-Herald) — Herald Bot only
+REDSCAR_GUILD_ID=              # Redscar Nomads server ID — Herald Bot only
+DISCORD_PUBLIC_KEY=            # For signed Discord interactions — Herald Bot only
 
 # New NexusOS channels (create via scripts/create-nexusos-channels.js)
 NEXUSOS_OPS_CHANNEL_ID=
@@ -804,7 +860,7 @@ VOICE_CASUAL_ID=
 
 1. Read this file and CLAUDE.md before writing any code.
 2. Read the existing file before editing it. Never rewrite from memory.
-3. Do not add email authentication for regular users. Ever.
+3. Member auth is invitation-key only (callsign + RSN-XXXX-XXXX-XXXX). Do not add Discord OAuth2 login or email auth.
 4. Do not expose Claude API attribution in any user-facing UI element.
 5. Do not use colours decoratively. Status meaning only.
 6. Do not use white card backgrounds. Use --bg1 or --bg2.
@@ -816,11 +872,11 @@ VOICE_CASUAL_ID=
 12. When in doubt about a design decision, refer to the Design decisions log above.
 13. All Claude API calls are server-side only. No API keys in frontend code.
 14. The org tag for starcitizen-api.com roster calls is RSNM.
-15. T2 eligibility threshold is quality_pct >= 80. This is a hard game mechanic.
+15. T2 eligibility threshold is quality\_pct >= 80. This is a hard game mechanic.
 
 ---
 
-*This document was authored by Claude Sonnet 4.6 in a claude.ai session,
-March 2026. It represents the complete design intent and architectural
-decisions for NexusOS as of the handoff date. Any AI reading this should
-treat it as the authoritative project brief.*
+*Last updated by Claude Sonnet 4.6 (Claude Code session, March 2026).
+Treat this as the authoritative project brief. Any AI reading this should
+honour every decision recorded here unless the human owner explicitly
+overrides it in the current session.*
