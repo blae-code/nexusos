@@ -177,6 +177,22 @@ export const authApi = {
     return (await parseJson(response)) || {};
   },
 
+  async completeOnboarding({ consentGiven = true, aiEnabled = true, consentVersion = '1.0', timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('completeOnboarding'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        consent_given: consentGiven,
+        ai_features_enabled: aiEnabled,
+        consent_version: consentVersion,
+      }),
+    }, timeoutMs);
+
+    return (await parseJson(response)) || {};
+  },
+
   async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, reset = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
     const payload = {
       ...(recoveryToken ? { recovery_token: recoveryToken } : {}),

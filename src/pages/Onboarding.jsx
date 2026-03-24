@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
-import { base44 } from '@/core/data/base44Client';
 import { withAppBase } from '@/core/data/app-base-path';
+import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
 
 const PRIVACY_DISCLOSURE = `NexusOS Privacy & Data Usage Disclosure
@@ -292,14 +292,16 @@ function Step4Consent({ user, onComplete }) {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const now = new Date().toISOString();
-      await base44.entities.NexusUser.update(user.id, {
-        consent_given: true,
-        consent_timestamp: now,
-        consent_version: '1.0',
-        ai_features_enabled: aiEnabled,
-        onboarding_complete: true,
+      const res = await authApi.completeOnboarding({
+        consentGiven: true,
+        aiEnabled,
+        consentVersion: '1.0',
       });
+      if (res?.error) {
+        console.warn('[Onboarding] backend error:', res.error);
+        setSubmitting(false);
+        return;
+      }
       onComplete();
     } catch (err) {
       console.warn('[Onboarding] submission failed:', err);
