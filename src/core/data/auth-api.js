@@ -22,12 +22,18 @@ function clearSessionToken() {
 }
 
 /**
- * Call a backend function via the Base44 SDK.
+ * Call a backend function via the Base44 SDK fetch.
+ * Uses fetch() to get the raw Response, then parses JSON.
  * This ensures platform auth headers are included so asServiceRole works in the backend.
  */
 async function sdkInvoke(functionPath, payload = {}) {
-  const response = await base44.functions.invoke(functionPath, payload);
-  return response?.data ?? response;
+  const response = await base44.functions.fetch(`/${functionPath}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+  return data;
 }
 
 /** @typedef {{ timeoutMs?: number }} TimeoutOptions */
