@@ -1,1 +1,1 @@
-import '../entry.ts';
+import '../session.js';
