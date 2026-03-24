@@ -26,6 +26,7 @@ import RescueBoard from '@/pages/RescueBoard';
 import OrgRoster from '@/pages/OrgRoster';
 import EpicArchive from '@/pages/EpicArchive';
 import BootScreen from '@/pages/BootScreen';
+import DebtTracker from '@/pages/DebtTracker';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 
 function withRouteBoundary(element, compact = false) {
@@ -83,6 +84,7 @@ function App() {
 
               {/* Org */}
               <Route path="roster" element={withRouteBoundary(<OrgRoster />, true)} />
+              <Route path="roster/debts" element={withRouteBoundary(<DebtTracker />, true)} />
               <Route path="handbook" element={withRouteBoundary(<RedscarHandbook />, true)} />
               <Route path="training" element={withRouteBoundary(<TrainingHub />, true)} />
 

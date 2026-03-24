@@ -13,6 +13,9 @@ import SessionLog from './SessionLog';
 import SplitCalc from './SplitCalc';
 import ThreatPanel from './ThreatPanel';
 import LiveOpTopbar from './LiveOpTopbar';
+import MissionControlPanel from './MissionControlPanel';
+import RoleReassignPanel from './RoleReassignPanel';
+import OpWrapUpPanel from './OpWrapUpPanel';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
@@ -260,6 +263,10 @@ export default function LiveOp() {
   const threatPanelProps = { op, callsign, onUpdate: handleLogUpdate };
   const lootTallyProps = { op, callsign, rank, currentPhase, onUpdate: handleLogUpdate };
   const splitCalcProps = { op, rsvps };
+  const missionControlProps = { op, rsvps, callsign, rank };
+  const roleReassignProps = { op, rsvps, rank, onUpdate: fetchOp };
+  const wrapUpProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
+  const isComplete = op.status === 'COMPLETE';
 
   const hero = (
     <div
@@ -369,17 +376,37 @@ export default function LiveOp() {
         onLayoutChange={handleLayoutChange}
       />
 
-      {layoutMode === 'ALT-TAB' ? (
+      {/* Financial wrap-up panel for completed ops */}
+      {isComplete && (
+        <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          <Panel title="FINANCIAL WRAP-UP">
+            <OpWrapUpPanel {...wrapUpProps} />
+          </Panel>
+        </div>
+      )}
+
+      {!isComplete && (layoutMode === 'ALT-TAB' ? (
         // Standard 2-column layout
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '60% 40%', gap: 16, padding: 24, overflow: 'hidden', minHeight: 0 }}>
-          {/* Left column: Phase tracker + Crew grid */}
+          {/* Left column: Phase tracker + Mission Control + Crew grid */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0, overflow: 'auto' }}>
             <Panel title="PHASE TRACKER">
               <PhaseTracker {...phaseTrackerProps} />
             </Panel>
+            {isLive && (
+              <Panel title="MISSION CONTROL">
+                <MissionControlPanel {...missionControlProps} />
+              </Panel>
+            )}
             <Panel title="CREW & RSVP">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <OpRsvpSection {...opRsvpProps} />
+                {isLive && canManage && (
+                  <>
+                    <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+                    <RoleReassignPanel {...roleReassignProps} />
+                  </>
+                )}
                 <div style={{ height: '0.5px', background: 'var(--b0)' }} />
                 <CrewGrid {...crewGridProps} />
               </div>
@@ -421,8 +448,13 @@ export default function LiveOp() {
             </Panel>
           </div>
 
-          {/* Column 3: Loot tally + Split calc */}
+          {/* Column 3: Mission Control + Loot tally + Split calc */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0, overflow: 'auto' }}>
+            {isLive && (
+              <Panel title="MISSION CONTROL">
+                <MissionControlPanel {...missionControlProps} />
+              </Panel>
+            )}
             <Panel title="LOOT TALLY">
               <LootTally {...lootTallyProps} />
             </Panel>
@@ -431,7 +463,7 @@ export default function LiveOp() {
             </Panel>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }

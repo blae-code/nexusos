@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Search, Trophy, Clock, Users, TrendingUp, BookOpen } from 'lucide-react';
+import AARTimelineCard from '@/apps/ops-board/AARTimelineCard';
 
-const TABS = ['OPS', 'LEADERBOARDS', 'PATCH HISTORY'];
+const TABS = ['OPS', 'AAR TIMELINE', 'LEADERBOARDS', 'PATCH HISTORY'];
 
 function OpArchiveCard({ op }) {
   const duration = op.started_at && op.ended_at
@@ -169,6 +170,19 @@ export default function EpicArchive() {
               <div className="flex flex-col items-center" style={{ padding: 40, color: 'var(--t2)', fontSize: 13 }}>
                 <BookOpen size={28} style={{ marginBottom: 12, opacity: 0.3 }} />
                 <span>No completed ops yet. The archive will fill as ops are completed.</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === 'AAR TIMELINE' && (
+          <div className="p-4 flex flex-col gap-4">
+            <div style={{ color: 'var(--t2)', fontSize: 11 }}>{filteredOps.filter(o => o.wrap_up_data || o.wrap_up_report).length} ops with after-action data</div>
+            {filteredOps.filter(o => o.wrap_up_data || o.wrap_up_report).map(op => <AARTimelineCard key={op.id} op={op} />)}
+            {filteredOps.filter(o => o.wrap_up_data || o.wrap_up_report).length === 0 && (
+              <div className="flex flex-col items-center" style={{ padding: 40, color: 'var(--t2)', fontSize: 13 }}>
+                <BookOpen size={28} style={{ marginBottom: 12, opacity: 0.3 }} />
+                <span>No after-action reports yet. Complete ops with wrap-up data to see them here.</span>
               </div>
             )}
           </div>

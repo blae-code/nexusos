@@ -23,6 +23,7 @@ import SystemMap    from './SystemMap';
 import DepositPanel from './DepositPanel';
 import DepositRouteOptimizer from './DepositRouteOptimizer';
 import DepositRouteResults from './DepositRouteResults';
+import DepositRiskOverlay from './DepositRiskOverlay';
 
 // ─── Initial filter state ─────────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ export default function ScoutIntel() {
   const [loading,    setLoading]    = useState(true);
 
   const [filterState,      setFilterState]      = useState(DEFAULT_FILTERS);
-  const [panelMode,        setPanelMode]         = useState('default'); // 'default' | 'detail' | 'log' | 'route' | 'route-results'
+  const [panelMode,        setPanelMode]         = useState('default'); // 'default' | 'detail' | 'log' | 'route' | 'route-results' | 'risk'
   const [selectedDeposit,  setSelectedDeposit]  = useState(null);
   const [optimizedRoute,   setOptimizedRoute]   = useState(null);
 
@@ -150,6 +151,25 @@ export default function ScoutIntel() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
             <button
               onClick={() => {
+                if (panelMode === 'risk') {
+                  setPanelMode('default');
+                } else {
+                  setPanelMode('risk');
+                }
+              }}
+              className="nexus-btn"
+              style={{
+                padding: '5px 12px', fontSize: 10, letterSpacing: '0.07em',
+                display: 'flex', alignItems: 'center', gap: 4,
+                background: panelMode === 'risk' ? 'rgba(192,57,43,0.08)' : undefined,
+                borderColor: panelMode === 'risk' ? 'rgba(192,57,43,0.3)' : undefined,
+                color: panelMode === 'risk' ? '#C0392B' : undefined,
+              }}
+            >
+              {panelMode === 'risk' ? 'CLOSE RISK' : 'RISK OVERLAY'}
+            </button>
+            <button
+              onClick={() => {
                 if (panelMode === 'route' || panelMode === 'route-results') {
                   setPanelMode('default');
                   setOptimizedRoute(null);
@@ -199,8 +219,20 @@ export default function ScoutIntel() {
         </div>
       </div>
 
-      {/* Right: panel — route optimizer or deposit panel */}
-      {panelMode === 'route' ? (
+      {/* Right: panel — risk overlay, route optimizer, or deposit panel */}
+      {panelMode === 'risk' ? (
+        <div style={{
+          width: 320, flexShrink: 0,
+          background: 'var(--bg0)',
+          borderLeft: '0.5px solid var(--b0)',
+          display: 'flex', flexDirection: 'column',
+          height: '100%', overflow: 'hidden',
+        }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
+            <DepositRiskOverlay deposits={deposits} />
+          </div>
+        </div>
+      ) : panelMode === 'route' ? (
         <div style={{
           width: 280, flexShrink: 0,
           background: 'var(--bg0)',

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Bell, Columns, LogOut, Monitor, Save } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { useOutletContext } from 'react-router-dom';
+import PersonalWalletPanel from '@/components/PersonalWalletPanel';
 import { useNotificationPreferences } from '@/core/data/notification-preferences';
 import { useSession } from '@/core/data/SessionContext';
 
@@ -258,6 +259,10 @@ export default function NexusSettings() {
             </button>
           </Row>
         ))}
+      </Section>
+
+      <Section title="WALLET">
+        <PersonalWalletPanel />
       </Section>
 
       <Section title="SESSION">

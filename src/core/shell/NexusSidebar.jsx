@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/core/data/SessionContext';
+import SidebarWidget from './SidebarWidget';
 import {
   Crosshair, LayoutGrid, Clock, PlusCircle, LifeBuoy, Archive,
   Activity, Factory, BookOpen, GraduationCap, Radar,
@@ -47,7 +48,12 @@ const NAV = [
     label: 'ORG',
     collapsed: true,
     items: [
-      { icon: Users, label: 'ORG ROSTER', path: '/app/roster' },
+      {
+        icon: Users, label: 'ORG ROSTER', path: '/app/roster',
+        children: [
+          { label: 'DEBT TRACKER', path: '/app/roster/debts' },
+        ],
+      },
       { icon: BookOpen, label: 'HANDBOOK', path: '/app/handbook' },
       { icon: GraduationCap, label: 'TRAINING', path: '/app/training' },
     ],
@@ -225,6 +231,8 @@ export default function NexusSidebar() {
         <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#4A8C5C', animation: 'pulse 3s ease-in-out infinite', flexShrink: 0 }} aria-hidden="true" />
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.15em' }}>VERSE 4.7.0</span>
       </div>
+
+      <SidebarWidget />
 
       <div style={S.bottom}>
         {BOTTOM.map((item) => (

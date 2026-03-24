@@ -15,6 +15,7 @@ import {
   SectionHeader, FormField, SegmentedControl, Toggle,
   RoleSlotEditor, PhaseEditor,
 } from './opCreatorHelpers';
+import FleetAssignSection from './FleetAssignSection';
 import { opTypeToken } from '@/core/data/tokenMap';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -74,6 +75,8 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
   const defaults   = getDefaults(form.type);
   const [roleSlots, setRoleSlots] = useState(defaults.roles);
   const [phases, setPhases]       = useState(defaults.phases);
+
+  const [fleetAssignments, setFleetAssignments] = useState({});
 
   const [settings, setSettings] = useState({
     allowLateJoins:      false,
@@ -568,6 +571,12 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
             <SettingsToggle label="Log loot tally" checked={settings.logLootTally} onChange={v => setSetting('logLootTally', v)} />
             <SettingsToggle label="Calculate split on close" checked={settings.calcSplitOnClose} onChange={v => setSetting('calcSplitOnClose', v)} />
           </div>
+        </div>
+
+        {/* FLEET ASSIGNMENT */}
+        <div style={{ marginBottom: 28 }}>
+          <SectionHeader label="FLEET ASSIGNMENT" />
+          <FleetAssignSection roleSlots={roleSlots} assignments={fleetAssignments} onChange={setFleetAssignments} />
         </div>
 
         {/* PHASES */}

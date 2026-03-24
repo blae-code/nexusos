@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const enc = new TextEncoder();
 const KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -130,8 +130,6 @@ function getCookieDomain(req: Request): string | null {
       return configuredHost;
     }
 
-    // When the request is coming from a different host, fall back to a host-only
-    // cookie so Base44 development domains can authenticate independently.
     return null;
   } catch {
     return null;
