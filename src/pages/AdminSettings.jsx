@@ -2,14 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import { authApi } from '@/core/data/auth-api';
-import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, XCircle, HelpCircle } from 'lucide-react';
+import { showToast } from '@/components/NexusToast';
 
 const REQUIRED_SECRETS = [
-  { id: 'UEX_API_KEY', label: 'UEX API Key' },
-  { id: 'SC_API_KEY', label: 'StarCitizen API Key' },
-  { id: 'SESSION_SIGNING_SECRET', label: 'Session Signing Secret' },
-  { id: 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', label: 'System Admin Bootstrap Secret' },
-  { id: 'APP_URL', label: 'App URL' },
+  { id: 'UEX_API_KEY', label: 'UEX API Key', help: 'Powers commodity price tracking and market data. Get yours at uexcorp.space/api', critical: false },
+  { id: 'SC_API_KEY', label: 'StarCitizen API Key', help: 'Used for RSI organization roster sync and game data. Available at robertsspaceindustries.com/account/settings', critical: false },
+  { id: 'SESSION_SIGNING_SECRET', label: 'Session Signing Secret', help: 'CRITICAL — Used to sign all auth session cookies. Must be a strong random string. Without this, authentication will not work.', critical: true },
+  { id: 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', label: 'System Admin Bootstrap Secret', help: 'Emergency recovery secret for the system admin account. Set during initial deployment.', critical: true },
+  { id: 'APP_URL', label: 'App URL', help: 'The public URL of your NexusOS deployment. Used for cookie domains and invite links. Example: https://your-nexusos.app', critical: true },
 ];
 
 const PUBLIC_CONFIG = [
@@ -74,11 +75,18 @@ export default function AdminSettings() {
       const response = await base44.functions.invoke('testApiConnection', { secretId });
       const payload = response?.data || response || {};
       setTestResults((current) => ({ ...current, [secretId]: payload }));
+      if (payload.success) {
+        showToast(`${secretId} connection verified successfully`, 'success');
+      } else {
+        showToast(`${secretId} connection test failed — ${payload.error || 'check configuration'}`, 'error');
+      }
     } catch (error) {
+      const errorMsg = error?.message || 'test_failed';
       setTestResults((current) => ({
         ...current,
-        [secretId]: { success: false, error: error?.message || 'test_failed', timestamp: new Date().toISOString() },
+        [secretId]: { success: false, error: errorMsg, timestamp: new Date().toISOString() },
       }));
+      showToast(`${secretId} test error — ${errorMsg}`, 'error');
     } finally {
       setTestingSecretId('');
     }
@@ -152,13 +160,29 @@ export default function AdminSettings() {
           const isTestable = secret.id === 'UEX_API_KEY' || secret.id === 'SC_API_KEY';
 
           return (
-            <div key={secret.id} style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
+            <div key={secret.id} style={{
+              padding: '12px 14px', background: 'var(--bg2)',
+              border: `0.5px solid ${!status.configured && secret.critical ? 'rgba(192,57,43,0.3)' : 'var(--b1)'}`,
+              borderRadius: 3,
+              borderLeft: !status.configured && secret.critical ? '2px solid #C0392B' : undefined,
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-                <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>{secret.label}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>{secret.label}</div>
+                  {secret.critical && !status.configured && (
+                    <span style={{ fontSize: 8, color: '#C0392B', background: 'rgba(192,57,43,0.12)', padding: '1px 5px', borderRadius: 2, fontWeight: 600 }}>REQUIRED</span>
+                  )}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {status.protected ? <StatusChip ok label="Protected" /> : null}
                   <StatusChip ok={status.configured} label={status.configured ? 'Configured' : 'Missing'} />
                 </div>
+              </div>
+
+              {/* Help text */}
+              <div style={{ color: 'var(--t3)', fontSize: 10, lineHeight: 1.5, marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                <HelpCircle size={10} style={{ flexShrink: 0, marginTop: 2, opacity: 0.5 }} />
+                <span>{secret.help}</span>
               </div>
 
               {isTestable ? (
@@ -167,42 +191,40 @@ export default function AdminSettings() {
                     {testResult
                       ? (
                         <span style={{ color: testResult.success ? '#27C96A' : '#E04848' }}>
-                          {testResult.success ? 'Connection ok' : `Connection failed${testResult.error ? ` · ${testResult.error}` : ''}`}
+                          {testResult.success ? '✓ Connection verified' : `✗ ${testResult.error || 'Connection failed'}`}
+                          {testResult.timestamp ? ` · ${new Date(testResult.timestamp).toLocaleTimeString()}` : ''}
                         </span>
                       )
-                      : 'No connectivity test run yet.'}
+                      : status.configured ? 'Ready to test — click TEST to verify connectivity.' : 'Configure this secret first, then test connectivity.'}
                   </div>
                   <button
                     type="button"
                     onClick={() => runSecretTest(secret.id)}
                     disabled={!status.configured || Boolean(testingSecretId)}
                     style={{
-                      padding: '4px 10px',
-                      background: 'transparent',
-                      border: '0.5px solid var(--b1)',
-                      borderRadius: 3,
+                      padding: '4px 10px', background: 'transparent',
+                      border: '0.5px solid var(--b1)', borderRadius: 3,
                       color: status.configured ? 'var(--t1)' : 'var(--t3)',
                       cursor: !status.configured || testingSecretId ? 'not-allowed' : 'pointer',
-                      fontFamily: 'inherit',
-                      fontSize: 9,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
+                      fontFamily: 'inherit', fontSize: 9,
+                      display: 'flex', alignItems: 'center', gap: 4,
                     }}
                   >
-                    <RefreshCw size={11} />
-                    {testingSecretId === secret.id ? 'TESTING...' : 'TEST'}
+                    <RefreshCw size={11} style={{ animation: testingSecretId === secret.id ? 'spin 1s linear infinite' : 'none' }} />
+                    {testingSecretId === secret.id ? 'TESTING...' : 'TEST CONNECTION'}
                   </button>
                 </div>
               ) : (
                 <div style={{ color: 'var(--t2)', fontSize: 10 }}>
-                  Deployment-managed only. Configure in the hosting environment, not inside NexusOS.
+                  Set in your deployment environment variables, not editable within NexusOS.
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
       <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
         <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500, marginBottom: 10 }}>Auth Runtime</div>
