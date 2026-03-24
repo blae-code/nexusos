@@ -7,7 +7,7 @@
  *
  * No user auth — service role background job.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const UEX_API_BASE  = 'https://uexcorp.space/api/2.0';
 const FETCH_TIMEOUT = 20_000;

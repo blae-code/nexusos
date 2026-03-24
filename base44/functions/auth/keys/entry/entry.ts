@@ -143,5 +143,20 @@ Deno.serve(async (req) => {
     return Response.json({ key: authKey, key_prefix: keyPrefixFromAuthKey(authKey), user: refreshed ? serializeManagedUser(refreshed) : null }, { headers: { 'Cache-Control': 'no-store' } });
   }
 
+  if (action === 'update_rank') {
+    const target = await findUserById(base44, String(body?.user_id || '').trim());
+    const rank = String(body?.nexus_rank || '').trim().toUpperCase();
+    if (!target) return Response.json({ error: 'not_found' }, { status: 404, headers: { 'Cache-Control': 'no-store' } });
+    if (!VALID_RANKS.has(rank)) return Response.json({ error: 'invalid_rank' }, { status: 400, headers: { 'Cache-Control': 'no-store' } });
+
+    await base44.asServiceRole.entities.NexusUser.update(target.id, {
+      nexus_rank: rank,
+      is_admin: rank === 'PIONEER',
+      session_invalidated_at: now,
+    });
+    const refreshed = await findUserById(base44, target.id);
+    return Response.json({ ok: true, user: refreshed ? serializeManagedUser(refreshed) : null }, { headers: { 'Cache-Control': 'no-store' } });
+  }
+
   return Response.json({ error: 'invalid_action' }, { status: 400, headers: { 'Cache-Control': 'no-store' } });
 });

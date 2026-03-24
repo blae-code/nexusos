@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const API_TESTS = {
   UEX_API_KEY: async (key) => {
@@ -14,30 +14,12 @@ const API_TESTS = {
     const res = await fetch(`https://api.starcitizen-api.com/api/v2/live/vehicles?key=${key}`);
     return res.ok;
   },
-
-  DISCORD_CLIENT_SECRET: async (secret) => {
-    // Validate format (should be hex string of ~64 chars)
-    return /^[a-zA-Z0-9_-]{40,}$/.test(secret);
-  },
-
-  DISCORD_BOT_TOKEN: async (token) => {
-    // Test Discord bot token by making a simple API call
-    const res = await fetch('https://discordapp.com/api/v10/users/@me', {
-      headers: { Authorization: `Bot ${token}` },
-    });
-    return res.ok || res.status === 401; // 401 is expected if token format is valid but we're not a real bot
-  },
-
-  DISCORD_REDIRECT_URI: async (uri) => {
-    // Basic validation: must be a valid HTTPS URL
-    try {
-      const url = new URL(uri);
-      return url.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  },
 };
+
+function isAdminUser(user) {
+  const rank = String(user?.nexus_rank || user?.rank || '').toUpperCase();
+  return user?.role === 'admin' || rank === 'PIONEER' || rank === 'FOUNDER';
+}
 
 Deno.serve(async (req) => {
   try {
@@ -50,6 +32,10 @@ Deno.serve(async (req) => {
 
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!isAdminUser(user)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { secretId } = await req.json();

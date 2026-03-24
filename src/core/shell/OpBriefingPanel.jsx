@@ -112,7 +112,7 @@ export default function OpBriefingPanel({ op, rsvps, onClose }) {
             confirmed.map(rsvp => (
               <div key={rsvp.id} style={{ fontSize: 10 }}>
                 <div style={{ color: 'var(--t0)', marginBottom: 2 }}>
-                  {rsvp.callsign || rsvp.discord_id}
+                  {rsvp.callsign || rsvp.user_id || 'UNKNOWN'}
                 </div>
                 <div style={{ color: 'var(--t2)', fontSize: 9 }}>
                   {rsvp.role}{rsvp.ship ? ` · ${rsvp.ship}` : ''}

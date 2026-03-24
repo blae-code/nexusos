@@ -71,7 +71,7 @@ export default function OpsDashboard() {
   const upcomingOpCount = publishedOps.length;
   const totalMembersOnOps = new Set(
     rsvps
-      .map(r => r.user_id || r.callsign || r.discord_id)
+      .map(r => r.user_id || r.callsign)
       .filter(Boolean),
   ).size;
 

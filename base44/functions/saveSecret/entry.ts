@@ -1,4 +1,9 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+
+function isAdminUser(user) {
+  const rank = String(user?.nexus_rank || user?.rank || '').toUpperCase();
+  return user?.role === 'admin' || rank === 'PIONEER' || rank === 'FOUNDER';
+}
 
 Deno.serve(async (req) => {
   try {
@@ -14,7 +19,7 @@ Deno.serve(async (req) => {
     }
 
     // Check if user is admin (Pioneer or Founder)
-    if (user.role !== 'admin' && user.rank !== 'PIONEER' && user.rank !== 'FOUNDER') {
+    if (!isAdminUser(user)) {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -25,14 +30,14 @@ Deno.serve(async (req) => {
     }
 
     // Validate secret ID against whitelist
-    const ALLOWED_SECRETS = ['UEX_API_KEY', 'SC_API_KEY', 'DISCORD_CLIENT_SECRET', 'DISCORD_BOT_TOKEN', 'DISCORD_REDIRECT_URI'];
+    const ALLOWED_SECRETS = ['UEX_API_KEY', 'SC_API_KEY'];
     if (!ALLOWED_SECRETS.includes(secretId)) {
       return Response.json({ error: 'Invalid secret ID' }, { status: 400 });
     }
 
     // In a real implementation, you would call base44.asServiceRole to set environment variables
     // For now, we log the intent and return success
-    console.log(`[saveSecret] Admin ${user.email} updated secret: ${secretId}`);
+    console.log(`[saveSecret] Admin ${user.callsign || user.username || user.id} updated secret: ${secretId}`);
 
     return Response.json({
       success: true,

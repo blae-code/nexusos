@@ -90,6 +90,7 @@ export default function KeyManagement() {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState('');
   const [rank, setRank] = useState('SCOUT');
+  const [rankDrafts, setRankDrafts] = useState({});
   const [workingUserId, setWorkingUserId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -105,7 +106,9 @@ export default function KeyManagement() {
     setLoading(true);
     try {
       const res = await authApi.listManagedUsers();
-      setUsers(Array.isArray(res?.users) ? res.users : []);
+      const nextUsers = Array.isArray(res?.users) ? res.users : [];
+      setUsers(nextUsers);
+      setRankDrafts(Object.fromEntries(nextUsers.map((managedUser) => [managedUser.id, managedUser.nexus_rank || 'AFFILIATE'])));
       setError('');
     } catch (err) {
       setError(err?.message || 'Failed to load issued keys.');
@@ -209,6 +212,30 @@ export default function KeyManagement() {
       }
     } catch (err) {
       setError(err?.message || 'Revocation failed.');
+    } finally {
+      setSubmitting(false);
+      setWorkingUserId('');
+    }
+  };
+
+  const handleUpdateRank = async (managedUser) => {
+    const nextRank = String(rankDrafts[managedUser.id] || managedUser.nexus_rank || '').trim().toUpperCase();
+    if (!nextRank || nextRank === managedUser.nexus_rank) return;
+
+    setSubmitting(true);
+    setWorkingUserId(`rank-${managedUser.id}`);
+    setError('');
+    setSystemAdminMessage('');
+
+    try {
+      const res = await authApi.updateManagedUserRank({ userId: managedUser.id, nexusRank: nextRank });
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        await loadUsers();
+      }
+    } catch (err) {
+      setError(err?.message || 'Rank update failed.');
     } finally {
       setSubmitting(false);
       setWorkingUserId('');
@@ -665,8 +692,30 @@ export default function KeyManagement() {
                   <td style={{ padding: '10px 16px', color: '#9A9488', fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.06em' }}>
                     {managedUser.callsign}
                   </td>
-                  <td style={{ padding: '10px 16px', color: '#9A9488', fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif" }}>
-                    {managedUser.nexus_rank}
+                  <td style={{ padding: '10px 16px' }}>
+                    <select
+                      value={rankDrafts[managedUser.id] || managedUser.nexus_rank}
+                      onChange={(event) => setRankDrafts((current) => ({
+                        ...current,
+                        [managedUser.id]: event.target.value,
+                      }))}
+                      disabled={submitting}
+                      style={{
+                        width: '100%',
+                        padding: '6px 8px',
+                        background: '#141410',
+                        border: '0.5px solid rgba(200,170,100,0.10)',
+                        borderRadius: 2,
+                        color: '#E8E4DC',
+                        fontSize: 10,
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        letterSpacing: '0.08em',
+                        outline: 'none',
+                        cursor: submitting ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {RANK_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
                   </td>
                   <td style={{ padding: '10px 16px', color: '#9A9488', fontSize: 10, fontFamily: 'monospace' }}>
                     {managedUser.key_prefix || '—'}
@@ -693,6 +742,28 @@ export default function KeyManagement() {
                   </td>
                   <td style={{ padding: '10px 16px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                      {rankDrafts[managedUser.id] && rankDrafts[managedUser.id] !== managedUser.nexus_rank ? (
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateRank(managedUser)}
+                          disabled={submitting}
+                          style={{
+                            padding: '3px 10px',
+                            fontSize: 9,
+                            borderRadius: 2,
+                            cursor: 'pointer',
+                            background: 'transparent',
+                            border: '0.5px solid rgba(74,201,106,0.3)',
+                            color: '#27C96A',
+                            fontFamily: "'Barlow Condensed', sans-serif",
+                            fontWeight: 600,
+                            letterSpacing: '0.06em',
+                          }}
+                        >
+                          {submitting && workingUserId === `rank-${managedUser.id}` ? 'SAVING' : 'SAVE RANK'}
+                        </button>
+                      ) : null}
+
                       <button
                         type="button"
                         onClick={() => handleRegenerate(managedUser)}

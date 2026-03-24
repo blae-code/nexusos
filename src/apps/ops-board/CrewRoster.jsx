@@ -40,7 +40,7 @@ function RsvpRow({ rsvp, canLead, onStatusChange }) {
       <span style={{ fontSize: 12, textAlign: 'center' }}>{icon}</span>
 
       <div>
-        <div style={{ color: 'var(--t0)', fontSize: 11 }}>{rsvp.callsign || rsvp.discord_id}</div>
+        <div style={{ color: 'var(--t0)', fontSize: 11 }}>{rsvp.callsign || rsvp.user_id || 'UNKNOWN'}</div>
         {rsvp.role && <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 1 }}>{rsvp.role.replace(/_/g, ' ').toUpperCase()}</div>}
       </div>
 

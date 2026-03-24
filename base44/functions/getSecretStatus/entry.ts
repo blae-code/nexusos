@@ -1,4 +1,9 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+
+function isAdminUser(user) {
+  const rank = String(user?.nexus_rank || user?.rank || '').toUpperCase();
+  return user?.role === 'admin' || rank === 'PIONEER' || rank === 'FOUNDER';
+}
 
 Deno.serve(async (req) => {
   try {
@@ -10,12 +15,12 @@ Deno.serve(async (req) => {
     }
 
     // Check if user is admin
-    if (user.role !== 'admin' && user.rank !== 'PIONEER' && user.rank !== 'FOUNDER') {
+    if (!isAdminUser(user)) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Return which secrets are set (not the values, just existence markers)
-    const ALLOWED_SECRETS = ['UEX_API_KEY', 'SC_API_KEY', 'DISCORD_CLIENT_SECRET', 'DISCORD_BOT_TOKEN', 'DISCORD_REDIRECT_URI'];
+    const ALLOWED_SECRETS = ['UEX_API_KEY', 'SC_API_KEY'];
     const secretStatus = {};
 
     ALLOWED_SECRETS.forEach((secretId) => {

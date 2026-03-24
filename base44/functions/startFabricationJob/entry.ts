@@ -103,9 +103,9 @@ Deno.serve(async (req) => {
   const estimatedCompletion = new Date(now.getTime() + totalCraftTime * 60000);
 
   // 6. Resolve callsign from NexusUser
-  let callsign = 'Unknown';
+  let callsign = user.callsign || user.username || 'Unknown';
   try {
-    const users = await base44.asServiceRole.entities.NexusUser.filter({ discord_id: user.email });
+    const users = await base44.asServiceRole.entities.NexusUser.filter({ id: user.id });
     if (users?.[0]) callsign = users[0].callsign;
   } catch { /* fallback */ }
 
@@ -122,7 +122,8 @@ Deno.serve(async (req) => {
     started_at: now.toISOString(),
     estimated_completion: estimatedCompletion.toISOString(),
     fabricator_location: fabricator_location || bp.fabricator_location || '',
-    started_by: user.email,
+    started_by: user.id || callsign,
+    started_by_user_id: user.id || null,
     started_by_callsign: callsign,
     status: 'ACTIVE',
     notes: notes || '',

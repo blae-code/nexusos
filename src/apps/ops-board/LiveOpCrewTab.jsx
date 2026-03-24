@@ -43,7 +43,7 @@ function CrewCard({ rsvp }) {
 
       {/* Callsign */}
       <span style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500, minWidth: 120, flexShrink: 0 }}>
-        {rsvp.callsign || rsvp.discord_id}
+        {rsvp.callsign || rsvp.user_id || 'UNKNOWN'}
       </span>
 
       {/* Ship */}

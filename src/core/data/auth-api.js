@@ -161,6 +161,22 @@ export const authApi = {
     return (await parseJson(response)) || {};
   },
 
+  async updateManagedUserRank({ userId, nexusRank, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys/entry'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update_rank',
+        user_id: userId,
+        nexus_rank: nexusRank,
+      }),
+    }, timeoutMs);
+
+    return (await parseJson(response)) || {};
+  },
+
   async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, reset = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
     const payload = {
       ...(recoveryToken ? { recovery_token: recoveryToken } : {}),

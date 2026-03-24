@@ -140,5 +140,30 @@ Deno.serve(async (req) => {
     }, { headers: sessionNoStoreHeaders() });
   }
 
+  if (action === 'update_rank') {
+    const userId = String(body?.user_id || '').trim();
+    const rank = String(body?.nexus_rank || '').trim().toUpperCase();
+    if (!VALID_RANKS.has(rank)) {
+      return Response.json({ error: 'invalid_rank' }, { status: 400, headers: sessionNoStoreHeaders() });
+    }
+
+    const target = await findUserById(base44, userId);
+    if (!target) {
+      return Response.json({ error: 'not_found' }, { status: 404, headers: sessionNoStoreHeaders() });
+    }
+
+    await base44.asServiceRole.entities.NexusUser.update(target.id, {
+      nexus_rank: rank,
+      is_admin: rank === 'PIONEER',
+      session_invalidated_at: now,
+    });
+
+    const refreshed = await findUserById(base44, target.id);
+    return Response.json({
+      ok: true,
+      user: refreshed ? serializeManagedUser(refreshed) : null,
+    }, { headers: sessionNoStoreHeaders() });
+  }
+
   return Response.json({ error: 'invalid_action' }, { status: 400, headers: sessionNoStoreHeaders() });
 });

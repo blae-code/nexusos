@@ -55,7 +55,7 @@ export default function CrewScheduler() {
         const rsvps = await base44.entities.OpRsvp.list('-created_date', 500);
         rsvps?.forEach((rsvp) => {
           if (initAssignments[rsvp.op_id]) {
-            const userKey = rsvp.user_id || rsvp.discord_id || rsvp.callsign;
+            const userKey = rsvp.user_id || rsvp.callsign;
             if (userKey) {
               initAssignments[rsvp.op_id][userKey] = rsvp.role || 'crew';
             }

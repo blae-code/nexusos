@@ -61,7 +61,7 @@ Return null for any field you cannot read clearly.`,
 
     const resolvedCallsign = callsign || user.callsign || 'unknown';
     const resolvedUserId = user.id || null;
-    const resolvedSourceType = source_type === 'OCR_DISCORD' ? 'OCR_UPLOAD' : (source_type || 'OCR_UPLOAD');
+    const resolvedSourceType = source_type || 'OCR_UPLOAD';
     const now = new Date().toISOString();
     const created = [];
 

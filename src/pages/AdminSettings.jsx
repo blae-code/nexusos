@@ -6,13 +6,11 @@ import { Eye, EyeOff } from 'lucide-react';
 const SECRETS = [
   { id: 'UEX_API_KEY', label: 'UEX API Key', envVar: 'UEX_API_KEY' },
   { id: 'SC_API_KEY', label: 'StarCitizen API Key', envVar: 'SC_API_KEY' },
-  { id: 'DISCORD_CLIENT_SECRET', label: 'Discord Client Secret', envVar: 'DISCORD_CLIENT_SECRET' },
-  { id: 'DISCORD_BOT_TOKEN', label: 'Discord Bot Token', envVar: 'DISCORD_BOT_TOKEN' },
 ];
 
 const PUBLIC_CONFIG = [
-  { id: 'DISCORD_CLIENT_ID', label: 'Discord Client ID', value: '1483421250301989057' },
-  { id: 'DISCORD_GUILD_ID', label: 'Discord Guild ID', value: '1029380236367896616' },
+  { id: 'AUTH_MODE', label: 'Auth Mode', value: 'Issued Key' },
+  { id: 'INVITE_FLOW', label: 'Invite Flow', value: 'Pioneer Issued' },
   { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', value: 'blae' },
   { id: 'RSI_ORG_SID', label: 'RSI Org SID', value: 'RSNM' },
 ];
@@ -151,7 +149,7 @@ export default function AdminSettings() {
     <div style={{ padding: '24px', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20, animation: 'pageEntrance 200ms ease-out' }}>
       <div>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>ADMIN SETTINGS</div>
-        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase' }}>API CREDENTIALS</div>
+        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase' }}>Deployment Configuration</div>
       </div>
 
       {/* Secret Inputs */}
@@ -176,6 +174,13 @@ export default function AdminSettings() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
+        <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500, marginBottom: 6 }}>Protected Deployment Secrets</div>
+        <div style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.6 }}>
+          <div>`SESSION_SIGNING_SECRET`, `SYSTEM_ADMIN_BOOTSTRAP_SECRET`, and `APP_URL` remain deployment-managed and are not editable from NexusOS.</div>
+        </div>
       </div>
     </div>
   );
