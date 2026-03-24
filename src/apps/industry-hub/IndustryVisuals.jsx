@@ -134,7 +134,7 @@ export function MaterialStatusPill({ material }) {
 }
 
 export function BlueprintStatusDot({ isPriority, owned }) {
-  const background = isPriority ? 'var(--warn)' : owned ? 'var(--acc2)' : 'var(--t3)';
+  const background = isPriority ? '#C0392B' : owned ? '#C8A84B' : '#5A5850';
 
   return (
     <div
