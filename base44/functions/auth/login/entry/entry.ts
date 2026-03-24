@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.NexusUser.update(user.id, {
       login_name: loginName,
+      username: loginName,
       callsign: nextCallsign,
       joined_at: user.joined_at || now,
       last_seen_at: now,

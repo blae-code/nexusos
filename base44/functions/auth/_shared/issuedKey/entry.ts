@@ -98,12 +98,32 @@ function isSecure(req: Request): boolean {
     || (req.headers.get('x-forwarded-proto') || '').includes('https');
 }
 
-function getCookieDomain(): string | null {
+function getRequestHostname(req: Request): string {
+  const forwardedHost = (req.headers.get('x-forwarded-host') || '').split(',')[0]?.trim();
+  const hostHeader = (req.headers.get('host') || '').split(',')[0]?.trim();
+  const rawHost = forwardedHost || hostHeader || new URL(req.url).hostname || '';
+  return rawHost.split(':')[0].replace(/^www\./, '').toLowerCase();
+}
+
+function getCookieDomain(req: Request): string | null {
   const appUrl = Deno.env.get('APP_URL') || '';
   if (!appUrl) return null;
 
   try {
-    return new URL(appUrl).hostname.replace(/^www\./, '');
+    const configuredHost = new URL(appUrl).hostname.replace(/^www\./, '').toLowerCase();
+    const requestHost = getRequestHostname(req);
+
+    if (!configuredHost || !requestHost) {
+      return null;
+    }
+
+    if (requestHost === configuredHost || requestHost.endsWith(`.${configuredHost}`)) {
+      return configuredHost;
+    }
+
+    // When the request is coming from a different host, fall back to a host-only
+    // cookie so Base44 development domains can authenticate independently.
+    return null;
   } catch {
     return null;
   }
@@ -111,7 +131,7 @@ function getCookieDomain(): string | null {
 
 function cookieParts(name: string, value: string, req: Request): string[] {
   const parts = [`${name}=${encodeURIComponent(value)}`, 'Path=/', 'SameSite=Lax', 'HttpOnly'];
-  const domain = getCookieDomain();
+  const domain = getCookieDomain(req);
   if (domain) {
     parts.push(`Domain=.${domain}`);
   }

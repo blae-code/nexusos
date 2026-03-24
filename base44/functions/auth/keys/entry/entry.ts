@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
     const authKeyHash = await hashAuthKey(authKey, secret);
     const createdUser = await base44.asServiceRole.entities.NexusUser.create({
       login_name: loginName,
+      username: loginName,
       callsign,
       auth_key_hash: authKeyHash,
       key_prefix: keyPrefixFromAuthKey(authKey),
@@ -120,6 +121,8 @@ Deno.serve(async (req) => {
     const authKeyHash = await hashAuthKey(authKey, secret);
 
     await base44.asServiceRole.entities.NexusUser.update(target.id, {
+      login_name: normalizeLoginName(target.login_name || target.username || target.callsign),
+      username: normalizeLoginName(target.login_name || target.username || target.callsign),
       auth_key_hash: authKeyHash,
       key_prefix: keyPrefixFromAuthKey(authKey),
       key_issued_by: issuedByCallsign,

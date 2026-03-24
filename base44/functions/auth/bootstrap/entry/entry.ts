@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
   if (!admin) {
     admin = await base44.asServiceRole.entities.NexusUser.create({
       login_name: SYSTEM_ADMIN_LOGIN,
+      username: SYSTEM_ADMIN_LOGIN,
       callsign: SYSTEM_ADMIN_CALLSIGN,
       full_name: 'System Admin',
       nexus_rank: 'PIONEER',
@@ -92,6 +93,7 @@ Deno.serve(async (req) => {
   } else {
     await base44.asServiceRole.entities.NexusUser.update(admin.id, {
       login_name: SYSTEM_ADMIN_LOGIN,
+      username: SYSTEM_ADMIN_LOGIN,
       callsign: SYSTEM_ADMIN_CALLSIGN,
       full_name: admin.full_name || 'System Admin',
       nexus_rank: 'PIONEER',
@@ -138,6 +140,7 @@ Deno.serve(async (req) => {
 
   await base44.asServiceRole.entities.NexusUser.update(admin.id, {
     login_name: SYSTEM_ADMIN_LOGIN,
+    username: SYSTEM_ADMIN_LOGIN,
     callsign: SYSTEM_ADMIN_CALLSIGN,
     full_name: admin.full_name || 'System Admin',
     auth_key_hash: hash,
