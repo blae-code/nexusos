@@ -30,6 +30,35 @@ textarea.nexus-input {
   padding: 10px;
 }
 
+input, textarea, select {
+  background: #141410;
+  border: 0.5px solid rgba(200,170,100,0.12);
+  border-radius: 2px;
+  color: #E8E4DC;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 150ms;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #C8A84B;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #5A5850;
+}
+
+input:disabled, textarea:disabled, select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: 0.4; }
+
 .nexus-shell-frame {
   position: relative;
   display: flex;
@@ -320,12 +349,8 @@ textarea.nexus-input {
   animation: nexus-page-enter 0.2s ease-out both;
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(200,170,100,0.18); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(200,170,100,0.32); }
-
-*:focus-visible { outline: 1px solid #C8A84B; outline-offset: 2px; }
+@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+@keyframes slideOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(20px); } }
 
 @keyframes onboarding-fade-in {
   from {

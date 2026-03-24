@@ -237,18 +237,17 @@ export default function NexusShell() {
   };
 
   return (
-    <div style={{
-      height: '100vh',
-      background: 'linear-gradient(180deg, #0A0908 0%, #08080A 100%)',
-    }}>
+    <div style={{ height: '100vh', background: '#08080A', position: 'relative' }}>
+      {/* Ambient bloom */}
+      <div style={{ position: 'fixed', bottom: 0, left: 220, right: 0, height: '40vh', background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(192,57,43,0.04), transparent)', pointerEvents: 'none', zIndex: 0 }} aria-hidden="true" />
       <NexusSidebar />
-      <div style={{ marginLeft: 220, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ marginLeft: 220, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <NexusTopbar
           layoutMode={layoutMode}
           onSelectLayout={updateLayoutMode}
           verseStatus={verseStatus}
         />
-        <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto' }}>
+        <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto', zIndex: 1 }}>
           <AppErrorBoundary compact>
             <Outlet context={outletContext} />
           </AppErrorBoundary>

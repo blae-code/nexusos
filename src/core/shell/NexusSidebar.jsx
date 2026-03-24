@@ -87,7 +87,7 @@ const S = {
   },
   wordmarkText: {
     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-    fontSize: 15, letterSpacing: '0.08em', textTransform: 'uppercase',
+    fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase',
   },
   scrollArea: {
     flex: 1, overflowY: 'auto', paddingBottom: 24,
@@ -97,35 +97,38 @@ const S = {
   groupLabel: {
     fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
     fontSize: 10, color: '#C8A84B', textTransform: 'uppercase',
-    letterSpacing: '0.28em', padding: '18px 20px 6px',
+    letterSpacing: '0.28em', padding: '20px 16px 5px',
   },
   navItem: {
     display: 'flex', alignItems: 'center', gap: 10,
     fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: 12, fontWeight: 500, color: '#9A9488',
     textTransform: 'uppercase', letterSpacing: '0.15em',
-    padding: '9px 20px 9px 24px',
+    padding: '9px 16px 9px 20px',
     textDecoration: 'none', cursor: 'pointer',
     transition: 'background 150ms, color 150ms',
     borderLeft: '2px solid transparent',
   },
   navItemActive: {
     background: 'rgba(192,57,43,0.12)', color: '#E8E4DC',
-    borderLeft: '2px solid #C0392B', paddingLeft: 22,
+    borderLeft: '2px solid #C0392B', paddingLeft: 18,
   },
   subItem: {
     display: 'flex', alignItems: 'center', gap: 8,
     fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: 11, fontWeight: 400, color: '#5A5850',
     textTransform: 'uppercase', letterSpacing: '0.1em',
-    padding: '7px 20px 7px 36px',
+    padding: '7px 16px 7px 32px',
     textDecoration: 'none', cursor: 'pointer',
     transition: 'background 150ms, color 150ms',
     borderLeft: '2px solid transparent',
   },
   subItemActive: {
     background: 'rgba(192,57,43,0.12)', color: '#E8E4DC',
-    borderLeft: '2px solid #C0392B', paddingLeft: 34,
+    borderLeft: '2px solid #C0392B', paddingLeft: 30,
+  },
+  verseTag: {
+    padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6,
   },
   bottom: {
     marginTop: 'auto', flexShrink: 0,
@@ -137,7 +140,7 @@ const S = {
     fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: 12, fontWeight: 500, color: '#9A9488',
     textTransform: 'uppercase', letterSpacing: '0.15em',
-    padding: '9px 20px 9px 24px',
+    padding: '9px 16px 9px 20px',
     background: 'none', border: 'none', cursor: 'pointer',
     width: '100%', textAlign: 'left',
     transition: 'color 150ms',
@@ -215,6 +218,12 @@ export default function NexusSidebar() {
             </div>
           );
         })}
+      </div>
+
+      {/* Verse tag */}
+      <div style={S.verseTag}>
+        <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#4A8C5C', animation: 'pulse 3s ease-in-out infinite', flexShrink: 0 }} aria-hidden="true" />
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.15em' }}>VERSE 4.7.0</span>
       </div>
 
       <div style={S.bottom}>

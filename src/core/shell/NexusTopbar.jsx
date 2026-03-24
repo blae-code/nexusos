@@ -9,10 +9,6 @@ import { getActiveRescueCount, refreshRescueCalls } from '@/core/data/rescue-boa
 import { AltTabIcon, SecondMonitorIcon } from './NexusIcons';
 import { StatusPill } from './TopbarPills';
 import { LayoutButton, Divider, MenuLink, ChangelogPanel, DropdownContainer } from './TopbarMenu';
- 
-
-
-
 
 function getBreadcrumb(pathname, search) {
   const params = new URLSearchParams(search || '');
