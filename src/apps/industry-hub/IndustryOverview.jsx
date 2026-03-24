@@ -2,6 +2,7 @@ import React from 'react';
 import {
   StatCard,
   InsightStrip,
+  SectionHeader,
   MaterialPreviewRow,
   BlueprintGroup,
   ScoutIntelRow,
@@ -13,106 +14,108 @@ export default function IndustryOverview({
   craftQueue,
   refineryOrders,
   scoutDeposits,
-  loading,
 }) {
-  const totalSCU = materials.reduce((sum, material) => sum + (material.quantity_scu || 0), 0);
-  const avgQuality = materials.length
-    ? materials.reduce((sum, material) => sum + (material.quality_pct || 0), 0) / materials.length
+  const activeMats = materials.filter(m => !m.is_archived);
+  const totalSCU = activeMats.reduce((s, m) => s + (m.quantity_scu || 0), 0);
+  const avgQualityScore = activeMats.length
+    ? Math.round(activeMats.reduce((s, m) => s + (m.quality_score || 0), 0) / activeMats.length)
     : 0;
-  const ownedBlueprints = blueprints.filter((item) => item.owned_by || item.owned_by_callsign).length;
-  const queueDepth = craftQueue.filter((item) => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(item.status)).length;
-  const completedCrafts = craftQueue.filter((item) => item.status === 'COMPLETE').length;
-  const topMaterials = [...materials].sort((a, b) => (b.quantity_scu || 0) - (a.quantity_scu || 0)).slice(0, 5);
-  const weaponBlueprints = blueprints.filter((item) => item.category === 'WEAPON').slice(0, 6);
-  const supportBlueprints = blueprints.filter((item) => ['ARMOR', 'GEAR', 'COMPONENT'].includes(item.category)).slice(0, 6);
-  const recentDeposits = [...(scoutDeposits || [])].filter((item) => !item.is_stale).slice(0, 4);
-  const readyOrders = refineryOrders.filter((item) => item.status === 'READY').length;
+  const ownedBlueprints = blueprints.filter(b => b.owned_by || b.owned_by_callsign).length;
+  const queueDepth = craftQueue.filter(c => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(c.status)).length;
+  const completedCrafts = craftQueue.filter(c => c.status === 'COMPLETE').length;
+  const readyOrders = refineryOrders.filter(r => r.status === 'READY').length;
+  const topMaterials = [...activeMats].sort((a, b) => (b.quantity_scu || 0) - (a.quantity_scu || 0)).slice(0, 6);
+  const weaponBlueprints = blueprints.filter(b => b.category === 'WEAPON').slice(0, 6);
+  const supportBlueprints = blueprints.filter(b => ['ARMOR', 'GEAR', 'COMPONENT'].includes(b.category)).slice(0, 6);
+  const recentDeposits = [...(scoutDeposits || [])].filter(d => !d.is_stale).slice(0, 5);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '16px 14px', background: '#08080A' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, animation: 'pageEntrance 200ms ease-out' }}>
+      <style>{`@keyframes pageEntrance { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
+      {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
-        <StatCard
-          label="ORG STOCKPILE"
-          value={totalSCU.toFixed(0)}
-          unit="SCU"
+        <StatCard index={0} label="ORG STOCKPILE" value={totalSCU.toFixed(0)} unit="SCU"
           detail={`${topMaterials.length} tracked materials`}
-          indicator="up"
-          barPercent={Math.min(100, (totalSCU / 500) * 100)}
-        />
-        <StatCard
-          label="AVG QUALITY"
-          value={avgQuality.toFixed(0)}
-          unit="%"
-          detail={avgQuality >= 80 ? 'T2 extraction baseline met' : 'Below org target threshold'}
-          indicator={avgQuality >= 80 ? 'up' : 'down'}
-          barPercent={avgQuality}
-        />
-        <StatCard
-          label="BLUEPRINT COVERAGE"
-          value={ownedBlueprints}
-          unit={`/ ${blueprints.length || 0}`}
-          detail={`${blueprints.filter((item) => item.is_priority).length} marked priority`}
-          indicator="info"
-          barPercent={blueprints.length ? (ownedBlueprints / blueprints.length) * 100 : 0}
-        />
-        <StatCard
-          label="CRAFT OUTPUT"
-          value={completedCrafts}
-          unit="7D"
-          detail={`${queueDepth} active queue items · ${readyOrders} ready`}
-          indicator={queueDepth > 0 ? 'up' : 'info'}
-          barPercent={Math.min(100, completedCrafts * 10)}
-        />
+          indicator="up" barPercent={Math.min(100, (totalSCU / 500) * 100)} />
+        <StatCard index={1} label="AVG QUALITY" value={avgQualityScore} unit="/ 1000"
+          detail={avgQualityScore >= 800 ? 'T2 extraction baseline met' : 'Below org target threshold'}
+          indicator={avgQualityScore >= 800 ? 'up' : 'down'} barPercent={(avgQualityScore / 1000) * 100} />
+        <StatCard index={2} label="BLUEPRINT COVERAGE" value={ownedBlueprints} unit={`/ ${blueprints.length || 0}`}
+          detail={`${blueprints.filter(b => b.is_priority).length} marked priority`}
+          indicator="info" barPercent={blueprints.length ? (ownedBlueprints / blueprints.length) * 100 : 0} />
+        <StatCard index={3} label="CRAFT OUTPUT" value={completedCrafts} unit="7D"
+          detail={`${queueDepth} active · ${readyOrders} ready`}
+          indicator={queueDepth > 0 ? 'up' : 'info'} barPercent={Math.min(100, completedCrafts * 10)} />
       </div>
 
       <InsightStrip />
 
+      {/* Material Stockpile */}
       <section>
-        <div style={{ color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>MATERIAL STOCKPILE</div>
-        <div
-          style={{
-            padding: '0 10px 6px',
-            color: '#9A9488',
-            fontSize: 10,
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 500,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            borderBottom: '0.5px solid rgba(200,170,100,0.08)',
+        <SectionHeader>MATERIAL STOCKPILE</SectionHeader>
+        <div style={{
+          background: '#0F0F0D',
+          borderLeft: '2px solid #C0392B',
+          borderTop: '0.5px solid rgba(200,170,100,0.10)',
+          borderRight: '0.5px solid rgba(200,170,100,0.10)',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+          borderRadius: 2, overflow: 'hidden',
+        }}>
+          {/* Column headers */}
+          <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 76px 110px 68px 88px',
-            gap: 8,
-          }}
-        >
-          <span>MATERIAL</span>
-          <span>TYPE</span>
-          <span>QUALITY</span>
-          <span style={{ textAlign: 'right' }}>QTY</span>
-          <span style={{ textAlign: 'center' }}>STATUS</span>
-        </div>
-        <div style={{ marginTop: 6 }}>
-          {topMaterials.map((material) => <MaterialPreviewRow key={material.id} material={material} />)}
-          {topMaterials.length === 0 ? (
-            <div style={{ color: '#9A9488', fontSize: 12, padding: '12px 10px' }}>No material stock logged.</div>
-          ) : null}
+            gridTemplateColumns: '1fr 68px 68px 62px 72px 88px',
+            gap: 8, padding: '8px 12px',
+            background: '#141410',
+            borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+          }}>
+            {['MATERIAL', 'SUBTYPE', 'QUALITY', 'QTY', 'DENSITY', 'STATUS'].map(h => (
+              <span key={h} style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 10,
+                color: '#9A9488', textTransform: 'uppercase', letterSpacing: '0.2em',
+              }}>{h}</span>
+            ))}
+          </div>
+          {topMaterials.map(m => <MaterialPreviewRow key={m.id} material={m} />)}
+          {topMaterials.length === 0 && (
+            <div style={{
+              padding: '24px 0', textAlign: 'center',
+              fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
+              fontSize: 11, color: '#5A5850', textTransform: 'uppercase',
+            }}>NO DATA LOGGED</div>
+          )}
         </div>
       </section>
 
+      {/* Blueprint Registry */}
       <section>
-        <div style={{ color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>BLUEPRINT REGISTRY</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+        <SectionHeader>BLUEPRINT REGISTRY</SectionHeader>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
           <BlueprintGroup label="WEAPONS" items={weaponBlueprints} />
           <BlueprintGroup label="ARMOR & COMPONENTS" items={supportBlueprints} />
         </div>
       </section>
 
+      {/* Scout Intel Feed */}
       <section>
-        <div style={{ color: '#C8A84B', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>SCOUT INTEL FEED</div>
-        <div>
-          {recentDeposits.map((deposit) => <ScoutIntelRow key={deposit.id} deposit={deposit} />)}
-          {recentDeposits.length === 0 ? (
-            <div style={{ color: '#9A9488', fontSize: 12, padding: '12px 10px' }}>No fresh scout intel.</div>
-          ) : null}
+        <SectionHeader>SCOUT INTEL FEED</SectionHeader>
+        <div style={{
+          background: '#0F0F0D',
+          borderLeft: '2px solid #C0392B',
+          borderTop: '0.5px solid rgba(200,170,100,0.10)',
+          borderRight: '0.5px solid rgba(200,170,100,0.10)',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+          borderRadius: 2, overflow: 'hidden',
+        }}>
+          {recentDeposits.map(d => <ScoutIntelRow key={d.id} deposit={d} />)}
+          {recentDeposits.length === 0 && (
+            <div style={{
+              padding: '24px 0', textAlign: 'center',
+              fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
+              fontSize: 11, color: '#5A5850', textTransform: 'uppercase',
+            }}>NO FRESH INTEL</div>
+          )}
         </div>
       </section>
     </div>

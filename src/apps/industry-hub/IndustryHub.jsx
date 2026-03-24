@@ -11,11 +11,13 @@ import PriceTracker from '@/apps/industry-hub/PriceTracker';
 import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 import ProductionTab from '@/apps/industry-hub/ProductionTab';
 import PredictiveAnalytics from '@/apps/industry-hub/analytics/PredictiveAnalytics';
+import ComponentsTab from '@/apps/industry-hub/ComponentsTab';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
   { id: 'materials', label: 'MATERIALS' },
   { id: 'blueprints', label: 'BLUEPRINTS' },
+  { id: 'components', label: 'COMPONENTS' },
   { id: 'production', label: 'PRODUCTION' },
   { id: 'craft', label: 'CRAFT QUEUE' },
   { id: 'refinery', label: 'REFINERY' },
@@ -23,6 +25,18 @@ const TABS = [
   { id: 'cargo', label: 'CARGO MARGINS' },
   { id: 'analytics', label: 'ANALYTICS' },
 ];
+
+const METHOD_STYLE = {
+  DINYX_SOLVATION: { label: 'DINYX SOLVATION', bg: 'rgba(74,140,92,0.12)', border: 'rgba(74,140,92,0.3)', color: '#4A8C5C' },
+  FERRON_EXCHANGE: { label: 'FERRON EXCHANGE', bg: 'rgba(200,168,75,0.10)', border: 'rgba(200,168,75,0.25)', color: '#C8A84B' },
+  PYROMETRIC_CHROMALYSIS: { label: 'PYROMETRIC CHROMALYSIS', bg: 'rgba(90,88,80,0.15)', border: 'rgba(90,88,80,0.25)', color: '#9A9488' },
+};
+const SUBTYPE_MAP = {
+  CMR: { bg: 'rgba(192,57,43,0.12)', border: 'rgba(192,57,43,0.3)', color: '#C0392B' },
+  CMP: { bg: 'rgba(200,168,75,0.10)', border: 'rgba(200,168,75,0.25)', color: '#C8A84B' },
+  CMS: { bg: 'rgba(200,168,75,0.15)', border: 'rgba(200,168,75,0.35)', color: '#C8A84B' },
+  ORE: { bg: 'rgba(200,170,100,0.08)', border: 'rgba(200,170,100,0.15)', color: '#9A9488' },
+};
 
 function RefineryTab({ refineryOrders, materials, callsign }) {
   const [showInput, setShowInput] = React.useState(false);
@@ -37,7 +51,7 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '12px 16px' }}>
       {/* Input Section */}
       {showInput ? (
         <div>
@@ -65,100 +79,59 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
       )}
 
       {/* Orders List */}
-      <div className="nexus-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-          <colgroup>
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '10%' }} />
-            <col style={{ width: '7%' }} />
-            <col style={{ width: '10%' }} />
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '12%' }} />
-            <col style={{ width: '11%' }} />
-            <col style={{ width: '15%' }} />
-          </colgroup>
-          <thead>
-            <tr style={{ background: 'var(--bg2)' }}>
-              {['MATERIAL', 'SCU', 'METHOD', 'YIELD', 'COST', 'STATION', 'SUBMITTED BY', 'TIME LEFT', 'STATUS'].map((heading) => (
-                <th
-                  key={heading}
-                  style={{
-                    padding: '12px 14px',
-                    textAlign: 'left',
-                    color: 'var(--t2)',
-                    fontSize: 11,
-                    letterSpacing: '0.08em',
-                    fontWeight: 500,
-                    textTransform: 'uppercase',
-                    borderBottom: '0.5px solid var(--b1)',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {heading}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {refineryOrders.map((order, idx) => {
-              const isReady = order.status === 'READY' || timeLeft(order.completes_at) === 'READY';
-              const isActive = order.status === 'ACTIVE';
-              const isEven = idx % 2 === 1;
+      <div style={{
+        background: '#0F0F0D',
+        borderLeft: '2px solid #C0392B',
+        borderTop: '0.5px solid rgba(200,170,100,0.10)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        borderRadius: 2, overflow: 'hidden',
+      }}>
+        {/* Column header */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 56px 140px 72px 60px 120px 80px 80px',
+          gap: 6, padding: '8px 12px', background: '#141410',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        }}>
+          {['MATERIAL', 'SCU', 'METHOD', 'YIELD', 'INPUT', 'STATION', 'TIME', 'STATUS'].map(h => (
+            <span key={h} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 10, color: '#9A9488', textTransform: 'uppercase', letterSpacing: '0.2em' }}>{h}</span>
+          ))}
+        </div>
 
-              return (
-                <tr
-                  key={order.id}
-                  style={{
-                    height: 44,
-                    borderBottom: '0.5px solid var(--b0)',
-                    background: isEven ? 'rgba(255,255,255,0.02)' : 'transparent',
-                    transition: 'background 0.1s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = isEven ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
-                >
-                  <td style={{ padding: '0 14px', color: 'var(--t0)', fontSize: 11, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.material_name}</td>
-                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 11, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.quantity_scu}</td>
-                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.method || '—'}</td>
-                  <td style={{ padding: '0 14px', color: 'var(--live)', fontSize: 10, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.yield_pct ? `${order.yield_pct}%` : '—'}</td>
-                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, fontFamily: 'monospace', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.cost_aUEC ? order.cost_aUEC.toLocaleString() : '—'}</td>
-                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.station || '—'}</td>
-                  <td style={{ padding: '0 14px', color: 'var(--t1)', fontSize: 10, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0 }}>{order.submitted_by_callsign || '—'}</td>
-                  <td style={{
-                    padding: '0 14px', fontSize: 10, fontFamily: 'monospace',
-                    fontVariantNumeric: 'tabular-nums',
-                    color: (isActive || isReady) ? 'var(--warn)' : 'var(--t2)',
-                    overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 0,
-                  }}>
-                    {timeLeft(order.completes_at)}
-                  </td>
-                  <td style={{ padding: '0 14px', maxWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                      <div style={{
-                        width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                        background: isReady ? 'var(--live)' : isActive ? 'var(--warn)' : 'var(--b2)',
-                        animation: isReady ? 'refinery-pulse-fast 1.2s ease-in-out infinite' : isActive ? 'refinery-pulse-slow 2.5s ease-in-out infinite' : 'none',
-                      }} />
-                      <span style={{ fontSize: 9, color: 'var(--t2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {order.status}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {refineryOrders.length === 0 ? (
-              <tr>
-                <td colSpan={9} style={{ padding: 24, textAlign: 'center', color: 'var(--t2)', fontSize: 12 }}>
-                  No refinery orders active.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+        {refineryOrders.map(order => {
+          const isReady = order.status === 'READY' || timeLeft(order.completes_at) === 'READY';
+          const isActive = order.status === 'ACTIVE';
+          const isCollected = order.status === 'COLLECTED';
+          const ms = METHOD_STYLE[order.method] || { label: order.method || '—', bg: 'rgba(90,88,80,0.15)', border: 'rgba(90,88,80,0.25)', color: '#9A9488' };
+          const ss = SUBTYPE_MAP[order.input_subtype] || null;
+
+          return (
+            <div key={order.id} style={{
+              display: 'grid', gridTemplateColumns: '1fr 56px 140px 72px 60px 120px 80px 80px',
+              gap: 6, padding: '10px 12px', alignItems: 'center',
+              borderBottom: '0.5px solid rgba(200,170,100,0.06)',
+              transition: 'background 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#1A1A16'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <div style={{ color: '#E8E4DC', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.material_name}</div>
+              <div style={{ color: '#9A9488', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontVariantNumeric: 'tabular-nums' }}>{order.quantity_scu}</div>
+              <span style={{ fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, textTransform: 'uppercase', borderRadius: 2, padding: '2px 6px', background: ms.bg, border: `0.5px solid ${ms.border}`, color: ms.color, justifySelf: 'start' }}>{ms.label}</span>
+              <div style={{ color: '#9A9488', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif" }}>{order.expected_yield_ratio ? `${Math.round(order.expected_yield_ratio * 100)}% YIELD` : order.yield_pct ? `${order.yield_pct}%` : '—'}</div>
+              {ss ? <span style={{ fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, textTransform: 'uppercase', borderRadius: 2, padding: '2px 6px', background: ss.bg, border: `0.5px solid ${ss.border}`, color: ss.color }}>{order.input_subtype}</span> : <span style={{ color: '#5A5850', fontSize: 10 }}>—</span>}
+              <div style={{ color: '#9A9488', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.station || '—'}</div>
+              <div style={{ color: '#C8A84B', fontSize: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{timeLeft(order.completes_at)}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: isReady ? '#4A8C5C' : isActive ? '#C8A84B' : '#5A5850', animation: isReady ? 'pulse-dot 2s ease-in-out infinite' : isActive ? 'pulse-dot 2.5s ease-in-out infinite' : 'none' }} />
+                <span style={{ fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, color: isReady ? '#4A8C5C' : isActive ? '#C8A84B' : '#5A5850', textTransform: 'uppercase' }}>{order.status}</span>
+              </div>
+            </div>
+          );
+        })}
+
+        {refineryOrders.length === 0 && (
+          <div style={{ padding: '32px 0', textAlign: 'center', fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 11, color: '#5A5850', textTransform: 'uppercase' }}>NO REFINERY ORDERS</div>
+        )}
       </div>
     </div>
   );
@@ -227,48 +200,34 @@ export default function IndustryHub() {
 
   return (
     <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          padding: '10px 16px 0',
-          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
-          background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)',
-          flexShrink: 0,
-        }}
-      >
-        <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-          Industry
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 0,
+        padding: '10px 16px 0',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        background: '#0A0908', flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
           {TABS.map((item) => (
             <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
+              key={item.id} type="button" onClick={() => setTab(item.id)}
               style={{
-                padding: '11px 14px',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: tab === item.id ? '2px solid var(--red)' : '2px solid transparent',
-                color: tab === item.id ? 'var(--t0)' : 'var(--t2)',
-                fontSize: 10,
-                letterSpacing: '0.12em',
-                cursor: 'pointer',
-                fontFamily: "'Barlow Condensed', sans-serif",
-                transition: 'color 120ms ease',
+                padding: '11px 14px', background: 'transparent', border: 'none',
+                borderBottom: tab === item.id ? '2px solid #C0392B' : '2px solid transparent',
+                color: tab === item.id ? '#E8E4DC' : '#5A5850',
+                fontSize: 12, fontWeight: 600, letterSpacing: '0.12em',
+                cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif",
+                textTransform: 'uppercase', transition: 'color 120ms ease',
               }}
-            >
-              {item.label}
-            </button>
+              onMouseEnter={e => { if (tab !== item.id) e.currentTarget.style.color = '#9A9488'; }}
+              onMouseLeave={e => { if (tab !== item.id) e.currentTarget.style.color = '#5A5850'; }}
+            >{item.label}</button>
           ))}
         </div>
       </div>
 
       <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {tab === 'overview' ? (
-          <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <PatchDigestHeader />
             <IndustryOverview
               materials={materials}
@@ -281,6 +240,7 @@ export default function IndustryHub() {
         ) : null}
         {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} onRefresh={load} /> : null}
+        {tab === 'components' ? <ComponentsTab /> : null}
         {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} materials={materials} blueprints={blueprints} /> : null}
         {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} callsign={callsign} /> : null}
         {tab === 'production' ? <ProductionTab blueprints={blueprints} materials={materials} callsign={callsign} onRefresh={load} /> : null}
