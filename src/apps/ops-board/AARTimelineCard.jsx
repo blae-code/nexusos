@@ -37,8 +37,10 @@ function PhaseDot({ label, index, total, completed }) {
 }
 
 export default function AARTimelineCard({ op }) {
-  const duration = op.started_at && op.ended_at
-    ? Math.round((new Date(op.ended_at) - new Date(op.started_at)) / 60000)
+  const startDate = op.started_at ? new Date(op.started_at) : null;
+  const endDate = op.ended_at ? new Date(op.ended_at) : null;
+  const duration = startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())
+    ? Math.round((endDate.getTime() - startDate.getTime()) / 60000)
     : null;
   const phases = Array.isArray(op.phases) ? op.phases : [];
   const completedPhases = op.phase_current || phases.length;

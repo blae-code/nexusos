@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
-import { Plus, Check, X, Clock, Package, CreditCard, FileText, Ship, Filter } from 'lucide-react';
+import { Plus, Check, X, Package, CreditCard, FileText, Ship } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 
 const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
@@ -47,7 +47,7 @@ function NewRequestForm({ callsign, onSubmit, onCancel }) {
     await onSubmit({
       ...form,
       requested_by_callsign: callsign,
-      quantity: parseInt(form.quantity) || 1,
+      quantity: parseInt(String(form.quantity)) || 1,
       amount_aUEC: form.request_type === 'CREDIT' ? (parseInt(form.amount_aUEC) || 0) : undefined,
       requested_at: new Date().toISOString(),
     });

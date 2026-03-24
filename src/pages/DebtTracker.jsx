@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { Plus, Filter } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import DebtIssuanceForm from '@/components/debt/DebtIssuanceForm';
 import DebtLedgerTable from '@/components/debt/DebtLedgerTable';
 import MyDebtSummary from '@/components/debt/MyDebtSummary';
@@ -16,8 +16,8 @@ const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
 export default function DebtTracker() {
   const ctx = useOutletContext() || {};
-  const callsign = ctx.callsign || 'UNKNOWN';
-  const rank = ctx.rank || 'AFFILIATE';
+  const callsign = ctx['callsign'] || 'UNKNOWN';
+  const rank = ctx['rank'] || 'AFFILIATE';
   const canManage = LEADER_RANKS.includes(rank);
 
   const [debts, setDebts] = useState([]);
@@ -200,6 +200,7 @@ export default function DebtTracker() {
             canManage={canManage}
             onPayment={setPayingDebt}
             onForgive={handleForgive}
+            onDispute={() => {}}
           />
         )}
       </div>

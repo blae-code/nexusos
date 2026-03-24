@@ -81,7 +81,11 @@ export default function PersonalWalletPanel() {
         direction: isContribution ? 'OUT' : 'IN',
       });
     });
-    items.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    items.sort((a, b) => {
+      const timeA = a.date ? new Date(a.date).getTime() : 0;
+      const timeB = b.date ? new Date(b.date).getTime() : 0;
+      return (timeB || 0) - (timeA || 0);
+    });
     setHistory(items.slice(0, 15));
   }, [callsign]);
 

@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Trophy, Crosshair, Package, Radar, Wrench, DollarSign } from 'lucide-react';
+import { Crosshair, Package, Radar, Wrench, DollarSign } from 'lucide-react';
 
 function fmtVal(n) {
   if (!n) return '0';
