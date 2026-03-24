@@ -17,7 +17,7 @@ VITE_BASE44_APP_BASE_URL=your_backend_url
 4. Start the client with `npm run dev`.
 5. Sign in through the Access Gate with a real issued username and auth key.
 
-For initial environment recovery, bootstrap or repair the fixed `system-admin` account through `/setup` or from `/app/keys` once an admin session exists.
+For administrator recovery, bootstrap or repair the fixed `system-admin` account from `/app/keys` once an admin session exists, or via the protected bootstrap function using `SYSTEM_ADMIN_BOOTSTRAP_SECRET`.
 
 ## Auth Model
 - Users are invited by a Pioneer/admin user.

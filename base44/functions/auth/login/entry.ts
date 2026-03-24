@@ -6,13 +6,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import {
   appendSessionCookie,
   createSessionToken,
-  ensureSystemAdminUser,
   findUserByLoginName,
   getSessionSigningSecret,
   hashAuthKey,
   isAdminUser,
   isOnboardingComplete,
-  isSystemAdminBreakglassCredential,
   normalizeLoginName,
   resolveUserCallsign,
   sessionNoStoreHeaders,
@@ -41,10 +39,7 @@ Deno.serve(async (req) => {
   try {
     const secret = getSessionSigningSecret();
     const base44 = createClientFromRequest(req);
-    const breakglass = await isSystemAdminBreakglassCredential(username, authKey);
-    const user = breakglass
-      ? await ensureSystemAdminUser(base44, secret, authKey)
-      : await findUserByLoginName(base44, username);
+    const user = await findUserByLoginName(base44, username);
 
     if (!user) {
       return Response.json({ error: 'invalid_credentials' }, { status: 401, headers: sessionNoStoreHeaders() });
@@ -59,7 +54,7 @@ Deno.serve(async (req) => {
     }
 
     const presentedHash = await hashAuthKey(authKey, secret);
-    if (!breakglass && presentedHash !== user.auth_key_hash) {
+    if (presentedHash !== user.auth_key_hash) {
       return Response.json({ error: 'invalid_credentials' }, { status: 401, headers: sessionNoStoreHeaders() });
     }
 

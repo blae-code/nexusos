@@ -7,7 +7,7 @@ NexusOS is a Base44-backed operations console for Redscar Nomads. The app is str
 - `src/App.jsx` defines the public gate and authenticated `/app/*` route tree.
 - `src/core/data/SessionContext.jsx` owns session hydration and gate enforcement.
 - `src/core/shell/*` provides the persistent shell, nav, topbar, alerts, and session-aware chrome.
-- `src/pages/*` contains routed surfaces for commerce, logistics, coffer, roster, archive, settings, admin setup, and shell-owned pages.
+- `src/pages/*` contains routed surfaces for commerce, logistics, coffer, roster, archive, settings, and shell-owned pages.
 - `src/apps/*` contains larger domain modules reused across routed pages, especially Industry Hub, Op Board, and Scout Intel.
 
 ## Shared Data Model

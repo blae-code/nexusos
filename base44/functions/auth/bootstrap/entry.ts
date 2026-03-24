@@ -1,11 +1,14 @@
 /**
- * GET /auth/bootstrap — One-time SYSTEM-ADMIN key generator.
- * No auth required. Creates or repairs the SYSTEM-ADMIN record, then
- * returns the plaintext key ONCE. If SYSTEM_ADMIN_BOOTSTRAP_SECRET is set,
- * POST callers may regenerate the key by presenting that recovery token.
+ * POST /auth/bootstrap — SYSTEM-ADMIN repair and recovery.
+ * Requires either a Pioneer/admin session or the configured
+ * SYSTEM_ADMIN_BOOTSTRAP_SECRET recovery token.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import { normalizeLoginName } from '../_shared/issuedKey/entry.ts';
+import {
+  normalizeLoginName,
+  requireAdminSession,
+  sessionNoStoreHeaders,
+} from '../_shared/issuedKey/entry.ts';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SYSTEM_ADMIN_CALLSIGN = 'SYSTEM-ADMIN';
@@ -93,22 +96,20 @@ function pickCanonicalAdmin(candidates) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    return Response.json({ error: 'method_not_allowed' }, { status: 405 });
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
   }
 
   const secret = Deno.env.get('SESSION_SIGNING_SECRET');
   if (!secret) {
-    return Response.json({ error: 'SESSION_SIGNING_SECRET not configured' }, { status: 500 });
+    return Response.json({ error: 'SESSION_SIGNING_SECRET not configured' }, { status: 500, headers: sessionNoStoreHeaders() });
   }
 
   let body = {};
-  if (req.method === 'POST') {
-    try {
-      body = await req.json();
-    } catch {
-      body = {};
-    }
+  try {
+    body = await req.json();
+  } catch {
+    body = {};
   }
 
   const recoveryToken = readBodyField(body, 'recovery_token', 'recoveryToken', 'bootstrap_token', 'bootstrapToken');
@@ -116,6 +117,18 @@ Deno.serve(async (req) => {
   const isRecoveryRequest = Boolean(recoveryToken);
   const recoveryAuthorized = Boolean(recoverySecret) && recoveryToken === recoverySecret;
   const resetRequested = readBodyFlag(body, 'reset', 'force_reset', 'hard_reset');
+  const adminSession = await requireAdminSession(req);
+
+  if (!adminSession && !recoveryAuthorized) {
+    return Response.json({
+      error: 'bootstrap_locked',
+      message: 'System Admin bootstrap requires Pioneer clearance or the configured recovery token.',
+      recovery_enabled: Boolean(recoverySecret),
+      login_name: SYSTEM_ADMIN_LOGIN,
+      username: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
+    }, { status: 403, headers: sessionNoStoreHeaders() });
+  }
 
   const base44 = createClientFromRequest(req);
   const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
@@ -130,7 +143,7 @@ Deno.serve(async (req) => {
       login_name: SYSTEM_ADMIN_LOGIN,
       username: SYSTEM_ADMIN_LOGIN,
       callsign: SYSTEM_ADMIN_CALLSIGN,
-    }, { status: 403 });
+    }, { status: 403, headers: sessionNoStoreHeaders() });
   }
 
   if (resetRequested) {
@@ -178,10 +191,10 @@ Deno.serve(async (req) => {
         login_name: SYSTEM_ADMIN_LOGIN,
         username: SYSTEM_ADMIN_LOGIN,
         callsign: SYSTEM_ADMIN_CALLSIGN,
-      }, { status: 403 });
+      }, { status: 403, headers: sessionNoStoreHeaders() });
     }
 
-    if (!recoveryAuthorized) {
+    if (!recoveryAuthorized && !adminSession) {
       return Response.json({
         error: 'already_bootstrapped',
         message: 'Bootstrap already completed. Use the issued username at the Access Gate or regenerate the key from Key Management.',
@@ -190,7 +203,7 @@ Deno.serve(async (req) => {
         callsign: SYSTEM_ADMIN_CALLSIGN,
         recovery_enabled: Boolean(recoverySecret),
         duplicates_detected: matchingAdmins.length > 1,
-      });
+      }, { headers: sessionNoStoreHeaders() });
     }
 
     await base44.asServiceRole.entities.NexusUser.update(admin.id, {
@@ -231,5 +244,5 @@ Deno.serve(async (req) => {
     username: SYSTEM_ADMIN_LOGIN,
     callsign: SYSTEM_ADMIN_CALLSIGN,
     key: plainKey,
-  });
+  }, { headers: sessionNoStoreHeaders() });
 });

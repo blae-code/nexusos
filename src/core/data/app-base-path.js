@@ -1,4 +1,4 @@
-const INTERNAL_ROUTE_MARKERS = ['/gate', '/AccessGate', '/boot', '/setup', '/training', '/onboarding', '/app'];
+const INTERNAL_ROUTE_MARKERS = ['/gate', '/AccessGate', '/boot', '/training', '/onboarding', '/app'];
 
 function trimTrailingSlash(value) {
   if (!value || value === '/') {

@@ -26,7 +26,6 @@ import RescueBoard from '@/pages/RescueBoard';
 import OrgRoster from '@/pages/OrgRoster';
 import EpicArchive from '@/pages/EpicArchive';
 import BootScreen from '@/pages/BootScreen';
-import Setup from '@/pages/Setup';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 
 function withRouteBoundary(element, compact = false) {
@@ -42,7 +41,6 @@ function App() {
             <Route path="/" element={withRouteBoundary(<AccessGate />)} />
             <Route path="/gate" element={withRouteBoundary(<AccessGate />)} />
             <Route path="/boot" element={withRouteBoundary(<BootScreen />)} />
-            <Route path="/setup" element={withRouteBoundary(<Setup />)} />
             <Route path="/training" element={withRouteBoundary(<TrainingHub />)} />
             <Route path="/onboarding" element={withRouteBoundary(<Onboarding />)} />
             <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />
