@@ -1,6 +1,6 @@
 /**
- * GET/POST /auth/keys — Admin key management (issue, revoke, regenerate, update rank).
- * Self-contained: all auth helpers inlined.
+ * POST /auth/keys — Admin key management (issue, revoke, regenerate, update rank).
+ * Accepts session_token in body (SDK invoke) or cookie (raw fetch).
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
@@ -26,7 +26,6 @@ function normalizeCallsign(value) {
 function resolveUserLoginName(user) { return normalizeLoginName(String(user.login_name || user.username || user.callsign || '')); }
 function resolveUserCallsign(user) { return normalizeCallsign(String(user.callsign || user.login_name || user.username || 'NOMAD')); }
 function isAdminUser(user) { return String(user.nexus_rank || '').toUpperCase() === 'PIONEER' || user.is_admin === true; }
-function isOnboardingComplete(user) { return user.onboarding_complete === true || user.consent_given === true || Boolean(user.consent_timestamp); }
 function sessionNoStoreHeaders() { return { 'Cache-Control': 'no-store' }; }
 
 function parseCookies(req) {
@@ -85,19 +84,6 @@ async function findUserById(base44, userId) {
   return ((await base44.asServiceRole.entities.NexusUser.filter({ id: userId })) || [])[0] || null;
 }
 
-async function findUserByLoginName(base44, loginName) {
-  const normalized = normalizeLoginName(loginName);
-  if (!normalized) return null;
-  const users = await listNexusUsers(base44);
-  return users.filter((u) => resolveUserLoginName(u) === normalized)
-    .sort((a, b) => {
-      const aE = normalizeLoginName(String(a.login_name || a.username || '')) === normalized ? 1 : 0;
-      const bE = normalizeLoginName(String(b.login_name || b.username || '')) === normalized ? 1 : 0;
-      if (aE !== bE) return bE - aE;
-      return 0;
-    })[0] || null;
-}
-
 function serializeManagedUser(user) {
   return {
     id: user.id,
@@ -117,39 +103,7 @@ function serializeManagedUser(user) {
   };
 }
 
-async function requireAdminSession(req) {
-  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
-  if (!secret) return null;
-  const cookies = parseCookies(req);
-  const payload = await decodeSessionToken(cookies[SESSION_COOKIE_NAME], secret);
-  if (!payload?.user_id) return null;
-  const base44 = createClientFromRequest(req);
-  const user = await findUserById(base44, payload.user_id) || await findUserByLoginName(base44, payload.login_name);
-  if (!user || user.key_revoked || !isAdminUser(user)) return null;
-  const invalidatedAt = user.session_invalidated_at ? new Date(user.session_invalidated_at).getTime() : 0;
-  if (invalidatedAt && invalidatedAt > payload.iat) return null;
-  return { user };
-}
-
 Deno.serve(async (req) => {
-  const adminSession = await requireAdminSession(req);
-  if (!adminSession) {
-    return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
-  }
-
-  const base44 = createClientFromRequest(req);
-  const issuedByCallsign = resolveUserCallsign(adminSession.user);
-
-  if (req.method === 'GET') {
-    const users = await listNexusUsers(base44);
-    const sorted = users.sort((a, b) => {
-      const aT = new Date(a.key_issued_at || a.last_seen_at || a.joined_at || 0).getTime();
-      const bT = new Date(b.key_issued_at || b.last_seen_at || b.joined_at || 0).getTime();
-      return bT - aT;
-    });
-    return Response.json({ users: sorted.map(serializeManagedUser) }, { headers: sessionNoStoreHeaders() });
-  }
-
   if (req.method !== 'POST') {
     return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
   }
@@ -159,7 +113,48 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'invalid_body' }, { status: 400, headers: sessionNoStoreHeaders() });
   }
 
-  const action = String(body?.action || '').trim().toLowerCase();
+  // Get session token from body (SDK invoke) or cookie (raw fetch)
+  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+  if (!secret) return Response.json({ error: 'not_configured' }, { status: 500, headers: sessionNoStoreHeaders() });
+
+  let sessionToken = body?.session_token || null;
+  if (!sessionToken) {
+    const cookies = parseCookies(req);
+    sessionToken = cookies[SESSION_COOKIE_NAME] || null;
+  }
+
+  const sessionPayload = await decodeSessionToken(sessionToken, secret);
+  if (!sessionPayload?.user_id) {
+    return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
+  }
+
+  const base44 = createClientFromRequest(req);
+
+  // Verify admin
+  const adminUser = await findUserById(base44, sessionPayload.user_id);
+  if (!adminUser || adminUser.key_revoked || !isAdminUser(adminUser)) {
+    return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
+  }
+  const invalidatedAt = adminUser.session_invalidated_at ? new Date(adminUser.session_invalidated_at).getTime() : 0;
+  if (invalidatedAt && invalidatedAt > sessionPayload.iat) {
+    return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
+  }
+
+  const issuedByCallsign = resolveUserCallsign(adminUser);
+
+  // Handle _method: 'GET' for list requests via SDK invoke
+  const action = String(body?.action || body?._method || '').trim().toLowerCase();
+
+  if (action === 'get') {
+    const users = await listNexusUsers(base44);
+    const sorted = users.sort((a, b) => {
+      const aT = new Date(a.key_issued_at || a.last_seen_at || a.joined_at || 0).getTime();
+      const bT = new Date(b.key_issued_at || b.last_seen_at || b.joined_at || 0).getTime();
+      return bT - aT;
+    });
+    return Response.json({ users: sorted.map(serializeManagedUser) }, { headers: sessionNoStoreHeaders() });
+  }
+
   const now = new Date().toISOString();
 
   if (action === 'issue') {
@@ -179,7 +174,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'callsign_taken' }, { status: 409, headers: sessionNoStoreHeaders() });
     }
 
-    const secret = Deno.env.get('SESSION_SIGNING_SECRET');
     const authKey = generateAuthKey();
     const authKeyHash = await hashAuthKey(authKey, secret);
     const created = await base44.asServiceRole.entities.NexusUser.create({
@@ -201,7 +195,6 @@ Deno.serve(async (req) => {
   if (action === 'regenerate') {
     const target = await findUserById(base44, String(body?.user_id || '').trim());
     if (!target) return Response.json({ error: 'not_found' }, { status: 404, headers: sessionNoStoreHeaders() });
-    const secret = Deno.env.get('SESSION_SIGNING_SECRET');
     const authKey = generateAuthKey();
     const authKeyHash = await hashAuthKey(authKey, secret);
     await base44.asServiceRole.entities.NexusUser.update(target.id, {
