@@ -297,8 +297,11 @@ function Step4Consent({ user, onComplete }) {
 
   const canSubmit = consent1 && consent2;
 
+  const [errorMsg, setErrorMsg] = useState('');
+  
   const handleSubmit = async () => {
     setSubmitting(true);
+    setErrorMsg('');
     try {
       const res = await authApi.completeOnboarding({
         consentGiven: true,
@@ -306,13 +309,13 @@ function Step4Consent({ user, onComplete }) {
         consentVersion: '1.0',
       });
       if (res?.error) {
-        console.warn('[Onboarding] backend error:', res.error);
+        setErrorMsg('Failed to complete onboarding. Please try again.');
         setSubmitting(false);
         return;
       }
       onComplete();
     } catch (err) {
-      console.warn('[Onboarding] submission failed:', err);
+      setErrorMsg('Connection error — check your internet and try again.');
       setSubmitting(false);
     }
   };
@@ -514,6 +517,16 @@ function Step4Consent({ user, onComplete }) {
       >
         {submitting ? 'ENTERING NEXUSOS...' : 'ENTER NEXUSOS →'}
       </button>
+      
+      {errorMsg && (
+        <div style={{
+          padding: '8px 12px', borderRadius: 2, marginTop: 8,
+          background: 'rgba(192,57,43,0.08)', border: '0.5px solid rgba(192,57,43,0.25)',
+          color: '#C0392B', fontSize: 10, fontFamily: 'inherit', textAlign: 'center',
+        }}>
+          {errorMsg}
+        </div>
+      )}
     </div>
   );
 }
