@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import OrgFleet from '@/pages/OrgFleet';
-import FleetForge from '@/pages/FleetForge';
-import FleetReadiness from '@/pages/FleetReadiness';
+import FleetRoster from '@/pages/fleet/FleetRoster';
+import FleetBuilds from '@/pages/fleet/FleetBuilds';
+import FleetReadinessView from '@/pages/fleet/FleetReadinessView';
 import CrewScheduler from '@/pages/CrewScheduler';
 
 const TABS = [
@@ -44,10 +44,10 @@ export default function FleetHub() {
           </button>
         ))}
       </div>
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-        {tab === 'roster' && <OrgFleet />}
-        {tab === 'builds' && <FleetForge />}
-        {tab === 'readiness' && <FleetReadiness />}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        {tab === 'roster' && <FleetRoster />}
+        {tab === 'builds' && <FleetBuilds />}
+        {tab === 'readiness' && <FleetReadinessView />}
         {tab === 'crew' && <CrewScheduler />}
       </div>
     </div>
