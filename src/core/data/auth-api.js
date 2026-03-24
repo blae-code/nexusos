@@ -44,7 +44,7 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
 
 export const authApi = {
   async getHealth(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/health/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/health'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -56,7 +56,7 @@ export const authApi = {
 
   async login(username, key, /** @type {LoginOptions} */ options = {}) {
     const { rememberMe = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = options;
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/login/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/login'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
@@ -69,7 +69,7 @@ export const authApi = {
 
   async register(username, key, /** @type {LoginOptions} */ options = {}) {
     const { rememberMe = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = options;
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/register/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/register'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
@@ -81,7 +81,7 @@ export const authApi = {
   },
 
   async getSession(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/session/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/session'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -95,7 +95,7 @@ export const authApi = {
   },
 
   async logout(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
@@ -105,7 +105,7 @@ export const authApi = {
   },
 
   async listManagedUsers(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -115,7 +115,7 @@ export const authApi = {
   },
 
   async issueAuthKey(/** @type {KeyIssueOptions} */ { username, callsign, nexusRank, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
@@ -132,7 +132,7 @@ export const authApi = {
   },
 
   async revokeAuthKey(/** @type {KeyMutationOptions} */ { userId, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
@@ -147,7 +147,7 @@ export const authApi = {
   },
 
   async regenerateAuthKey(/** @type {KeyMutationOptions} */ { userId, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
@@ -162,7 +162,7 @@ export const authApi = {
   },
 
   async updateManagedUserRank({ userId, nexusRank, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
@@ -198,7 +198,7 @@ export const authApi = {
       ...(recoveryToken ? { recovery_token: recoveryToken } : {}),
       ...(reset ? { reset: true } : {}),
     };
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/bootstrap/entry'), {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/bootstrap'), {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
