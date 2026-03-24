@@ -19,7 +19,7 @@ function fromBase64Url(value) {
   return Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
 }
 
-function normalizeLoginName(value) { return String(value || '').trim().toLowerCase(); }
+function normalizeLoginName(value) { return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-'); }
 function normalizeCallsign(value) {
   return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 }

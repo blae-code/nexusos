@@ -15,7 +15,7 @@ function toBase64Url(bytes) {
 }
 
 function normalizeLoginName(value) {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
 }
 
 function normalizeCallsign(value) {
