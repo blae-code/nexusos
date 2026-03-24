@@ -1,11 +1,8 @@
-import { sessionNoStoreHeaders } from './_shared/issuedKey.ts';
+import { sessionNoStoreHeaders } from '../_shared/issuedKey/entry.ts';
 
-Deno.serve((req: Request) => {
+Deno.serve((req) => {
   if (req.method !== 'GET') {
-    return Response.json({ error: 'Method not allowed' }, {
-      status: 405,
-      headers: sessionNoStoreHeaders(),
-    });
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
   }
 
   const ready = Boolean(Deno.env.get('SESSION_SIGNING_SECRET')?.trim());

@@ -1,8 +1,11 @@
-import { clearSessionCookie, sessionNoStoreHeaders } from './_shared/issuedKey.ts';
+import {
+  clearSessionCookie,
+  sessionNoStoreHeaders,
+} from '../_shared/issuedKey/entry.ts';
 
-Deno.serve(async (req: Request) => {
+Deno.serve(async (req) => {
   if (req.method !== 'POST') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
   }
 
   const headers = new Headers(sessionNoStoreHeaders());
