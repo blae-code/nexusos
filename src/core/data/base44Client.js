@@ -6,17 +6,31 @@ import { getAppParams } from '@/core/data/app-params';
 /** @type {Base44Client | null} */
 let cachedClient = null;
 
+function resolveBase44Origin(value) {
+  if (typeof value === 'string' && value.trim()) {
+    return value;
+  }
+
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return undefined;
+}
+
 /** @returns {Base44Client} */
 function createBase44Client() {
   const { appId, token, functionsVersion, appBaseUrl, serverUrl } = getAppParams();
+  const resolvedServerUrl = resolveBase44Origin(serverUrl);
+  const resolvedAppBaseUrl = resolveBase44Origin(appBaseUrl) || resolvedServerUrl;
 
   return createClient({
     appId,
     token,
     functionsVersion,
-    serverUrl,
+    serverUrl: resolvedServerUrl,
     requiresAuth: false,
-    appBaseUrl,
+    appBaseUrl: resolvedAppBaseUrl,
   });
 }
 
