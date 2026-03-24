@@ -174,14 +174,12 @@ Deno.serve(async (req) => {
 
     const nextUser = { ...user, login_name: loginName, callsign: nextCallsign, joined_at: user.joined_at || now, last_seen_at: now, is_admin: isAdmin, onboarding_complete: onboardingComplete };
     const token = await createSessionToken(nextUser, secret, rememberMe);
-    const headers = new Headers(sessionNoStoreHeaders());
-    appendSessionCookie(headers, token, req, rememberMe);
 
     return Response.json({
-      success: true, isNew: firstLogin, onboarding_complete: onboardingComplete,
+      success: true, session_token: token, isNew: firstLogin, onboarding_complete: onboardingComplete,
       nexus_rank: nextUser.nexus_rank || 'AFFILIATE', is_admin: isAdmin,
       login_name: loginName, username: loginName, callsign: nextCallsign,
-    }, { headers });
+    }, { headers: sessionNoStoreHeaders() });
   } catch (error) {
     console.error('[auth/register]', error);
     return Response.json({ error: 'registration_failed' }, { status: 500, headers: sessionNoStoreHeaders() });
