@@ -23,7 +23,7 @@ function clearSessionToken() {
 
 /**
  * Call a backend function via the Base44 SDK.
- * Tries invoke() first, falls back to fetch(), then falls back to direct HTTP.
+ * Tries invoke() first, falls back to fetch() if invoke returns 404.
  * This ensures platform auth headers are included so asServiceRole works in the backend.
  */
 async function sdkInvoke(functionPath, payload = {}) {
@@ -31,30 +31,35 @@ async function sdkInvoke(functionPath, payload = {}) {
 
   // Try SDK invoke first (standard approach)
   try {
+    console.log(`[auth-api] invoking '${functionPath}'...`);
     const response = await client.functions.invoke(functionPath, payload);
     // invoke returns axios response: { data, status, headers }
-    return response?.data ?? response;
+    const result = response?.data ?? response;
+    console.log(`[auth-api] invoke('${functionPath}') succeeded:`, typeof result, result?.authenticated ?? result?.success ?? result?.ok ?? 'ok');
+    return result;
   } catch (invokeErr) {
     const status = invokeErr?.response?.status || invokeErr?.status;
-    // If it's a real backend error (401, 403, 500), don't retry with fetch
+    console.warn(`[auth-api] invoke('${functionPath}') error: status=${status}`, invokeErr?.message || invokeErr);
+    // If it's a real backend error (401, 403, 500), return the error data
     if (status && status !== 404) {
-      // Return the error response data if available
       if (invokeErr?.response?.data) return invokeErr.response.data;
       throw invokeErr;
     }
-    console.warn(`[auth-api] invoke('${functionPath}') returned 404, trying fetch()`);
   }
 
   // Fallback: use SDK fetch for nested paths that invoke may not resolve
   try {
+    console.log(`[auth-api] fallback fetch('/${functionPath}')...`);
     const response = await client.functions.fetch(`/${functionPath}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    return await response.json();
+    const data = await response.json();
+    console.log(`[auth-api] fetch('/${functionPath}') status=${response.status}`);
+    return data;
   } catch (fetchErr) {
-    console.warn(`[auth-api] fetch('/${functionPath}') also failed`, fetchErr?.message);
+    console.error(`[auth-api] fetch('/${functionPath}') also failed:`, fetchErr?.message);
     throw fetchErr;
   }
 }
