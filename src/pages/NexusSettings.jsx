@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Columns, LogOut, Monitor, Save } from 'lucide-react';
+import { Bell, Columns, Download, LogOut, Monitor, Save } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { useOutletContext } from 'react-router-dom';
 import PersonalWalletPanel from '@/components/PersonalWalletPanel';
 import { useNotificationPreferences } from '@/core/data/notification-preferences';
 import { useSession } from '@/core/data/SessionContext';
+import { showToast } from '@/components/NexusToast';
 
 const RANK_COLORS = {
   PIONEER: 'var(--warn)',
@@ -263,6 +264,46 @@ export default function NexusSettings() {
 
       <Section title="WALLET">
         <PersonalWalletPanel />
+      </Section>
+
+      <Section title="DATA">
+        <Row label="Export My Data" description="Download all your personal data as a JSON file">
+          <button
+            onClick={async () => {
+              showToast('Preparing data export…', 'info', 3000);
+              try {
+                const [myMats, myCargoLogs, myAssets, myDeposits] = await Promise.all([
+                  base44.entities.Material.filter({ logged_by_callsign: user?.callsign }, '-logged_at', 200),
+                  base44.entities.CargoLog.filter({ logged_by_callsign: user?.callsign }, '-logged_at', 200),
+                  base44.entities.PersonalAsset.filter({ owner_callsign: user?.callsign }, '-logged_at', 200),
+                  base44.entities.ScoutDeposit.filter({ reported_by_callsign: user?.callsign }, '-reported_at', 200),
+                ]);
+                const payload = {
+                  exported_at: new Date().toISOString(),
+                  callsign: user?.callsign,
+                  materials: myMats || [],
+                  cargo_logs: myCargoLogs || [],
+                  personal_assets: myAssets || [],
+                  scout_deposits: myDeposits || [],
+                };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `nexusos-export-${(user?.callsign || 'user').toLowerCase()}-${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Data export downloaded successfully', 'success');
+              } catch {
+                showToast('Data export failed — try again', 'error');
+              }
+            }}
+            className="nexus-btn" style={{ padding: '5px 12px', fontSize: 11 }}
+          >
+            <Download size={11} />
+            EXPORT
+          </button>
+        </Row>
       </Section>
 
       <Section title="SESSION">
