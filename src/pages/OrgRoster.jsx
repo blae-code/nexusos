@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Search } from 'lucide-react';
+import MemberPerformanceTab from '@/components/MemberPerformanceTab';
 
 const RANK_ORDER = ['PIONEER','FOUNDER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];
 
@@ -41,6 +42,7 @@ export default function OrgRoster() {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [rankFilter, setRankFilter] = useState('ALL');
+  const [rosterTab, setRosterTab] = useState('roster');
 
   const load = useCallback(async () => {
     const data = await base44.entities.NexusUser.list('-joined_at', 200).catch(() => []);
@@ -65,6 +67,24 @@ export default function OrgRoster() {
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>ORG ROSTER</div>
         <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 4 }}>REDSCAR NOMADS · ACTIVE MEMBERS</div>
       </div>
+
+      {/* Roster / Performance tab bar */}
+      <div style={{ display: 'flex', gap: 0, borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>
+        {[{ id: 'roster', label: 'ROSTER' }, { id: 'performance', label: 'PERFORMANCE' }].map(t => (
+          <button key={t.id} onClick={() => setRosterTab(t.id)} style={{
+            padding: '8px 14px', background: 'transparent', border: 'none',
+            borderBottom: rosterTab === t.id ? '2px solid #C0392B' : '2px solid transparent',
+            color: rosterTab === t.id ? '#E8E4DC' : '#5A5850',
+            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11,
+            textTransform: 'uppercase', letterSpacing: '0.12em', cursor: 'pointer',
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      {rosterTab === 'performance' ? (
+        <MemberPerformanceTab users={users} />
+      ) : (
+      <>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {['ALL', ...RANK_ORDER].map(r => (
@@ -95,6 +115,8 @@ export default function OrgRoster() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 20px', gap: 12 }}>
           <span style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 11, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.22em' }}>NO MEMBERS FOUND</span>
         </div>
+      )}
+      </>
       )}
     </div>
   );

@@ -22,6 +22,7 @@ import BlueprintOwnershipPanel from '@/apps/industry-hub/BlueprintOwnershipPanel
 import OrgTreasuryDashboard from '@/apps/industry-hub/OrgTreasuryDashboard';
 import RequisitionManager from '@/pages/RequisitionManager';
 import ProductionForecast from '@/apps/industry-hub/ProductionForecast';
+import SupplyChainBoard from '@/apps/industry-hub/SupplyChainBoard';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -42,6 +43,7 @@ const TABS = [
   { id: 'treasury', label: 'TREASURY' },
   { id: 'requisitions', label: 'REQUISITIONS' },
   { id: 'forecast', label: 'FORECAST' },
+  { id: 'pipeline', label: 'PIPELINE' },
 ];
 
 const METHOD_STYLE = {
@@ -166,16 +168,18 @@ export default function IndustryHub() {
   const [craftQueue, setCraftQueue] = useState([]);
   const [refineryOrders, setRefineryOrders] = useState([]);
   const [scoutDeposits, setScoutDeposits] = useState([]);
+  const [cofferLogs, setCofferLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const [mats, bps, queue, refinery, deposits] = await Promise.all([
+      const [mats, bps, queue, refinery, deposits, coffers] = await Promise.all([
         base44.entities.Material.list('-logged_at', 100),
         base44.entities.Blueprint.list('-created_date', 100),
         base44.entities.CraftQueue.list('-created_date', 50),
         base44.entities.RefineryOrder.list('-started_at', 50),
         base44.entities.ScoutDeposit.list('-reported_at', 10),
+        base44.entities.CofferLog.list('-logged_at', 100),
       ]);
 
       setMaterials(mats || []);
@@ -183,6 +187,7 @@ export default function IndustryHub() {
       setCraftQueue(queue || []);
       setRefineryOrders(refinery || []);
       setScoutDeposits(deposits || []);
+      setCofferLogs(coffers || []);
     } catch {
       // load failed
     } finally {
@@ -287,6 +292,7 @@ export default function IndustryHub() {
         {tab === 'treasury' ? <OrgTreasuryDashboard /> : null}
         {tab === 'requisitions' ? <RequisitionManager /> : null}
         {tab === 'forecast' ? <ProductionForecast craftQueue={craftQueue} blueprints={blueprints} materials={materials} /> : null}
+        {tab === 'pipeline' ? <SupplyChainBoard materials={materials} refineryOrders={refineryOrders} craftQueue={craftQueue} cofferLogs={cofferLogs} /> : null}
       </div>
     </div>
   );
