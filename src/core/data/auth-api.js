@@ -2,45 +2,28 @@ import { base44 } from '@/core/data/base44Client';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
-const FALLBACK_AUTH_ORIGIN = 'https://nexus-nomad-core.base44.app';
+const SESSION_TOKEN_KEY = 'nexus_session_token';
 
-function getAuthOrigin() {
-  if (typeof window === 'undefined') return FALLBACK_AUTH_ORIGIN;
-  const { hostname } = window.location;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') return FALLBACK_AUTH_ORIGIN;
-  return window.location.origin;
-}
-
-function buildFunctionUrl(functionPath, searchParams) {
-  const origin = getAuthOrigin();
-  const url = new URL(`${origin}/api/functions/${functionPath}`);
-  if (searchParams) {
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value != null && value !== '') {
-        url.searchParams.set(key, value);
-      }
-    });
+/** Store the session token in localStorage for SDK-based session calls */
+function storeSessionToken(token) {
+  if (token) {
+    try { localStorage.setItem(SESSION_TOKEN_KEY, token); } catch { /* noop */ }
   }
-  return url;
 }
 
-async function parseJson(response) {
-  try { return await response.json(); } catch { return null; }
+/** Retrieve stored session token */
+function getSessionToken() {
+  try { return localStorage.getItem(SESSION_TOKEN_KEY) || null; } catch { return null; }
 }
 
-async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
+/** Clear stored session token */
+function clearSessionToken() {
+  try { localStorage.removeItem(SESSION_TOKEN_KEY); } catch { /* noop */ }
 }
 
 /**
  * Call a backend function via the Base44 SDK.
- * This ensures platform auth headers are included so asServiceRole works.
+ * This ensures platform auth headers are included so asServiceRole works in the backend.
  */
 async function sdkInvoke(functionPath, payload = {}) {
   const response = await base44.functions.invoke(functionPath, payload);
@@ -54,109 +37,111 @@ async function sdkInvoke(functionPath, payload = {}) {
 /** @typedef {{ recoveryToken?: string, reset?: boolean, timeoutMs?: number }} BootstrapSystemAdminOptions */
 
 export const authApi = {
-  async getHealth(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const response = await fetchWithTimeout(buildFunctionUrl('auth/health'), {
-      method: 'GET',
-      credentials: 'include',
-      cache: 'no-store',
-    }, timeoutMs);
-
-    const data = await parseJson(response);
-    return { ok: response.ok, ...(data || {}) };
+  async getHealth({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    try {
+      return await sdkInvoke('auth/health', { _method: 'GET' });
+    } catch {
+      return { ok: false };
+    }
   },
 
   async login(username, key, /** @type {LoginOptions} */ options = {}) {
     const { rememberMe = false } = options;
-    // Use SDK invoke so backend gets platform auth for asServiceRole access
     const result = await sdkInvoke('auth/login', { username, key, remember_me: rememberMe });
+
+    // Store session token for subsequent session checks
+    if (result?.session_token) {
+      storeSessionToken(result.session_token);
+    }
+
     return result || {};
   },
 
   async register(username, key, /** @type {LoginOptions} */ options = {}) {
     const { rememberMe = false } = options;
     const result = await sdkInvoke('auth/register', { username, key, remember_me: rememberMe });
+
+    if (result?.session_token) {
+      storeSessionToken(result.session_token);
+    }
+
     return result || {};
   },
 
-  async getSession(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    // Session check uses SDK invoke for service-role DB access
-    try {
-      const result = await sdkInvoke('auth/session', {});
-      if (result && (result.authenticated !== undefined || result.user)) return result;
+  async getSession({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const sessionToken = getSessionToken();
+    if (!sessionToken) {
       return { authenticated: false };
+    }
+
+    try {
+      const result = await sdkInvoke('auth/session', { session_token: sessionToken });
+      if (result?.authenticated === false) {
+        // Token is invalid/expired — clear it
+        clearSessionToken();
+      }
+      return result || { authenticated: false };
     } catch {
       return { authenticated: false };
     }
   },
 
-  async logout(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    // Logout uses SDK invoke
+  async logout({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    clearSessionToken();
     try {
       return await sdkInvoke('auth/logout', {});
     } catch {
-      // Fallback: raw fetch to clear any cookies
-      const response = await fetchWithTimeout(buildFunctionUrl('auth/logout'), {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-      }, timeoutMs);
-      return parseJson(response);
+      return { success: true };
     }
   },
 
-  async listManagedUsers(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    try {
-      return await sdkInvoke('auth/keys', { _method: 'GET' });
-    } catch {
-      const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store',
-      }, timeoutMs);
-      return (await parseJson(response)) || {};
-    }
+  async listManagedUsers({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const sessionToken = getSessionToken();
+    return sdkInvoke('auth/keys', { _method: 'GET', session_token: sessionToken });
   },
 
-  async issueAuthKey(/** @type {KeyIssueOptions} */ { username, callsign, nexusRank, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
+  async issueAuthKey(/** @type {KeyIssueOptions} */ { username, callsign, nexusRank }) {
+    const sessionToken = getSessionToken();
     return sdkInvoke('auth/keys', {
       action: 'issue',
       username,
       callsign,
       nexus_rank: nexusRank,
+      session_token: sessionToken,
     });
   },
 
-  async revokeAuthKey(/** @type {KeyMutationOptions} */ { userId, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
-    return sdkInvoke('auth/keys', {
-      action: 'revoke',
-      user_id: userId,
-    });
+  async revokeAuthKey(/** @type {KeyMutationOptions} */ { userId }) {
+    const sessionToken = getSessionToken();
+    return sdkInvoke('auth/keys', { action: 'revoke', user_id: userId, session_token: sessionToken });
   },
 
-  async regenerateAuthKey(/** @type {KeyMutationOptions} */ { userId, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
-    return sdkInvoke('auth/keys', {
-      action: 'regenerate',
-      user_id: userId,
-    });
+  async regenerateAuthKey(/** @type {KeyMutationOptions} */ { userId }) {
+    const sessionToken = getSessionToken();
+    return sdkInvoke('auth/keys', { action: 'regenerate', user_id: userId, session_token: sessionToken });
   },
 
-  async updateManagedUserRank({ userId, nexusRank, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
+  async updateManagedUserRank({ userId, nexusRank }) {
+    const sessionToken = getSessionToken();
     return sdkInvoke('auth/keys', {
       action: 'update_rank',
       user_id: userId,
       nexus_rank: nexusRank,
+      session_token: sessionToken,
     });
   },
 
-  async completeOnboarding({ consentGiven = true, aiEnabled = true, consentVersion = '1.0', timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+  async completeOnboarding({ consentGiven = true, aiEnabled = true, consentVersion = '1.0' } = {}) {
+    const sessionToken = getSessionToken();
     return sdkInvoke('completeOnboarding', {
       consent_given: consentGiven,
       ai_features_enabled: aiEnabled,
       consent_version: consentVersion,
+      session_token: sessionToken,
     });
   },
 
-  async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, reset = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+  async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, reset = false } = {}) {
     return sdkInvoke('auth/bootstrap', {
       ...(recoveryToken ? { recovery_token: recoveryToken } : {}),
       ...(reset ? { reset: true } : {}),
