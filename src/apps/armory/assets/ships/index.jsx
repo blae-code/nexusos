@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SHIP_LIBRARY = {
+export const SHIP_LIBRARY = {
   prospector: {
     label: 'MISC Prospector',
     elements: [
