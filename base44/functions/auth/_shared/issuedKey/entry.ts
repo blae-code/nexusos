@@ -130,8 +130,6 @@ function getCookieDomain(req: Request): string | null {
       return configuredHost;
     }
 
-    // When the request is coming from a different host, fall back to a host-only
-    // cookie so Base44 development domains can authenticate independently.
     return null;
   } catch {
     return null;
