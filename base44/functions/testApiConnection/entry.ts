@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { requireAdminSession, sessionNoStoreHeaders } from '../auth/_shared/issuedKey/entry.ts';
 
 const API_TESTS = {
   UEX_API_KEY: async (key) => {
@@ -16,41 +16,33 @@ const API_TESTS = {
   },
 };
 
-function isAdminUser(user) {
-  const rank = String(user?.nexus_rank || user?.rank || '').toUpperCase();
-  return user?.role === 'admin' || rank === 'PIONEER' || rank === 'FOUNDER';
-}
-
 Deno.serve(async (req) => {
   try {
     if (req.method !== 'POST') {
-      return Response.json({ error: 'Method not allowed' }, { status: 405 });
+      return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
     }
 
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!isAdminUser(user)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    const adminSession = await requireAdminSession(req);
+    if (!adminSession) {
+      return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
     }
 
     const { secretId } = await req.json();
 
     if (!secretId || !API_TESTS[secretId]) {
-      return Response.json({ error: 'Invalid secret ID' }, { status: 400 });
+      return Response.json({ error: 'invalid_secret_id' }, { status: 400, headers: sessionNoStoreHeaders() });
     }
 
-    // Get the secret value from environment
     const value = Deno.env.get(secretId);
     if (!value) {
-      return Response.json({ success: false, error: 'Secret not configured' });
+      return Response.json({
+        success: false,
+        error: 'secret_not_configured',
+        secretId,
+        timestamp: new Date().toISOString(),
+      }, { headers: sessionNoStoreHeaders() });
     }
 
-    // Run the test
     const testFn = API_TESTS[secretId];
     const isValid = await testFn(value);
 
@@ -58,12 +50,12 @@ Deno.serve(async (req) => {
       success: isValid,
       secretId,
       timestamp: new Date().toISOString(),
-    });
+    }, { headers: sessionNoStoreHeaders() });
   } catch (error) {
     console.error('[testApiConnection] Error:', error);
     return Response.json({
       success: false,
       error: error.message,
-    });
+    }, { status: 500, headers: sessionNoStoreHeaders() });
   }
 });

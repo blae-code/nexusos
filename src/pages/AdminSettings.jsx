@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { authApi } from '@/core/data/auth-api';
+import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, XCircle } from 'lucide-react';
 
-const SECRETS = [
-  { id: 'UEX_API_KEY', label: 'UEX API Key', envVar: 'UEX_API_KEY' },
-  { id: 'SC_API_KEY', label: 'StarCitizen API Key', envVar: 'SC_API_KEY' },
+const REQUIRED_SECRETS = [
+  { id: 'UEX_API_KEY', label: 'UEX API Key' },
+  { id: 'SC_API_KEY', label: 'StarCitizen API Key' },
+  { id: 'SESSION_SIGNING_SECRET', label: 'Session Signing Secret' },
+  { id: 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', label: 'System Admin Bootstrap Secret' },
+  { id: 'APP_URL', label: 'App URL' },
 ];
 
 const PUBLIC_CONFIG = [
@@ -15,112 +19,83 @@ const PUBLIC_CONFIG = [
   { id: 'RSI_ORG_SID', label: 'RSI Org SID', value: 'RSNM' },
 ];
 
-function obfuscate(value) {
-  if (!value || value.length < 8) return '••••••••';
-  return value.slice(0, 4) + '••••' + value.slice(-3);
-}
-
-function SecretInput({ secret, value, onSave }) {
-  const [editing, setEditing] = useState(false);
-  const [input, setInput] = useState(value || '');
-  const [saving, setSaving] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    await onSave(secret.id, input);
-    setSaving(false);
-    setEditing(false);
-  };
-
+function StatusChip({ ok, label }) {
+  const color = ok ? '#27C96A' : '#E04848';
+  const background = ok ? 'rgba(39,201,106,0.12)' : 'rgba(224,72,72,0.12)';
+  const Icon = ok ? CheckCircle2 : XCircle;
   return (
-    <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>{secret.label}</div>
-        <button
-          onClick={() => (editing ? handleSave() : setEditing(true))}
-          disabled={saving}
-          style={{
-            padding: '4px 8px',
-            fontSize: 9,
-            background: editing ? 'rgba(var(--live-rgb), 0.12)' : 'transparent',
-            border: `0.5px solid ${editing ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b1)'}`,
-            borderRadius: 3,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            color: editing ? 'var(--live)' : 'var(--t1)',
-          }}
-        >
-          {saving ? 'SAVING...' : editing ? 'SAVE' : 'EDIT'}
-        </button>
-      </div>
-
-      {editing ? (
-        <div style={{ position: 'relative' }}>
-          <input
-            type={showPassword ? 'text' : 'password'}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 32px 8px 10px',
-              background: 'var(--bg1)',
-              border: '0.5px solid var(--b2)',
-              borderRadius: 3,
-              color: 'var(--t0)',
-              fontSize: 11,
-              fontFamily: 'monospace',
-            }}
-            placeholder="Enter value..."
-          />
-          <button
-            onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: 'absolute',
-              right: 8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'none',
-              border: 'none',
-              color: 'var(--t2)',
-              cursor: 'pointer',
-              padding: 4,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
-        </div>
-      ) : (
-        <div style={{ fontSize: 11, color: 'var(--t1)', fontFamily: 'monospace', background: 'var(--bg1)', padding: '6px 8px', borderRadius: 3 }}>
-          {value ? obfuscate(value) : <span style={{ color: 'var(--t3)' }}>Not configured</span>}
-        </div>
-      )}
-    </div>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 8px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', background, color }}>
+      <Icon size={11} />
+      {label}
+    </span>
   );
 }
 
 export default function AdminSettings() {
   const { isAdmin } = useSession();
   const [secrets, setSecrets] = useState({});
+  const [environment, setEnvironment] = useState(/** @type {{ app_url?: string | null }} */ ({}));
   const [loading, setLoading] = useState(true);
   const [testResults, setTestResults] = useState({});
+  const [testingSecretId, setTestingSecretId] = useState('');
+  const [authHealth, setAuthHealth] = useState(null);
 
   useEffect(() => {
     if (!isAdmin) return;
-    // Load current secrets from environment (backend will only return non-null if set)
-    base44.functions.invoke('getSecretStatus', {}).then((res) => {
-      setSecrets(res.data || {});
+
+    let active = true;
+
+    Promise.all([
+      base44.functions.invoke('getSecretStatus', {}),
+      authApi.getHealth(),
+    ]).then(([secretRes, healthRes]) => {
+      if (!active) return;
+      const payload = secretRes?.data || secretRes || {};
+      setSecrets(payload?.secrets || {});
+      setEnvironment(payload?.environment || {});
+      setAuthHealth(healthRes || null);
+      setLoading(false);
+    }).catch(() => {
+      if (!active) return;
+      setSecrets({});
+      setEnvironment({});
+      setAuthHealth(null);
       setLoading(false);
     });
+
+    return () => {
+      active = false;
+    };
   }, [isAdmin]);
 
-  const handleSaveSecret = async (secretId, value) => {
-    await base44.functions.invoke('saveSecret', { secretId, value });
-    setSecrets((prev) => ({ ...prev, [secretId]: value }));
+  const runSecretTest = async (secretId) => {
+    setTestingSecretId(secretId);
+    try {
+      const response = await base44.functions.invoke('testApiConnection', { secretId });
+      const payload = response?.data || response || {};
+      setTestResults((current) => ({ ...current, [secretId]: payload }));
+    } catch (error) {
+      setTestResults((current) => ({
+        ...current,
+        [secretId]: { success: false, error: error?.message || 'test_failed', timestamp: new Date().toISOString() },
+      }));
+    } finally {
+      setTestingSecretId('');
+    }
   };
+
+  const configuredCount = useMemo(
+    () => REQUIRED_SECRETS.filter((item) => secrets[item.id]?.configured).length,
+    [secrets],
+  );
+
+  const appUrl = environment?.app_url || null;
+
+  const launchReady = Boolean(
+    authHealth?.ok
+    && authHealth?.auth_mode === 'issued_key'
+    && REQUIRED_SECRETS.every((item) => secrets[item.id]?.configured),
+  );
 
   if (!isAdmin) {
     return (
@@ -149,22 +124,110 @@ export default function AdminSettings() {
     <div style={{ padding: '24px', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20, animation: 'pageEntrance 200ms ease-out' }}>
       <div>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>ADMIN SETTINGS</div>
-        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase' }}>Deployment Configuration</div>
+        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase' }}>Deployment Readiness</div>
       </div>
 
-      {/* Secret Inputs */}
+      <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>Launch Readiness</div>
+          <StatusChip ok={launchReady} label={launchReady ? 'Ready For Smoke' : 'Needs Attention'} />
+        </div>
+        <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.6 }}>
+          {configuredCount}/{REQUIRED_SECRETS.length} required deployment values detected. Auth runtime reports <strong style={{ color: 'var(--t1)' }}>{authHealth?.auth_mode || 'unknown'}</strong>.
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ padding: '8px 10px', background: 'var(--bg1)', borderRadius: 3, fontSize: 10, color: 'var(--t1)' }}>
+            Remember Me: <strong style={{ color: authHealth?.remember_me_supported ? '#27C96A' : '#E04848' }}>{authHealth?.remember_me_supported ? 'SUPPORTED' : 'UNKNOWN'}</strong>
+          </div>
+          <div style={{ padding: '8px 10px', background: 'var(--bg1)', borderRadius: 3, fontSize: 10, color: 'var(--t1)' }}>
+            APP_URL: <strong style={{ color: appUrl ? 'var(--t0)' : '#E04848' }}>{appUrl || 'UNSET'}</strong>
+          </div>
+        </div>
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {SECRETS.map((secret) => (
-          <SecretInput
-            key={secret.id}
-            secret={secret}
-            value={secrets[secret.id]}
-            onSave={handleSaveSecret}
-          />
-        ))}
+        {REQUIRED_SECRETS.map((secret) => {
+          const status = secrets[secret.id] || { configured: false, protected: false };
+          const testResult = testResults[secret.id];
+          const isTestable = secret.id === 'UEX_API_KEY' || secret.id === 'SC_API_KEY';
+
+          return (
+            <div key={secret.id} style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+                <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>{secret.label}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {status.protected ? <StatusChip ok label="Protected" /> : null}
+                  <StatusChip ok={status.configured} label={status.configured ? 'Configured' : 'Missing'} />
+                </div>
+              </div>
+
+              {isTestable ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+                    {testResult
+                      ? (
+                        <span style={{ color: testResult.success ? '#27C96A' : '#E04848' }}>
+                          {testResult.success ? 'Connection ok' : `Connection failed${testResult.error ? ` · ${testResult.error}` : ''}`}
+                        </span>
+                      )
+                      : 'No connectivity test run yet.'}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => runSecretTest(secret.id)}
+                    disabled={!status.configured || Boolean(testingSecretId)}
+                    style={{
+                      padding: '4px 10px',
+                      background: 'transparent',
+                      border: '0.5px solid var(--b1)',
+                      borderRadius: 3,
+                      color: status.configured ? 'var(--t1)' : 'var(--t3)',
+                      cursor: !status.configured || testingSecretId ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      fontSize: 9,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <RefreshCw size={11} />
+                    {testingSecretId === secret.id ? 'TESTING...' : 'TEST'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+                  Deployment-managed only. Configure in the hosting environment, not inside NexusOS.
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Public Config */}
+      <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
+        <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500, marginBottom: 10 }}>Auth Runtime</div>
+        {authHealth ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <StatusChip ok={authHealth.ok} label={authHealth.ok ? 'Healthy' : 'Unhealthy'} />
+              <div style={{ color: 'var(--t1)', fontSize: 11 }}>Mode: <strong style={{ color: 'var(--t0)' }}>{authHealth.auth_mode || 'unknown'}</strong></div>
+            </div>
+            {Array.isArray(authHealth.onboarding_steps) && authHealth.onboarding_steps.length > 0 ? (
+              <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.7 }}>
+                {authHealth.onboarding_steps.map((step, index) => (
+                  <div key={step}>{index + 1}. {step}</div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#E8A020', fontSize: 11 }}>
+            <ShieldAlert size={14} />
+            Unable to read auth runtime health.
+          </div>
+        )}
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {PUBLIC_CONFIG.map((item) => (
           <div key={item.id} style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
@@ -176,10 +239,10 @@ export default function AdminSettings() {
         ))}
       </div>
 
-      <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
-        <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500, marginBottom: 6 }}>Protected Deployment Secrets</div>
-        <div style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.6 }}>
-          <div>`SESSION_SIGNING_SECRET`, `SYSTEM_ADMIN_BOOTSTRAP_SECRET`, and `APP_URL` remain deployment-managed and are not editable from NexusOS.</div>
+      <div style={{ padding: '12px 14px', background: 'rgba(232,160,32,0.08)', border: '0.5px solid rgba(232,160,32,0.25)', borderRadius: 3, display: 'flex', gap: 10 }}>
+        <AlertTriangle size={15} style={{ color: '#E8A020', flexShrink: 0, marginTop: 1 }} />
+        <div style={{ fontSize: 11, color: 'var(--t1)', lineHeight: 1.6 }}>
+          NexusOS no longer edits deployment secrets in-app. Use this page to verify readiness, then update secrets and automations directly in the deployment environment before publishing live.
         </div>
       </div>
     </div>

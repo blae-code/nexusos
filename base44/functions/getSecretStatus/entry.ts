@@ -1,38 +1,33 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-
-function isAdminUser(user) {
-  const rank = String(user?.nexus_rank || user?.rank || '').toUpperCase();
-  return user?.role === 'admin' || rank === 'PIONEER' || rank === 'FOUNDER';
-}
+import { requireAdminSession, sessionNoStoreHeaders } from '../auth/_shared/issuedKey/entry.ts';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (req.method !== 'GET') {
+      return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
     }
 
-    // Check if user is admin
-    if (!isAdminUser(user)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    const adminSession = await requireAdminSession(req);
+    if (!adminSession) {
+      return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
     }
 
-    // Return which secrets are set (not the values, just existence markers)
-    const ALLOWED_SECRETS = ['UEX_API_KEY', 'SC_API_KEY'];
-    const secretStatus = {};
+    const secrets = ['UEX_API_KEY', 'SC_API_KEY', 'SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL']
+      .reduce((acc, secretId) => {
+        acc[secretId] = {
+          configured: Boolean(String(Deno.env.get(secretId) || '').trim()),
+          protected: ['SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL'].includes(secretId),
+        };
+        return acc;
+      }, {});
 
-    ALLOWED_SECRETS.forEach((secretId) => {
-      // Check if secret is set in environment (truthy check only)
-      const value = Deno.env.get(secretId);
-      // Return a placeholder if set, so frontend knows it's configured
-      secretStatus[secretId] = value ? 'SET' : null;
-    });
-
-    return Response.json(secretStatus);
+    return Response.json({
+      secrets,
+      environment: {
+        app_url: String(Deno.env.get('APP_URL') || '').trim() || null,
+      },
+    }, { headers: sessionNoStoreHeaders() });
   } catch (error) {
     console.error('[getSecretStatus] Error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: sessionNoStoreHeaders() });
   }
 });

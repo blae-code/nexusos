@@ -1,50 +1,23 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-
-function isAdminUser(user) {
-  const rank = String(user?.nexus_rank || user?.rank || '').toUpperCase();
-  return user?.role === 'admin' || rank === 'PIONEER' || rank === 'FOUNDER';
-}
+import { requireAdminSession, sessionNoStoreHeaders } from '../auth/_shared/issuedKey/entry.ts';
 
 Deno.serve(async (req) => {
   try {
     if (req.method !== 'POST') {
-      return Response.json({ error: 'Method not allowed' }, { status: 405 });
+      return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
     }
 
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const adminSession = await requireAdminSession(req);
+    if (!adminSession) {
+      return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
     }
-
-    // Check if user is admin (Pioneer or Founder)
-    if (!isAdminUser(user)) {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
-    const { secretId, value } = await req.json();
-
-    if (!secretId || !value) {
-      return Response.json({ error: 'Missing secretId or value' }, { status: 400 });
-    }
-
-    // Validate secret ID against whitelist
-    const ALLOWED_SECRETS = ['UEX_API_KEY', 'SC_API_KEY'];
-    if (!ALLOWED_SECRETS.includes(secretId)) {
-      return Response.json({ error: 'Invalid secret ID' }, { status: 400 });
-    }
-
-    // In a real implementation, you would call base44.asServiceRole to set environment variables
-    // For now, we log the intent and return success
-    console.log(`[saveSecret] Admin ${user.callsign || user.username || user.id} updated secret: ${secretId}`);
 
     return Response.json({
-      success: true,
-      message: `Secret ${secretId} updated successfully`,
-    });
+      success: false,
+      error: 'secrets_managed_externally',
+      message: 'Deployment secrets must be updated in the hosting environment, not from NexusOS.',
+    }, { status: 410, headers: sessionNoStoreHeaders() });
   } catch (error) {
     console.error('[saveSecret] Error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500, headers: sessionNoStoreHeaders() });
   }
 });
