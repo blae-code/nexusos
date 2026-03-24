@@ -11,6 +11,7 @@ import {
   getSessionSigningSecret,
   hashAuthKey,
   isAdminUser,
+  isOnboardingComplete,
   isSystemAdminBreakglassCredential,
   normalizeLoginName,
   resolveUserCallsign,
@@ -67,6 +68,7 @@ Deno.serve(async (req) => {
     const nextCallsign = resolveUserCallsign(user);
     const loginName = user.login_name || username;
     const isAdmin = isAdminUser(user);
+    const onboardingComplete = isOnboardingComplete(user);
 
     await base44.asServiceRole.entities.NexusUser.update(user.id, {
       login_name: loginName,
@@ -76,6 +78,7 @@ Deno.serve(async (req) => {
       last_seen_at: now,
       is_admin: isAdmin,
       key_revoked: false,
+      ...(onboardingComplete ? { onboarding_complete: true } : {}),
     });
 
     const nextUser = {
@@ -85,6 +88,7 @@ Deno.serve(async (req) => {
       joined_at: user.joined_at || now,
       last_seen_at: now,
       is_admin: isAdmin,
+      onboarding_complete: onboardingComplete,
     };
 
     const token = await createSessionToken(nextUser, secret, rememberMe);
@@ -94,7 +98,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       isNew: firstLogin,
-      onboarding_complete: nextUser.onboarding_complete ?? false,
+      onboarding_complete: onboardingComplete,
       nexus_rank: nextUser.nexus_rank || 'AFFILIATE',
       is_admin: isAdmin,
       login_name: loginName,

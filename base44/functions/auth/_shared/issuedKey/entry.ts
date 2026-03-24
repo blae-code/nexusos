@@ -27,6 +27,8 @@ type NexusUserRecord = {
   key_issued_at?: string | null;
   last_seen_at?: string | null;
   notifications_seen_at?: string | null;
+  consent_given?: boolean | null;
+  consent_timestamp?: string | null;
   created_date?: string | null;
   updated_date?: string | null;
 };
@@ -75,6 +77,10 @@ export function resolveUserCallsign(user: Partial<NexusUserRecord>): string {
 
 export function isAdminUser(user: Partial<NexusUserRecord>): boolean {
   return String(user.nexus_rank || '').toUpperCase() === 'PIONEER' || user.is_admin === true;
+}
+
+export function isOnboardingComplete(user: Partial<NexusUserRecord>): boolean {
+  return user.onboarding_complete === true || user.consent_given === true || Boolean(user.consent_timestamp);
 }
 
 function sessionTtlSeconds(rememberMe: boolean): number {
@@ -369,6 +375,7 @@ export async function ensureSystemAdminUser(
 export function toSessionResponse(user: NexusUserRecord) {
   const isAdmin = isAdminUser(user);
   const loginName = resolveUserLoginName(user);
+  const onboardingComplete = isOnboardingComplete(user);
 
   return {
     authenticated: true,
@@ -381,7 +388,7 @@ export function toSessionResponse(user: NexusUserRecord) {
       callsign: resolveUserCallsign(user),
       rank: String(user.nexus_rank || 'AFFILIATE').toUpperCase(),
       joinedAt: user.joined_at || null,
-      onboarding_complete: user.onboarding_complete ?? false,
+      onboarding_complete: onboardingComplete,
       notifications_seen_at: user.notifications_seen_at || null,
       is_admin: isAdmin,
     },
@@ -403,6 +410,11 @@ export async function resolveIssuedKeySession(req: Request): Promise<{ user: Nex
 
   if (!user || user.key_revoked) {
     return null;
+  }
+
+  if (user.onboarding_complete !== true && isOnboardingComplete(user)) {
+    await base44.asServiceRole.entities.NexusUser.update(user.id, { onboarding_complete: true });
+    user.onboarding_complete = true;
   }
 
   const invalidatedAt = user.session_invalidated_at ? new Date(user.session_invalidated_at).getTime() : 0;
