@@ -53,6 +53,14 @@ export default function ScoutIntel() {
   const [selectedDeposit,  setSelectedDeposit]  = useState(null);
   const [optimizedRoute,   setOptimizedRoute]   = useState(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const scoutTab = searchParams.get('tab') === 'routes' ? 'routes' : 'deposits';
+  const setScoutTab = useCallback((id) => {
+    const next = new URLSearchParams(searchParams);
+    if (id === 'deposits') next.delete('tab'); else next.set('tab', id);
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   // ── Data fetch ─────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
@@ -111,14 +119,6 @@ export default function ScoutIntel() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const scoutTab = searchParams.get('tab') === 'routes' ? 'routes' : 'deposits';
-  const setScoutTab = (id) => {
-    const next = new URLSearchParams(searchParams);
-    if (id === 'deposits') next.delete('tab'); else next.set('tab', id);
-    setSearchParams(next, { replace: true });
-  };
 
   if (scoutTab === 'routes') {
     return (
