@@ -296,95 +296,98 @@ export default function Setup() {
             <div style={{ fontSize: 12, color: '#9A9488', lineHeight: 1.6 }}>
               The admin account already exists. Sign in with username <strong style={{ color: '#E8E4DC' }}>{loginName || 'system-admin'}</strong>, or regenerate the key from Key Management after login.
             </div>
-            {recoveryEnabled && (
-              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowRecovery((current) => !current)}
-                  style={{
-                    padding: '10px 14px',
-                    background: 'transparent',
-                    border: '0.5px solid rgba(200,168,75,0.25)',
-                    borderRadius: 2,
-                    color: '#C8A84B',
-                    cursor: 'pointer',
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontSize: 11,
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {showRecovery ? 'Hide Emergency Recovery' : 'Emergency Recovery'}
-                </button>
-                {showRecovery && (
-                  <>
-                    <div style={{ fontSize: 11, color: '#9A9488', lineHeight: 1.6 }}>
-                      Enter the `SYSTEM_ADMIN_BOOTSTRAP_SECRET` value from Base44 environment settings to mint a fresh auth key without any existing admin session.
-                    </div>
-                    <input
-                      type="password"
-                      value={recoveryToken}
-                      onChange={(e) => setRecoveryToken(e.target.value)}
-                      placeholder="ENTER RECOVERY TOKEN"
-                      autoComplete="off"
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        background: '#141410',
-                        border: '0.5px solid rgba(200,170,100,0.10)',
-                        borderRadius: 2,
-                        color: '#E8E4DC',
-                        fontSize: 12,
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        fontWeight: 500,
-                        letterSpacing: '0.08em',
-                        outline: 'none',
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={!recoveryToken.trim()}
-                      onClick={() => handleBootstrap({ recovery: true })}
-                      style={{
-                        padding: '12px 16px',
-                        background: recoveryToken.trim() ? '#C0392B' : '#5A2620',
-                        border: '1px solid rgba(192,57,43,0.7)',
-                        borderRadius: 2,
-                        color: '#F0EDE5',
-                        cursor: recoveryToken.trim() ? 'pointer' : 'not-allowed',
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        letterSpacing: '0.12em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Regenerate System Admin Key
-                    </button>
-                    <button
-                      type="button"
-                      disabled={!recoveryToken.trim()}
-                      onClick={() => handleBootstrap({ recovery: true, reset: true })}
-                      style={{
-                        padding: '12px 16px',
-                        background: recoveryToken.trim() ? '#5A2620' : '#35201D',
-                        border: '1px solid rgba(192,57,43,0.45)',
-                        borderRadius: 2,
-                        color: '#F0EDE5',
-                        cursor: recoveryToken.trim() ? 'pointer' : 'not-allowed',
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        letterSpacing: '0.12em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Hard Reset And Regenerate
-                    </button>
-                  </>
-                )}
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}>
+              <button
+                type="button"
+                onClick={() => setShowRecovery((current) => !current)}
+                style={{
+                  padding: '10px 14px',
+                  background: 'transparent',
+                  border: '0.5px solid rgba(200,168,75,0.25)',
+                  borderRadius: 2,
+                  color: '#C8A84B',
+                  cursor: 'pointer',
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {showRecovery ? 'Hide Emergency Recovery' : 'Emergency Recovery'}
+              </button>
+              <div style={{ fontSize: 11, color: recoveryEnabled ? '#6F8B6A' : '#9A9488', lineHeight: 1.6 }}>
+                {recoveryEnabled
+                  ? 'Recovery support is available in this runtime.'
+                  : 'Recovery support was not advertised by this runtime. If you have configured SYSTEM_ADMIN_BOOTSTRAP_SECRET, you can still try the token below. If it fails, the deployed auth bootstrap function is stale.'}
               </div>
-            )}
+              {showRecovery && (
+                <>
+                  <div style={{ fontSize: 11, color: '#9A9488', lineHeight: 1.6 }}>
+                    Enter the `SYSTEM_ADMIN_BOOTSTRAP_SECRET` value from Base44 environment settings to mint a fresh auth key without any existing admin session.
+                  </div>
+                  <input
+                    type="password"
+                    value={recoveryToken}
+                    onChange={(e) => setRecoveryToken(e.target.value)}
+                    placeholder="ENTER RECOVERY TOKEN"
+                    autoComplete="off"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: '#141410',
+                      border: '0.5px solid rgba(200,170,100,0.10)',
+                      borderRadius: 2,
+                      color: '#E8E4DC',
+                      fontSize: 12,
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 500,
+                      letterSpacing: '0.08em',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={!recoveryToken.trim()}
+                    onClick={() => handleBootstrap({ recovery: true })}
+                    style={{
+                      padding: '12px 16px',
+                      background: recoveryToken.trim() ? '#C0392B' : '#5A2620',
+                      border: '1px solid rgba(192,57,43,0.7)',
+                      borderRadius: 2,
+                      color: '#F0EDE5',
+                      cursor: recoveryToken.trim() ? 'pointer' : 'not-allowed',
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Regenerate System Admin Key
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!recoveryToken.trim()}
+                    onClick={() => handleBootstrap({ recovery: true, reset: true })}
+                    style={{
+                      padding: '12px 16px',
+                      background: recoveryToken.trim() ? '#5A2620' : '#35201D',
+                      border: '1px solid rgba(192,57,43,0.45)',
+                      borderRadius: 2,
+                      color: '#F0EDE5',
+                      cursor: recoveryToken.trim() ? 'pointer' : 'not-allowed',
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Hard Reset And Regenerate
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         )}
 
