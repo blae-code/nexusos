@@ -1,13 +1,15 @@
 /**
  * LogForm — deposit logger.
- * Props: { callsign, discordId, onSubmit, onCancel }
+ * Props: { callsign, onSubmit, onCancel }
  *
  * Material autocomplete from game_cache_commodities.
  * Quality slider with live T2 feedback (≥80% green, 60-79% amber, <60% dim).
- * On submit: ScoutDeposit.create + heraldBot scoutPing (.catch()).
+ * On submit: ScoutDeposit.create using the current NexusOS session identity.
  */
 import React, { useState, useRef, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
+import { qualityScoreFromPercent } from '@/core/data/quality';
 import { X } from 'lucide-react';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -125,7 +127,10 @@ function MaterialInput({ value, onChange }) {
 
 // ─── LogForm ──────────────────────────────────────────────────────────────────
 
-export default function LogForm({ callsign, discordId, onSubmit, onCancel }) {
+export default function LogForm({ callsign, onSubmit, onCancel }) {
+  const { user } = useSession();
+  const sessionCallsign = user?.callsign || callsign || 'UNKNOWN';
+  const sessionUserId = user?.id || null;
   const [form, setForm] = useState({
     material_name:   '',
     system_name:     'Stanton',
@@ -147,35 +152,24 @@ export default function LogForm({ callsign, discordId, onSubmit, onCancel }) {
     if (!form.material_name.trim() || !form.location_detail.trim()) return;
     setSaving(true);
     try {
+      const qualityScore = qualityScoreFromPercent(form.quality_pct);
       const deposit = await base44.entities.ScoutDeposit.create({
         material_name:   form.material_name.trim(),
         system_name:     form.system_name.toUpperCase(),
         location_detail: form.location_detail.trim(),
+        quality_score:   qualityScore,
         quality_pct:     form.quality_pct,
         volume_estimate: form.volume_estimate.toUpperCase(),
         risk_level:      form.risk_level.toUpperCase(),
         ship_type:       form.ship_type.trim() || null,
         notes:           form.notes.trim() || null,
-        reported_by:     discordId || null,
-        reported_by_callsign: callsign,
+        reported_by_user_id: sessionUserId,
+        reported_by_callsign: sessionCallsign,
         reported_at:     new Date().toISOString(),
         is_stale:        false,
         confirmed_votes: 0,
         stale_votes:     0,
       });
-
-      // heraldBot scoutPing — non-fatal
-      base44.functions.invoke('heraldBot', {
-        action:  'scoutPing',
-        payload: {
-          material_name:   form.material_name.trim(),
-          system_name:     form.system_name,
-          location_detail: form.location_detail.trim(),
-          quality_pct:     form.quality_pct,
-          risk_level:      form.risk_level.toUpperCase(),
-          callsign,
-        },
-      }).catch(e => console.warn('[LogForm] heraldBot scoutPing failed:', e.message));
 
       setSaved(true);
       onSubmit?.(deposit);

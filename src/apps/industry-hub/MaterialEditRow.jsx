@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import NexusToken from '@/core/design/NexusToken';
 import { materialToken } from '@/core/data/tokenMap';
+import { qualityPercentFromRecord, qualityScoreFromPercent } from '@/core/data/quality';
 import { TD } from './MaterialTablePrimitives';
 
 // ─── Helpers (duplicated from Materials.jsx to keep this file self-contained) ──
@@ -20,7 +21,7 @@ function matCategory(type) {
 
 export default function EditRow({ material, onSave, onCancel }) {
   const [qty, setQty]   = useState(String(material.quantity_scu ?? ''));
-  const [qual, setQual] = useState(String(material.quality_pct ?? ''));
+  const [qual, setQual] = useState(String(qualityPercentFromRecord(material)));
   const [type, setType] = useState(material.material_type || 'RAW');
 
   const inputStyle = {
@@ -30,11 +31,13 @@ export default function EditRow({ material, onSave, onCancel }) {
   };
 
   const handleSave = async () => {
+    const qualityPct = parseFloat(qual) || 0;
     await base44.entities.Material.update(material.id, {
       quantity_scu: parseFloat(qty)  || 0,
-      quality_pct:  parseFloat(qual) || 0,
+      quality_score: qualityScoreFromPercent(qualityPct),
+      quality_pct:  qualityPct,
       material_type: type,
-      t2_eligible:  (parseFloat(qual) || 0) >= 80,
+      t2_eligible:  qualityPct >= 80,
     });
     onSave();
   };

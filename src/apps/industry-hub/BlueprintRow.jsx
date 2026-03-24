@@ -18,7 +18,7 @@ import RecipePanel from './RecipePanel';
 export default function BlueprintRow({ blueprint, isPioneer, materials, callsign, onTogglePriority, onCraftQueued }) {
   const [expanded, setExpanded] = useState(false);
 
-  const owned      = !!(blueprint.owned_by || blueprint.owned_by_callsign);
+  const owned      = !!(blueprint.owned_by_user_id || blueprint.owned_by || blueprint.owned_by_callsign);
   const isPriority = !!blueprint.is_priority;
 
   // Dot colour: warn=priority, acc2=owned (not priority), t3=unowned

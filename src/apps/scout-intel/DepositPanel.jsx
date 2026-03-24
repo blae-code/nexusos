@@ -3,7 +3,7 @@
  * Props: {
  *   mode: 'default' | 'detail' | 'log',
  *   selectedDeposit, deposits, materials, blueprints, liveOp,
- *   callsign, rank, discordId,
+ *   callsign, rank,
  *   onModeChange, onSelectDeposit, onDepositUpdated,
  * }
  *
@@ -26,7 +26,6 @@ export default function DepositPanel({
   liveOp,
   callsign,
   rank,
-  discordId,
   onModeChange,
   onSelectDeposit,
   onDepositUpdated,
@@ -49,7 +48,6 @@ export default function DepositPanel({
         {mode === 'log' ? (
           <LogForm
             callsign={callsign}
-            discordId={discordId}
             onSubmit={() => { onDepositUpdated(); onModeChange('default'); }}
             onCancel={() => onModeChange('default')}
           />

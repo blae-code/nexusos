@@ -4,8 +4,10 @@
  */
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
 import { Wrench } from 'lucide-react';
 import { SectionHeader } from './BlueprintFilterChips';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 // ─── Shared helper (duplicated from Blueprints.jsx to keep this file self-contained) ──
 
@@ -18,7 +20,7 @@ export function ingredientStatus(ingredient, materials) {
     m => (m.material_name || '').toLowerCase() === (ingredient.material_name || '').toLowerCase()
   );
   if (!match || (match.quantity_scu || 0) === 0) return 'NONE';
-  const qualityOk = (match.quality_pct  || 0) >= (ingredient.min_quality   || 0);
+  const qualityOk = qualityPercentFromRecord(match) >= (ingredient.min_quality || 0);
   const qtyOk     = (match.quantity_scu || 0) >= (ingredient.quantity_scu  || 0);
   if (qualityOk && qtyOk) return 'OK';
   return 'LOW';
@@ -27,11 +29,12 @@ export function ingredientStatus(ingredient, materials) {
 // ─── Recipe panel (lazy — renders only when expanded) ─────────────────────────
 
 export default function RecipePanel({ blueprint, materials, callsign, onCraftQueued }) {
+  const { user } = useSession();
   const [crafting, setCrafting] = useState(false);
   const [craftDone, setCraftDone] = useState(false);
 
   const recipe = blueprint.recipe_materials || [];
-  const owned  = !!(blueprint.owned_by || blueprint.owned_by_callsign);
+  const owned  = !!(blueprint.owned_by_user_id || blueprint.owned_by || blueprint.owned_by_callsign);
 
   // Stock cross-reference fires here, on expand, not on page load
   const statusColor = { OK: 'var(--live)', LOW: 'var(--warn)', NONE: 'var(--danger)' };
@@ -44,7 +47,8 @@ export default function RecipePanel({ blueprint, materials, callsign, onCraftQue
         blueprint_id:           blueprint.id,
         blueprint_name:         blueprint.item_name,
         status:                 'OPEN',
-        requested_by_callsign:  callsign,
+        requested_by_user_id:   user?.id || null,
+        requested_by_callsign:  user?.callsign || callsign || 'UNKNOWN',
         quantity:               1,
         priority_flag:          false,
       });
@@ -94,7 +98,7 @@ export default function RecipePanel({ blueprint, materials, callsign, onCraftQue
         </div>
       )}
 
-      {/* "Craft this" only shown when owned_by is set */}
+      {/* "Craft this" only shown when blueprint ownership is set */}
       {owned && (
         <div style={{ marginTop: 10 }}>
           {craftDone ? (

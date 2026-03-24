@@ -17,7 +17,7 @@ const LABEL = { color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', displa
 export default function AddBlueprintDialog({ onClose, onCreated }) {
   const [form, setForm] = useState({
     item_name: '', wiki_item_id: '', category: 'WEAPON',
-    tier: 'T1', owned_by_callsign: '', owned_by: null,
+    tier: 'T1', owned_by_callsign: '', owned_by_user_id: null,
   });
   const [recipe, setRecipe]           = useState([{ material_name: '', min_quality: 80, quantity_scu: '' }]);
   const [itemSuggestions, setItemSuggestions] = useState([]);
@@ -51,7 +51,7 @@ export default function AddBlueprintDialog({ onClose, onCreated }) {
         (results || [])
           .filter(u => (u.callsign || '').toLowerCase().includes(query.toLowerCase()))
           .slice(0, 8)
-          .map(u => ({ label: u.callsign, id: u.discord_id, callsign: u.callsign }))
+          .map(u => ({ label: u.callsign, id: u.id, callsign: u.callsign }))
       );
     } catch { setCallsignSuggestions([]); }
   }, []);
@@ -85,7 +85,7 @@ export default function AddBlueprintDialog({ onClose, onCreated }) {
         category:           form.category,
         tier:               form.tier,
         owned_by_callsign:  form.owned_by_callsign || null,
-        owned_by:           form.owned_by || null,
+        owned_by_user_id:   form.owned_by_user_id || null,
         is_priority:        false,
         recipe_materials:   cleanRecipe,
       });
@@ -166,10 +166,11 @@ export default function AddBlueprintDialog({ onClose, onCreated }) {
               suggestions={callsignSuggestions}
               onChange={v => {
                 set('owned_by_callsign', v);
+                set('owned_by_user_id', null);
                 clearTimeout(debounceRef.current);
                 debounceRef.current = setTimeout(() => loadCallsignSuggestions(v), 250);
               }}
-              onSelect={s => { set('owned_by_callsign', s.callsign); set('owned_by', s.id); setCallsignSuggestions([]); }}
+              onSelect={s => { set('owned_by_callsign', s.callsign); set('owned_by_user_id', s.id); setCallsignSuggestions([]); }}
               style={inputStyle}
             />
           </div>

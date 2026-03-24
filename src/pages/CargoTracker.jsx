@@ -62,8 +62,8 @@ export default function CargoTracker() {
         margin_pct: marginPct,
         origin_station: data.origin_station || null,
         destination_station: data.destination_station || null,
-        logged_by: user.discordId,
-        logged_by_callsign: user.callsign,
+        logged_by_user_id: user?.id || null,
+        logged_by_callsign: user?.callsign || 'UNKNOWN',
         notes: data.notes || null,
         logged_at: new Date().toISOString(),
       });

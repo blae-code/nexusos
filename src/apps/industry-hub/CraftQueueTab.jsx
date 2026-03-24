@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
 import { Zap, Wrench } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 import RefineryEfficiencyCalculator from '@/apps/industry-hub/RefineryEfficiencyCalculator';
@@ -7,6 +8,7 @@ import { OptimisedRow, DefaultRow } from './CraftQueueRows';
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function CraftQueueTab({ craftQueue, callsign, materials = [], blueprints = [] }) {
+  const { user } = useSession();
   const [optimising, setOptimising]         = useState(false);
   const [suggestedOrder, setSuggestedOrder] = useState(null); // null = off, [] = loaded
   const [optimiseError, setOptimiseError]   = useState('');
@@ -58,7 +60,8 @@ export default function CraftQueueTab({ craftQueue, callsign, materials = [], bl
   const handleClaim = async (id) => {
     await base44.entities.CraftQueue.update(id, {
       status: 'CLAIMED',
-      claimed_by_callsign: callsign,
+      claimed_by_user_id: user?.id || null,
+      claimed_by_callsign: user?.callsign || callsign || 'UNKNOWN',
     });
   };
 

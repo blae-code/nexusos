@@ -29,8 +29,8 @@ const CATEGORY_FILTERS = [
 
 const OWNERSHIP_FILTERS = [
   { id: 'ALL',      label: 'ALL',      matches: () => true },
-  { id: 'OWNED',    label: 'OWNED',    matches: b => !!(b.owned_by || b.owned_by_callsign) },
-  { id: 'UNOWNED',  label: 'UNOWNED',  matches: b => !(b.owned_by || b.owned_by_callsign) },
+  { id: 'OWNED',    label: 'OWNED',    matches: b => !!(b.owned_by_user_id || b.owned_by || b.owned_by_callsign) },
+  { id: 'UNOWNED',  label: 'UNOWNED',  matches: b => !(b.owned_by_user_id || b.owned_by || b.owned_by_callsign) },
   { id: 'PRIORITY', label: 'PRIORITY', matches: b => !!b.is_priority },
 ];
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
 import { Plus, TrendingUp, TrendingDown, Coins, BookOpen } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 
@@ -58,9 +58,9 @@ function LogEntryForm({ onSubmit, onCancel }) {
 }
 
 export default function CofferLedger() {
-  const outletContext = /** @type {any} */ (useOutletContext() || {});
-  const callsign = outletContext.callsign;
-  const discordId = outletContext.discordId;
+  const { user } = useSession();
+  const callsign = user?.callsign || 'UNKNOWN';
+  const sessionUserId = user?.id || null;
   const [entries, setEntries] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
@@ -83,7 +83,7 @@ export default function CofferLedger() {
   const handleLog = async (form) => {
     await base44.entities.CofferLog.create({
       ...form,
-      logged_by: discordId || '',
+      logged_by_user_id: sessionUserId,
       logged_by_callsign: callsign || 'UNKNOWN',
       logged_at: new Date().toISOString(),
       source_type: 'MANUAL',

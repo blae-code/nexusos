@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
-import NexusToken from '@/core/design/NexusToken';
-import { T } from '@/core/data/tokenMap';
 import {
   createRescueCall,
   getActiveRescueCount,

@@ -20,7 +20,7 @@ export default function IndustryOverview({
   const avgQualityScore = activeMats.length
     ? Math.round(activeMats.reduce((s, m) => s + (m.quality_score || 0), 0) / activeMats.length)
     : 0;
-  const ownedBlueprints = blueprints.filter(b => b.owned_by || b.owned_by_callsign).length;
+  const ownedBlueprints = blueprints.filter(b => b.owned_by_user_id || b.owned_by || b.owned_by_callsign).length;
   const queueDepth = craftQueue.filter(c => ['OPEN', 'CLAIMED', 'IN_PROGRESS'].includes(c.status)).length;
   const completedCrafts = craftQueue.filter(c => c.status === 'COMPLETE').length;
   const readyOrders = refineryOrders.filter(r => r.status === 'READY').length;

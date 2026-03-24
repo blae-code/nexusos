@@ -5,6 +5,8 @@
  */
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
+import { isT2Eligible, qualityPercentFromRecord, qualityScoreFromPercent } from '@/core/data/quality';
 import { Upload, ChevronDown, ChevronUp, Search, X, Check } from 'lucide-react';
 import { MaterialStatusPill } from '@/apps/industry-hub/IndustryVisuals';
 import NexusToken from '@/core/design/NexusToken';
@@ -15,7 +17,6 @@ import {
 } from './MaterialTablePrimitives';
 import EditRow from './MaterialEditRow';
 import OCRReviewTable from './OCRReviewTable';
-import DiscordPathCard from './DiscordPathCard';
 import MaterialContextPanel from '@/components/industry/MaterialContextPanel';
 
 // ─── Shared style constants ────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ function relativeTime(isoStr) {
 // ─── Main Materials component ──────────────────────────────────────────────────
 
 export default function Materials({ materials, onRefresh }) {
+  const { user } = useSession();
   // ── Filter + sort state ───────────────────────────────
   const [qualityMin,    setQualityMin]    = useState(0);
   const [typeFilter,    setTypeFilter]    = useState('ALL');
@@ -80,7 +82,7 @@ export default function Materials({ materials, onRefresh }) {
   // ── Filter & sort ─────────────────────────────────────
 
   const filtered = materials
-    .filter(m => (m.quality_pct || 0) >= qualityMin)
+    .filter(m => qualityPercentFromRecord(m) >= qualityMin)
     .filter(m => typeFilter === 'ALL' || m.material_type === typeFilter)
     .filter(m => {
       if (statusFilter === 'ALL')          return true;
@@ -94,10 +96,14 @@ export default function Materials({ materials, onRefresh }) {
   const sorted = [...filtered].sort((a, b) => {
     const av = sortBy === 'logged_at'
       ? new Date(a.logged_at || 0).getTime()
-      : (a[sortBy] ?? 0);
+      : sortBy === 'quality_pct'
+        ? qualityPercentFromRecord(a)
+        : (a[sortBy] ?? 0);
     const bv = sortBy === 'logged_at'
       ? new Date(b.logged_at || 0).getTime()
-      : (b[sortBy] ?? 0);
+      : sortBy === 'quality_pct'
+        ? qualityPercentFromRecord(b)
+        : (b[sortBy] ?? 0);
     return sortDir === 'desc' ? bv - av : av - bv;
   });
 
@@ -170,14 +176,20 @@ export default function Materials({ materials, onRefresh }) {
     const toCreate = reviewItems.filter((_, i) => reviewChecked[i]);
     try {
       await Promise.all(toCreate.map(item =>
-        base44.entities.Material.create({
-          material_name:  item.material_name,
-          material_type:  item.material_type || 'RAW',
-          quantity_scu:   parseFloat(item.quantity_scu) || 0,
-          quality_pct:    parseFloat(item.quality_pct)  || 0,
-          t2_eligible:    (parseFloat(item.quality_pct) || 0) >= 80,
-          source_type:    'OCR_UPLOAD',
-        })
+        (() => {
+          const qualityPct = parseFloat(item.quality_pct) || 0;
+          return base44.entities.Material.create({
+            material_name:  item.material_name,
+            material_type:  item.material_type || 'RAW',
+            quantity_scu:   parseFloat(item.quantity_scu) || 0,
+            quality_score:  qualityScoreFromPercent(qualityPct),
+            quality_pct:    qualityPct,
+            t2_eligible:    qualityPct >= 80,
+            logged_by_user_id: user?.id || null,
+            logged_by_callsign: user?.callsign || 'UNKNOWN',
+            source_type:    'OCR_UPLOAD',
+          });
+        })()
       ));
       setOcrState('SUCCESS');
       setReviewItems([]);
@@ -423,10 +435,6 @@ export default function Materials({ materials, onRefresh }) {
             </div>
           )}
         </div>
-
-        {/* ── Discord path card (always visible) ─────────── */}
-        <DiscordPathCard />
-
         {/* ── Full materials table ──────────────────────── */}
         <div style={{ border: '0.5px solid var(--b1)', borderRadius: 3, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -445,6 +453,7 @@ export default function Materials({ materials, onRefresh }) {
             </thead>
             <tbody>
               {sorted.map(m => {
+                const qualityPct = qualityPercentFromRecord(m);
                 // Inline edit row
                 if (editingId === m.id) {
                   return (
@@ -499,10 +508,10 @@ export default function Materials({ materials, onRefresh }) {
                       <td style={{ padding: '8px 12px', minWidth: 110 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <div className="nexus-bar-bg" style={{ flex: 1 }}>
-                            <div className="nexus-bar-fill" style={{ width: `${m.quality_pct || 0}%`, background: 'var(--acc2)' }} />
+                            <div className="nexus-bar-fill" style={{ width: `${qualityPct}%`, background: 'var(--acc2)' }} />
                           </div>
                           <span style={{ color: 'var(--t1)', fontSize: 11, minWidth: 28, textAlign: 'right' }}>
-                            {(m.quality_pct || 0).toFixed(0)}%
+                            {qualityPct.toFixed(0)}%
                           </span>
                         </div>
                       </td>
@@ -514,7 +523,7 @@ export default function Materials({ materials, onRefresh }) {
 
                       {/* T2 eligibility badge */}
                       <td style={{ padding: '8px 12px' }}>
-                        <T2Badge t2_eligible={!!m.t2_eligible} />
+                        <T2Badge t2_eligible={isT2Eligible(m) || !!m.t2_eligible} />
                       </td>
 
                       {/* Status flag */}

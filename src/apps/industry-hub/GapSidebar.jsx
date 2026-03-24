@@ -18,10 +18,10 @@ function countMissingIngredients(bp, materials) {
 // ─── Gap analysis sidebar ─────────────────────────────────────────────────────
 
 export default function GapSidebar({ blueprints, materials }) {
-  const owned       = blueprints.filter(b => !!(b.owned_by || b.owned_by_callsign)).length;
+  const owned       = blueprints.filter(b => !!(b.owned_by_user_id || b.owned_by || b.owned_by_callsign)).length;
   const t2Total     = blueprints.filter(b => b.tier === 'T2').length;
-  const t2Owned     = blueprints.filter(b => b.tier === 'T2' && !!(b.owned_by || b.owned_by_callsign)).length;
-  const priorityGaps = blueprints.filter(b => b.is_priority && !(b.owned_by || b.owned_by_callsign));
+  const t2Owned     = blueprints.filter(b => b.tier === 'T2' && !!(b.owned_by_user_id || b.owned_by || b.owned_by_callsign)).length;
+  const priorityGaps = blueprints.filter(b => b.is_priority && !(b.owned_by_user_id || b.owned_by || b.owned_by_callsign));
 
   function CoverageStat({ label, num, denom }) {
     const pct = denom > 0 ? (num / denom) * 100 : 0;

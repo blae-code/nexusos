@@ -8,7 +8,7 @@ const TABS = ['SHIP FITTING', 'FLEET VIEW'];
 export default function FleetForge() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const callsign = outletContext.callsign;
-  const discordId = outletContext.discordId;
+  const sessionUserId = outletContext.sessionUserId;
   const [tab, setTab] = useState('SHIP FITTING');
   const [builds, setBuilds] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -66,7 +66,7 @@ export default function FleetForge() {
             vehicles={vehicles}
             componentCatalog={componentCatalog}
             callsign={callsign}
-            discordId={discordId}
+            userId={sessionUserId}
             onBuildSaved={(record) => {
               setBuilds((current) => [record, ...current.filter((item) => item.id !== record.id)]);
               setTab('FLEET VIEW');

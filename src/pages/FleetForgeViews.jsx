@@ -94,7 +94,7 @@ function SlotRow({ slot, component, onEdit }) {
   );
 }
 
-export function ShipFitting({ vehicles, componentCatalog, callsign, discordId, onBuildSaved, onViewBuilds }) {
+export function ShipFitting({ vehicles, componentCatalog, callsign, userId, onBuildSaved, onViewBuilds }) {
   const [selectedShip, setSelectedShip] = useState('');
   const [buildName, setBuildName] = useState('My Build');
   const [components, setComponents] = useState({});
@@ -125,7 +125,7 @@ export function ShipFitting({ vehicles, componentCatalog, callsign, discordId, o
       build_name: buildName,
       hardpoints: components,
       power_allocation: power,
-      created_by: discordId || '',
+      created_by_user_id: userId || null,
       created_by_callsign: callsign,
       patch_locked: patchLocked,
       stats_snapshot: { build_score: buildScore },

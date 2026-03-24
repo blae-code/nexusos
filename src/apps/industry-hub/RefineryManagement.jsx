@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
+import { qualityScoreFromPercent } from '@/core/data/quality';
 import { AlertCircle, Zap } from 'lucide-react';
 
 // Star Citizen 4.7 refinery methods — must stay in sync with refineryEfficiencyCalculator/entry.ts
@@ -28,6 +30,9 @@ const STATIONS = {
 };
 
 export default function RefineryManagement({ materials = [], callsign = '' }) {
+  const { user } = useSession();
+  const sessionCallsign = user?.callsign || callsign || 'UNKNOWN';
+  const sessionUserId = user?.id || null;
   const [form, setForm] = useState({
     material_name: '',
     quantity_scu: '',
@@ -83,15 +88,20 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
 
     setSubmitting(true);
     try {
+      const inputQualityPct = Number(form.quality_pct);
+      const retainedQualityPct = Number(forecast.quality_retained_pct) || 0;
       // Create refinery order
       const order = {
         material_name: form.material_name,
         quantity_scu: Number(form.quantity_scu),
+        quality_score: qualityScoreFromPercent(inputQualityPct),
+        quality_pct: inputQualityPct,
         method: form.refinery_method,
         yield_pct: forecast.yield_pct,
         cost_aUEC: forecast.cost_aUEC,
         station: form.station,
-        submitted_by_callsign: callsign || 'UNKNOWN',
+        submitted_by_user_id: sessionUserId,
+        submitted_by_callsign: sessionCallsign,
         started_at: new Date().toISOString(),
         completes_at: forecast.completes_at,
         status: 'ACTIVE',
@@ -104,11 +114,12 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
       const pendingMaterial = {
         material_name: form.material_name,
         quantity_scu: forecast.estimated_output_scu,
-        quality_pct: forecast.quality_retained_pct,
+        quality_score: qualityScoreFromPercent(retainedQualityPct),
+        quality_pct: retainedQualityPct,
         material_type: 'REFINED',
         location: form.station,
-        logged_by_callsign: callsign || 'UNKNOWN',
-        logged_by: callsign || 'UNKNOWN',
+        logged_by_user_id: sessionUserId,
+        logged_by_callsign: sessionCallsign,
         source_type: 'REFINERY_ORDER',
         session_id: orderRes?.id,
         notes: `Refining via ${form.refinery_method} at ${form.station} - ETA ${Math.round(forecast.processing_minutes)}m`,

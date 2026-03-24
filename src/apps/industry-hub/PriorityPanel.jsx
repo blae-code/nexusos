@@ -51,7 +51,7 @@ export default function PriorityPanel({ blueprints, materials, onClearPriority }
       {open && (
         <div style={{ background: 'var(--bg1)', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
           {priorityBPs.map(bp => {
-            const owned   = !!(bp.owned_by || bp.owned_by_callsign);
+            const owned   = !!(bp.owned_by_user_id || bp.owned_by || bp.owned_by_callsign);
             const missing = countMissingIngredients(bp, materials);
             // Gap analysis chip
             let gapLabel, gapColor;

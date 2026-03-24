@@ -329,7 +329,7 @@ export function BlueprintGroup({ label, items }) {
           fontSize: 11, color: '#5A5850', textTransform: 'uppercase', padding: '12px 0', textAlign: 'center',
         }}>NO DATA LOGGED</div>
       ) : items.map(bp => {
-        const owned = Boolean(bp.owned_by || bp.owned_by_callsign);
+        const owned = Boolean(bp.owned_by_user_id || bp.owned_by || bp.owned_by_callsign);
         return (
           <div key={bp.id} style={{
             display: 'flex', alignItems: 'center', gap: 8,

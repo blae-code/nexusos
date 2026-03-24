@@ -1,17 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle,
   ChevronDown,
   ChevronRight,
   Circle,
-  ExternalLink,
-  RefreshCw,
-  ScanSearch,
   Target,
 } from 'lucide-react';
-import { base44 } from '@/core/data/base44Client';
-import { appParams } from '@/core/data/app-params';
 import { safeLocalStorage } from '@/core/data/safe-storage';
 
 const MANUAL_STORAGE_KEY = 'nexus_todo_v1_checked';

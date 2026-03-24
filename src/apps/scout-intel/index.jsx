@@ -11,7 +11,7 @@
  *   Blueprint.filter({ is_priority: true })   — for gap analysis + op overlay
  *   Op.filter({ status: 'LIVE' }, limit 1)    — for op overlay
  *
- * rank/callsign/discordId from useOutletContext (NexusShell).
+ * rank/callsign/sessionUserId from useOutletContext (NexusShell).
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
@@ -41,7 +41,6 @@ export default function ScoutIntel() {
   const ctx = /** @type {any} */ (useOutletContext() || {});
   const rank     = ctx.rank     || 'VAGRANT';
   const callsign = ctx.callsign || 'UNKNOWN';
-  const discordId = ctx.discordId || '';
 
   const [deposits,   setDeposits]   = useState([]);
   const [materials,  setMaterials]  = useState([]);
@@ -243,13 +242,12 @@ export default function ScoutIntel() {
           deposits={deposits}
           materials={materials}
           blueprints={blueprints}
-          liveOp={liveOp}
-          callsign={callsign}
-          rank={rank}
-          discordId={discordId}
-          onModeChange={setPanelMode}
-          onSelectDeposit={setSelectedDeposit}
-          onDepositUpdated={handleDepositUpdated}
+            liveOp={liveOp}
+            callsign={callsign}
+            rank={rank}
+            onModeChange={setPanelMode}
+            onSelectDeposit={setSelectedDeposit}
+            onDepositUpdated={handleDepositUpdated}
         />
       )}
     </div>
