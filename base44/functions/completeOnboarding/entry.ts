@@ -55,15 +55,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'not_configured' }, { status: 500 });
     }
 
-    const cookies = parseCookies(req);
-    const payload = await decodeSessionToken(cookies[SESSION_COOKIE_NAME], secret);
-    if (!payload?.user_id) {
-      return Response.json({ error: 'unauthorized' }, { status: 401 });
-    }
-
+    // Read body first (contains both session_token and onboarding data)
     let body;
     try { body = await req.json(); } catch {
       return Response.json({ error: 'invalid_body' }, { status: 400 });
+    }
+
+    // Get session token from body or cookie
+    let sessionToken = body?.session_token || null;
+    if (!sessionToken) {
+      const cookies = parseCookies(req);
+      sessionToken = cookies[SESSION_COOKIE_NAME] || null;
+    }
+
+    const sessionPayload = await decodeSessionToken(sessionToken, secret);
+    if (!sessionPayload?.user_id) {
+      return Response.json({ error: 'unauthorized' }, { status: 401 });
     }
 
     const consentGiven = body?.consent_given === true;
@@ -76,7 +83,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     // Fetch the user via service role
-    const users = await base44.asServiceRole.entities.NexusUser.filter({ id: payload.user_id });
+    const users = await base44.asServiceRole.entities.NexusUser.filter({ id: sessionPayload.user_id });
     const user = Array.isArray(users) && users.length > 0 ? users[0] : null;
 
     if (!user) {
@@ -98,7 +105,8 @@ Deno.serve(async (req) => {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error('[completeOnboarding]', error);
+    console.error('Error data:', JSON.stringify(error?.response?.data || error?.data || null, null, 2));
+    console.error('[completeOnboarding]', error?.message || error);
     return Response.json({ error: 'onboarding_failed' }, { status: 500 });
   }
 });
