@@ -23,6 +23,12 @@ import OrgTreasuryDashboard from '@/apps/industry-hub/OrgTreasuryDashboard';
 import RequisitionManager from '@/pages/RequisitionManager';
 import ProductionForecast from '@/apps/industry-hub/ProductionForecast';
 import SupplyChainBoard from '@/apps/industry-hub/SupplyChainBoard';
+import CraftabilityCalc from '@/apps/industry-hub/CraftabilityCalc';
+import MissionFarmPlanner from '@/apps/industry-hub/MissionFarmPlanner';
+import DismantleTracker from '@/apps/industry-hub/DismantleTracker';
+import BlueprintWishlistPanel from '@/apps/industry-hub/BlueprintWishlistPanel';
+import CraftingCostCalc from '@/apps/industry-hub/CraftingCostCalc';
+import CargoSCUPlanner from '@/apps/industry-hub/CargoSCUPlanner';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -44,6 +50,12 @@ const TABS = [
   { id: 'requisitions', label: 'REQUISITIONS' },
   { id: 'forecast', label: 'FORECAST' },
   { id: 'pipeline', label: 'PIPELINE' },
+  { id: 'craftable', label: 'CRAFTABLE' },
+  { id: 'missions', label: 'MISSIONS' },
+  { id: 'dismantle', label: 'DISMANTLE' },
+  { id: 'wishlist', label: 'WISHLIST' },
+  { id: 'costcalc', label: 'COST CALC' },
+  { id: 'cargoplanner', label: 'SCU PLAN' },
 ];
 
 const METHOD_STYLE = {
@@ -169,17 +181,21 @@ export default function IndustryHub() {
   const [refineryOrders, setRefineryOrders] = useState([]);
   const [scoutDeposits, setScoutDeposits] = useState([]);
   const [cofferLogs, setCofferLogs] = useState([]);
+  const [priceSnapshots, setPriceSnapshots] = useState([]);
+  const [orgShips, setOrgShips] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const [mats, bps, queue, refinery, deposits, coffers] = await Promise.all([
+      const [mats, bps, queue, refinery, deposits, coffers, priceData, orgShips] = await Promise.all([
         base44.entities.Material.list('-logged_at', 100),
         base44.entities.Blueprint.list('-created_date', 100),
         base44.entities.CraftQueue.list('-created_date', 50),
         base44.entities.RefineryOrder.list('-started_at', 50),
         base44.entities.ScoutDeposit.list('-reported_at', 10),
         base44.entities.CofferLog.list('-logged_at', 100),
+        base44.entities.PriceSnapshot.list('-snapped_at', 100).catch(() => []),
+        base44.entities.OrgShip.list('name', 200).catch(() => []),
       ]);
 
       setMaterials(mats || []);
@@ -188,6 +204,8 @@ export default function IndustryHub() {
       setRefineryOrders(refinery || []);
       setScoutDeposits(deposits || []);
       setCofferLogs(coffers || []);
+      setPriceSnapshots(priceData || []);
+      setOrgShips(orgShips || []);
     } catch {
       // load failed
     } finally {
@@ -293,6 +311,12 @@ export default function IndustryHub() {
         {tab === 'requisitions' ? <RequisitionManager /> : null}
         {tab === 'forecast' ? <ProductionForecast craftQueue={craftQueue} blueprints={blueprints} materials={materials} /> : null}
         {tab === 'pipeline' ? <SupplyChainBoard materials={materials} refineryOrders={refineryOrders} craftQueue={craftQueue} cofferLogs={cofferLogs} /> : null}
+        {tab === 'craftable' ? <CraftabilityCalc blueprints={blueprints} materials={materials} /> : null}
+        {tab === 'missions' ? <MissionFarmPlanner blueprints={blueprints} /> : null}
+        {tab === 'dismantle' ? <DismantleTracker callsign={callsign} /> : null}
+        {tab === 'wishlist' ? <BlueprintWishlistPanel blueprints={blueprints} callsign={callsign} rank={rank} /> : null}
+        {tab === 'costcalc' ? <CraftingCostCalc blueprints={blueprints} materials={materials} priceSnapshots={priceSnapshots} /> : null}
+        {tab === 'cargoplanner' ? <CargoSCUPlanner blueprints={blueprints} ships={orgShips} /> : null}
       </div>
     </div>
   );
