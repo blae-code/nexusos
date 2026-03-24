@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Search, Users } from 'lucide-react';
-import NexusToken from '@/core/design/NexusToken';
-import { rankToken, opTypeToken } from '@/core/data/tokenMap';
+import { Search } from 'lucide-react';
 
 const RANK_ORDER = ['PIONEER','FOUNDER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];
 
@@ -14,56 +12,27 @@ function timeAgo(iso) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function MemberCard({ user, activeOpType }) {
-  const rank = user.nexus_rank || user.rank || 'AFFILIATE';
-  const isRecent = user.last_seen_at && (Date.now() - new Date(user.last_seen_at).getTime()) < 3600000;
+function MemberCard({ user }) {
+  const rank = user.nexus_rank || 'AFFILIATE';
+  const isAdmin = user.is_admin === true;
+  const opRole = user.op_role || '';
 
   return (
-    <div className="nexus-card" style={{ padding: '12px 14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <NexusToken
-            src={rankToken(rank)}
-            size={16}
-            alt={rank}
-            title={`Rank: ${rank}`}
-          />
-          <span style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600 }}>{user.callsign}</span>
-          {isRecent && (
-            <span
-              title="Online recently (< 1h)"
-              style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--live)', flexShrink: 0, display: 'inline-block' }}
-            />
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          {activeOpType && (
-            <NexusToken
-              src={opTypeToken(activeOpType)}
-              size={14}
-              pulse="live"
-              alt={`In op: ${activeOpType}`}
-              title={`Currently in a live ${activeOpType} op`}
-            />
-          )}
-          <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.1em' }}>{rank}</span>
-        </div>
+    <div style={{
+      background: '#0F0F0D',
+      borderLeft: '2px solid #C0392B',
+      borderTop: `0.5px solid ${isAdmin ? 'rgba(200,168,75,0.4)' : 'rgba(200,170,100,0.10)'}`,
+      borderRight: `0.5px solid ${isAdmin ? 'rgba(200,168,75,0.4)' : 'rgba(200,170,100,0.10)'}`,
+      borderBottom: `0.5px solid ${isAdmin ? 'rgba(200,168,75,0.4)' : 'rgba(200,170,100,0.10)'}`,
+      borderRadius: 2, padding: 20,
+    }}>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#E8E4DC', marginBottom: 4 }}>{user.callsign}</div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 12, color: '#C8A84B', textTransform: 'uppercase', marginBottom: 8 }}>{opRole || <span style={{ color: '#5A5850', fontStyle: 'italic' }}>UNASSIGNED</span>}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Joined {user.joined_at ? new Date(user.joined_at).toLocaleDateString() : '—'}</span>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Last seen {timeAgo(user.last_seen_at)}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--t2)', fontSize: 10 }}>
-        <span title={user.joined_at ? new Date(user.joined_at).toISOString() : undefined}>
-          Joined {user.joined_at ? new Date(user.joined_at).toLocaleDateString() : '—'}
-        </span>
-        <span title={user.last_seen_at || undefined}>
-          {isRecent ? <span style={{ color: 'var(--live)' }}>ONLINE NOW</span> : `Last seen ${timeAgo(user.last_seen_at)}`}
-        </span>
-      </div>
-      {user.discord_roles && user.discord_roles.length > 0 && (
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
-          {user.discord_roles.slice(0, 4).map((r, i) => (
-            <span key={i} className="nexus-tag" style={{ color: 'var(--t2)', borderColor: 'var(--b1)', background: 'transparent', fontSize: 9 }}>{r}</span>
-          ))}
-        </div>
-      )}
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 10, color: '#5A5850', background: 'rgba(90,88,80,0.15)', border: '0.5px solid rgba(90,88,80,0.25)', borderRadius: 2, padding: '2px 6px', textTransform: 'uppercase' }}>{rank}</span>
     </div>
   );
 }
@@ -72,140 +41,59 @@ export default function OrgRoster() {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [rankFilter, setRankFilter] = useState('ALL');
-  // Map of discord_id -> op type for members in live ops
-  const [inOpMap, setInOpMap] = useState({});
 
   const load = useCallback(async () => {
-    const usersData = await base44.entities.NexusUser.list('-joined_at', 200).catch(() => []);
-    setUsers(usersData || []);
+    const data = await base44.entities.NexusUser.list('-joined_at', 200).catch(() => []);
+    setUsers(data || []);
   }, []);
 
-  // Load op-based presence: find live ops, get their RSVPs, build discord_id -> op type map
-  const loadPresence = useCallback(async () => {
-    try {
-      const liveOps = await base44.entities.Op.filter({ status: 'LIVE' });
-      if (!Array.isArray(liveOps) || liveOps.length === 0) {
-        setInOpMap({});
-        return;
-      }
-      const rsvpArrays = await Promise.all(
-        liveOps.map(op => base44.entities.OpRsvp.filter({ op_id: op.id }).catch(() => []))
-      );
-      const map = {};
-      liveOps.forEach((op, idx) => {
-        (rsvpArrays[idx] || []).forEach(rsvp => {
-          if (rsvp.discord_id && rsvp.status === 'CONFIRMED') {
-            map[String(rsvp.discord_id)] = op.type || 'MINING';
-          }
-        });
-      });
-      setInOpMap(map);
-    } catch {
-      // presence load failed — no op indicators shown
-    }
-  }, []);
-
+  useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    load();
-    loadPresence();
-  }, [load, loadPresence]);
-
-  useEffect(() => {
-    const unsubscribe = base44.entities.NexusUser.subscribe(() => { load(); });
-    return () => unsubscribe();
+    const unsub = base44.entities.NexusUser.subscribe(() => load());
+    return () => unsub();
   }, [load]);
 
-  useEffect(() => {
-    const unsubscribe = base44.entities.Op.subscribe(() => { loadPresence(); });
-    return () => unsubscribe();
-  }, [loadPresence]);
-
   const filtered = users.filter(u => {
-    const rank = u.nexus_rank || u.rank;
-    if (rankFilter !== 'ALL' && rank !== rankFilter) return false;
+    if (rankFilter !== 'ALL' && (u.nexus_rank || 'AFFILIATE') !== rankFilter) return false;
     if (search && !u.callsign?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  }).sort((a, b) => {
-    const ra = a.nexus_rank || a.rank || 'AFFILIATE';
-    const rb = b.nexus_rank || b.rank || 'AFFILIATE';
-    return RANK_ORDER.indexOf(ra) - RANK_ORDER.indexOf(rb);
-  });
-
-  const byCounts = RANK_ORDER.reduce((acc, r) => {
-    acc[r] = users.filter(u => (u.nexus_rank || u.rank) === r).length;
-    return acc;
-  }, {});
-
-  const RANK_COLORS = {
-    PIONEER: 'var(--warn)', FOUNDER: 'var(--acc2)', VOYAGER: 'var(--info)',
-    SCOUT: 'var(--live)', VAGRANT: 'var(--t1)', AFFILIATE: 'var(--t2)',
-  };
+  }).sort((a, b) => RANK_ORDER.indexOf(a.nexus_rank || 'AFFILIATE') - RANK_ORDER.indexOf(b.nexus_rank || 'AFFILIATE'));
 
   return (
-    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 16, gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Users size={16} style={{ color: 'var(--acc2)' }} />
-        <span style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 600 }}>ORG ROSTER</span>
-        <span style={{ color: 'var(--t2)', fontSize: 11 }}>{users.length} members</span>
-        {Object.keys(inOpMap).length > 0 && (
-          <span
-            title={`${Object.keys(inOpMap).length} member(s) currently in a live op`}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--live)', letterSpacing: '0.08em' }}
-          >
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--live)', animation: 'pulse-dot 2.5s ease-in-out infinite', display: 'inline-block' }} />
-            {Object.keys(inOpMap).length} IN-OP
-          </span>
-        )}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 20, gap: 16, animation: 'pageEntrance 200ms ease-out' }}>
+      <div>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>ORG ROSTER</div>
+        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 4 }}>REDSCAR NOMADS · ACTIVE MEMBERS</div>
       </div>
 
-      {/* Rank filter strip */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {RANK_ORDER.map(r => (
-          <button
-            key={r}
-            onClick={() => setRankFilter(rankFilter === r ? 'ALL' : r)}
-            className="nexus-btn"
-            title={`Filter by ${r} rank (${byCounts[r] || 0} members)`}
-            style={{
-              padding: '4px 10px', fontSize: 10,
-              background: rankFilter === r ? 'var(--bg4)' : 'var(--bg2)',
-              borderColor: rankFilter === r ? (RANK_COLORS[r] || 'var(--b2)') : 'var(--b1)',
-              color: rankFilter === r ? (RANK_COLORS[r] || 'var(--t0)') : 'var(--t2)',
-              display: 'flex', alignItems: 'center', gap: 5,
-            }}
-          >
-            <NexusToken src={rankToken(r)} size={12} alt={r} />
-            {r} <span style={{ color: 'var(--t2)', marginLeft: 2 }}>{byCounts[r] || 0}</span>
-          </button>
+        {['ALL', ...RANK_ORDER].map(r => (
+          <button key={r} onClick={() => setRankFilter(r)} style={{
+            padding: '4px 10px', fontSize: 10, borderRadius: 2, cursor: 'pointer',
+            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+            background: rankFilter === r ? 'rgba(200,168,75,0.12)' : 'transparent',
+            border: `0.5px solid ${rankFilter === r ? '#C8A84B' : 'rgba(200,170,100,0.10)'}`,
+            color: rankFilter === r ? '#C8A84B' : '#5A5850', textTransform: 'uppercase', letterSpacing: '0.1em',
+          }}>{r}</button>
         ))}
       </div>
 
-      {/* Search */}
       <div style={{ position: 'relative' }}>
-        <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--t2)' }} />
-        <input
-          className="nexus-input"
-          placeholder="Search callsign..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ paddingLeft: 32 }}
-        />
+        <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#5A5850' }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="SEARCH CALLSIGN..." style={{
+          width: '100%', padding: '10px 14px 10px 32px', background: '#141410',
+          border: '0.5px solid rgba(200,170,100,0.12)', borderRadius: 2, color: '#E8E4DC',
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, letterSpacing: '0.08em', outline: 'none',
+        }} onFocus={e => { e.target.style.borderColor = '#C8A84B'; }} onBlur={e => { e.target.style.borderColor = 'rgba(200,170,100,0.12)'; }} />
       </div>
 
-      {/* Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
-        {filtered.map(u => (
-          <MemberCard
-            key={u.id}
-            user={u}
-            activeOpType={inOpMap[String(u.discord_id)] || null}
-          />
-        ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
+        {filtered.map(u => <MemberCard key={u.id} user={u} />)}
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ color: 'var(--t2)', fontSize: 13, textAlign: 'center', padding: 40 }}>
-          No members match your search
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 20px', gap: 12 }}>
+          <span style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 11, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.22em' }}>NO MEMBERS FOUND</span>
         </div>
       )}
     </div>

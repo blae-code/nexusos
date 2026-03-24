@@ -68,15 +68,12 @@ export default function RedscarHandbook() {
   }, [highlightedSection]);
 
   return (
-    <div className="nexus-page-enter" style={{ padding: '24px', maxWidth: 900, margin: '0 auto', color: 'var(--t0)' }}>
+    <div style={{ padding: '24px', maxWidth: 760, margin: '0 auto', color: '#E8E4DC', animation: 'pageEntrance 200ms ease-out' }}>
       {/* Header */}
-      <div style={{ marginBottom: 32, textAlign: 'center' }}>
-        <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '0.15em', marginBottom: 8 }}>
-          REDSCAR NOMADS
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--t2)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          Organization Reference & Handbook
-        </div>
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, color: '#E8E4DC', borderBottom: '0.5px solid rgba(200,170,100,0.10)', paddingBottom: 8, marginBottom: 16 }}>REDSCAR NOMADS</div>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 14, color: '#C8A84B', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Organization Reference & Handbook</div>
+        <div style={{ fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: 14, color: '#9A9488', lineHeight: 1.7, marginTop: 8 }}>The official handbook for all Redscar Nomads members. Contains rank structure, codes of conduct, operational procedures, and organizational policy.</div>
       </div>
 
       {/* Rank Hierarchy */}
@@ -333,9 +330,9 @@ export default function RedscarHandbook() {
       </Section>
 
       {/* Footer */}
-      <div style={{ marginTop: 40, paddingTop: 20, borderTop: '0.5px solid var(--b1)', textAlign: 'center', color: 'var(--t3)', fontSize: 9 }}>
-        <div style={{ letterSpacing: '0.1em', marginBottom: 6 }}>THE ETERNAL VOYAGE</div>
-        <div style={{ fontSize: 8, color: 'var(--t3)' }}>Always exploring the new and exotic. Never alone. Redscar awaits all who wander.</div>
+      <div style={{ marginTop: 40, paddingTop: 20, borderTop: '0.5px solid rgba(200,170,100,0.10)', textAlign: 'center', color: '#5A5850', fontSize: 9 }}>
+        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", letterSpacing: '0.22em', marginBottom: 6, textTransform: 'uppercase' }}>THE ETERNAL VOYAGE</div>
+        <div style={{ fontFamily: "'Barlow', sans-serif", fontSize: 9, color: '#5A5850' }}>Always exploring the new and exotic. Never alone. Redscar awaits all who wander.</div>
       </div>
     </div>
   );

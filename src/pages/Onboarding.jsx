@@ -49,32 +49,17 @@ By continuing, you acknowledge that you have read and understood this disclosure
 
 function StepIndicator({ currentStep, totalSteps }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 16,
-      }}
-    >
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', paddingTop: 16 }}>
       {Array.from({ length: totalSteps }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            width: i === currentStep ? 28 : 8,
-            height: 8,
-            borderRadius: '3px',
-            background: i < currentStep 
-              ? 'linear-gradient(135deg, #C0392B, #A03220)' 
-              : i === currentStep 
-              ? 'linear-gradient(135deg, #C8A84B, #A08030)' 
-              : 'rgba(200, 170, 100, 0.15)',
-            transition: 'all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            flexShrink: 0,
-            boxShadow: i === currentStep ? '0 4px 12px rgba(200, 168, 75, 0.3)' : 'none',
-          }}
-        />
+        <React.Fragment key={i}>
+          {i > 0 && <div style={{ width: 16, height: 1, background: '#5A5850' }} />}
+          <div style={{
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+            background: i < currentStep ? '#4A8C5C' : i === currentStep ? '#C0392B' : 'transparent',
+            border: i >= currentStep && i !== currentStep ? '1px solid #5A5850' : 'none',
+            transition: 'all 200ms',
+          }} />
+        </React.Fragment>
       ))}
     </div>
   );

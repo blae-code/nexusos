@@ -126,16 +126,15 @@ export default function AdminSettings() {
 
   if (!isAdmin) {
     return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100%', width: '100%', background: '#0A0908',
-      }}>
-        <span style={{
-          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
-          color: '#C8A84B', letterSpacing: '0.2em', textTransform: 'uppercase',
-        }}>
-          ACCESS DENIED — PIONEER CLEARANCE REQUIRED
-        </span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', background: '#08080A', gap: 16 }}>
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style={{ opacity: 0.12 }}>
+          <circle cx="22" cy="22" r="20" stroke="#E8E4DC" strokeWidth="0.6" />
+          <circle cx="22" cy="22" r="14" stroke="#C0392B" strokeWidth="0.6" />
+          <circle cx="22" cy="22" r="7" fill="#C0392B" opacity="0.6" />
+          <circle cx="22" cy="22" r="3" fill="#E8E4DC" />
+        </svg>
+        <div style={{ fontFamily: "'Beyond Mars','Barlow Condensed',sans-serif", fontSize: 36, color: '#C0392B', textTransform: 'uppercase' }}>ACCESS DENIED</div>
+        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 11, color: '#5A5850', letterSpacing: '0.22em', textTransform: 'uppercase' }}>PIONEER CLEARANCE REQUIRED</div>
       </div>
     );
   }
@@ -149,11 +148,10 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="nexus-page-enter" style={{ padding: '24px', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ padding: '24px', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20, animation: 'pageEntrance 200ms ease-out' }}>
       <div>
-        <div style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 6 }}>
-          API CREDENTIALS
-        </div>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>ADMIN SETTINGS</div>
+        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase' }}>API CREDENTIALS</div>
       </div>
 
       {/* Secret Inputs */}

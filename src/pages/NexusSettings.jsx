@@ -16,9 +16,9 @@ const RANK_COLORS = {
 
 function Section({ title, children }) {
   return (
-    <div className="nexus-card" style={{ padding: 16 }}>
-      <div style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', marginBottom: 14 }}>{title}</div>
-      <div className="flex flex-col gap-3">{children}</div>
+    <div style={{ background: '#0F0F0D', borderLeft: '2px solid #C0392B', borderTop: '0.5px solid rgba(200,170,100,0.10)', borderRight: '0.5px solid rgba(200,170,100,0.10)', borderBottom: '0.5px solid rgba(200,170,100,0.10)', borderRadius: 2, padding: 16 }}>
+      <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: 14, paddingBottom: 6, borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>{title}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{children}</div>
     </div>
   );
 }
@@ -96,7 +96,7 @@ export default function NexusSettings() {
   };
 
   return (
-    <div className="nexus-page-enter flex flex-col gap-4 p-4 overflow-auto h-full" style={{ maxWidth: 680 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 20, overflow: 'auto', height: '100%', maxWidth: 680, animation: 'pageEntrance 200ms ease-out' }}>
       <Section title="IDENTITY">
         <div
           className="flex items-center gap-3"
