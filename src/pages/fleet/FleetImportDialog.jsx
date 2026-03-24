@@ -228,31 +228,48 @@ export default function FleetImportDialog({ onClose, onImported, ownerCallsign }
     let success = 0;
     let failed = 0;
 
-    // Batch create — strip internal fields
+    // Only include fields that exist in the OrgShip entity schema
+    const VALID_CLASSES = ['FIGHTER', 'HEAVY_FIGHTER', 'MINER', 'HAULER', 'SALVAGER', 'MEDICAL', 'EXPLORER', 'GROUND_VEHICLE', 'OTHER'];
+
     const records = toImport.map(s => {
-      const { _source, _entity_type, ...ship } = s;
-      // Clean undefined values
-      return Object.fromEntries(Object.entries(ship).filter(([, v]) => v !== undefined && v !== ''));
+      const record = {
+        name: (s.name || s.model || 'Unknown Ship').slice(0, 200),
+        model: (s.model || s.name || 'Unknown').slice(0, 200),
+        class: VALID_CLASSES.includes(s.class) ? s.class : 'OTHER',
+      };
+      if (s.manufacturer) record.manufacturer = String(s.manufacturer).slice(0, 200);
+      if (s.status === 'AVAILABLE') record.status = 'AVAILABLE';
+      if (s.cargo_scu && parseInt(s.cargo_scu) > 0) record.cargo_scu = parseInt(s.cargo_scu);
+      if (s.crew_size && parseInt(s.crew_size) > 0) record.crew_size = parseInt(s.crew_size);
+      if (s.fleetyards_id) record.fleetyards_id = String(s.fleetyards_id);
+      if (s.notes) record.notes = String(s.notes).slice(0, 500);
+      if (s.assigned_to_callsign) record.assigned_to_callsign = String(s.assigned_to_callsign);
+      return record;
     });
 
-    try {
-      await base44.entities.OrgShip.bulkCreate(records);
-      success = records.length;
-    } catch {
-      // Fallback to individual creates
-      for (const record of records) {
-        try {
-          await base44.entities.OrgShip.create(record);
-          success++;
-        } catch {
-          failed++;
+    // Import in batches of 20
+    for (let i = 0; i < records.length; i += 20) {
+      const batch = records.slice(i, i + 20);
+      try {
+        await base44.entities.OrgShip.bulkCreate(batch);
+        success += batch.length;
+      } catch (bulkErr) {
+        console.warn('[FleetImport] Bulk create failed, trying individually:', bulkErr);
+        for (const record of batch) {
+          try {
+            await base44.entities.OrgShip.create(record);
+            success++;
+          } catch (err) {
+            console.error('[FleetImport] Failed to create ship:', record.name, err);
+            failed++;
+          }
         }
       }
     }
 
     setImportResult({ success, failed, total: toImport.length });
     setStep('done');
-    showToast(`Imported ${success} ship${success !== 1 ? 's' : ''} to fleet roster`, 'success');
+    showToast(`Imported ${success} ship${success !== 1 ? 's' : ''} to fleet roster`, success > 0 ? 'success' : 'error');
   };
 
   const sourceCount = parsed.reduce((acc, s) => {
