@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, Copy, RefreshCw, Shield } from 'lucide-react';
 import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
+import InviteMessageBuilder from '@/components/InviteMessageBuilder';
+import { showToast } from '@/components/NexusToast';
 
 const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 const SYSTEM_ADMIN_LOGIN = 'system-admin';
@@ -436,6 +438,14 @@ export default function KeyManagement() {
         ) : null}
 
         <GeneratedKeyPanel generatedKey={generatedKey} copied={copied} onCopy={handleCopy} />
+        
+        {generatedKey?.key && (
+          <InviteMessageBuilder
+            username={generatedKey.contextLabel?.match(/For (\S+)/)?.[1] || ''}
+            rank={generatedKey.contextLabel?.match(/· (\S+)/)?.[1] || rank}
+            authKey={generatedKey.key}
+          />
+        )}
       </div>
 
       <div style={{
