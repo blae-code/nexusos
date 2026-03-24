@@ -1,4 +1,5 @@
 import { Toaster } from "@/core/design/toaster";
+import NexusToastContainer from '@/components/NexusToast';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { queryClientInstance } from '@/core/data/query-client';
@@ -103,6 +104,7 @@ function App() {
         </Router>
       </SessionProvider>
       <Toaster />
+      <NexusToastContainer />
     </QueryClientProvider>
   );
 }
