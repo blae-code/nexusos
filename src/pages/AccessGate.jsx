@@ -5,7 +5,12 @@ import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
 
 function normalizeAuthenticatedDestination(rawDestination, onboardingComplete) {
-  if (onboardingComplete === false) return '/onboarding';
+  if (onboardingComplete === false) {
+    if (rawDestination && rawDestination.startsWith('/app')) {
+      return `/onboarding?redirect_to=${encodeURIComponent(rawDestination)}`;
+    }
+    return '/onboarding';
+  }
   if (!rawDestination) return '/app/industry';
   if (!rawDestination.startsWith('/') || rawDestination.startsWith('//')) return '/app/industry';
   if (rawDestination === '/onboarding' || rawDestination.startsWith('/app')) return rawDestination;
@@ -77,14 +82,14 @@ export default function AccessGate() {
       }
 
       if (loginRes.error) {
-        setError('Invalid callsign or auth key. Check both and try again.');
+        setError('Invalid username or auth key. Check both and try again.');
         setSubmitting(false);
         return;
       }
 
       if (loginRes.success) {
         await refreshSession();
-        const dest = loginRes.onboarding_complete === false ? '/onboarding' : '/app/industry';
+        const dest = normalizeAuthenticatedDestination(searchParams.get('redirect_to'), loginRes.onboarding_complete);
         window.location.assign(withAppBase(dest));
         return;
       }
@@ -203,8 +208,20 @@ export default function AccessGate() {
           fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
           fontSize: '12px', color: '#C8A84B',
           letterSpacing: '0.22em', textTransform: 'uppercase',
-          marginBottom: '32px',
+          marginBottom: '18px',
         }}>Access Gate</div>
+
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: '11px',
+          color: '#8C877D',
+          letterSpacing: '0.08em',
+          lineHeight: 1.6,
+          marginBottom: '22px',
+          textTransform: 'uppercase',
+        }}>
+          Use your issued username and access key. Callsign can change later in NexusOS settings.
+        </div>
 
 
 
@@ -216,7 +233,7 @@ export default function AccessGate() {
           {/* USERNAME INPUT */}
           <input
             type="text"
-            placeholder="ENTER CALLSIGN"
+            placeholder="ENTER ISSUED USERNAME"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
@@ -262,6 +279,33 @@ export default function AccessGate() {
             onFocus={(e) => { e.target.style.borderColor = '#C8A84B'; }}
             onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.12)'; }}
           />
+
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '16px',
+            cursor: 'pointer',
+            color: '#8C877D',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '11px',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+          }}>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              style={{
+                width: 13,
+                height: 13,
+                margin: 0,
+                accentColor: '#C0392B',
+                cursor: 'pointer',
+              }}
+            />
+            Remember This Device
+          </label>
 
 
 

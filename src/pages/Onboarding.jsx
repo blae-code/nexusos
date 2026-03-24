@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useMemo, useRef, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { withAppBase } from '@/core/data/app-base-path';
 import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
@@ -46,6 +46,12 @@ Members retain full control of their data and may revoke platform access at any 
 Data is stored securely with access limited to system administrators. Platform communications use encrypted connections.
 
 By continuing, you acknowledge that you have read and understood this disclosure.`;
+
+function normalizePostOnboardingDestination(rawDestination) {
+  if (!rawDestination) return '/app/industry';
+  if (!rawDestination.startsWith('/app') || rawDestination.startsWith('//')) return '/app/industry';
+  return rawDestination;
+}
 
 function StepIndicator({ currentStep, totalSteps }) {
   return (
@@ -511,8 +517,13 @@ function Step4Consent({ user, onComplete }) {
 }
 
 export default function Onboarding() {
+  const location = useLocation();
   const { user, loading } = useSession();
   const [step, setStep] = useState(0);
+  const postOnboardingDestination = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    return normalizePostOnboardingDestination(searchParams.get('redirect_to'));
+  }, [location.search]);
 
   if (loading) {
     return (
@@ -527,11 +538,11 @@ export default function Onboarding() {
   }
 
   if (user.onboarding_complete) {
-    return <Navigate to="/app/industry" replace />;
+    return <Navigate to={postOnboardingDestination} replace />;
   }
 
   const handleComplete = () => {
-    window.location.href = withAppBase('/app/industry');
+    window.location.href = withAppBase(postOnboardingDestination);
   };
 
   return (
