@@ -5,6 +5,7 @@
 import React, { useState, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { ChevronLeft, CheckCircle, AlertTriangle, Navigation } from 'lucide-react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,8 @@ export function SectionHead({ children }) {
 // ─── Top deposit row ───────────────────────────────────────────────────────────
 
 export function TopDepositRow({ deposit, onClick }) {
-  const col = qColor(deposit.quality_pct);
+  const qualityPct = qualityPercentFromRecord(deposit);
+  const col = qColor(qualityPct);
   const now = Date.now();
   const age = now - new Date(deposit.reported_at || 0).getTime();
   const isRecent = age < 86400000; // 24h
@@ -69,7 +71,7 @@ export function TopDepositRow({ deposit, onClick }) {
         color: col, fontSize: 16, fontWeight: 700, minWidth: 36,
         fontVariantNumeric: 'tabular-nums', lineHeight: 1,
       }}>
-        {Math.round(deposit.quality_pct || 0)}%
+        {Math.round(qualityPct || 0)}%
       </span>
 
       {/* Detail */}
@@ -130,7 +132,7 @@ export function GapRow({ name, have, need, bestDeposit }) {
       </div>
       {!met && bestDeposit && (
         <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.04em' }}>
-          Best: {bestDeposit.quality_pct}% {bestDeposit.system_name && `· ${bestDeposit.system_name}`}
+          Best: {qualityPercentFromRecord(bestDeposit).toFixed(0)}% {bestDeposit.system_name && `· ${bestDeposit.system_name}`}
         </div>
       )}
     </div>
@@ -179,7 +181,7 @@ export function DefaultMode({ deposits, materials, blueprints, onSelectDeposit }
   // Top 5 fresh deposits by quality
   const topDeposits = deposits
     .filter(d => !d.is_stale)
-    .sort((a, b) => (b.quality_pct || 0) - (a.quality_pct || 0))
+    .sort((a, b) => qualityPercentFromRecord(b) - qualityPercentFromRecord(a))
     .slice(0, 5);
 
   // Crafting gaps: priority blueprints → missing/short materials
@@ -199,7 +201,7 @@ export function DefaultMode({ deposits, materials, blueprints, onSelectDeposit }
           // Find best scout deposit for this material
           const bestDep = deposits
             .filter(d => !d.is_stale && (d.material_name || '').toLowerCase() === name.toLowerCase())
-            .sort((a, b) => (b.quality_pct || 0) - (a.quality_pct || 0))[0] || null;
+            .sort((a, b) => qualityPercentFromRecord(b) - qualityPercentFromRecord(a))[0] || null;
           gaps.push({ name, have, need, bestDeposit: bestDep });
         }
       });
@@ -212,7 +214,7 @@ export function DefaultMode({ deposits, materials, blueprints, onSelectDeposit }
     const key = d.reported_by_callsign || d.reported_by || '—';
     if (!scouts[key]) scouts[key] = { count: 0, totalQ: 0 };
     scouts[key].count++;
-    scouts[key].totalQ += (d.quality_pct || 0);
+    scouts[key].totalQ += qualityPercentFromRecord(d);
   });
   const leaderboard = Object.entries(scouts)
     .map(([callsign, s]) => ({ callsign, count: s.count, avgQuality: s.totalQ / s.count }))
@@ -276,7 +278,8 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
   const [routeLoading, setRouteLoading] = useState(false);
   const [loggedToOp,   setLoggedToOp]  = useState(false);
 
-  const col = qColor(deposit.quality_pct);
+  const qualityPct = qualityPercentFromRecord(deposit);
+  const col = qColor(qualityPct);
   const riskCol = RISK_COLORS[(deposit.risk_level || '').toUpperCase()] || 'var(--t2)';
 
   const handleVote = useCallback(async (type) => {
@@ -299,7 +302,7 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
         material_name: deposit.material_name,
         system_name: deposit.system_name,
         location_detail: deposit.location_detail,
-        quality_pct: deposit.quality_pct,
+        quality_pct: qualityPct,
         risk_level: deposit.risk_level,
       });
       setRouteResult(result);
@@ -315,7 +318,7 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
       t:      new Date().toISOString(),
       type:   'PING',
       author: callsign,
-      text:   `Scout ping: ${Math.round(deposit.quality_pct || 0)}% ${deposit.material_name} · ${deposit.location_detail} (${deposit.risk_level} risk)`,
+      text:   `Scout ping: ${Math.round(qualityPct || 0)}% ${deposit.material_name} · ${deposit.location_detail} (${deposit.risk_level} risk)`,
     };
     await base44.entities.Op.update(liveOp.id, {
       session_log: [...(liveOp.session_log || []), entry],
@@ -358,16 +361,16 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
           <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.08em' }}>QUALITY</span>
           <span style={{ color: col, fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-            {Math.round(deposit.quality_pct || 0)}%
+            {Math.round(qualityPct || 0)}%
           </span>
         </div>
         <div style={{ height: 6, background: 'var(--b1)', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{
-            height: '100%', width: `${deposit.quality_pct || 0}%`,
+            height: '100%', width: `${qualityPct || 0}%`,
             background: col, transition: 'width 0.3s ease',
           }} />
         </div>
-        {(deposit.quality_pct || 0) >= 80 && (
+        {qualityPct >= 80 && (
           <div style={{ color: 'var(--live)', fontSize: 8, letterSpacing: '0.08em', marginTop: 3 }}>T2 ELIGIBLE</div>
         )}
       </div>

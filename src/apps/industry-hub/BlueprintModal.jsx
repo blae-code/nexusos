@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 
-export default function BlueprintModal({ bp, callsign, discordId, onSave, onClose }) {
+export default function BlueprintModal({ bp, callsign, userId, onSave, onClose }) {
   const editing = Boolean(bp?.id);
   const [form, setForm] = useState({
     item_name: bp?.item_name || '',
@@ -42,7 +42,8 @@ export default function BlueprintModal({ bp, callsign, discordId, onSave, onClos
   const removeMaterial = (i) => set('recipe_materials', form.recipe_materials.filter((_, idx) => idx !== i));
 
   const claimForSelf = () => {
-    set('owned_by', discordId || '');
+    set('owned_by_user_id', userId || '');
+    set('owned_by', userId || '');
     set('owned_by_callsign', callsign || '');
   };
 

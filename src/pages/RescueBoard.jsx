@@ -14,12 +14,17 @@ export default function RescueBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const callsign = outletContext.callsign;
   const [calls, setCalls] = useState(() => loadRescueCalls());
-  const [form, setForm] = useState({ location: '', system: 'STANTON', situation: '', callsign: '' });
+  const sessionCallsign = callsign || 'UNKNOWN';
+  const [form, setForm] = useState({ location: '', system: 'STANTON', situation: '', callsign: sessionCallsign });
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    setForm((current) => ({ ...current, callsign: sessionCallsign }));
+  }, [sessionCallsign]);
 
   useEffect(() => {
     let active = true;
@@ -42,13 +47,13 @@ export default function RescueBoard() {
     const nextCall = {
       id: `rescue_${Date.now()}`,
       ...form,
-      callsign: form.callsign || callsign || 'UNKNOWN',
+      callsign: sessionCallsign,
       ts: new Date().toISOString(),
       status: 'OPEN',
     };
     const nextCalls = await createRescueCall(nextCall);
     setCalls(nextCalls);
-    setForm({ location: '', system: 'STANTON', situation: '', callsign: '' });
+    setForm({ location: '', system: 'STANTON', situation: '', callsign: sessionCallsign });
     setShowForm(false);
     setSubmitting(false);
   };
@@ -95,7 +100,7 @@ export default function RescueBoard() {
             <div className="flex gap-2">
               <div style={{ flex: 1 }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>CALLSIGN</label>
-                <input className="nexus-input" value={form.callsign} onChange={e => set('callsign', e.target.value)} placeholder={callsign || 'YOUR CALLSIGN'} />
+                <input className="nexus-input" value={form.callsign} readOnly />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>SYSTEM</label>

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const TYPE_COLORS = {
   RAW:     'var(--warn)',
@@ -27,7 +28,7 @@ function SectionHeader({ label }) {
 }
 
 function MaterialRow({ m, onArchive }) {
-  const q = m.quality_pct || 0;
+  const q = qualityPercentFromRecord(m);
   const qColor = q >= 80 ? 'var(--live)' : q >= 60 ? 'var(--info)' : q >= 40 ? 'var(--warn)' : 'var(--danger)';
   const typeColor = TYPE_COLORS[m.material_type] || 'var(--t2)';
   const stage = STAGE_MAP[m.material_type] || 'MISC';

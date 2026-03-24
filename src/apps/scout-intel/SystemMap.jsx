@@ -17,6 +17,7 @@ import React, { useMemo, useState } from 'react';
 import { Layers, Crosshair, MapPin } from 'lucide-react';
 import NexusToken from '@/core/design/NexusToken';
 import { depositToken } from '@/core/data/tokenMap';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 import EmptyState from '@/core/design/EmptyState';
 import { Chip, IconBtn } from './SystemMapControls';
 
@@ -203,7 +204,7 @@ export default function SystemMap({
     return deposits.filter(d => {
       if (system !== 'ALL' && (d.system_name || '').toUpperCase() !== system) return false;
       if (material !== 'ALL' && (d.material_name || '').toUpperCase() !== material) return false;
-      if ((d.quality_pct || 0) < qualityMin) return false;
+      if (qualityPercentFromRecord(d) < qualityMin) return false;
       if (staleness === 'FRESH') {
         const age = now - new Date(d.reported_at || 0).getTime();
         if (age > 86400000 || d.is_stale) return false;
@@ -230,7 +231,7 @@ export default function SystemMap({
       const key = `${gx},${gy}`;
       if (!groups[key]) groups[key] = { x: gx, y: gy, count: 0, totalQ: 0 };
       groups[key].count++;
-      groups[key].totalQ += (d.quality_pct || 0);
+      groups[key].totalQ += qualityPercentFromRecord(d);
     });
     return Object.values(groups).map(g => ({ ...g, avgQ: g.totalQ / g.count }));
   }, [heatmap, visibleDeposits, positions]);
@@ -506,7 +507,8 @@ export default function SystemMap({
           {visibleDeposits.map((deposit, i) => {
             const pos = positions[i];
             if (!pos) return null;
-            const col = qColor(deposit.quality_pct);
+            const qualityPct = qualityPercentFromRecord(deposit);
+            const col = qColor(qualityPct);
             const stale = deposit.is_stale;
             const selected = deposit.id === selectedDepositId;
             const hovered = deposit.id === hoveredDepositId;
@@ -546,7 +548,7 @@ export default function SystemMap({
                 />
 
                 {/* Quality label (above token) */}
-                {deposit.quality_pct != null && (
+                {(deposit.quality_pct != null || deposit.quality_score != null) && (
                   <text
                     x={pos.x}
                     y={pos.y - 18}
@@ -556,7 +558,7 @@ export default function SystemMap({
                     fontFamily="monospace"
                     fontWeight={600}
                   >
-                    {Math.round(deposit.quality_pct)}%
+                    {Math.round(qualityPct)}%
                   </text>
                 )}
 
@@ -569,7 +571,7 @@ export default function SystemMap({
                   style={{ overflow: 'visible' }}
                 >
                   <NexusToken
-                    src={depositToken(deposit.quality_pct, stale, isCraftTarget)}
+                    src={depositToken(qualityPct, stale, isCraftTarget)}
                     size={28}
                     pulse={isCraftTarget ? 'warn' : false}
                     alt={deposit.material_name || 'deposit'}
@@ -595,7 +597,7 @@ export default function SystemMap({
             {visibleDeposits.filter(d => !d.is_stale).length} fresh
           </span>
           <span style={{ color: 'var(--live)', fontSize: 9, letterSpacing: '0.08em' }}>
-            {visibleDeposits.filter(d => (d.quality_pct || 0) >= 80).length} T2
+            {visibleDeposits.filter(d => qualityPercentFromRecord(d) >= 80).length} T2
           </span>
           {liveOp && (
             <span style={{ color: 'var(--warn)', fontSize: 9, letterSpacing: '0.08em' }}>

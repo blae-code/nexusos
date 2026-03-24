@@ -11,6 +11,7 @@ import { useSession } from '@/core/data/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/core/data/layout-mode';
 import { useVerseStatus } from '@/core/data/useVerseStatus';
 import { preloadCriticalTokens } from '@/core/data/tokenMap';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 export default function NexusShell() {
@@ -119,7 +120,7 @@ export default function NexusShell() {
         const depositItems = Array.isArray(deposits) ? deposits : [];
         depositItems.forEach((deposit) => {
           nextSeen.add(deposit.id);
-          const quality = Number(deposit.quality_pct || 0);
+          const quality = qualityPercentFromRecord(deposit);
           if (!seenScoutDepositsRef.current.has(deposit.id) && quality >= 80) {
             notifyIfBackgrounded({
               title: 'NexusOS · Scout Intel',

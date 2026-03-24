@@ -16,7 +16,7 @@ const TIERS = ['ALL', 'T1', 'T2'];
 const EDITOR_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
 
 // ─── Main module ───────────────────────────────────────────────────────────────
-export default function BlueprintsModule({ blueprints, materials, rank, callsign, discordId, onRefresh }) {
+export default function BlueprintsModule({ blueprints, materials, rank, callsign, userId, onRefresh }) {
   const canEdit = EDITOR_RANKS.includes(rank);
 
   const [catFilter, setCatFilter] = useState('ALL');
@@ -172,7 +172,7 @@ export default function BlueprintsModule({ blueprints, materials, rank, callsign
         <BlueprintModal
           bp={editingBp}
           callsign={callsign}
-          discordId={discordId}
+          userId={userId}
           onSave={handleSave}
           onClose={() => { setShowModal(false); setEditingBp(null); }}
         />

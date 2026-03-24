@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Crosshair, ZoomIn, ZoomOut } from 'lucide-react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const SYSTEM_DATA = {
   STANTON: { x: 50, y: 50, color: 'var(--info)',   label: 'STANTON' },
@@ -331,7 +332,7 @@ export default function ScoutMap({ deposits = [], activeRoute = null, onDepositS
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, fontSize: 8 }}>
             <div>
               <span style={{ color: 'var(--t3)' }}>QUALITY</span>
-              <div style={{ color: 'var(--t0)', marginTop: 2 }}>{hoveredDeposit.quality_pct}%</div>
+              <div style={{ color: 'var(--t0)', marginTop: 2 }}>{qualityPercentFromRecord(hoveredDeposit).toFixed(0)}%</div>
             </div>
             <div>
               <span style={{ color: 'var(--t3)' }}>VOLUME</span>

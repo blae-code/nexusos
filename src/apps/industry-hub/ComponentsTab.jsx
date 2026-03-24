@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const CONDITION_STYLE = {
   PRISTINE:     { bg: 'rgba(74,140,92,0.12)',   border: 'rgba(74,140,92,0.3)',  color: '#4A8C5C' },
@@ -30,10 +31,10 @@ function Chip({ label, styles }) {
   );
 }
 
-function qualityColor(score) {
-  if (score >= 900) return '#4A8C5C';
-  if (score >= 600) return '#C8A84B';
-  if (score >= 300) return '#9A9488';
+function qualityColor(percent) {
+  if (percent >= 90) return '#4A8C5C';
+  if (percent >= 60) return '#C8A84B';
+  if (percent >= 30) return '#9A9488';
   return '#C0392B';
 }
 
@@ -82,7 +83,9 @@ export default function ComponentsTab() {
           ))}
         </div>
 
-        {items.map(c => (
+        {items.map((c) => {
+          const qualityPercent = qualityPercentFromRecord(c);
+          return (
           <div key={c.id} style={{
             display: 'grid', gridTemplateColumns: '1fr 44px 90px 64px 88px 120px 88px 80px',
             gap: 8, padding: '10px 12px', alignItems: 'center',
@@ -115,9 +118,9 @@ export default function ComponentsTab() {
 
             {/* Quality */}
             <div style={{
-              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: (c.quality_score || 0) >= 900 ? 700 : 600,
-              fontSize: 12, color: qualityColor(c.quality_score || 0), fontVariantNumeric: 'tabular-nums',
-            }}>{c.quality_score || '—'}</div>
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: qualityPercent >= 90 ? 700 : 600,
+              fontSize: 12, color: qualityColor(qualityPercent), fontVariantNumeric: 'tabular-nums',
+            }}>{qualityPercent > 0 ? `${qualityPercent.toFixed(0)}%` : '—'}</div>
 
             {/* Condition */}
             <Chip label={c.condition || 'UNKNOWN'} styles={CONDITION_STYLE[c.condition]} />
@@ -140,7 +143,8 @@ export default function ComponentsTab() {
             {/* Use */}
             <Chip label={(c.use_type || 'PENDING').replace(/_/g, ' ')} styles={USE_STYLE[c.use_type]} />
           </div>
-        ))}
+          );
+        })}
 
         {items.length === 0 && (
           <div style={{

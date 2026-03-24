@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 /**
  * BlueprintAvailability
@@ -18,7 +19,7 @@ function buildMatLookup(materials) {
     const key = (m.material_name || '').toLowerCase();
     if (!map[key]) map[key] = { scu: 0, best_quality: 0 };
     map[key].scu          += (m.quantity_scu || 0);
-    map[key].best_quality  = Math.max(map[key].best_quality, m.quality_pct || 0);
+    map[key].best_quality  = Math.max(map[key].best_quality, qualityPercentFromRecord(m));
   });
   return map;
 }

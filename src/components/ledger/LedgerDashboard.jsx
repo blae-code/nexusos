@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const TYPE_ORDER = ['RAW', 'REFINED', 'SALVAGE', 'CRAFTED', 'OTHER'];
 
@@ -110,8 +111,8 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
     const valuedCount = active.filter(m => priceByName[(m.material_name || '').toLowerCase()]).length;
 
     const totalScu  = active.reduce((s, m) => s + (m.quantity_scu || 0), 0);
-    const avgQuality = active.length ? active.reduce((s, m) => s + (m.quality_pct || 0), 0) / active.length : 0;
-    const t2Ready   = active.filter(m => (m.quality_pct || 0) >= 80);
+    const avgQuality = active.length ? active.reduce((s, m) => s + qualityPercentFromRecord(m), 0) / active.length : 0;
+    const t2Ready   = active.filter(m => qualityPercentFromRecord(m) >= 80);
     const t2Scu     = t2Ready.reduce((s, m) => s + (m.quantity_scu || 0), 0);
 
     /** @type {Record<string, { count: number; scu: number }>} */
@@ -133,10 +134,16 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
     const armScu      = byType.CRAFTED.scu;
 
     // Quality bands
-    const t2    = active.filter(m => (m.quality_pct || 0) >= 80);
-    const good  = active.filter(m => (m.quality_pct || 0) >= 60 && (m.quality_pct || 0) < 80);
-    const low   = active.filter(m => (m.quality_pct || 0) >= 40 && (m.quality_pct || 0) < 60);
-    const poor  = active.filter(m => (m.quality_pct || 0) < 40);
+    const t2    = active.filter(m => qualityPercentFromRecord(m) >= 80);
+    const good  = active.filter(m => {
+      const quality = qualityPercentFromRecord(m);
+      return quality >= 60 && quality < 80;
+    });
+    const low   = active.filter(m => {
+      const quality = qualityPercentFromRecord(m);
+      return quality >= 40 && quality < 60;
+    });
+    const poor  = active.filter(m => qualityPercentFromRecord(m) < 40);
 
     // Top materials by SCU
     const top5 = [...active].sort((a, b) => (b.quantity_scu || 0) - (a.quantity_scu || 0)).slice(0, 8);
@@ -208,7 +215,7 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
           <SectionHeader label="TOP BY VOLUME" />
           <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 8, overflow: 'hidden' }}>
             {stats.top5.map((m, i) => {
-              const q = m.quality_pct || 0;
+              const q = qualityPercentFromRecord(m);
               const qColor = q >= 80 ? 'var(--live)' : q >= 60 ? 'var(--info)' : q >= 40 ? 'var(--warn)' : 'var(--danger)';
               const UNITS_PER_SCU = 100;
               const priceByName = {};
@@ -237,7 +244,7 @@ export default function LedgerDashboard({ materials, refineryOrders, commodities
         <SectionHeader label="RECENTLY LOGGED" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
           {stats.recent.map(m => {
-            const q = m.quality_pct || 0;
+            const q = qualityPercentFromRecord(m);
             const qColor = q >= 80 ? 'var(--live)' : q >= 60 ? 'var(--info)' : 'var(--warn)';
             const ago = (() => {
               const diff = Date.now() - new Date(m.logged_at || m.created_date).getTime();

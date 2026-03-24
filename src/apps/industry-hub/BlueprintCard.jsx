@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { Clock, Zap, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import MaterialContextPanel from '@/components/industry/MaterialContextPanel';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const CAT_COLOR = {
   WEAPON: 'var(--danger)', ARMOR: 'var(--info)', GEAR: 'var(--acc2)',
@@ -29,7 +30,7 @@ export default function BlueprintCard({ bp, materials, canEdit, onEdit, onDelete
   const materialStatus = recipeMaterials.map(req => {
     const stock = materials.filter(m => m.material_name?.toLowerCase() === req.material?.toLowerCase());
     const totalScu = stock.reduce((s, m) => s + (m.quantity_scu || 0), 0);
-    const bestQuality = stock.length ? Math.max(...stock.map(m => m.quality_pct || 0)) : 0;
+    const bestQuality = stock.length ? Math.max(...stock.map((m) => qualityPercentFromRecord(m))) : 0;
     const qualityOk = bestQuality >= (req.min_quality || bp.min_material_quality || 80);
     const qtyOk = totalScu >= (req.quantity_scu || 0);
     return { ...req, totalScu, bestQuality, qualityOk, qtyOk, met: qualityOk && qtyOk };

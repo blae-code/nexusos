@@ -1,6 +1,6 @@
 /**
  * Op Board list view — LIVE | UPCOMING | ARCHIVE
- * Props: { rank, callsign, discordId }
+ * Props: { rank, callsign, userId }
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,7 @@ const SECTION_TABS = ['LIVE', 'UPCOMING', 'ARCHIVE'];
 
 // ─── Main OpBoard module ──────────────────────────────────────────────────────
 
-export default function OpBoardModule({ rank, callsign, discordId: discordIdProp }) {
+export default function OpBoardModule({ rank, callsign, userId: userIdProp }) {
   const navigate = useNavigate();
 
   const [tab, setTab]                         = useState('LIVE');
@@ -28,16 +28,16 @@ export default function OpBoardModule({ rank, callsign, discordId: discordIdProp
   const [userRsvps, setUserRsvps]             = useState([]);
   const [rsvpDialogOp, setRsvpDialogOp]       = useState(null);
   const [rsvpDialogRsvps, setRsvpDialogRsvps] = useState([]);
-  const [selfDiscordId, setSelfDiscordId]     = useState(discordIdProp || null);
+  const [selfUserId, setSelfUserId]           = useState(userIdProp || null);
 
-  // Resolve discord_id if not passed as prop
+  // Resolve session user id if not passed as prop
   useEffect(() => {
-    if (!discordIdProp) {
+    if (!userIdProp) {
       base44.auth.me()
-        .then(u => { if (u?.discord_id) setSelfDiscordId(String(u.discord_id)); })
+        .then(u => { if (u?.id) setSelfUserId(String(u.id)); })
         .catch(() => {});
     }
-  }, [discordIdProp]);
+  }, [userIdProp]);
 
   const loadOps = async () => {
     const data = await base44.entities.Op.list('-scheduled_at', 100);
@@ -47,7 +47,7 @@ export default function OpBoardModule({ rank, callsign, discordId: discordIdProp
 
   const loadUserRsvps = async (id) => {
     if (!id) return;
-    const data = await base44.entities.OpRsvp.filter({ discord_id: id });
+    const data = await base44.entities.OpRsvp.filter({ user_id: id });
     setUserRsvps(data || []);
   };
 
@@ -63,13 +63,13 @@ export default function OpBoardModule({ rank, callsign, discordId: discordIdProp
   }, []);
 
   useEffect(() => {
-    loadUserRsvps(selfDiscordId);
-  }, [selfDiscordId]);
+    loadUserRsvps(selfUserId);
+  }, [selfUserId]);
 
   const refresh = async () => {
     const opsData = await loadOps();
     loadLiveRsvps(opsData);
-    loadUserRsvps(selfDiscordId);
+    loadUserRsvps(selfUserId);
   };
 
   // Partition ops
@@ -218,8 +218,7 @@ export default function OpBoardModule({ rank, callsign, discordId: discordIdProp
         <RSVPDialog
           op={rsvpDialogOp}
           rsvps={rsvpDialogRsvps}
-          discordId={selfDiscordId}
-          callsign={callsign}
+          sessionUserId={selfUserId}
           onClose={closeRsvpDialog}
           onRefresh={refresh}
         />

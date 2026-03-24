@@ -1,6 +1,7 @@
 import React from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const RISK_COLOURS = {
   LOW:     'var(--live)',
@@ -52,7 +53,7 @@ export default function ScoutDepositsTab({ deposits, onRefresh }) {
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
           {(deposits || []).map(deposit => {
-            const quality = deposit.quality_pct || 0;
+            const quality = qualityPercentFromRecord(deposit);
             const riskColor = RISK_COLOURS[deposit.risk_level] || 'var(--t2)';
             const volColor = VOLUME_COLOURS[deposit.volume_estimate] || 'var(--t2)';
             

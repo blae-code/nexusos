@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { AlertTriangle, Send } from 'lucide-react';
 import { safeLocalStorage } from '@/core/data/safe-storage';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const DEFAULT_THRESHOLDS = [
   { material: 'Taranite',      min_scu: 20, min_quality: 80, critical: true },
@@ -38,7 +39,7 @@ function SectionHeader({ label }) {
 
 function AlertCard({ threshold, currentMat, onSendAlert, sending }) {
   const current_scu     = currentMat ? (currentMat.quantity_scu || 0) : 0;
-  const current_quality = currentMat ? (currentMat.quality_pct || 0) : 0;
+  const current_quality = currentMat ? qualityPercentFromRecord(currentMat) : 0;
   const has_material    = !!currentMat;
 
   const scuShortfall  = Math.max(0, threshold.min_scu - current_scu);
@@ -237,7 +238,7 @@ export default function LowStockAlerts({ materials, callsign = 'SYSTEM' }) {
       const mat = matByName[t.material.toLowerCase()];
       if (!mat) return true; // missing = alert
       const scuOk = (mat.quantity_scu || 0) >= t.min_scu;
-      const qualOk = (mat.quality_pct || 0) >= t.min_quality;
+      const qualOk = qualityPercentFromRecord(mat) >= t.min_quality;
       return !scuOk || !qualOk;
     });
   }, [thresholds, matByName]);
@@ -275,7 +276,7 @@ export default function LowStockAlerts({ materials, callsign = 'SYSTEM' }) {
       const mat = matByName[t.material.toLowerCase()];
       await handleSendAlert(t, {
         current_scu: mat ? (mat.quantity_scu || 0) : 0,
-        current_quality: mat ? (mat.quality_pct || 0) : 0,
+        current_quality: mat ? qualityPercentFromRecord(mat) : 0,
         status: !mat ? 'MISSING' : (mat.quantity_scu || 0) < t.min_scu ? 'LOW' : 'QUALITY',
       });
     }
@@ -349,7 +350,7 @@ export default function LowStockAlerts({ materials, callsign = 'SYSTEM' }) {
           {thresholds.map(t => {
             const mat = matByName[t.material.toLowerCase()];
             const scu = mat ? (mat.quantity_scu || 0) : 0;
-            const quality = mat ? (mat.quality_pct || 0) : 0;
+            const quality = mat ? qualityPercentFromRecord(mat) : 0;
             const ok = mat && scu >= t.min_scu && quality >= t.min_quality;
             const when = lastSent[t.material];
             return (

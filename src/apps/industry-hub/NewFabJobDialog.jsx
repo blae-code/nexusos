@@ -4,13 +4,14 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { X, Search, AlertTriangle, Check } from 'lucide-react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 function norm(s) { return (s || '').toLowerCase().trim(); }
 
 function MaterialCheck({ req, materials, quantity }) {
   const needed = (req.quantity_scu || 0) * quantity;
   const minQ = req.min_quality || 80;
-  const stock = materials.filter(m => norm(m.material_name) === norm(req.material) && (m.quality_pct || 0) >= minQ && !m.is_archived);
+  const stock = materials.filter((m) => norm(m.material_name) === norm(req.material) && qualityPercentFromRecord(m) >= minQ && !m.is_archived);
   const have = stock.reduce((s, m) => s + (m.quantity_scu || 0), 0);
   const ok = have >= needed - 0.01;
 
@@ -56,7 +57,7 @@ export default function NewFabJobDialog({ blueprints, materials, onClose, onCrea
     const needed = (req.quantity_scu || 0) * quantity;
     const minQ = req.min_quality || selectedBp?.min_material_quality || 80;
     const have = materials
-      .filter(m => norm(m.material_name) === norm(req.material) && (m.quality_pct || 0) >= minQ && !m.is_archived)
+      .filter((m) => norm(m.material_name) === norm(req.material) && qualityPercentFromRecord(m) >= minQ && !m.is_archived)
       .reduce((s, m) => s + (m.quantity_scu || 0), 0);
     return have >= needed - 0.01;
   });

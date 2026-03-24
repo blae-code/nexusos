@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { useMemo, useState } from 'react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 import { Plus, Archive, Layers } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 
@@ -138,7 +138,7 @@ export default function MaterialsTab({ materials, onRefresh }) {
           <tbody>
             {filtered.map((m, idx) => {
               const typeInfo = TYPE_BADGES[m.material_type] || TYPE_BADGES.OTHER;
-              const quality = m.quality_pct || 0;
+              const quality = qualityPercentFromRecord(m);
               const isEven = idx % 2 === 1;
               return (
                 <tr

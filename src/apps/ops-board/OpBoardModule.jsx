@@ -114,7 +114,7 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
   );
 }
 
-export default function OpBoardModule({ rank, callsign, discordId }) {
+export default function OpBoardModule({ rank, callsign, userId }) {
   const navigate = useNavigate();
   const [ops, setOps] = useState([]);
   const [rsvpMap, setRsvpMap] = useState({}); // op_id → count
@@ -128,7 +128,7 @@ export default function OpBoardModule({ rank, callsign, discordId }) {
     setLoading(true);
     const [allOps, allRsvps] = await Promise.all([
       base44.entities.Op.list('-scheduled_at', 100),
-      discordId ? base44.entities.OpRsvp.filter({ discord_id: discordId }) : Promise.resolve([]),
+      userId ? base44.entities.OpRsvp.filter({ user_id: userId }) : Promise.resolve([]),
     ]);
 
     const opList = allOps || [];
@@ -155,15 +155,15 @@ export default function OpBoardModule({ rank, callsign, discordId }) {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [discordId]);
+  useEffect(() => { load(); }, [userId]);
 
   const handleRsvp = async (opId) => {
-    if (!discordId) return;
+    if (!userId) return;
     if (myRsvps[opId]) {
       // Toggle off
       await base44.entities.OpRsvp.update(myRsvps[opId].id, { status: 'DECLINED' });
     } else {
-      await base44.entities.OpRsvp.create({ op_id: opId, discord_id: discordId, callsign, status: 'CONFIRMED' });
+      await base44.entities.OpRsvp.create({ op_id: opId, user_id: userId, callsign, status: 'CONFIRMED' });
     }
     load();
   };

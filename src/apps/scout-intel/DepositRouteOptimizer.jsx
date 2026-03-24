@@ -5,6 +5,7 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Route, Fuel, Shield, AlertTriangle } from 'lucide-react';
+import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const RISK_OPTIONS = [
   { value: 'LOW', label: 'LOW', color: 'var(--live)' },
@@ -25,7 +26,7 @@ export default function DepositRouteOptimizer({ deposits, onRouteCalculated, onC
   const eligibleDeposits = useMemo(() => {
     return (deposits || []).filter(d => {
       if (d.is_stale) return false;
-      if ((d.quality_pct || 0) < minQuality) return false;
+      if (qualityPercentFromRecord(d) < minQuality) return false;
       const riskOrder = { LOW: 1, MEDIUM: 2, HIGH: 3, EXTREME: 4 };
       const maxRiskLevel = riskOrder[maxRisk] || 2;
       const depositRisk = riskOrder[d.risk_level] || 2;
@@ -57,7 +58,7 @@ export default function DepositRouteOptimizer({ deposits, onRouteCalculated, onC
       material: d.material_name,
       system: d.system_name,
       location: d.location_detail,
-      quality: d.quality_pct,
+      quality: qualityPercentFromRecord(d),
       volume: d.volume_estimate,
       risk: d.risk_level,
       reporter: d.reported_by_callsign,
