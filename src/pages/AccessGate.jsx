@@ -39,6 +39,7 @@ export default function AccessGate() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [health, setHealth] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const authenticatedDestination = useMemo(
@@ -70,19 +71,25 @@ export default function AccessGate() {
       const loginRes = await authApi.login(username.trim(), authKey.trim(), { rememberMe });
 
       if (loginRes.error === 'key_revoked') {
-        setError('This access key has been revoked. Contact leadership.');
+        setError('ACCESS REVOKED — Your auth key has been revoked by a Pioneer. Contact org leadership for a new key.');
         setSubmitting(false);
         return;
       }
 
       if (loginRes.error === 'login_failed') {
-        setError('Login service error. Try again in a moment.');
+        setError('SERVICE UNAVAILABLE — The authentication service is temporarily unreachable. Wait a moment and try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      if (loginRes.error === 'not_found') {
+        setError('UNKNOWN USER — No account found with that username. Check your spelling or contact a Pioneer to verify your invite.');
         setSubmitting(false);
         return;
       }
 
       if (loginRes.error) {
-        setError('Invalid username or auth key. Check both and try again.');
+        setError('INVALID CREDENTIALS — The username or auth key is incorrect. Both are case-sensitive. Check your key and try again.');
         setSubmitting(false);
         return;
       }
@@ -96,7 +103,7 @@ export default function AccessGate() {
 
       setError('Authentication failed. Try again.');
     } catch {
-      setError('Connection error. Try again.');
+      setError('CONNECTION FAILED — Cannot reach the NexusOS server. Check your internet connection and try again.');
     }
 
     setSubmitting(false);
@@ -337,14 +344,63 @@ export default function AccessGate() {
         {(error || accessNotice) && (
           <div style={{
             marginTop: '14px',
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '12px', fontWeight: 500,
-            color: error ? '#C8A84B' : '#E8E4DC', letterSpacing: '0.12em',
-            textTransform: 'uppercase', lineHeight: 1.5,
-          }}>{error || accessNotice}</div>
+            padding: '10px 12px',
+            background: error ? 'rgba(192,57,43,0.08)' : 'rgba(200,168,75,0.08)',
+            border: `0.5px solid ${error ? 'rgba(192,57,43,0.25)' : 'rgba(200,168,75,0.25)'}`,
+            borderRadius: '2px',
+          }}>
+            <div style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: '11px', fontWeight: 600,
+              color: error ? '#C0392B' : '#C8A84B', letterSpacing: '0.08em',
+              lineHeight: 1.5,
+            }}>{(error || accessNotice).split(' — ')[0]}</div>
+            {(error || accessNotice).includes(' — ') && (
+              <div style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: '10px', fontWeight: 400,
+                color: '#9A9488', letterSpacing: '0.06em',
+                lineHeight: 1.5, marginTop: 4,
+              }}>{(error || accessNotice).split(' — ').slice(1).join(' — ')}</div>
+            )}
+          </div>
         )}
 
+        {/* HELP TOGGLE */}
+        <button
+          type="button"
+          onClick={() => setShowHelp(!showHelp)}
+          style={{
+            marginTop: '14px',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '10px', color: '#5A5850', letterSpacing: '0.1em',
+            textTransform: 'uppercase', textDecoration: 'underline',
+            textUnderlineOffset: '3px',
+          }}
+        >
+          {showHelp ? 'HIDE HELP' : 'NEED HELP SIGNING IN?'}
+        </button>
 
+        {showHelp && (
+          <div style={{
+            marginTop: '10px', padding: '12px',
+            background: 'rgba(200,170,100,0.04)',
+            border: '0.5px solid rgba(200,170,100,0.10)',
+            borderRadius: '2px',
+          }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, color: '#9A9488', lineHeight: 1.8, letterSpacing: '0.06em' }}>
+              <div style={{ color: '#C8A84B', fontSize: 9, letterSpacing: '0.15em', marginBottom: 6 }}>GETTING STARTED</div>
+              <div>1. <strong style={{ color: '#E8E4DC' }}>New members:</strong> A Pioneer must issue you a username and auth key first. Ask your org leadership.</div>
+              <div>2. <strong style={{ color: '#E8E4DC' }}>Username</strong> is the name you were issued (not your callsign — that can be changed later).</div>
+              <div>3. <strong style={{ color: '#E8E4DC' }}>Auth Key</strong> is a long code starting with RSN-. Enter it exactly as received.</div>
+              <div>4. <strong style={{ color: '#E8E4DC' }}>Lost your key?</strong> Contact a Pioneer — keys can be regenerated but not recovered.</div>
+              <div style={{ marginTop: 8, color: '#5A5850' }}>
+                Admin first-time setup? Use the System Admin Bootstrap in Key Management after logging in.
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
 
