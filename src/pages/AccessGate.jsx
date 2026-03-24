@@ -191,14 +191,7 @@ export default function AccessGate() {
           marginBottom: '32px',
         }}>Access Gate</div>
 
-        <div style={{
-          color: '#9A9488',
-          fontSize: '11px',
-          lineHeight: 1.7,
-          marginBottom: '18px',
-        }}>
-          Sign in with your issued username and auth key. Your callsign can change later, but your issued username remains your fixed login identity.
-        </div>
+
 
         {health?.ok === false ? (
           <div style={{
@@ -220,7 +213,7 @@ export default function AccessGate() {
           {/* USERNAME INPUT */}
           <input
             type="text"
-            placeholder="ENTER USERNAME"
+            placeholder="ENTER CALLSIGN"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
@@ -267,26 +260,7 @@ export default function AccessGate() {
             onBlur={(e) => { e.target.style.borderColor = 'rgba(200,170,100,0.12)'; }}
           />
 
-          <label style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '24px',
-            color: '#9A9488',
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '11px',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-          }}>
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(event) => setRememberMe(event.target.checked)}
-              style={{ accentColor: '#C0392B' }}
-            />
-            Remember Me
-          </label>
+
 
           {/* CTA BUTTON */}
           <button
