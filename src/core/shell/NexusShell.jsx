@@ -239,22 +239,19 @@ export default function NexusShell() {
     <div style={{
       height: '100vh',
       background: 'linear-gradient(180deg, #0A0908 0%, #08080A 100%)',
-      padding: 5,
     }}>
-      <div className="nexus-shell-frame">
+      <NexusSidebar />
+      <div style={{ marginLeft: 220, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <NexusTopbar
           layoutMode={layoutMode}
           onSelectLayout={updateLayoutMode}
           verseStatus={verseStatus}
         />
-        <div className="nexus-shell-body">
-          <NexusSidebar currentPath={location.pathname} currentSearch={location.search} />
-          <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative' }}>
-            <AppErrorBoundary compact>
-              <Outlet context={outletContext} />
-            </AppErrorBoundary>
-          </main>
-        </div>
+        <main style={{ flex: 1, overflow: 'auto', position: 'relative', background: 'var(--bg0)' }} className="nexus-fade-in">
+          <AppErrorBoundary compact>
+            <Outlet context={outletContext} />
+          </AppErrorBoundary>
+        </main>
       </div>
     </div>
   );
