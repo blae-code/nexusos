@@ -1,6 +1,6 @@
 /**
- * GET /auth/session — Validate session cookie, return user data.
- * Self-contained: all auth helpers inlined.
+ * /auth/session — Validate session, return user data.
+ * Accepts GET (cookie-based) and POST (token in body, used by SDK invoke).
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
@@ -127,7 +127,8 @@ function toSessionResponse(user) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method !== 'GET') {
+  // Accept both GET (raw fetch with cookies) and POST (SDK invoke with token in body)
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
   }
 
@@ -137,8 +138,20 @@ Deno.serve(async (req) => {
       return Response.json({ authenticated: false, error: 'not_configured' }, { status: 500, headers: sessionNoStoreHeaders() });
     }
 
-    const cookies = parseCookies(req);
-    const payload = await decodeSessionToken(cookies[SESSION_COOKIE_NAME], secret);
+    // Get session token from POST body or cookie
+    let sessionToken = null;
+    if (req.method === 'POST') {
+      try {
+        const body = await req.json();
+        sessionToken = body?.session_token || null;
+      } catch { /* no body or invalid JSON */ }
+    }
+    if (!sessionToken) {
+      const cookies = parseCookies(req);
+      sessionToken = cookies[SESSION_COOKIE_NAME] || null;
+    }
+
+    const payload = await decodeSessionToken(sessionToken, secret);
     if (!payload?.user_id) {
       return Response.json({ authenticated: false }, { status: 401, headers: sessionNoStoreHeaders() });
     }
@@ -164,7 +177,8 @@ Deno.serve(async (req) => {
 
     return Response.json(toSessionResponse(user), { status: 200, headers: sessionNoStoreHeaders() });
   } catch (error) {
-    console.error('[auth/session]', error);
+    console.error('Error data:', JSON.stringify(error?.response?.data || error?.data || null, null, 2));
+    console.error('[auth/session]', error?.message || error);
     return Response.json({ authenticated: false, error: 'session_unavailable' }, { status: 500, headers: sessionNoStoreHeaders() });
   }
 });
