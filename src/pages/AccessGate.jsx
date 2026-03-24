@@ -14,7 +14,7 @@ function normalizeAuthenticatedDestination(rawDestination, onboardingComplete) {
 
 export default function AccessGate() {
   const location = useLocation();
-  const { isAuthenticated, loading, user, refreshSession } = useSession();
+  const { isAuthenticated, loading, startupIssue, user, refreshSession } = useSession();
 
   const stars = useMemo(() => {
     return Array.from({ length: 120 }, (_, i) => ({
@@ -40,6 +40,15 @@ export default function AccessGate() {
     () => normalizeAuthenticatedDestination(searchParams.get('redirect_to'), user?.onboarding_complete),
     [searchParams, user?.onboarding_complete],
   );
+  const accessNotice = useMemo(() => {
+    if (searchParams.get('session_expired') === '1') {
+      return 'Session expired. Sign in again to continue.';
+    }
+    if (startupIssue) {
+      return startupIssue;
+    }
+    return '';
+  }, [searchParams, startupIssue]);
 
   useEffect(() => {
     authApi.getHealth().then((result) => setHealth(result || { ok: false })).catch(() => setHealth({ ok: false }));
@@ -280,15 +289,15 @@ export default function AccessGate() {
           </button>
         </form>
 
-        {/* ERROR MESSAGE */}
-        {error && (
+        {/* STATUS MESSAGE */}
+        {(error || accessNotice) && (
           <div style={{
             marginTop: '14px',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: '12px', fontWeight: 500,
-            color: '#C8A84B', letterSpacing: '0.12em',
+            color: error ? '#C8A84B' : '#E8E4DC', letterSpacing: '0.12em',
             textTransform: 'uppercase', lineHeight: 1.5,
-          }}>{error}</div>
+          }}>{error || accessNotice}</div>
         )}
 
 

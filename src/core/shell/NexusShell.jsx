@@ -245,7 +245,7 @@ export default function NexusShell() {
       <div style={{ marginLeft: 220, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <NexusTopbar />
         <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto', zIndex: 1 }}>
-          <AppErrorBoundary compact>
+          <AppErrorBoundary compact key={`${location.pathname}${location.search}`}>
             <Outlet context={outletContext} />
           </AppErrorBoundary>
         </main>

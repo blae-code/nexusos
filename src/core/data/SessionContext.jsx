@@ -9,6 +9,28 @@ function isAbortError(error) {
   return error?.name === 'AbortError';
 }
 
+function redirectToAccessGate(reason = 'session_expired') {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const gatePath = withAppBase('/gate');
+  const currentPath = `${window.location.pathname}${window.location.search}`;
+
+  if (window.location.pathname === gatePath) {
+    return;
+  }
+
+  const url = new URL(gatePath, window.location.origin);
+  url.searchParams.set(reason, '1');
+
+  if (currentPath && currentPath !== '/' && currentPath !== gatePath) {
+    url.searchParams.set('redirect_to', currentPath);
+  }
+
+  window.location.assign(url.toString());
+}
+
 export function SessionProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +64,8 @@ export function SessionProvider({ children }) {
       const data = await authApi.getSession({ timeoutMs: SESSION_REFRESH_TIMEOUT_MS });
       if (data?.authenticated) {
         nextSession = data;
+      } else if (data?.status === 401 && previousSession?.authenticated) {
+        transportIssue = 'Session expired';
       } else if (data?.status >= 500 && data?.error) {
         transportIssue = data.error;
       }
@@ -58,6 +82,14 @@ export function SessionProvider({ children }) {
       setSession(nextSession);
       setStartupIssue('');
       setLoading(false);
+      return;
+    }
+
+    if (transportIssue === 'Session expired' && previousSession?.authenticated) {
+      setSession(null);
+      setStartupIssue('Session expired');
+      setLoading(false);
+      redirectToAccessGate('session_expired');
       return;
     }
 
