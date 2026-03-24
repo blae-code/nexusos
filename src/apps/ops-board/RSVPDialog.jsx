@@ -5,13 +5,13 @@ import { normalizeRoleSlots, Overlay, DialogCard } from './opBoardHelpers';
 import NexusToken from '@/core/design/NexusToken';
 import { roleToken } from '@/core/data/tokenMap';
 
-export default function RSVPDialog({ op, rsvps, discordId, callsign, onClose, onRefresh }) {
+export default function RSVPDialog({ op, rsvps, sessionUserId, callsign, onClose, onRefresh }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [ship, setShip] = useState('');
 
   const slots    = normalizeRoleSlots(op.role_slots);
-  const existing = rsvps.find(r => String(r.discord_id) === String(discordId));
+  const existing = rsvps.find(r => String(r.user_id) === String(sessionUserId));
 
   const submit = async (role, status = 'CONFIRMED') => {
     setSubmitting(true);
@@ -21,7 +21,7 @@ export default function RSVPDialog({ op, rsvps, discordId, callsign, onClose, on
       } else {
         await base44.entities.OpRsvp.create({
           op_id:      op.id,
-          discord_id: discordId,
+          user_id:    sessionUserId,
           callsign,
           role,
           status,
@@ -44,7 +44,7 @@ export default function RSVPDialog({ op, rsvps, discordId, callsign, onClose, on
         await base44.entities.OpRsvp.update(existing.id, { status: 'DECLINED' });
       } else {
         await base44.entities.OpRsvp.create({
-          op_id: op.id, discord_id: discordId, callsign, role: '', status: 'DECLINED', ship: '',
+          op_id: op.id, user_id: sessionUserId, callsign, role: '', status: 'DECLINED', ship: '',
         });
       }
       setDone(true);

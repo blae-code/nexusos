@@ -1,10 +1,9 @@
 /**
  * Op Creator — full-page panel, not a dialog.
- * Props: { rank, callsign, discordId }
+ * Props: { rank, callsign, sessionUserId }
  *
  * Sections: BASICS | ACCESS | ROLE SLOTS | SETTINGS | PHASES
- * Publish: validates name+type+scheduled_at, creates Op, fires heraldBot if toggle on,
- *          routes to /app/ops/[id] on success.
+ * Publish: validates name+type+scheduled_at, creates Op, routes to /app/ops/[id] on success.
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -54,19 +53,9 @@ function SettingsToggle({ label, checked, onChange }) {
 
 // ─── OpCreator ────────────────────────────────────────────────────────────────
 
-export default function OpCreator({ rank, callsign, discordId: discordIdProp }) {
+export default function OpCreator({ rank, callsign, sessionUserId }) {
   const navigate  = useNavigate();
   const isPioneer = PIONEER_RANKS.includes(rank);
-
-  const [selfDiscordId, setSelfDiscordId] = useState(discordIdProp || null);
-
-  useEffect(() => {
-    if (!discordIdProp) {
-      base44.auth.me()
-        .then(u => { if (u?.discord_id) setSelfDiscordId(String(u.discord_id)); })
-        .catch(() => {});
-    }
-  }, [discordIdProp]);
 
   // ── Form state ─────────────────────────────────────
 
@@ -86,8 +75,6 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
   const [phases, setPhases]       = useState(defaults.phases);
 
   const [settings, setSettings] = useState({
-    requireDiscordRsvp:  true,
-    postToOpsBoard:      true,
     allowLateJoins:      false,
     hideFromNonMembers:  false,
     logLootTally:        true,
@@ -172,9 +159,10 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         phases,
         phase_current:      0,
         status:             publish ? 'PUBLISHED' : 'DRAFT',
-        created_by:         selfDiscordId,
-        require_discord_rsvp: settings.requireDiscordRsvp,
-        post_to_ops_board:    settings.postToOpsBoard,
+        created_by_user_id: sessionUserId || null,
+        created_by_callsign: callsign || 'UNKNOWN',
+        require_discord_rsvp: false,
+        post_to_ops_board:    false,
         allow_late_joins:     settings.allowLateJoins,
         hide_from_non_members: settings.hideFromNonMembers,
         log_loot_tally:       settings.logLootTally,
@@ -183,13 +171,6 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
       };
 
       const op = await base44.entities.Op.create(payload);
-
-      if (publish && settings.postToOpsBoard) {
-        base44.functions.invoke('heraldBot', {
-          action:  'publishOp',
-          payload: { ...payload, id: op.id },
-        }).catch(e => console.warn('[OpCreator] heraldBot publishOp failed:', e.message));
-      }
 
       // Show success overlay on publish, then route to op detail with readiness gate
       if (publish) {
@@ -569,8 +550,6 @@ export default function OpCreator({ rank, callsign, discordId: discordIdProp }) 
         <div style={{ marginBottom: 28 }}>
           <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12, fontFamily: 'inherit' }}>Settings</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <SettingsToggle label="Require Discord RSVP" checked={settings.requireDiscordRsvp} onChange={v => setSetting('requireDiscordRsvp', v)} />
-            <SettingsToggle label="Post to #ops-board" checked={settings.postToOpsBoard} onChange={v => setSetting('postToOpsBoard', v)} />
             <SettingsToggle label="Allow late joins" checked={settings.allowLateJoins} onChange={v => setSetting('allowLateJoins', v)} />
             <SettingsToggle label="Hide from non-members" checked={settings.hideFromNonMembers} onChange={v => setSetting('hideFromNonMembers', v)} />
             <SettingsToggle label="Log loot tally" checked={settings.logLootTally} onChange={v => setSetting('logLootTally', v)} />

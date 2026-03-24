@@ -117,10 +117,6 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
 
   const handleGo = () => {
     setGoFired(true);
-    base44.functions.invoke('heraldBot', {
-      action: 'opGo',
-      payload: { op_id: op.id, op_name: op.name },
-    }).catch((error) => console.warn('[ReadinessGate] heraldBot opGo failed:', error.message));
   };
 
   return (
@@ -157,7 +153,7 @@ export default function ReadinessGate({ op, rank, onUpdate }) {
             style={{ padding: '6px 14px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}
           >
             <Zap size={12} />
-            GO - PUBLISH TO DISCORD
+            GO
           </button>
         ) : null}
         {isGo && goFired ? <span style={{ color: 'var(--live)', fontSize: 11 }}>✓ SENT</span> : null}

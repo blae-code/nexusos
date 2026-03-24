@@ -85,7 +85,7 @@ export default function LiveOp() {
   const ctx = useOutletContext() || {};
   const rank = ctx.rank || 'VAGRANT';
   const callsign = ctx.callsign || 'UNKNOWN';
-  const discordId = ctx.discordId || null;
+  const sessionUserId = ctx.sessionUserId || null;
 
   const [layoutMode, setLayoutMode] = useState(() => {
     return safeLocalStorage.getItem('nexusos_layout_mode') || 'ALT-TAB';
@@ -153,10 +153,6 @@ export default function LiveOp() {
         status: 'LIVE',
         started_at: new Date().toISOString(),
       });
-      base44.functions.invoke('heraldBot', {
-        action: 'opActivate',
-        payload: { op_id: op.id, op_name: op.name },
-      }).catch((error) => console.warn('[LiveOp] heraldBot opActivate failed:', error.message));
       await fetchOp();
     } catch {
       // activating failed — button re-enables via finally
@@ -173,10 +169,6 @@ export default function LiveOp() {
         status: 'COMPLETE',
         ended_at: new Date().toISOString(),
       });
-      base44.functions.invoke('heraldBot', {
-        action: 'opEnd',
-        payload: { op_id: op.id, op_name: op.name },
-      }).catch((err) => console.warn('[LiveOp] heraldBot opEnd failed:', err.message));
       navigate('/app/ops');
     } catch {
       setEnding(false);
@@ -188,10 +180,6 @@ export default function LiveOp() {
     setPublishing(true);
     try {
       await base44.entities.Op.update(op.id, { status: 'PUBLISHED' });
-      base44.functions.invoke('heraldBot', {
-        action: 'publishOp',
-        payload: { op_id: op.id, op_name: op.name },
-      }).catch((err) => console.warn('[LiveOp] heraldBot publishOp failed:', err.message));
       await fetchOp();
     } catch {
       setPublishing(false);
@@ -229,7 +217,7 @@ export default function LiveOp() {
   const isPublished = op.status === 'PUBLISHED';
   const isDraft = op.status === 'DRAFT';
   const canPublish = isDraft && (
-    (canManage && String(op.created_by) === String(discordId)) || isPioneer
+    (canManage && String(op.created_by_user_id || '') === String(sessionUserId || '')) || isPioneer
   );
   const confirmedCrew = rsvps.filter((item) => item.status === 'CONFIRMED').length;
   const crewCapacity = normalizeRoleSlots(op.role_slots).reduce((sum, item) => sum + (item.capacity || 0), 0);
@@ -239,7 +227,7 @@ export default function LiveOp() {
   const phaseTrackerProps = { phases, currentPhase, opId: op.id, rank, onAdvance: handlePhaseAdvance };
   const readinessGateProps = { op, rank, onUpdate: handleGateUpdate };
   const crewGridProps = { rsvps, op, layoutMode };
-  const opRsvpProps = { op, rsvps, callsign, discordId, rank };
+  const opRsvpProps = { op, rsvps, callsign, sessionUserId, rank };
   const sessionLogProps = { op, callsign, rank, onUpdate: handleLogUpdate };
   const threatPanelProps = { op, callsign, onUpdate: handleLogUpdate };
   const lootTallyProps = { op, callsign, rank, currentPhase, onUpdate: handleLogUpdate };

@@ -129,7 +129,7 @@ export default function OpBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const rank = outletContext.rank;
   const callsign = outletContext.callsign;
-  const discordId = outletContext.discordId;
+  const sessionUserId = outletContext.sessionUserId;
   const [searchParams, setSearchParams] = useSearchParams();
   const opsView = searchParams.get('view') === 'analytics' ? 'analytics' : 'board';
   const setOpsView = (v) => {
@@ -154,7 +154,7 @@ export default function OpBoard() {
     // by op_id on the client side, which is O(n) and avoids the request waterfall.
     const [allOps, allRsvps, confirmedRsvps] = await Promise.all([
       base44.entities.Op.list('-scheduled_at', 100),
-      discordId ? base44.entities.OpRsvp.filter({ discord_id: discordId }) : Promise.resolve([]),
+      sessionUserId ? base44.entities.OpRsvp.filter({ user_id: sessionUserId }) : Promise.resolve([]),
       base44.entities.OpRsvp.filter({ status: 'CONFIRMED' }),
     ]);
 
@@ -175,7 +175,7 @@ export default function OpBoard() {
     setRsvpMap(counts);
     setMyRsvps(myMap);
     setLoading(false);
-  }, [callsign, discordId]);
+  }, [callsign, sessionUserId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -189,11 +189,11 @@ export default function OpBoard() {
   }, [load]);
 
   const handleRsvp = async (opId) => {
-    if (!discordId) return;
+    if (!sessionUserId) return;
     if (myRsvps[opId]) {
       await base44.entities.OpRsvp.update(myRsvps[opId].id, { status: 'DECLINED' });
     } else {
-      await base44.entities.OpRsvp.create({ op_id: opId, discord_id: discordId, callsign, status: 'CONFIRMED' });
+      await base44.entities.OpRsvp.create({ op_id: opId, user_id: sessionUserId, callsign, status: 'CONFIRMED' });
     }
     load();
   };

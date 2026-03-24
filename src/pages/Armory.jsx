@@ -7,7 +7,7 @@ import { CategorySection } from './ArmoryWidgets';
 
 export default function Armory() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
-  const { callsign, discordId } = outletContext;
+  const { callsign, sessionUserId } = outletContext;
 
   const [items, setItems] = useState([]);
   const [checkouts, setCheckouts] = useState([]);
@@ -104,7 +104,7 @@ export default function Armory() {
 
         {activeTab === 'checkout' && (
           <>
-            <ArmoryCheckoutForm items={items} callsign={callsign} discordId={discordId} onCheckoutComplete={load} />
+            <ArmoryCheckoutForm items={items} callsign={callsign} sessionUserId={sessionUserId} onCheckoutComplete={load} />
             {activeCheckouts.length > 0 && (
               <section style={{ marginTop: 20 }}>
                 <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: 10, paddingBottom: 6, borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>ITEMS IN CIRCULATION</div>

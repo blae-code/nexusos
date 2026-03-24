@@ -111,19 +111,19 @@ function DragGhost({ op, visible }) {
 
 // ─── RSVP Quick Panel ────────────────────────────────────────────────────────
 
-function RSVPQuickPanel({ op, rsvps, discordId, callsign, onClose, onRefresh }) {
+function RSVPQuickPanel({ op, rsvps, sessionUserId, callsign, onClose, onRefresh }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [ship, setShip] = useState('');
   const slots = normalizeRoleSlots(op.role_slots);
-  const existing = rsvps.find(r => String(r.discord_id) === String(discordId));
+  const existing = rsvps.find(r => String(r.user_id) === String(sessionUserId));
 
   const submit = async (role, status = 'CONFIRMED') => {
     setSubmitting(true);
     if (existing) {
       await base44.entities.OpRsvp.update(existing.id, { role, status, ship: ship.trim() || existing.ship || '' });
     } else {
-      await base44.entities.OpRsvp.create({ op_id: op.id, discord_id: discordId, callsign, role, status, ship: ship.trim() });
+      await base44.entities.OpRsvp.create({ op_id: op.id, user_id: sessionUserId, callsign, role, status, ship: ship.trim() });
     }
     setDone(true);
     onRefresh?.();
@@ -136,7 +136,7 @@ function RSVPQuickPanel({ op, rsvps, discordId, callsign, onClose, onRefresh }) 
     if (existing) {
       await base44.entities.OpRsvp.update(existing.id, { status: 'DECLINED' });
     } else {
-      await base44.entities.OpRsvp.create({ op_id: op.id, discord_id: discordId, callsign, role: '', status: 'DECLINED', ship: '' });
+      await base44.entities.OpRsvp.create({ op_id: op.id, user_id: sessionUserId, callsign, role: '', status: 'DECLINED', ship: '' });
     }
     setDone(true);
     onRefresh?.();
@@ -330,7 +330,7 @@ function DropZone({ onDrop, children, style }) {
 
 export default function OpsTimeline() {
   const outletContext = (useOutletContext() || {});
-  const { discordId, callsign, rank } = outletContext;
+  const { sessionUserId, callsign, rank } = outletContext;
   const navigate = useNavigate();
 
   const [ops, setOps] = useState([]);
@@ -404,9 +404,9 @@ export default function OpsTimeline() {
   // ── RSVP helpers ──
   const myRsvpMap = useMemo(() => {
     const m = {};
-    rsvps.filter(r => String(r.discord_id) === String(discordId)).forEach(r => { m[r.op_id] = r; });
+    rsvps.filter(r => String(r.user_id) === String(sessionUserId)).forEach(r => { m[r.op_id] = r; });
     return m;
-  }, [rsvps, discordId]);
+  }, [rsvps, sessionUserId]);
 
   const rsvpCountMap = useMemo(() => {
     const m = {};
@@ -804,7 +804,7 @@ export default function OpsTimeline() {
         <RSVPQuickPanel
           op={rsvpTarget}
           rsvps={rsvps.filter(r => r.op_id === rsvpTarget.id)}
-          discordId={discordId}
+          sessionUserId={sessionUserId}
           callsign={callsign}
           onClose={() => setRsvpTarget(null)}
           onRefresh={load}

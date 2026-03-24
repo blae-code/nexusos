@@ -9,7 +9,7 @@ export default function OpCreatorPage() {
     <ModuleOpCreator
       rank={outletContext.rank}
       callsign={outletContext.callsign}
-      discordId={outletContext.discordId}
+      sessionUserId={outletContext.sessionUserId}
     />
   );
 }

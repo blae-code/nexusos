@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { base44 } from '@/core/data/base44Client';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
 import {
   createRescueCall,
@@ -37,14 +36,6 @@ export default function RescueBoard() {
     };
   }, []);
 
-  const broadcastRescueAlert = async (payload) => {
-    try {
-      await base44.functions.invoke('heraldBot', { action: 'rescueAlert', payload });
-    } catch (error) {
-      console.warn('[RescueBoard] rescue alert broadcast failed:', error?.message || error);
-    }
-  };
-
   const submit = async () => {
     if (!form.location || !form.situation) return;
     setSubmitting(true);
@@ -60,7 +51,6 @@ export default function RescueBoard() {
     setForm({ location: '', system: 'STANTON', situation: '', callsign: '' });
     setShowForm(false);
     setSubmitting(false);
-    await broadcastRescueAlert(nextCall);
   };
 
   const respond = async (id) => {
@@ -69,12 +59,6 @@ export default function RescueBoard() {
     const nextCalls = await updateRescueCall(id, { status: 'RESPONDING', responder });
     setCalls(nextCalls);
     setUpdatingId(null);
-    const activeCall = nextCalls.find((call) => String(call.id) === String(id));
-    await broadcastRescueAlert({
-      ...activeCall,
-      status: 'RESPONDING',
-      responder,
-    });
   };
 
   const resolve = async (id) => {
@@ -82,11 +66,6 @@ export default function RescueBoard() {
     const nextCalls = await updateRescueCall(id, { status: 'RESOLVED' });
     setCalls(nextCalls);
     setUpdatingId(null);
-    const resolvedCall = nextCalls.find((call) => String(call.id) === String(id));
-    await broadcastRescueAlert({
-      ...resolvedCall,
-      status: 'RESOLVED',
-    });
   };
 
   const STATUS_COLORS = { OPEN: '#C0392B', RESPONDING: '#C8A84B', RESOLVED: '#4A8C5C' };

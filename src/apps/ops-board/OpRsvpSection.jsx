@@ -1,6 +1,6 @@
 /**
  * OpRsvpSection — RSVP management for op detail view
- * Props: { op, rsvps, callsign, discordId, rank }
+ * Props: { op, rsvps, callsign, sessionUserId, rank }
  *
  * Shows role slots, RSVP button (if not RSVPd and op is PUBLISHED),
  * or "Already RSVPd" pill + "Leave op" link.
@@ -50,7 +50,7 @@ function formatTimestamp(isoStr) {
   return new Date(isoStr).toLocaleDateString();
 }
 
-export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
+export default function OpRsvpSection({ op, rsvps = [], callsign, sessionUserId }) {
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedShip, setSelectedShip] = useState('');
@@ -73,7 +73,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
   });
 
   // Check if current user already RSVPd
-  const myRsvp = confirmedRsvps.find(r => r.discord_id === discordId);
+  const myRsvp = confirmedRsvps.find(r => r.user_id === sessionUserId);
 
   // Can only RSVP if op is PUBLISHED and not already RSVPd
   const canRsvp = op.status === 'PUBLISHED' && !myRsvp;
@@ -82,13 +82,13 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, discordId }) {
   const isFull = confirmedRsvps.length === totalCapacity && totalCapacity > 0;
 
   const handleConfirmRsvp = async () => {
-    if (!selectedRole || !discordId) return;
+    if (!selectedRole || !sessionUserId) return;
     setConfirming(true);
     setRsvpError('');
     try {
       await base44.entities.OpRsvp.create({
         op_id: op.id,
-        discord_id: discordId,
+        user_id: sessionUserId,
         callsign,
         role: selectedRole,
         ship: selectedShip || null,

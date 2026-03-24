@@ -54,7 +54,10 @@ export default function CrewScheduler() {
         const rsvps = await base44.entities.OpRsvp.list('-created_date', 500);
         rsvps?.forEach((rsvp) => {
           if (initAssignments[rsvp.op_id]) {
-            initAssignments[rsvp.op_id][rsvp.discord_id] = rsvp.role || 'crew';
+            const userKey = rsvp.user_id || rsvp.discord_id || rsvp.callsign;
+            if (userKey) {
+              initAssignments[rsvp.op_id][userKey] = rsvp.role || 'crew';
+            }
           }
         });
         setAssignments(initAssignments);
@@ -82,20 +85,20 @@ export default function CrewScheduler() {
       }));
 
       // Find or create RSVP
-      const existingRsvp = (
+        const existingRsvp = (
         await base44.entities.OpRsvp.filter({
           op_id: opId,
-          discord_id: crewId,
+          user_id: crewId,
         })
       )?.[0];
 
       if (existingRsvp) {
         await base44.entities.OpRsvp.update(existingRsvp.id, { role });
       } else {
-        const member = crew.find((m) => m.discord_id === crewId);
+        const member = crew.find((m) => m.id === crewId);
         await base44.entities.OpRsvp.create({
           op_id: opId,
-          discord_id: crewId,
+          user_id: crewId,
           callsign: member?.callsign || 'Unknown',
           role,
           status: 'CONFIRMED',
@@ -332,11 +335,11 @@ export default function CrewScheduler() {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {getAvailableCrew(selectedOp.id).map((member) => {
-                            const isAssigned = assignments[selectedOp.id]?.[member.discord_id] === role.id;
+                            const isAssigned = assignments[selectedOp.id]?.[member.id] === role.id;
                             return (
                               <button
                                 key={member.id}
-                                onClick={() => handleAssignRole(selectedOp.id, member.discord_id, isAssigned ? null : role.id)}
+                                onClick={() => handleAssignRole(selectedOp.id, member.id, isAssigned ? null : role.id)}
                                 style={{
                                   textAlign: 'left',
                                   padding: '8px 10px',

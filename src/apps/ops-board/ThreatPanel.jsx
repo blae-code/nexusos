@@ -6,7 +6,6 @@
  * A threat is "resolved" when a THREAT_RESOLVED entry exists with the
  * same threat_id. Active = no matching resolved entry.
  * Report dialog: position:absolute overlay (same scoped pattern).
- * heraldBot 'threatAlert' fires on submit, wrapped in .catch().
  */
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
@@ -165,12 +164,6 @@ export default function ThreatPanel({ op, callsign, onUpdate }) {
       threat_id:  id,
     };
     await appendLog(entry);
-
-    // heraldBot — non-fatal
-    base44.functions.invoke('heraldBot', {
-      action:  'threatAlert',
-      payload: { op_id: op.id, op_name: op.name, description, severity, location },
-    }).catch(e => console.warn('[ThreatPanel] heraldBot failed:', e.message));
   };
 
   const handleResolve = async (threatId) => {

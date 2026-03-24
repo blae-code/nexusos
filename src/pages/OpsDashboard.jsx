@@ -69,7 +69,11 @@ export default function OpsDashboard() {
   // Metrics calculations
   const liveOpCount = ops.length;
   const upcomingOpCount = publishedOps.length;
-  const totalMembersOnOps = new Set(rsvps.map(r => r.discord_id)).size;
+  const totalMembersOnOps = new Set(
+    rsvps
+      .map(r => r.user_id || r.callsign || r.discord_id)
+      .filter(Boolean),
+  ).size;
 
   const fleetStats = {
     total: ships.length,

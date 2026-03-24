@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { AlertCircle } from 'lucide-react';
 
-export default function ArmoryCheckoutForm({ items, callsign, discordId, onCheckoutComplete }) {
+export default function ArmoryCheckoutForm({ items, callsign, sessionUserId, onCheckoutComplete }) {
   const [form, setForm] = useState({
     item_id: '',
     quantity: 1,
@@ -29,7 +29,7 @@ export default function ArmoryCheckoutForm({ items, callsign, discordId, onCheck
       await base44.entities.ArmoryCheckout.create({
         item_id: form.item_id,
         item_name: selectedItem.item_name,
-        checked_out_by: discordId,
+        checked_out_by: sessionUserId,
         checked_out_by_callsign: callsign,
         quantity: form.quantity,
         checked_out_at: new Date().toISOString(),

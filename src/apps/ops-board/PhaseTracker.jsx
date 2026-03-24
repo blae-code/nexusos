@@ -110,14 +110,6 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank
     setAdvancingIndex(currentPhase);
     try {
       await base44.entities.Op.update(opId, { phase_current: nextPhase });
-      base44.functions.invoke('heraldBot', {
-        action: 'phaseAdvance',
-        payload: {
-          op_id: opId,
-          phase: phases[nextPhase],
-          phase_index: nextPhase,
-        },
-      }).catch((error) => console.warn('[PhaseTracker] heraldBot failed:', error.message));
       onAdvance?.(nextPhase);
     } catch {
       // phase update failed — UI stays on current phase
