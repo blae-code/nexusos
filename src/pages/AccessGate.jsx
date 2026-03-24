@@ -193,19 +193,7 @@ export default function AccessGate() {
 
 
 
-        {health?.ok === false ? (
-          <div style={{
-            marginBottom: '18px',
-            padding: '10px 12px',
-            border: '0.5px solid rgba(192,57,43,0.3)',
-            background: 'rgba(192,57,43,0.08)',
-            color: '#C8A84B',
-            fontSize: '11px',
-            lineHeight: 1.6,
-          }}>
-            Authentication services are not reporting healthy status. Verify the deployed auth functions and try again.
-          </div>
-        ) : null}
+
 
 
         {/* FORM */}
