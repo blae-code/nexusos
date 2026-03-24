@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Plus, Search, RefreshCw, Ship, Anchor, Package, Users, Wrench } from 'lucide-react';
+import { Plus, Search, RefreshCw, Ship, Anchor, Package, Users, Wrench, Upload } from 'lucide-react';
 import ShipCard from './ShipCard';
 import AddShipDialog from './AddShipDialog';
+import ShipImportDialog from './ShipImportDialog';
 
 const STATUS_FILTERS = ['ALL', 'AVAILABLE', 'ASSIGNED', 'MAINTENANCE', 'DESTROYED'];
 const CLASS_FILTERS = ['ALL', 'FIGHTER', 'HEAVY_FIGHTER', 'MINER', 'HAULER', 'SALVAGER', 'MEDICAL', 'EXPLORER', 'GROUND_VEHICLE', 'OTHER'];
@@ -31,6 +32,7 @@ export default function FleetRoster() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [classFilter, setClassFilter] = useState('ALL');
   const [dialog, setDialog] = useState(null);
+  const [showImport, setShowImport] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -100,6 +102,9 @@ export default function FleetRoster() {
         <button onClick={handleSync} disabled={syncing} className="nexus-btn nexus-tooltip" data-tooltip="Pull latest roster from FleetYards" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <RefreshCw size={11} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
           {syncing ? 'SYNCING…' : 'SYNC FLEET'}
+        </button>
+        <button onClick={() => setShowImport(true)} className="nexus-btn nexus-tooltip" data-tooltip="Import ships from HangarXPLOR, FleetYards, or JSON" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Upload size={11} /> IMPORT
         </button>
         <button onClick={() => setDialog('add')} className="nexus-btn nexus-btn-go nexus-tooltip" data-tooltip="Manually register a new ship" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <Plus size={11} /> ADD SHIP
@@ -171,6 +176,13 @@ export default function FleetRoster() {
           members={members}
           onClose={() => setDialog(null)}
           onSaved={load}
+        />
+      )}
+      {showImport && (
+        <ShipImportDialog
+          onClose={() => setShowImport(false)}
+          onImported={load}
+          callsign={''}
         />
       )}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
