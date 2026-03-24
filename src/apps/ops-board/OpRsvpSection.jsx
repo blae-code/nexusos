@@ -8,7 +8,7 @@
  * Roster section showing confirmed crew with timestamps.
  */
 import React, { useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 
 function getRoleColor(roleName) {
   const lower = (roleName || '').toLowerCase();
@@ -50,7 +50,7 @@ function formatTimestamp(isoStr) {
   return new Date(isoStr).toLocaleDateString();
 }
 
-export default function OpRsvpSection({ op, rsvps = [], callsign, sessionUserId }) {
+export default function OpRsvpSection({ op, rsvps = [], sessionUserId }) {
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedShip, setSelectedShip] = useState('');
@@ -86,10 +86,8 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, sessionUserId 
     setConfirming(true);
     setRsvpError('');
     try {
-      await base44.entities.OpRsvp.create({
+      await nexusWriteApi.upsertOpRsvp({
         op_id: op.id,
-        user_id: sessionUserId,
-        callsign,
         role: selectedRole,
         ship: selectedShip || null,
         status: 'CONFIRMED',
@@ -122,7 +120,7 @@ export default function OpRsvpSection({ op, rsvps = [], callsign, sessionUserId 
     if (!myRsvp) return;
     setLeaveConfirming(false);
     try {
-      await base44.entities.OpRsvp.update(myRsvp.id, { status: 'DECLINED' });
+      await nexusWriteApi.declineOpRsvp(op.id);
       window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
     } catch {
       // Handle error

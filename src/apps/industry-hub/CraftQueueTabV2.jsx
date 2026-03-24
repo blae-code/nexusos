@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Plus, AlertCircle } from 'lucide-react';
 import NexusToken from '@/core/design/NexusToken';
 import { T } from '@/core/data/tokenMap';
@@ -14,7 +14,7 @@ const STATUS_COLOURS = {
 
 const STATUS_ORDER = ['OPEN', 'CLAIMED', 'IN_PROGRESS', 'COMPLETE', 'CANCELLED'];
 
-export default function CraftQueueTabV2({ craftQueue, callsign, onRefresh }) {
+export default function CraftQueueTabV2({ craftQueue, onRefresh }) {
   const grouped = useMemo(() => {
     const groups = {};
     STATUS_ORDER.forEach(status => { groups[status] = []; });
@@ -25,25 +25,22 @@ export default function CraftQueueTabV2({ craftQueue, callsign, onRefresh }) {
   }, [craftQueue]);
 
   const handleClaim = async (id, item) => {
-    await base44.entities.CraftQueue.update(id, {
-      status: 'CLAIMED',
-      claimed_by_callsign: callsign,
-    });
+    await nexusWriteApi.claimCraftQueue(id);
     onRefresh();
   };
 
   const handleStart = async (id) => {
-    await base44.entities.CraftQueue.update(id, { status: 'IN_PROGRESS' });
+    await nexusWriteApi.updateCraftQueueStatus(id, 'IN_PROGRESS');
     onRefresh();
   };
 
   const handleComplete = async (id) => {
-    await base44.entities.CraftQueue.update(id, { status: 'COMPLETE' });
+    await nexusWriteApi.updateCraftQueueStatus(id, 'COMPLETE');
     onRefresh();
   };
 
   const handleCancel = async (id) => {
-    await base44.entities.CraftQueue.update(id, { status: 'CANCELLED' });
+    await nexusWriteApi.updateCraftQueueStatus(id, 'CANCELLED');
     onRefresh();
   };
 

@@ -3,7 +3,7 @@ import { base44 } from '@/core/data/base44Client';
 import { Upload, AlertTriangle } from 'lucide-react';
 import OcrPreview from './OcrPreview';
 
-export default function OcrUpload({ callsign, discordId, onSuccess }) {
+export default function OcrUpload({ callsign, onSuccess }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,6 @@ export default function OcrUpload({ callsign, discordId, onSuccess }) {
       const ocrRes = await base44.functions.invoke('ocrExtract', {
         file_url: fileUrl,
         source_type: 'OCR_UPLOAD',
-        discord_id: discordId || '',
         callsign: callsign || '',
       });
 

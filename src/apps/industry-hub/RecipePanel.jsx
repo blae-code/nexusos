@@ -3,8 +3,8 @@
  * No closed-over variables — props only.
  */
 import React, { useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Wrench } from 'lucide-react';
 import { SectionHeader } from './BlueprintFilterChips';
 import { qualityPercentFromRecord } from '@/core/data/quality';
@@ -43,7 +43,7 @@ export default function RecipePanel({ blueprint, materials, callsign, onCraftQue
   const handleCraft = async () => {
     setCrafting(true);
     try {
-      await base44.entities.CraftQueue.create({
+      await nexusWriteApi.createCraftQueue({
         blueprint_id:           blueprint.id,
         blueprint_name:         blueprint.item_name,
         status:                 'OPEN',

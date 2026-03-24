@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
-import { useEffect, useState } from 'react';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Plus, Beaker } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 
@@ -56,7 +55,7 @@ export default function RefineryOrdersTab({ orders, onRefresh }) {
   }, []);
 
   const handleCollect = async (id) => {
-    await base44.entities.RefineryOrder.update(id, { status: 'COLLECTED' });
+    await nexusWriteApi.collectRefineryOrder(id);
     onRefresh();
   };
 

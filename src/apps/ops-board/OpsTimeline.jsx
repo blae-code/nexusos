@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Calendar, ChevronLeft, ChevronRight, Download, Ship, Users, X, Check, Clock } from 'lucide-react';
 import { normalizeRoleSlots } from './opBoardHelpers';
 
@@ -111,7 +112,7 @@ function DragGhost({ op, visible }) {
 
 // ─── RSVP Quick Panel ────────────────────────────────────────────────────────
 
-function RSVPQuickPanel({ op, rsvps, sessionUserId, callsign, onClose, onRefresh }) {
+function RSVPQuickPanel({ op, rsvps, sessionUserId, onClose, onRefresh }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [ship, setShip] = useState('');
@@ -120,11 +121,12 @@ function RSVPQuickPanel({ op, rsvps, sessionUserId, callsign, onClose, onRefresh
 
   const submit = async (role, status = 'CONFIRMED') => {
     setSubmitting(true);
-    if (existing) {
-      await base44.entities.OpRsvp.update(existing.id, { role, status, ship: ship.trim() || existing.ship || '' });
-    } else {
-      await base44.entities.OpRsvp.create({ op_id: op.id, user_id: sessionUserId, callsign, role, status, ship: ship.trim() });
-    }
+    await nexusWriteApi.upsertOpRsvp({
+      op_id: op.id,
+      role,
+      status,
+      ship: ship.trim() || existing?.ship || '',
+    });
     setDone(true);
     onRefresh?.();
     setTimeout(onClose, 700);
@@ -133,11 +135,7 @@ function RSVPQuickPanel({ op, rsvps, sessionUserId, callsign, onClose, onRefresh
 
   const decline = async () => {
     setSubmitting(true);
-    if (existing) {
-      await base44.entities.OpRsvp.update(existing.id, { status: 'DECLINED' });
-    } else {
-      await base44.entities.OpRsvp.create({ op_id: op.id, user_id: sessionUserId, callsign, role: '', status: 'DECLINED', ship: '' });
-    }
+    await nexusWriteApi.declineOpRsvp(op.id);
     setDone(true);
     onRefresh?.();
     setTimeout(onClose, 700);
@@ -805,7 +803,6 @@ export default function OpsTimeline() {
           op={rsvpTarget}
           rsvps={rsvps.filter(r => r.op_id === rsvpTarget.id)}
           sessionUserId={sessionUserId}
-          callsign={callsign}
           onClose={() => setRsvpTarget(null)}
           onRefresh={load}
         />

@@ -4,7 +4,7 @@
  * Op Leaders can update RSVP status inline.
  */
 import React, { useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 
 const ROLE_ICONS = {
   mining: '⛏', escort: '🛡', hauler: '📦', medic: '➕',
@@ -80,7 +80,7 @@ function RsvpRow({ rsvp, canLead, onStatusChange }) {
 }
 
 export default function CrewRoster({ op, rsvps, canLead, onRsvpUpdate }) {
-  const [updating, setUpdating] = useState(false);
+  const [, setUpdating] = useState(false);
 
   // Group by role order matching op.role_slots
   const roleOrder = Object.keys(op.role_slots || {});
@@ -102,7 +102,24 @@ export default function CrewRoster({ op, rsvps, canLead, onRsvpUpdate }) {
 
   const handleStatusChange = async (rsvpId, newStatus) => {
     setUpdating(true);
-    await base44.entities.OpRsvp.update(rsvpId, { status: newStatus });
+    const target = rsvps.find((entry) => entry.id === rsvpId);
+    if (target) {
+      if (newStatus === 'DECLINED') {
+        await nexusWriteApi.declineOpRsvp(op.id, {
+          user_id: target.user_id,
+          callsign: target.callsign,
+        });
+      } else {
+        await nexusWriteApi.upsertOpRsvp({
+          op_id: op.id,
+          user_id: target.user_id,
+          callsign: target.callsign,
+          role: target.role || '',
+          status: newStatus,
+          ship: target.ship || '',
+        });
+      }
+    }
     onRsvpUpdate && onRsvpUpdate();
     setUpdating(false);
   };

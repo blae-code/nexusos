@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { X, Check } from 'lucide-react';
 import { normalizeRoleSlots, Overlay, DialogCard } from './opBoardHelpers';
 import NexusToken from '@/core/design/NexusToken';
 import { roleToken } from '@/core/data/tokenMap';
 
-export default function RSVPDialog({ op, rsvps, sessionUserId, callsign, onClose, onRefresh }) {
+export default function RSVPDialog({ op, rsvps, sessionUserId, onClose, onRefresh }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [ship, setShip] = useState('');
@@ -16,18 +16,12 @@ export default function RSVPDialog({ op, rsvps, sessionUserId, callsign, onClose
   const submit = async (role, status = 'CONFIRMED') => {
     setSubmitting(true);
     try {
-      if (existing) {
-        await base44.entities.OpRsvp.update(existing.id, { role, status, ship: ship.trim() || existing.ship || '' });
-      } else {
-        await base44.entities.OpRsvp.create({
-          op_id:      op.id,
-          user_id:    sessionUserId,
-          callsign,
-          role,
-          status,
-          ship:       ship.trim(),
-        });
-      }
+      await nexusWriteApi.upsertOpRsvp({
+        op_id: op.id,
+        role,
+        status,
+        ship: ship.trim() || existing?.ship || '',
+      });
       setDone(true);
       onRefresh?.();
       setTimeout(onClose, 800);
@@ -40,13 +34,7 @@ export default function RSVPDialog({ op, rsvps, sessionUserId, callsign, onClose
   const decline = async () => {
     setSubmitting(true);
     try {
-      if (existing) {
-        await base44.entities.OpRsvp.update(existing.id, { status: 'DECLINED' });
-      } else {
-        await base44.entities.OpRsvp.create({
-          op_id: op.id, user_id: sessionUserId, callsign, role: '', status: 'DECLINED', ship: '',
-        });
-      }
+      await nexusWriteApi.declineOpRsvp(op.id);
       setDone(true);
       onRefresh?.();
       setTimeout(onClose, 800);

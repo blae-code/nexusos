@@ -5,7 +5,7 @@
  */
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { useSession } from '@/core/data/SessionContext';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { isT2Eligible, qualityPercentFromRecord, qualityScoreFromPercent } from '@/core/data/quality';
 import { Upload, ChevronDown, ChevronUp, Search, X, Check } from 'lucide-react';
 import { MaterialStatusPill } from '@/apps/industry-hub/IndustryVisuals';
@@ -54,7 +54,6 @@ function relativeTime(isoStr) {
 // ─── Main Materials component ──────────────────────────────────────────────────
 
 export default function Materials({ materials, onRefresh }) {
-  const { user } = useSession();
   // ── Filter + sort state ───────────────────────────────
   const [qualityMin,    setQualityMin]    = useState(0);
   const [typeFilter,    setTypeFilter]    = useState('ALL');
@@ -175,22 +174,19 @@ export default function Materials({ materials, onRefresh }) {
     setConfirming(true);
     const toCreate = reviewItems.filter((_, i) => reviewChecked[i]);
     try {
-      await Promise.all(toCreate.map(item =>
-        (() => {
+      await nexusWriteApi.createMaterial({
+        materials: toCreate.map((item) => {
           const qualityPct = parseFloat(item.quality_pct) || 0;
-          return base44.entities.Material.create({
+          return {
             material_name:  item.material_name,
             material_type:  item.material_type || 'RAW',
             quantity_scu:   parseFloat(item.quantity_scu) || 0,
             quality_score:  qualityScoreFromPercent(qualityPct),
             quality_pct:    qualityPct,
-            t2_eligible:    qualityPct >= 80,
-            logged_by_user_id: user?.id || null,
-            logged_by_callsign: user?.callsign || 'UNKNOWN',
             source_type:    'OCR_UPLOAD',
-          });
-        })()
-      ));
+          };
+        }),
+      });
       setOcrState('SUCCESS');
       setReviewItems([]);
       onRefresh();

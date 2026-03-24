@@ -1,4 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import {
+  buildMaterialRecord,
+  buildRefineryOrderRecord,
+} from '../_shared/nexusWriteValidation/entry.ts';
 
 /**
  * OCR Extract — Takes a screenshot URL from upload,
@@ -64,20 +68,12 @@ Return null for any field you cannot read clearly.`,
     if (extracted.screenshot_type === 'INVENTORY') {
       for (const item of extracted.items || []) {
         if (!item.material_name) continue;
-        const qualityPct = Number(item.quality_pct) || 0;
-        const record = await base44.asServiceRole.entities.Material.create({
-          material_name: item.material_name,
-          quantity_scu: item.quantity_scu || 0,
-          quality_score: Math.round(qualityPct * 10),
-          quality_pct: qualityPct,
-          material_type: item.material_type || 'RAW',
-          t2_eligible: qualityPct >= 80,
-          logged_by_user_id: resolvedUserId,
-          logged_by_callsign: resolvedCallsign,
+        const record = await base44.asServiceRole.entities.Material.create(buildMaterialRecord({
+          ...item,
           source_type: resolvedSourceType,
           screenshot_ref: file_url,
           logged_at: now,
-        });
+        }, { ...user, id: resolvedUserId, callsign: resolvedCallsign }));
         created.push(record);
       }
     }
@@ -88,20 +84,13 @@ Return null for any field you cannot read clearly.`,
         ? new Date(Date.now() + item.completes_at_hours * 3600000).toISOString()
         : null;
 
-      await base44.asServiceRole.entities.RefineryOrder.create({
-        material_name: item.material_name || 'Unknown',
-        quantity_scu: item.quantity_scu || 0,
-        method: item.method || null,
-        yield_pct: item.yield_pct || null,
-        cost_aUEC: item.cost_aUEC || null,
-        station: item.station || null,
-        submitted_by_user_id: resolvedUserId,
-        submitted_by_callsign: resolvedCallsign,
+      await base44.asServiceRole.entities.RefineryOrder.create(buildRefineryOrderRecord({
+        ...item,
         started_at: now,
         completes_at: completes,
         status: 'ACTIVE',
         source_type: resolvedSourceType,
-      });
+      }, { ...user, id: resolvedUserId, callsign: resolvedCallsign }));
       created.push({ type: 'REFINERY_ORDER', ...item });
     }
 

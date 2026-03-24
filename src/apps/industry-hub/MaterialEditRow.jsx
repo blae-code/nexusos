@@ -3,7 +3,7 @@
  * No closed-over variables — props only.
  */
 import React, { useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import NexusToken from '@/core/design/NexusToken';
 import { materialToken } from '@/core/data/tokenMap';
 import { qualityPercentFromRecord, qualityScoreFromPercent } from '@/core/data/quality';
@@ -32,7 +32,7 @@ export default function EditRow({ material, onSave, onCancel }) {
 
   const handleSave = async () => {
     const qualityPct = parseFloat(qual) || 0;
-    await base44.entities.Material.update(material.id, {
+    await nexusWriteApi.updateMaterial(material.id, {
       quantity_scu: parseFloat(qty)  || 0,
       quality_score: qualityScoreFromPercent(qualityPct),
       quality_pct:  qualityPct,

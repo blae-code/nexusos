@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { qualityScoreFromPercent } from '@/core/data/quality';
 import { AlertCircle, Zap } from 'lucide-react';
 
@@ -32,7 +33,6 @@ const STATIONS = {
 export default function RefineryManagement({ materials = [], callsign = '' }) {
   const { user } = useSession();
   const sessionCallsign = user?.callsign || callsign || 'UNKNOWN';
-  const sessionUserId = user?.id || null;
   const [form, setForm] = useState({
     material_name: '',
     quantity_scu: '',
@@ -100,33 +100,18 @@ export default function RefineryManagement({ materials = [], callsign = '' }) {
         yield_pct: forecast.yield_pct,
         cost_aUEC: forecast.cost_aUEC,
         station: form.station,
-        submitted_by_user_id: sessionUserId,
         submitted_by_callsign: sessionCallsign,
         started_at: new Date().toISOString(),
         completes_at: forecast.completes_at,
         status: 'ACTIVE',
         source_type: 'MANUAL',
-      };
-
-      const orderRes = await base44.entities.RefineryOrder.create(order);
-
-      // Create pending material asset for crafting queue
-      const pendingMaterial = {
-        material_name: form.material_name,
-        quantity_scu: forecast.estimated_output_scu,
-        quality_score: qualityScoreFromPercent(retainedQualityPct),
-        quality_pct: retainedQualityPct,
-        material_type: 'REFINED',
-        location: form.station,
-        logged_by_user_id: sessionUserId,
-        logged_by_callsign: sessionCallsign,
-        source_type: 'REFINERY_ORDER',
-        session_id: orderRes?.id,
+        estimated_output_scu: forecast.estimated_output_scu,
+        quality_retained_pct: retainedQualityPct,
+        processing_minutes: forecast.processing_minutes,
         notes: `Refining via ${form.refinery_method} at ${form.station} - ETA ${Math.round(forecast.processing_minutes)}m`,
-        logged_at: new Date().toISOString(),
       };
 
-      await base44.entities.Material.create(pendingMaterial);
+      await nexusWriteApi.createRefineryOrder(order);
 
       // Reset form
       setForm({

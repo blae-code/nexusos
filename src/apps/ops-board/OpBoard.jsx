@@ -5,7 +5,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { Plus, RefreshCw, Crosshair, CalendarDays } from 'lucide-react';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
+import { Plus, RefreshCw, CalendarDays } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 import OpsDashboard from '@/pages/OpsDashboard';
 
@@ -128,7 +129,6 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
 export default function OpBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const rank = outletContext.rank;
-  const callsign = outletContext.callsign;
   const sessionUserId = outletContext.sessionUserId;
   const [searchParams, setSearchParams] = useSearchParams();
   const opsView = searchParams.get('view') === 'analytics' ? 'analytics' : 'board';
@@ -175,7 +175,7 @@ export default function OpBoard() {
     setRsvpMap(counts);
     setMyRsvps(myMap);
     setLoading(false);
-  }, [callsign, sessionUserId]);
+  }, [sessionUserId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -191,9 +191,9 @@ export default function OpBoard() {
   const handleRsvp = async (opId) => {
     if (!sessionUserId) return;
     if (myRsvps[opId]) {
-      await base44.entities.OpRsvp.update(myRsvps[opId].id, { status: 'DECLINED' });
+      await nexusWriteApi.declineOpRsvp(opId);
     } else {
-      await base44.entities.OpRsvp.create({ op_id: opId, user_id: sessionUserId, callsign, status: 'CONFIRMED' });
+      await nexusWriteApi.upsertOpRsvp({ op_id: opId, role: '', status: 'CONFIRMED', ship: '' });
     }
     load();
   };

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Calendar, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const SHIP_ROLES = [
@@ -84,24 +85,20 @@ export default function CrewScheduler() {
         },
       }));
 
-      // Find or create RSVP
-        const existingRsvp = (
-        await base44.entities.OpRsvp.filter({
-          op_id: opId,
-          user_id: crewId,
-        })
-      )?.[0];
-
-      if (existingRsvp) {
-        await base44.entities.OpRsvp.update(existingRsvp.id, { role });
-      } else {
-        const member = crew.find((m) => m.id === crewId);
-        await base44.entities.OpRsvp.create({
+      const member = crew.find((m) => m.id === crewId);
+      if (role) {
+        await nexusWriteApi.upsertOpRsvp({
           op_id: opId,
           user_id: crewId,
           callsign: member?.callsign || 'Unknown',
           role,
           status: 'CONFIRMED',
+          ship: '',
+        });
+      } else {
+        await nexusWriteApi.declineOpRsvp(opId, {
+          user_id: crewId,
+          callsign: member?.callsign || 'Unknown',
         });
       }
     } catch (err) {

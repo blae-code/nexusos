@@ -6,6 +6,7 @@
 import React, { useRef, useState } from 'react';
 import { Upload, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 
 const TYPE_LABELS = {
   INVENTORY: 'Inventory',
@@ -74,7 +75,7 @@ function ItemRow({ item, index, onChange, onRemove }) {
 }
 
 // ─── Mining scan confirmation ─────────────────────────────────────────────────
-function MiningScanConfirm({ data, callsign, discordId, onConfirm, onDismiss }) {
+function MiningScanConfirm({ data, onConfirm, onDismiss }) {
   const [form, setForm] = useState({
     material_name: data.material_name || '',
     system_name: data.system_name || '',
@@ -89,11 +90,9 @@ function MiningScanConfirm({ data, callsign, discordId, onConfirm, onDismiss }) 
 
   const handleConfirm = async () => {
     setSaving(true);
-    await base44.entities.ScoutDeposit.create({
+    await nexusWriteApi.createScoutDeposit({
       ...form,
       quality_pct: form.quality_pct ? Number(form.quality_pct) : undefined,
-      reported_by: discordId || '',
-      reported_by_callsign: callsign || '',
       reported_at: new Date().toISOString(),
     });
     setSaving(false);
@@ -157,7 +156,7 @@ function MiningScanConfirm({ data, callsign, discordId, onConfirm, onDismiss }) 
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function OcrUploadPanel({ callsign, discordId, onComplete }) {
+export default function OcrUploadPanel({ callsign, onComplete }) {
   const fileInputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [state, setState] = useState('idle'); // idle | uploading | processing | confirm | done | error
@@ -195,7 +194,6 @@ export default function OcrUploadPanel({ callsign, discordId, onComplete }) {
       const response = await base44.functions.invoke('ocrExtract', {
         file_url,
         source_type: 'OCR_UPLOAD',
-        discord_id: discordId || '',
         callsign: callsign || '',
       });
 
@@ -321,8 +319,6 @@ export default function OcrUploadPanel({ callsign, discordId, onComplete }) {
           {result.screenshot_type === 'MINING_SCAN' && (
             <MiningScanConfirm
               data={result.pending_confirmation || {}}
-              callsign={callsign}
-              discordId={discordId}
               onConfirm={handleDone}
               onDismiss={reset}
             />

@@ -9,6 +9,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
+import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { qualityScoreFromPercent } from '@/core/data/quality';
 import { X } from 'lucide-react';
 
@@ -153,7 +154,7 @@ export default function LogForm({ callsign, onSubmit, onCancel }) {
     setSaving(true);
     try {
       const qualityScore = qualityScoreFromPercent(form.quality_pct);
-      const deposit = await base44.entities.ScoutDeposit.create({
+      const result = await nexusWriteApi.createScoutDeposit({
         material_name:   form.material_name.trim(),
         system_name:     form.system_name.toUpperCase(),
         location_detail: form.location_detail.trim(),
@@ -172,7 +173,7 @@ export default function LogForm({ callsign, onSubmit, onCancel }) {
       });
 
       setSaved(true);
-      onSubmit?.(deposit);
+      onSubmit?.(result.deposit);
     } catch {
       // submit failed — saving state cleared
     }
