@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { ChevronLeft, Play, Square, Upload } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
+import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { safeLocalStorage } from '@/core/data/safe-storage';
 import CrewGrid from './CrewGrid';
 import LootTally from './LootTally';
@@ -153,6 +154,15 @@ export default function LiveOp() {
         status: 'LIVE',
         started_at: new Date().toISOString(),
       });
+      await sendNexusNotification({
+        type: 'OP_LIVE',
+        title: 'Operation Live',
+        body: `${op.name} is now live${op.location ? ` · ${op.location}` : ''}.`,
+        severity: 'INFO',
+        target_user_id: null,
+        source_module: 'OPS',
+        source_id: op.id,
+      });
       await fetchOp();
     } catch {
       // activating failed — button re-enables via finally
@@ -169,6 +179,15 @@ export default function LiveOp() {
         status: 'COMPLETE',
         ended_at: new Date().toISOString(),
       });
+      await sendNexusNotification({
+        type: 'OP_COMPLETE',
+        title: 'Operation Complete',
+        body: `${op.name} has completed.`,
+        severity: 'INFO',
+        target_user_id: null,
+        source_module: 'OPS',
+        source_id: op.id,
+      });
       navigate('/app/ops');
     } catch {
       setEnding(false);
@@ -180,6 +199,15 @@ export default function LiveOp() {
     setPublishing(true);
     try {
       await base44.entities.Op.update(op.id, { status: 'PUBLISHED' });
+      await sendNexusNotification({
+        type: 'OP_PUBLISHED',
+        title: 'Operation Published',
+        body: `${op.name} is published${op.system_name || op.system ? ` · ${op.system_name || op.system}` : ''}.`,
+        severity: 'INFO',
+        target_user_id: null,
+        source_module: 'OPS',
+        source_id: op.id,
+      });
       await fetchOp();
     } catch {
       setPublishing(false);
@@ -224,7 +252,7 @@ export default function LiveOp() {
   const phaseLabel = phases[currentPhase] || 'Awaiting phase';
   const isSecondMonitor = layoutMode === '2ND MONITOR';
 
-  const phaseTrackerProps = { phases, currentPhase, opId: op.id, rank, onAdvance: handlePhaseAdvance };
+  const phaseTrackerProps = { phases, currentPhase, opId: op.id, opName: op.name, rank, onAdvance: handlePhaseAdvance };
   const readinessGateProps = { op, rank, onUpdate: handleGateUpdate };
   const crewGridProps = { rsvps, op, layoutMode };
   const opRsvpProps = { op, rsvps, callsign, sessionUserId, rank };

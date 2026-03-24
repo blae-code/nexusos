@@ -26,6 +26,7 @@ type NexusUserRecord = {
   key_issued_by?: string | null;
   key_issued_at?: string | null;
   last_seen_at?: string | null;
+  notifications_seen_at?: string | null;
   created_date?: string | null;
   updated_date?: string | null;
 };
@@ -381,6 +382,7 @@ export function toSessionResponse(user: NexusUserRecord) {
       rank: String(user.nexus_rank || 'AFFILIATE').toUpperCase(),
       joinedAt: user.joined_at || null,
       onboarding_complete: user.onboarding_complete ?? false,
+      notifications_seen_at: user.notifications_seen_at || null,
       is_admin: isAdmin,
     },
   };
@@ -433,6 +435,7 @@ export function serializeManagedUser(user: NexusUserRecord) {
     joined_at: user.joined_at || null,
     onboarding_complete: user.onboarding_complete ?? false,
     last_seen_at: user.last_seen_at || null,
+    notifications_seen_at: user.notifications_seen_at || null,
     is_admin: isAdminUser(user),
   };
 }

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createNotification } from '../_shared/nexusNotification/entry.ts';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -26,6 +27,16 @@ Deno.serve(async (req) => {
     const alertText = lowStockItems
       .map(item => `**${item.item_name}** (${item.category}): ${item.quantity}/${item.min_threshold} [RESTOCK NEEDED]`)
       .join('\n');
+
+    await Promise.allSettled(lowStockItems.map((item) => createNotification(base44, {
+      type: 'ARMORY_LOW_STOCK',
+      title: `Low Stock: ${item.item_name}`,
+      body: `${item.item_name} is at ${item.quantity}/${item.min_threshold} in armory inventory.`,
+      severity: item.quantity <= 0 ? 'CRITICAL' : 'WARN',
+      target_user_id: null,
+      source_module: 'ARMORY',
+      source_id: item.id,
+    })));
 
     return Response.json({
       success: true,

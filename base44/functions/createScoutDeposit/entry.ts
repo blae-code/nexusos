@@ -8,6 +8,7 @@ import {
   requireSessionUser,
   NexusWriteError,
 } from '../_shared/nexusWriteValidation/entry.ts';
+import { createNotification } from '../_shared/nexusNotification/entry.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -32,6 +33,23 @@ Deno.serve(async (req) => {
     }
 
     const deposit = await base44.asServiceRole.entities.ScoutDeposit.create(record);
+
+    if (Number(record.quality_score || 0) >= 800) {
+      try {
+        await createNotification(base44, {
+          type: 'SCOUT_T2_DEPOSIT',
+          title: `${record.material_name} deposit logged`,
+          body: `${record.material_name} @ ${(Number(record.quality_score || 0) / 10).toFixed(0)}% in ${record.system_name}${record.location_detail ? ` · ${record.location_detail}` : ''}.`,
+          severity: 'INFO',
+          target_user_id: null,
+          source_module: 'SCOUT',
+          source_id: deposit.id,
+        });
+      } catch (notificationError) {
+        console.warn('[createScoutDeposit] notification failed:', notificationError?.message || notificationError);
+      }
+    }
+
     return okResponse({ deposit });
   } catch (error) {
     return errorResponse(error);

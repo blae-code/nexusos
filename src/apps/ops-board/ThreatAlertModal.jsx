@@ -1,9 +1,10 @@
 /**
  * ThreatAlertModal — quick threat alert dialog for Op Leaders
- * Posts to Discord via heraldBot and logs to session_log.
+ * Broadcasts an in-app threat alert and logs to session_log.
  */
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { sendNexusNotification } from '@/core/data/nexus-notify';
 
 const THREAT_TYPES = ['PIRATE', 'GRIEFER', 'SERVER_ISSUES', 'SHIP_DOWN', 'MEDICAL', 'CARGO_LOSS', 'OTHER'];
 
@@ -16,17 +17,14 @@ export default function ThreatAlertModal({ op, callsign, onClose, onPosted }) {
     if (!description.trim()) return;
     setPosting(true);
 
-    // Post to Discord
-    await base44.functions.invoke('heraldBot', {
-      action: 'threatAlert',
-      payload: {
-        op_id: op.id,
-        op_name: op.name,
-        threat_type: threatType,
-        description: description.trim(),
-        system: op.system,
-        callsign,
-      },
+    await sendNexusNotification({
+      type: 'OP_THREAT',
+      title: 'Threat Alert',
+      body: `${op.name}: [${threatType}] ${description.trim()}${op.system ? ` · ${op.system}` : ''}`,
+      severity: ['PIRATE', 'GRIEFER', 'SHIP_DOWN', 'MEDICAL', 'CARGO_LOSS'].includes(threatType) ? 'CRITICAL' : 'WARN',
+      target_user_id: null,
+      source_module: 'OPS',
+      source_id: op.id,
     });
 
     // Log to session
@@ -101,7 +99,7 @@ export default function ThreatAlertModal({ op, callsign, onClose, onPosted }) {
             className="nexus-btn danger-btn"
             style={{ flex: 1, justifyContent: 'center', padding: '7px 0', fontSize: 10, opacity: posting ? 0.6 : 1 }}
           >
-            {posting ? 'POSTING...' : 'POST ALERT TO DISCORD'}
+            {posting ? 'POSTING...' : 'SEND ALERT'}
           </button>
         </div>
       </div>

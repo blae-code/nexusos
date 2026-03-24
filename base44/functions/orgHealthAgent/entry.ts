@@ -13,6 +13,7 @@
  * No user auth — service role background job.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createNotification } from '../_shared/nexusNotification/entry.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -133,6 +134,20 @@ Do not mention AI. Do not use corporate language. Write as if this is a system s
     } catch (e) {
       console.warn('[orgHealthAgent] Claude briefing failed:', e.message);
       briefing = `## READINESS STATUS\nAutomated briefing unavailable — system intelligence offline.\n## PRIORITY ACTIONS\nManual review required.\n## ALERTS\norgHealthAgent Claude call failed: ${e.message}`;
+    }
+
+    try {
+      await createNotification(base44, {
+        type: 'ORG_BRIEFING',
+        title: 'Daily Org Briefing',
+        body: briefing,
+        severity: 'INFO',
+        target_user_id: null,
+        source_module: 'ORG',
+        source_id: nowIso,
+      });
+    } catch (notificationError) {
+      console.warn('[orgHealthAgent] notification failed:', notificationError?.message || notificationError);
     }
 
     console.log('[orgHealthAgent] Daily briefing complete.');

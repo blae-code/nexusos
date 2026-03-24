@@ -9,6 +9,7 @@
  */
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { AlertTriangle, Plus, X } from 'lucide-react';
 import NexusToken from '@/core/design/NexusToken';
 import { threatToken } from '@/core/data/tokenMap';
@@ -164,6 +165,15 @@ export default function ThreatPanel({ op, callsign, onUpdate }) {
       threat_id:  id,
     };
     await appendLog(entry);
+    await sendNexusNotification({
+      type: 'OP_THREAT',
+      title: 'Threat Alert',
+      body: `${op?.name || 'Operation'}: [${severity}] ${description.trim()}${location ? ` · ${location}` : ''}`,
+      severity: severity === 'HIGH' ? 'CRITICAL' : 'WARN',
+      target_user_id: null,
+      source_module: 'OPS',
+      source_id: op?.id || null,
+    });
   };
 
   const handleResolve = async (threatId) => {

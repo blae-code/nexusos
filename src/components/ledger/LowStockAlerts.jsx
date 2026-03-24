@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { AlertTriangle, Send } from 'lucide-react';
 import { safeLocalStorage } from '@/core/data/safe-storage';
 
@@ -253,23 +253,19 @@ export default function LowStockAlerts({ materials, callsign = 'SYSTEM' }) {
   const handleSendAlert = async (threshold, stockData) => {
     setSendingId(threshold.material);
     try {
-      await base44.functions.invoke('heraldBot', {
-        action: 'lowStockAlert',
-        payload: {
-          material:       threshold.material,
-          current_scu:    stockData.current_scu,
-          min_scu:        threshold.min_scu,
-          current_quality: stockData.current_quality,
-          min_quality:    threshold.min_quality,
-          status:         stockData.status,
-          critical:       threshold.critical,
-          callsign: callsign || 'SYSTEM',
-        },
+      await sendNexusNotification({
+        type: 'ARMORY_LOW_STOCK',
+        title: `Low Stock: ${threshold.material}`,
+        body: `${threshold.material} is ${stockData.status.toLowerCase()} at ${stockData.current_scu.toFixed(1)}/${threshold.min_scu} SCU and ${stockData.current_quality.toFixed(0)}/${threshold.min_quality}% quality.`,
+        severity: threshold.critical || ['MISSING', 'CRITICAL'].includes(stockData.status) ? 'CRITICAL' : 'WARN',
+        target_user_id: null,
+        source_module: 'ARMORY',
+        source_id: threshold.material,
       });
       setLastSent(prev => ({ ...prev, [threshold.material]: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }));
       setAlertLog(prev => [{ material: threshold.material, status: stockData.status, time: new Date().toISOString(), callsign: callsign || 'SYSTEM' }, ...prev.slice(0, 19)]);
     } catch (e) {
-      console.warn('[LowStockAlerts] heraldBot alert failed:', e.message);
+      console.warn('[LowStockAlerts] notification failed:', e.message);
     }
     setSendingId(null);
   };

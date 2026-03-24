@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { ChevronLeft } from 'lucide-react';
 import {
   OP_TYPES, SYSTEMS, RANK_GATES, getDefaults,
@@ -171,6 +172,18 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
       };
 
       const op = await base44.entities.Op.create(payload);
+
+      if (publish) {
+        await sendNexusNotification({
+          type: 'OP_PUBLISHED',
+          title: 'Operation Published',
+          body: `${payload.name} is published${payload.system_name ? ` · ${payload.system_name}` : ''}.`,
+          severity: 'INFO',
+          target_user_id: null,
+          source_module: 'OPS',
+          source_id: op.id,
+        });
+      }
 
       // Show success overlay on publish, then route to op detail with readiness gate
       if (publish) {

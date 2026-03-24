@@ -1,6 +1,6 @@
 /**
- * PhaseBriefModal — "POST PHASE BRIEF" dialog
- * Calls phaseBriefing function, previews result, allows post to Discord.
+ * PhaseBriefModal — phase briefing dialog
+ * Calls phaseBriefing and previews the NexusOS brief.
  */
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
@@ -17,8 +17,6 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
   const [customNotes, setCustomNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState('');
-  const [posted, setPosted] = useState(false);
-
   const handleGenerate = async () => {
     setLoading(true);
     setPreview('');
@@ -29,11 +27,9 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
       threat_notes: threatNotes,
       material_status: materialStatus,
       custom_notes: customNotes,
-      post_to_discord: true,
     });
     const text = res?.data?.brief_text || '';
     setPreview(text);
-    setPosted(res?.data?.discord_posted || false);
     setLoading(false);
     onPosted && onPosted();
   };
@@ -59,7 +55,7 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
           padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', flexShrink: 0,
         }}>
           <span style={{ color: 'var(--t0)', fontSize: 11, letterSpacing: '0.1em', fontWeight: 500 }}>
-            POST PHASE BRIEF
+            PHASE BRIEF
           </span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', fontSize: 14, lineHeight: 1, padding: 2 }}>×</button>
         </div>
@@ -118,11 +114,6 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em' }}>GENERATED BRIEF</span>
-                {posted && (
-                  <span style={{ color: 'var(--live)', fontSize: 9, padding: '1px 6px', border: '0.5px solid rgba(var(--live-rgb), 0.3)', borderRadius: 3, background: 'rgba(var(--live-rgb), 0.07)' }}>
-                    POSTED TO DISCORD
-                  </span>
-                )}
               </div>
               <pre style={{
                 color: 'var(--t1)', fontSize: 10, lineHeight: 1.6,
@@ -149,7 +140,7 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
             className="nexus-btn live-btn"
             style={{ flex: 1, justifyContent: 'center', padding: '7px 0', fontSize: 10, opacity: loading ? 0.6 : 1 }}
           >
-            {loading ? 'GENERATING...' : preview ? 'REGENERATE + POST' : 'GENERATE + POST TO DISCORD'}
+            {loading ? 'GENERATING...' : preview ? 'REGENERATE BRIEF' : 'GENERATE BRIEF'}
           </button>
         </div>
       </div>

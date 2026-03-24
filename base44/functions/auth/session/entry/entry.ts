@@ -95,6 +95,7 @@ function toSessionResponse(user) {
       rank: String(user.nexus_rank || 'AFFILIATE').toUpperCase(),
       joinedAt: user.joined_at || null,
       onboarding_complete: user.onboarding_complete ?? false,
+      notifications_seen_at: user.notifications_seen_at || null,
       is_admin: admin,
     },
   };

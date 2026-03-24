@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { sendNexusNotification } from '@/core/data/nexus-notify';
 
 const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
@@ -81,7 +82,7 @@ function PhaseNode({ label, index, status, totalPhases }) {
   );
 }
 
-export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank, onAdvance }) {
+export default function PhaseTracker({ phases = [], currentPhase = 0, opId, opName, rank, onAdvance }) {
   const canAdvance = SCOUT_RANKS.includes(rank);
   const [confirmingPhase, setConfirmingPhase] = useState(false);
   const [advancingIndex, setAdvancingIndex] = useState(null);
@@ -110,6 +111,16 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank
     setAdvancingIndex(currentPhase);
     try {
       await base44.entities.Op.update(opId, { phase_current: nextPhase });
+      const nextLabel = typeof phases[nextPhase] === 'object' ? phases[nextPhase]?.name : phases[nextPhase];
+      await sendNexusNotification({
+        type: 'OP_PHASE_ADVANCE',
+        title: 'Operation Phase Advanced',
+        body: `${opName || 'Operation'} advanced to phase ${nextPhase + 1}${nextLabel ? ` · ${nextLabel}` : ''}.`,
+        severity: 'INFO',
+        target_user_id: null,
+        source_module: 'OPS',
+        source_id: opId,
+      });
       onAdvance?.(nextPhase);
     } catch {
       // phase update failed — UI stays on current phase

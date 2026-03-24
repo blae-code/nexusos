@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 
@@ -14,6 +15,17 @@ function fmtAuec(val) {
   if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1)}M aUEC`;
   if (abs >= 1_000) return `${sign}${(abs / 1_000).toFixed(0)}K aUEC`;
   return `${sign}${abs} aUEC`;
+}
+
+function relativeTime(isoStr) {
+  if (!isoStr) return '—';
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  return `${Math.floor(hr / 24)}d ago`;
 }
 
 function getBreadcrumb(pathname, search) {
@@ -48,6 +60,22 @@ function getBreadcrumb(pathname, search) {
   if (pathname === '/app/admin/settings') return { module: 'Admin', page: 'Settings' };
   if (pathname === '/app/admin/todo') return { module: 'Admin', page: 'Tasks' };
   return { module: 'NexusOS', page: null };
+}
+
+function routeForNotification(notification) {
+  const moduleName = String(notification?.source_module || '').toUpperCase();
+  if (moduleName === 'OPS') return '/app/ops';
+  if (moduleName === 'SCOUT') return '/app/scout';
+  if (moduleName === 'INDUSTRY') return '/app/industry';
+  if (moduleName === 'ARMORY') return '/app/armory';
+  if (moduleName === 'ORG') return '/app/admin/todo';
+  return null;
+}
+
+function notificationSeverityColor(severity) {
+  if (severity === 'CRITICAL') return '#E04848';
+  if (severity === 'WARN') return '#E8A020';
+  return '#27C96A';
 }
 
 /* ═══ Chip ══════════════════════════════════════════════════════════════════ */
@@ -87,7 +115,8 @@ function Chip({ dot, dotPulse, label, value, valueColor, bg, borderColor, onClic
 export default function NexusTopbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useSession();
+  const { user, patchUser } = useSession();
+  const notificationRef = useRef(null);
 
   const breadcrumb = useMemo(
     () => getBreadcrumb(location.pathname, location.search),
@@ -99,6 +128,8 @@ export default function NexusTopbar() {
   const [refineryCount, setRefineryCount] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
   const [liveOpsCount, setLiveOpsCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const loadMetrics = useCallback(async () => {
     try {
@@ -142,6 +173,104 @@ export default function NexusTopbar() {
     const id = setInterval(loadMetrics, 60000);
     return () => clearInterval(id);
   }, [loadMetrics]);
+
+  const loadNotifications = useCallback(async () => {
+    if (!user?.id) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      const records = await base44.entities.NexusNotification.list('-created_at', 50).catch(() => []);
+      const rows = Array.isArray(records) ? records : [];
+      setNotifications(rows.filter((item) =>
+        !item?.target_user_id || String(item.target_user_id) === String(user.id),
+      ));
+    } catch {
+      setNotifications([]);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return undefined;
+    }
+
+    loadNotifications();
+    const unsubscribe = base44.entities.NexusNotification.subscribe(() => {
+      loadNotifications();
+    });
+
+    return () => unsubscribe?.();
+  }, [loadNotifications, user?.id]);
+
+  useEffect(() => {
+    if (!notificationsOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!notificationRef.current?.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [notificationsOpen]);
+
+  const markNotificationsSeen = useCallback(async () => {
+    if (!user?.id) return;
+    const seenAt = new Date().toISOString();
+    patchUser({ notifications_seen_at: seenAt });
+    try {
+      await base44.entities.NexusUser.update(user.id, { notifications_seen_at: seenAt });
+    } catch (error) {
+      console.warn('[NexusTopbar] notifications_seen_at update failed:', error?.message || error);
+    }
+  }, [patchUser, user?.id]);
+
+  const handleNotificationToggle = async () => {
+    const nextOpen = !notificationsOpen;
+    setNotificationsOpen(nextOpen);
+    if (nextOpen) {
+      await markNotificationsSeen();
+    }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    if (notification?.target_user_id && String(notification.target_user_id) === String(user?.id) && !notification.is_read) {
+      try {
+        await base44.entities.NexusNotification.update(notification.id, { is_read: true });
+        setNotifications((current) => current.map((item) => (item.id === notification.id ? { ...item, is_read: true } : item)));
+      } catch (error) {
+        console.warn('[NexusTopbar] notification mark-read failed:', error?.message || error);
+      }
+    }
+
+    const route = routeForNotification(notification);
+    setNotificationsOpen(false);
+    if (route) {
+      navigate(route);
+    }
+  };
+
+  const recentNotifications = useMemo(() => {
+    return [...notifications]
+      .sort((left, right) => new Date(right.created_at || 0).getTime() - new Date(left.created_at || 0).getTime())
+      .slice(0, 10);
+  }, [notifications]);
+
+  const unreadNotifications = useMemo(() => {
+    const seenAt = new Date(user?.notifications_seen_at || 0).getTime();
+    return recentNotifications.reduce((count, notification) => {
+      const targeted = notification?.target_user_id && String(notification.target_user_id) === String(user?.id);
+      if (targeted) {
+        return notification.is_read ? count : count + 1;
+      }
+
+      const createdAt = new Date(notification?.created_at || 0).getTime();
+      return Number.isFinite(createdAt) && createdAt > seenAt ? count + 1 : count;
+    }, 0);
+  }, [recentNotifications, user?.id, user?.notifications_seen_at]);
 
   const callsignShort = (user?.callsign || 'UNKN').slice(0, 4).toUpperCase();
 
@@ -236,6 +365,148 @@ export default function NexusTopbar() {
 
       {/* ── Right section ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto', flexShrink: 0 }}>
+        <div ref={notificationRef} style={{ position: 'relative' }}>
+          <button
+            type="button"
+            onClick={handleNotificationToggle}
+            style={{
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#141410',
+              border: '0.5px solid rgba(200,170,100,0.15)',
+              borderRadius: 2,
+              color: unreadNotifications > 0 ? '#C8A84B' : '#9A9488',
+              cursor: 'pointer',
+              position: 'relative',
+            }}
+            title="Notifications"
+          >
+            <Bell size={14} />
+            {unreadNotifications > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: -4,
+                right: -4,
+                minWidth: 14,
+                height: 14,
+                padding: '0 3px',
+                borderRadius: 7,
+                background: '#C0392B',
+                color: '#F0EDE5',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 9,
+                fontWeight: 700,
+                lineHeight: '14px',
+              }}>
+                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+              </span>
+            )}
+          </button>
+
+          {notificationsOpen && (
+            <div style={{
+              position: 'absolute',
+              top: 38,
+              right: 0,
+              width: 320,
+              background: '#0F0F0D',
+              border: '0.5px solid rgba(200,170,100,0.15)',
+              borderRadius: 2,
+              overflow: 'hidden',
+              zIndex: 80,
+            }}>
+              <div style={{
+                padding: '10px 12px',
+                borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: '#C8A84B',
+              }}>
+                Notifications
+              </div>
+
+              {recentNotifications.length === 0 ? (
+                <div style={{ padding: '14px 12px', color: '#9A9488', fontSize: 11 }}>
+                  No notifications.
+                </div>
+              ) : (
+                recentNotifications.map((notification) => {
+                  const severityColor = notificationSeverityColor(notification.severity);
+                  const targeted = notification?.target_user_id && String(notification.target_user_id) === String(user?.id);
+                  const isUnread = targeted
+                    ? !notification.is_read
+                    : new Date(notification.created_at || 0).getTime() > new Date(user?.notifications_seen_at || 0).getTime();
+
+                  return (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      onClick={() => handleNotificationClick(notification)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        background: isUnread ? 'rgba(200,170,100,0.04)' : 'transparent',
+                        border: 'none',
+                        borderBottom: '0.5px solid rgba(200,170,100,0.06)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        gap: 10,
+                      }}
+                    >
+                      <span style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: severityColor,
+                        marginTop: 5,
+                        flexShrink: 0,
+                      }} />
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 8,
+                          marginBottom: 3,
+                        }}>
+                          <span style={{
+                            color: '#E8E4DC',
+                            fontFamily: "'Barlow Condensed', sans-serif",
+                            fontSize: 11,
+                            fontWeight: isUnread ? 700 : 500,
+                            letterSpacing: '0.06em',
+                            textTransform: 'uppercase',
+                          }}>
+                            {notification.title}
+                          </span>
+                          <span style={{ color: '#5A5850', fontSize: 9, whiteSpace: 'nowrap' }}>
+                            {relativeTime(notification.created_at)}
+                          </span>
+                        </span>
+                        <span style={{
+                          color: '#9A9488',
+                          fontSize: 11,
+                          lineHeight: 1.4,
+                          display: 'block',
+                        }}>
+                          {notification.body}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Verse pill */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5,

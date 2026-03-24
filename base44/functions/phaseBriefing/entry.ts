@@ -29,7 +29,6 @@ Deno.serve(async (req) => {
       objectives = [],
       next_phase = null,
       custom_notes = '',
-      post_to_discord = false,
     } = body;
 
     let resolvedOpName = op_name;
@@ -152,8 +151,7 @@ ${briefingResult.next_steps}
 ${briefingResult.action_items.length > 0 ? `**ACTION ITEMS**\n${briefingResult.action_items.map(a => `• ${a}`).join('\n')}` : ''}
 `;
 
-    // Format Discord embed
-    const discordEmbed = {
+    const briefingCard = {
       title: `📋 PHASE BRIEFING: ${phase_name.toUpperCase()}`,
       description: briefingResult.phase_status,
       color: 4149032, // Blue
@@ -192,16 +190,12 @@ ${briefingResult.action_items.length > 0 ? `**ACTION ITEMS**\n${briefingResult.a
       timestamp: new Date().toISOString(),
     };
 
-    const discordPosted = false;
-
     return Response.json({
       success: true,
       briefing: briefingMarkdown,
       brief_text: briefingMarkdown,
-      embed: discordEmbed,
-      discord_embed: discordEmbed,
-      discord_posted: discordPosted,
-      delivery_mode: post_to_discord === false ? 'NEXUS_ONLY' : 'NEXUS_ONLY_DISCORD_DEACTIVATED',
+      embed: briefingCard,
+      delivery_mode: 'NEXUS_ONLY',
     });
   } catch (error) {
     console.error('Phase briefing error:', error);

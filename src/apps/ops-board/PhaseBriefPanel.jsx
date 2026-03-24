@@ -1,7 +1,7 @@
 /**
  * PhaseBriefPanel — Phase Briefing modal for Op Leaders
  * Claude #5: Most frequently used during live ops.
- * Generates and optionally posts a tactical phase brief to Discord.
+ * Generates a tactical phase brief for NexusOS.
  */
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
@@ -17,11 +17,9 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
   const [threatNotes, setThreatNotes] = useState('');
   const [materialStatus, setMaterialStatus] = useState('');
   const [customNotes, setCustomNotes] = useState('');
-  const [postToDiscord, setPostToDiscord] = useState(true);
   const [loading, setLoading] = useState(false);
   const [briefText, setBriefText] = useState('');
   const [error, setError] = useState('');
-  const [posted, setPosted] = useState(false);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -38,7 +36,6 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
       threat_notes: threatNotes,
       material_status: materialStatus,
       custom_notes: customNotes,
-      post_to_discord: postToDiscord,
     });
 
     const data = res?.data || res;
@@ -46,7 +43,6 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
       setError(data.error);
     } else {
       setBriefText(data?.brief_text || '');
-      setPosted(data?.discord_posted || false);
       if (onLogEntry) {
         onLogEntry({
           type: 'phase_brief',
@@ -172,29 +168,6 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
               />
             </div>
 
-            {/* Post to Discord toggle */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '8px 10px', background: 'var(--bg3)', border: '0.5px solid var(--b1)', borderRadius: 5,
-            }}>
-              <span style={{ color: 'var(--t1)', fontSize: 11 }}>Post to #nexusos-ops</span>
-              <button
-                type="button"
-                onClick={() => setPostToDiscord(v => !v)}
-                style={{
-                  width: 34, height: 18, borderRadius: 9,
-                  background: postToDiscord ? 'var(--live)' : 'var(--bg4)',
-                  border: `0.5px solid ${postToDiscord ? 'var(--live)' : 'var(--b3)'}`,
-                  cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0,
-                }}
-              >
-                <div style={{
-                  width: 12, height: 12, borderRadius: '50%', background: 'var(--bg0)',
-                  position: 'absolute', top: 2, left: postToDiscord ? 18 : 2, transition: 'left 0.2s',
-                }} />
-              </button>
-            </div>
-
             {/* Error */}
             {error && (
               <div style={{ color: 'var(--danger)', fontSize: 11, padding: '6px 10px', background: 'rgba(var(--danger-rgb), 0.06)', border: '0.5px solid rgba(var(--danger-rgb), 0.2)', borderRadius: 5 }}>
@@ -209,7 +182,6 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
                   <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--live)' }} />
                   <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.12em' }}>
                     GENERATED BRIEF
-                    {posted && <span style={{ color: 'var(--live)', marginLeft: 8 }}>· POSTED TO DISCORD</span>}
                   </span>
                 </div>
                 <pre style={{
@@ -243,7 +215,7 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
                 <span className="nexus-loading-dots"><span /><span /><span /></span>
                 GENERATING...
               </span>
-            ) : briefText ? 'REGENERATE BRIEF' : 'GENERATE & POST BRIEF'}
+            ) : briefText ? 'REGENERATE BRIEF' : 'GENERATE BRIEF'}
           </button>
         </div>
       </div>
