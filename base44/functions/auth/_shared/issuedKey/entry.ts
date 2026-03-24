@@ -23,6 +23,8 @@ type NexusUserRecord = {
   key_issued_by?: string | null;
   key_issued_at?: string | null;
   last_seen_at?: string | null;
+  created_date?: string | null;
+  updated_date?: string | null;
 };
 
 type SessionTokenPayload = {
@@ -246,7 +248,41 @@ export async function findUserByLoginName(
   if (!normalized) return null;
 
   const users = await listNexusUsers(base44);
-  return users.find((candidate) => resolveUserLoginName(candidate) === normalized) || null;
+  const matches = users.filter((candidate) => resolveUserLoginName(candidate) === normalized);
+  if (matches.length === 0) {
+    return null;
+  }
+
+  const scoreCandidate = (candidate: NexusUserRecord) => {
+    const exactLoginName = normalizeLoginName(String(candidate.login_name || candidate.username || '')) === normalized ? 1 : 0;
+    const hasActiveKey = candidate.key_revoked === true ? 0 : 1;
+    const hasKeyHash = candidate.auth_key_hash ? 1 : 0;
+    const freshness = new Date(
+      candidate.key_issued_at
+      || candidate.updated_date
+      || candidate.last_seen_at
+      || candidate.created_date
+      || candidate.joined_at
+      || 0,
+    ).getTime();
+
+    return [exactLoginName, hasActiveKey, hasKeyHash, freshness];
+  };
+
+  matches.sort((left, right) => {
+    const leftScore = scoreCandidate(left);
+    const rightScore = scoreCandidate(right);
+
+    for (let index = 0; index < leftScore.length; index += 1) {
+      if (leftScore[index] !== rightScore[index]) {
+        return rightScore[index] - leftScore[index];
+      }
+    }
+
+    return String(right.id || '').localeCompare(String(left.id || ''));
+  });
+
+  return matches[0] || null;
 }
 
 export function toSessionResponse(user: NexusUserRecord) {

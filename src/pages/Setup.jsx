@@ -32,12 +32,13 @@ export default function Setup() {
     return () => window.removeEventListener('mousemove', handle);
   }, []);
 
-  const handleBootstrap = async ({ recovery = false } = {}) => {
+  const handleBootstrap = async ({ recovery = false, reset = false } = {}) => {
     setState('loading');
     setErrorMsg('');
     try {
       const data = await authApi.bootstrapSystemAdmin({
         recoveryToken: recovery ? recoveryToken.trim() : undefined,
+        reset,
       });
 
       if (data?.key) {
@@ -359,6 +360,26 @@ export default function Setup() {
                       }}
                     >
                       Regenerate System Admin Key
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!recoveryToken.trim()}
+                      onClick={() => handleBootstrap({ recovery: true, reset: true })}
+                      style={{
+                        padding: '12px 16px',
+                        background: recoveryToken.trim() ? '#5A2620' : '#35201D',
+                        border: '1px solid rgba(192,57,43,0.45)',
+                        borderRadius: 2,
+                        color: '#F0EDE5',
+                        cursor: recoveryToken.trim() ? 'pointer' : 'not-allowed',
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Hard Reset And Regenerate
                     </button>
                   </>
                 )}

@@ -43,6 +43,50 @@ function readBodyField(body, ...keys) {
   return '';
 }
 
+function readBodyFlag(body, ...keys) {
+  for (const key of keys) {
+    const value = body?.[key];
+    if (value === true || value === 'true' || value === 1 || value === '1') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function matchesSystemAdmin(candidate) {
+  return normalizeLoginName(candidate?.login_name || candidate?.username || '') === SYSTEM_ADMIN_LOGIN
+    || String(candidate?.callsign || '').trim().toUpperCase() === SYSTEM_ADMIN_CALLSIGN;
+}
+
+function candidateFreshness(candidate) {
+  return new Date(
+    candidate?.key_issued_at
+    || candidate?.updated_date
+    || candidate?.created_date
+    || candidate?.last_seen_at
+    || candidate?.joined_at
+    || 0,
+  ).getTime();
+}
+
+function pickCanonicalAdmin(candidates) {
+  return [...(candidates || [])].sort((left, right) => {
+    const leftHasHash = left?.auth_key_hash ? 1 : 0;
+    const rightHasHash = right?.auth_key_hash ? 1 : 0;
+    if (leftHasHash !== rightHasHash) {
+      return rightHasHash - leftHasHash;
+    }
+
+    const leftActive = left?.key_revoked === true ? 0 : 1;
+    const rightActive = right?.key_revoked === true ? 0 : 1;
+    if (leftActive !== rightActive) {
+      return rightActive - leftActive;
+    }
+
+    return candidateFreshness(right) - candidateFreshness(left);
+  })[0] || null;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return Response.json({ error: 'method_not_allowed' }, { status: 405 });
@@ -66,15 +110,31 @@ Deno.serve(async (req) => {
   const recoverySecret = String(Deno.env.get('SYSTEM_ADMIN_BOOTSTRAP_SECRET') || '').trim();
   const isRecoveryRequest = Boolean(recoveryToken);
   const recoveryAuthorized = Boolean(recoverySecret) && recoveryToken === recoverySecret;
+  const resetRequested = readBodyFlag(body, 'reset', 'force_reset', 'hard_reset');
 
   const base44 = createClientFromRequest(req);
 
   const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
-  let admin = (allUsers || []).find((candidate) =>
-    normalizeLoginName(candidate.login_name || candidate.username || '') === SYSTEM_ADMIN_LOGIN
-    || String(candidate.callsign || '').trim().toUpperCase() === SYSTEM_ADMIN_CALLSIGN,
-  );
+  const matchingAdmins = (allUsers || []).filter(matchesSystemAdmin);
+  let admin = pickCanonicalAdmin(matchingAdmins);
   const now = new Date().toISOString();
+
+  if (resetRequested && !recoveryAuthorized) {
+    return Response.json({
+      error: 'invalid_recovery_token',
+      message: 'Hard reset requires the recovery token.',
+      login_name: SYSTEM_ADMIN_LOGIN,
+      username: SYSTEM_ADMIN_LOGIN,
+      callsign: SYSTEM_ADMIN_CALLSIGN,
+    }, { status: 403 });
+  }
+
+  if (resetRequested) {
+    for (const candidate of matchingAdmins) {
+      await base44.asServiceRole.entities.NexusUser.delete(candidate.id);
+    }
+    admin = null;
+  }
 
   if (!admin) {
     admin = await base44.asServiceRole.entities.NexusUser.create({
@@ -125,6 +185,7 @@ Deno.serve(async (req) => {
         username: SYSTEM_ADMIN_LOGIN,
         callsign: SYSTEM_ADMIN_CALLSIGN,
         recovery_enabled: Boolean(recoverySecret),
+        duplicates_detected: matchingAdmins.length > 1,
       });
     }
 
@@ -161,6 +222,7 @@ Deno.serve(async (req) => {
   return Response.json({
     success: true,
     recovered: recoveryAuthorized,
+    reset: resetRequested,
     login_name: SYSTEM_ADMIN_LOGIN,
     username: SYSTEM_ADMIN_LOGIN,
     callsign: SYSTEM_ADMIN_CALLSIGN,

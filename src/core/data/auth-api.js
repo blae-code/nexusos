@@ -40,7 +40,7 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
 /** @typedef {{ rememberMe?: boolean, timeoutMs?: number }} LoginOptions */
 /** @typedef {{ username: string, callsign?: string, nexusRank: string, timeoutMs?: number }} KeyIssueOptions */
 /** @typedef {{ userId: string, timeoutMs?: number }} KeyMutationOptions */
-/** @typedef {{ recoveryToken?: string, timeoutMs?: number }} BootstrapSystemAdminOptions */
+/** @typedef {{ recoveryToken?: string, reset?: boolean, timeoutMs?: number }} BootstrapSystemAdminOptions */
 
 export const authApi = {
   async getHealth(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
@@ -161,8 +161,11 @@ export const authApi = {
     return (await parseJson(response)) || {};
   },
 
-  async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const payload = recoveryToken ? { recovery_token: recoveryToken } : {};
+  async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, reset = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const payload = {
+      ...(recoveryToken ? { recovery_token: recoveryToken } : {}),
+      ...(reset ? { reset: true } : {}),
+    };
     const response = await fetchWithTimeout(buildFunctionUrl('auth/bootstrap/entry'), {
       method: 'POST',
       credentials: 'include',
