@@ -1,303 +1,294 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/core/data/SessionContext';
 import {
-  LayoutDashboard, Crosshair, LifeBuoy, Activity, Factory, Radar, Map,
-  Shield, Wrench, Package, Ship, CheckCircle, Users, Users2, BookOpen,
-  GraduationCap, Key, ShieldAlert, Settings, LogOut,
+  Crosshair, LayoutGrid, Clock, PlusCircle, LifeBuoy, Archive,
+  Activity, Factory, BookOpen, GraduationCap, Radar, Map,
+  Shield, Wrench, Package, Ship, CheckCircle, Users,
+  Key, ShieldAlert, ClipboardList, User, Settings, LogOut,
 } from 'lucide-react';
 
-const ICON_PROPS = { size: 14, strokeWidth: 1.5 };
+/* ── NAV DATA ──────────────────────────────────────────────────────────────── */
 
-const NAV_CONFIG = [
+const NAV = [
   {
-    group: 'COMMAND',
-    collapsible: false,
+    label: 'COMMAND',
     items: [
-      { icon: LayoutDashboard, label: 'Dashboard', path: '/app/industry' },
+      { icon: Activity, label: 'COMMAND CENTRE', path: '/app/command' },
+      {
+        icon: Crosshair, label: 'OPS BOARD', path: '/app/ops',
+        children: [
+          { label: 'ACTIVE OPS', path: '/app/ops' },
+          { label: 'TIMELINE', path: '/app/ops/timeline' },
+          { label: 'CREATE OP', path: '/app/ops/new' },
+          { label: 'RESCUE', path: '/app/ops/rescue' },
+          { label: 'ARCHIVE', path: '/app/ops/archive' },
+        ],
+      },
     ],
   },
   {
-    group: 'OPERATIONS',
-    collapsible: true,
-    defaultOpen: true,
+    label: 'INDUSTRIAL',
     items: [
-      { icon: Crosshair, label: 'Ops Board', path: '/app/ops', exact: true },
-      { label: 'Timeline', path: '/app/ops/timeline', sub: true },
-      { label: 'Create Op', path: '/app/ops/new', sub: true },
-      { icon: LifeBuoy, label: 'Rescue Board', path: '/app/ops/rescue' },
-      { icon: Activity, label: 'Ops Dashboard', path: '/app/command' },
+      {
+        icon: Factory, label: 'INDUSTRY HUB', path: '/app/industry',
+        children: [
+          { label: 'OVERVIEW', path: '/app/industry' },
+          { label: 'MATERIALS', path: '/app/industry/ledger' },
+          { label: 'REFINERY', path: '/app/industry/logistics' },
+          { label: 'CARGO', path: '/app/industry/cargo' },
+          { label: 'COFFER', path: '/app/industry/coffer' },
+          { label: 'COMMERCE', path: '/app/industry/commerce' },
+          { label: 'PROFIT CALC', path: '/app/industry/profit' },
+        ],
+      },
+      {
+        icon: Radar, label: 'SCOUT INTEL', path: '/app/scout',
+        children: [
+          { label: 'DEPOSITS', path: '/app/scout' },
+          { label: 'ROUTE PLANNER', path: '/app/scout/routes' },
+        ],
+      },
     ],
   },
   {
-    group: 'INDUSTRY',
-    collapsible: true,
-    defaultOpen: true,
+    label: 'FLEET & ARMORY',
     items: [
-      { icon: Factory, label: 'Overview', path: '/app/industry', exact: true },
-      { label: 'Coffer', path: '/app/industry/coffer', sub: true },
-      { label: 'Materials', path: '/app/industry/ledger', sub: true },
-      { label: 'Commerce', path: '/app/industry/commerce', sub: true },
-      { label: 'Logistics', path: '/app/industry/logistics', sub: true },
-      { label: 'Cargo', path: '/app/industry/cargo', sub: true },
-      { label: 'Profit', path: '/app/industry/profit', sub: true },
+      {
+        icon: Shield, label: 'ARMORY', path: '/app/armory',
+        children: [
+          { label: 'LOADOUTS', path: '/app/armory' },
+          { label: 'FLEET FORGE', path: '/app/armory/fleet' },
+          { label: 'ORG FLEET', path: '/app/armory/org-fleet' },
+          { label: 'INVENTORY', path: '/app/armory/inventory' },
+          { label: 'CREW', path: '/app/armory/schedule' },
+          { label: 'READINESS', path: '/app/armory/readiness' },
+        ],
+      },
     ],
   },
   {
-    group: 'SCOUT INTEL',
-    collapsible: true,
-    defaultOpen: false,
+    label: 'KNOWLEDGE',
     items: [
-      { icon: Radar, label: 'Scout Intel', path: '/app/scout' },
-      { icon: Map, label: 'Route Planner', path: '/app/scout/routes' },
+      { icon: BookOpen, label: 'HANDBOOK', path: '/app/handbook' },
+      { icon: GraduationCap, label: 'TRAINING', path: '/app/training' },
     ],
   },
   {
-    group: 'ARMORY',
-    collapsible: true,
-    defaultOpen: false,
-    items: [
-      { icon: Shield, label: 'Armory', path: '/app/armory', exact: true },
-      { icon: Wrench, label: 'Fleet Forge', path: '/app/armory/fleet' },
-      { icon: Package, label: 'Inventory', path: '/app/armory/inventory' },
-      { icon: Ship, label: 'Org Fleet', path: '/app/armory/org-fleet' },
-      { icon: CheckCircle, label: 'Fleet Readiness', path: '/app/armory/readiness' },
-      { icon: Users, label: 'Crew Schedule', path: '/app/armory/schedule' },
-    ],
-  },
-  {
-    group: 'ORG',
-    collapsible: true,
-    defaultOpen: false,
-    items: [
-      { icon: Users2, label: 'Org Roster', path: '/app/roster' },
-      { icon: BookOpen, label: 'Handbook', path: '/app/handbook' },
-      { icon: GraduationCap, label: 'Training', path: '/app/training' },
-    ],
-  },
-  {
-    group: 'ADMINISTRATION',
-    collapsible: true,
-    defaultOpen: false,
+    label: 'ADMINISTRATION',
     adminOnly: true,
     items: [
-      { icon: Key, label: 'Key Management', path: '/app/keys' },
-      { icon: ShieldAlert, label: 'Admin Settings', path: '/app/admin/settings' },
+      { icon: Key, label: 'KEY MANAGEMENT', path: '/app/keys' },
+      { icon: ShieldAlert, label: 'ADMIN SETTINGS', path: '/app/admin/settings' },
+      { icon: ClipboardList, label: 'TASK BOARD', path: '/app/admin/todo' },
     ],
   },
 ];
 
-function NavItem({ item }) {
-  const Icon = item.icon;
-  const isSub = item.sub;
+const BOTTOM = [
+  { icon: User, label: 'PROFILE', path: '/app/profile' },
+  { icon: Settings, label: 'SETTINGS', path: '/app/settings' },
+];
 
+/* ── STYLES ────────────────────────────────────────────────────────────────── */
+
+const ICON_PROPS = { size: 14, strokeWidth: 1.5, style: { flexShrink: 0 } };
+
+const S = {
+  root: {
+    position: 'fixed', left: 0, top: 0, bottom: 0, width: 220,
+    background: '#08080A',
+    borderRight: '0.5px solid rgba(200,170,100,0.10)',
+    zIndex: 100,
+    display: 'flex', flexDirection: 'column',
+  },
+  rail: {
+    position: 'absolute', left: 0, top: 0, bottom: 0, width: 2,
+    background: '#C0392B', zIndex: 10,
+  },
+  wordmark: {
+    height: 48, display: 'flex', alignItems: 'center', paddingLeft: 20,
+    borderBottom: '0.5px solid rgba(200,170,100,0.08)', flexShrink: 0,
+  },
+  wordmarkText: {
+    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+    fontSize: 15, letterSpacing: '0.08em', textTransform: 'uppercase',
+  },
+  scrollArea: {
+    flex: 1, overflowY: 'auto', paddingBottom: 24,
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(200,170,100,0.2) transparent',
+  },
+  groupLabel: {
+    fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
+    fontSize: 10, color: '#C8A84B', textTransform: 'uppercase',
+    letterSpacing: '0.28em', padding: '18px 20px 6px',
+  },
+  navItem: {
+    display: 'flex', alignItems: 'center', gap: 10,
+    fontFamily: "'Barlow Condensed', sans-serif",
+    fontSize: 12, fontWeight: 500, color: '#9A9488',
+    textTransform: 'uppercase', letterSpacing: '0.15em',
+    padding: '9px 20px 9px 24px',
+    textDecoration: 'none', cursor: 'pointer',
+    transition: 'background 150ms, color 150ms',
+    borderLeft: '2px solid transparent',
+  },
+  navItemActive: {
+    background: 'rgba(192,57,43,0.12)', color: '#E8E4DC',
+    borderLeft: '2px solid #C0392B', paddingLeft: 22,
+  },
+  subItem: {
+    display: 'flex', alignItems: 'center', gap: 8,
+    fontFamily: "'Barlow Condensed', sans-serif",
+    fontSize: 11, fontWeight: 400, color: '#5A5850',
+    textTransform: 'uppercase', letterSpacing: '0.1em',
+    padding: '7px 20px 7px 36px',
+    textDecoration: 'none', cursor: 'pointer',
+    transition: 'background 150ms, color 150ms',
+    borderLeft: '2px solid transparent',
+  },
+  subItemActive: {
+    background: 'rgba(192,57,43,0.12)', color: '#E8E4DC',
+    borderLeft: '2px solid #C0392B', paddingLeft: 34,
+  },
+  bottom: {
+    marginTop: 'auto', flexShrink: 0,
+    borderTop: '0.5px solid rgba(200,170,100,0.08)',
+    padding: '8px 0',
+  },
+  logout: {
+    display: 'flex', alignItems: 'center', gap: 10,
+    fontFamily: "'Barlow Condensed', sans-serif",
+    fontSize: 12, fontWeight: 500, color: '#9A9488',
+    textTransform: 'uppercase', letterSpacing: '0.15em',
+    padding: '9px 20px 9px 24px',
+    background: 'none', border: 'none', cursor: 'pointer',
+    width: '100%', textAlign: 'left',
+    transition: 'color 150ms',
+  },
+};
+
+/* ── HELPERS ───────────────────────────────────────────────────────────────── */
+
+function isExact(pathname, path) {
+  return pathname === path;
+}
+
+function isUnder(pathname, path) {
+  return pathname === path || pathname.startsWith(path + '/');
+}
+
+/* ── COMPONENTS ────────────────────────────────────────────────────────────── */
+
+function NavItem({ icon: Icon, label, path, active }) {
   return (
-    <NavLink
-      to={item.path}
-      end={item.exact}
-      style={({ isActive }) => ({
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: isSub
-          ? `7px 16px 7px ${isActive ? '30px' : '32px'}`
-          : `9px 16px 9px ${isActive ? '18px' : '20px'}`,
-        fontFamily: "'Barlow Condensed', sans-serif",
-        fontSize: isSub ? 11 : 12,
-        fontWeight: 500,
-        letterSpacing: '0.15em',
-        textTransform: 'uppercase',
-        textDecoration: 'none',
-        cursor: 'pointer',
-        transition: 'all 150ms',
-        color: isActive ? '#E8E4DC' : isSub ? '#5A5850' : '#9A9488',
-        background: isActive ? 'rgba(192,57,43,0.12)' : 'transparent',
-        borderLeft: isActive ? '2px solid #C0392B' : '2px solid transparent',
-      })}
+    <Link
+      to={path}
+      style={{ ...S.navItem, ...(active ? S.navItemActive : {}) }}
+      onMouseEnter={!active ? (e) => { e.currentTarget.style.background = 'rgba(200,170,100,0.06)'; e.currentTarget.style.color = '#E8E4DC'; } : undefined}
+      onMouseLeave={!active ? (e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9A9488'; } : undefined}
     >
-      {Icon && <Icon {...ICON_PROPS} />}
-      {!Icon && isSub && <span style={{ width: 14 }} />}
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {item.label}
-      </span>
-    </NavLink>
+      <Icon {...ICON_PROPS} />
+      {label}
+    </Link>
   );
 }
 
-function NavGroup({ config, isAdmin }) {
-  const [open, setOpen] = useState(config.defaultOpen ?? true);
-
-  if (config.adminOnly && !isAdmin) return null;
-
-  if (!config.collapsible) {
-    return (
-      <div>
-        <div style={{
-          fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
-          fontSize: 10,
-          color: '#C8A84B',
-          letterSpacing: '0.28em',
-          textTransform: 'uppercase',
-          padding: '20px 16px 5px',
-        }}>
-          {config.group}
-        </div>
-        {config.items.map((item) => <NavItem key={item.path} item={item} />)}
-      </div>
-    );
-  }
-
+function SubItem({ label, path, active }) {
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
-          fontSize: 10,
-          color: '#C8A84B',
-          letterSpacing: '0.28em',
-          textTransform: 'uppercase',
-          padding: '20px 16px 5px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
-      >
-        <span>{config.group}</span>
-        <span style={{ color: '#5A5850', fontSize: 9 }}>{open ? '▾' : '▸'}</span>
-      </button>
-      {open && config.items.map((item) => <NavItem key={item.path} item={item} />)}
-    </div>
+    <Link
+      to={path}
+      style={{ ...S.subItem, ...(active ? S.subItemActive : {}) }}
+      onMouseEnter={!active ? (e) => { e.currentTarget.style.background = 'rgba(200,170,100,0.06)'; e.currentTarget.style.color = '#9A9488'; } : undefined}
+      onMouseLeave={!active ? (e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#5A5850'; } : undefined}
+    >
+      {label}
+    </Link>
   );
 }
+
+/* ── MAIN EXPORT ───────────────────────────────────────────────────────────── */
 
 export default function NexusSidebar() {
+  const { pathname } = useLocation();
   const { isAdmin, logout } = useSession();
 
   return (
-    <nav style={{
-      position: 'fixed',
-      left: 0,
-      top: 0,
-      bottom: 0,
-      width: 220,
-      background: '#08080A',
-      borderRight: '0.5px solid rgba(200,170,100,0.10)',
-      zIndex: 100,
-      display: 'flex',
-      flexDirection: 'column',
-      overflowY: 'auto',
-    }}>
+    <nav style={S.root}>
       {/* Red left rail */}
-      <div style={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: 2,
-        background: '#C0392B',
-        zIndex: 10,
-      }} />
+      <div style={S.rail} />
 
       {/* Wordmark */}
-      <div style={{
-        height: 40,
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 16px',
-        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
-        flexShrink: 0,
-      }}>
-        <span style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontWeight: 700,
-          fontSize: 14,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-        }}>
+      <div style={S.wordmark}>
+        <span style={S.wordmarkText}>
           <span style={{ color: '#E8E4DC' }}>NEXUS</span>
           <span style={{ color: '#C0392B' }}>OS</span>
         </span>
       </div>
 
-      {/* Nav groups */}
-      <div style={{ flex: 1, paddingBottom: 24 }}>
-        {NAV_CONFIG.map((config) => (
-          <NavGroup key={config.group} config={config} isAdmin={isAdmin} />
-        ))}
+      {/* Scrollable nav */}
+      <div style={S.scrollArea}>
+        {NAV.map((group) => {
+          if (group.adminOnly && !isAdmin) return null;
+
+          return (
+            <div key={group.label}>
+              <div style={S.groupLabel}>{group.label}</div>
+
+              {group.items.map((item) => {
+                const parentActive = isUnder(pathname, item.path);
+
+                return (
+                  <React.Fragment key={item.path + item.label}>
+                    <NavItem
+                      icon={item.icon}
+                      label={item.label}
+                      path={item.path}
+                      active={!item.children ? isUnder(pathname, item.path) : false}
+                    />
+                    {item.children && item.children.map((child) => (
+                      <SubItem
+                        key={child.path + child.label}
+                        label={child.label}
+                        path={child.path}
+                        active={
+                          child.path === item.path
+                            ? isExact(pathname, child.path)
+                            : isUnder(pathname, child.path)
+                        }
+                      />
+                    ))}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {/* Bottom section */}
-      <div style={{
-        marginTop: 'auto',
-        borderTop: '0.5px solid rgba(200,170,100,0.10)',
-        padding: '12px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        flexShrink: 0,
-      }}>
-        <NavLink
-          to="/app/settings"
-          style={({ isActive }) => ({
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: `9px 0 9px ${isActive ? '0' : '4px'}`,
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 12,
-            fontWeight: 500,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-            cursor: 'pointer',
-            transition: 'all 150ms',
-            color: isActive ? '#E8E4DC' : '#9A9488',
-          })}
-        >
-          <Settings {...ICON_PROPS} />
-          <span>Settings</span>
-        </NavLink>
+      <div style={S.bottom}>
+        {BOTTOM.map((item) => (
+          <NavItem
+            key={item.path}
+            icon={item.icon}
+            label={item.label}
+            path={item.path}
+            active={isExact(pathname, item.path)}
+          />
+        ))}
         <button
           type="button"
           onClick={() => logout('/')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '9px 0 9px 4px',
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 12,
-            fontWeight: 500,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 150ms',
-            color: '#5A5850',
-          }}
+          style={S.logout}
           onMouseEnter={(e) => { e.currentTarget.style.color = '#C0392B'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = '#5A5850'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#9A9488'; }}
         >
           <LogOut {...ICON_PROPS} />
-          <span>Logout</span>
+          SIGN OUT
         </button>
       </div>
-
-      {/* Hover styles */}
-      <style>{`
-        nav a:hover:not([style*="rgba(192,57,43"]) {
-          color: #E8E4DC !important;
-          background: rgba(200,170,100,0.06) !important;
-        }
-      `}</style>
     </nav>
   );
 }

@@ -247,7 +247,7 @@ export default function NexusShell() {
           onSelectLayout={updateLayoutMode}
           verseStatus={verseStatus}
         />
-        <main style={{ flex: 1, overflow: 'auto', position: 'relative', background: 'var(--bg0)' }} className="nexus-fade-in">
+        <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto' }}>
           <AppErrorBoundary compact>
             <Outlet context={outletContext} />
           </AppErrorBoundary>
