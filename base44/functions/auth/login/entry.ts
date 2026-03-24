@@ -1,6 +1,6 @@
 /**
  * POST /auth/login — Issued username + auth key login.
- * Self-contained: all auth helpers inlined to avoid cross-file imports.
+ * Returns session data including a session_token for SDK-based session validation.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
@@ -78,41 +78,6 @@ async function createSessionToken(user, secret, rememberMe) {
   const body = toBase64Url(enc.encode(JSON.stringify(payload)));
   const signature = await signValue(body, secret);
   return `${body}.${signature}`;
-}
-
-function isSecure(req) {
-  const appUrl = Deno.env.get('APP_URL') || '';
-  return appUrl.startsWith('https://')
-    || new URL(req.url).protocol === 'https:'
-    || (req.headers.get('x-forwarded-proto') || '').includes('https');
-}
-
-function getRequestHostname(req) {
-  const fh = (req.headers.get('x-forwarded-host') || '').split(',')[0]?.trim();
-  const hh = (req.headers.get('host') || '').split(',')[0]?.trim();
-  const raw = fh || hh || new URL(req.url).hostname || '';
-  return raw.split(':')[0].replace(/^www\./, '').toLowerCase();
-}
-
-function getCookieDomain(req) {
-  const appUrl = Deno.env.get('APP_URL') || '';
-  if (!appUrl) return null;
-  try {
-    const configured = new URL(appUrl).hostname.replace(/^www\./, '').toLowerCase();
-    const requestHost = getRequestHostname(req);
-    if (!configured || !requestHost) return null;
-    if (requestHost === configured || requestHost.endsWith(`.${configured}`)) return configured;
-    return null;
-  } catch { return null; }
-}
-
-function appendSessionCookie(headers, token, req, rememberMe) {
-  const parts = [`${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}`, 'Path=/', 'SameSite=Lax', 'HttpOnly'];
-  const domain = getCookieDomain(req);
-  if (domain) parts.push(`Domain=.${domain}`);
-  if (isSecure(req)) parts.push('Secure');
-  if (rememberMe) parts.push(`Max-Age=${REMEMBER_ME_TTL_SECONDS}`);
-  headers.append('Set-Cookie', parts.join('; '));
 }
 
 async function findUserByLoginName(base44, loginName) {
@@ -210,11 +175,11 @@ Deno.serve(async (req) => {
     };
 
     const token = await createSessionToken(nextUser, secret, rememberMe);
-    const headers = new Headers(sessionNoStoreHeaders());
-    appendSessionCookie(headers, token, req, rememberMe);
 
+    // Return session_token in response body so frontend can store and pass it via SDK invoke
     return Response.json({
       success: true,
+      session_token: token,
       isNew: firstLogin,
       onboarding_complete: onboardingComplete,
       nexus_rank: nextUser.nexus_rank || 'AFFILIATE',
@@ -222,7 +187,7 @@ Deno.serve(async (req) => {
       login_name: loginName,
       username: loginName,
       callsign: nextCallsign,
-    }, { headers });
+    }, { headers: sessionNoStoreHeaders() });
   } catch (error) {
     console.error('Error data:', JSON.stringify(error?.response?.data || error?.data || null, null, 2));
     console.error('[auth/login]', error?.message || error);
