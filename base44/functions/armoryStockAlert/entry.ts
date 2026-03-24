@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -27,28 +27,10 @@ Deno.serve(async (req) => {
       .map(item => `**${item.item_name}** (${item.category}): ${item.quantity}/${item.min_threshold} [RESTOCK NEEDED]`)
       .join('\n');
 
-    // Send alert via Herald Bot if available
-    try {
-      await base44.functions.invoke('heraldBot', {
-        action: 'armoryAlert',
-        payload: {
-          low_stock_count: lowStockItems.length,
-          items: lowStockItems.map(i => ({
-            name: i.item_name,
-            category: i.category,
-            current: i.quantity,
-            threshold: i.min_threshold,
-          })),
-          alert_text: alertText,
-        },
-      });
-    } catch (err) {
-      console.warn('Herald Bot unavailable:', err.message);
-    }
-
     return Response.json({
       success: true,
       low_stock_items: lowStockItems.length,
+      alert_text: alertText,
       items: lowStockItems.map(i => ({
         name: i.item_name,
         current: i.quantity,

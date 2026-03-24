@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 /**
  * Background job: Poll RSI RSS feed, extract patches, process via Claude,
@@ -177,23 +177,6 @@ Return valid JSON only. If no industry-relevant changes found, return: { "change
         console.log(`[patchFeedPoller] Stored patch ${patchVersion}`);
         processed.push(patchVersion);
 
-        // If high-severity changes, trigger Herald Bot notification
-        const hasHighSeverity = changes.some((c) => c.severity === 'high');
-        if (hasHighSeverity) {
-          try {
-            await base44.asServiceRole.functions.invoke('heraldBot', {
-              action: 'notify_patch_alert',
-              payload: {
-                patch_version: patchVersion,
-                summary: industrySummary,
-                changes: changes.filter((c) => String(c.severity).toLowerCase() === 'high'),
-              },
-            });
-            console.log(`[patchFeedPoller] Herald Bot notified for ${patchVersion}`);
-          } catch (e) {
-            console.warn(`[patchFeedPoller] Herald Bot notification failed:`, e.message);
-          }
-        }
       } catch (error) {
         console.error(`[patchFeedPoller] Error processing ${patchVersion}:`, error.message);
         errors.push({ version: patchVersion, reason: error.message });

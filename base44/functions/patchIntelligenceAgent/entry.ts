@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 /**
  * Patch Intelligence Agent — autonomous background worker
@@ -176,23 +176,6 @@ Deno.serve(async (req: Request) => {
         action_required: analysis.action_required,
       });
 
-      // Post to Discord if critical or action required
-      if (analysis.action_required || analysis.impact_level === 'critical') {
-        await base44.asServiceRole.functions.invoke('heraldBot', {
-          action: 'patchDigest',
-          payload: {
-            patch_version: patch.version,
-            branch: patch.branch,
-            industry_summary: analysis.highlights?.join('\n') || 'Patch processed',
-            changes_json: analysis.highlights?.map((h: string) => ({
-              category: 'critical',
-              change_summary: h,
-              severity: 'high',
-              affected_systems: analysis.affected_systems || [],
-            })) || [],
-          },
-        }).catch(e => console.warn('[Agent] Discord post failed:', (e as Error).message));
-      }
     }
 
     return Response.json({

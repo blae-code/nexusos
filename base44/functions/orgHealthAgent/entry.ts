@@ -12,7 +12,7 @@
  *
  * No user auth — service role background job.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   try {
@@ -135,31 +135,13 @@ Do not mention AI. Do not use corporate language. Write as if this is a system s
       briefing = `## READINESS STATUS\nAutomated briefing unavailable — system intelligence offline.\n## PRIORITY ACTIONS\nManual review required.\n## ALERTS\norgHealthAgent Claude call failed: ${e.message}`;
     }
 
-    // ── 4. Post to Discord via heraldBot ──────────────────────────────────────
-    try {
-      await base44.asServiceRole.functions.invoke('heraldBot', {
-        action: 'orgHealthBriefing',
-        payload: {
-          briefing: briefing.length > 1800 ? briefing.slice(0, 1797) + '...' : briefing,
-          total_scu: totalScu,
-          avg_quality: avgQuality,
-          t2_count: t2Mats.length,
-          open_craft: openCraft.length,
-          refinery_ready: readyRO.length,
-          housekeeping,
-          generated_at: nowIso,
-        },
-      });
-    } catch (e) {
-      console.warn('[orgHealthAgent] heraldBot post failed:', e.message);
-    }
-
     console.log('[orgHealthAgent] Daily briefing complete.');
     return Response.json({
       success: true,
       generated_at: nowIso,
       housekeeping,
       briefing_length: briefing.length,
+      briefing,
     });
 
   } catch (error) {

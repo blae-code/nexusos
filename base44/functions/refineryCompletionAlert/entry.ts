@@ -1,9 +1,9 @@
 /**
  * refineryCompletionAlert
  * Called by entity automation when a RefineryOrder is updated to status READY.
- * Fires a heraldBot refineryReady action to post a Discord notification.
+ * Discord delivery has been removed; this function now returns completion data only.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   try {
@@ -21,22 +21,12 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'not a READY transition' });
     }
 
-    // Fire herald alert (fire-and-forget style — don't fail the automation if Discord is down)
-    try {
-      await base44.asServiceRole.functions.invoke('heraldBot', {
-        action: 'refineryReady',
-        payload: {
-          material_name: order.material_name,
-          quantity_scu:  order.quantity_scu,
-          station:       order.station || '—',
-          callsign:      order.submitted_by_callsign || '—',
-        },
-      });
-    } catch (discordErr) {
-      console.warn('[refineryCompletionAlert] heraldBot failed:', discordErr.message);
-    }
-
-    return Response.json({ success: true, material: order.material_name });
+    return Response.json({
+      success: true,
+      material: order.material_name,
+      submitted_by_user_id: order.submitted_by_user_id || null,
+      callsign: order.submitted_by_callsign || '—',
+    });
   } catch (error) {
     console.error('[refineryCompletionAlert] error:', error);
     return Response.json({ error: error.message }, { status: 500 });

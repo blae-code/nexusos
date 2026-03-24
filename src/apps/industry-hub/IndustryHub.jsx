@@ -12,7 +12,6 @@ import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 import ProductionTab from '@/apps/industry-hub/ProductionTab';
 import PredictiveAnalytics from '@/apps/industry-hub/analytics/PredictiveAnalytics';
 import ComponentsTab from '@/apps/industry-hub/ComponentsTab';
-import MaterialLedger from '@/pages/MaterialLedger';
 import Commerce from '@/pages/Commerce';
 import CofferLedger from '@/pages/CofferLedger';
 import Logistics from '@/pages/Logistics';

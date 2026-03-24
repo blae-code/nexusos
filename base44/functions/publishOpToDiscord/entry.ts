@@ -1,27 +1,21 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-
 /**
- * Thin wrapper — invokes heraldBot with publishOp action.
- * Called from OpCreator frontend when an op is published.
+ * DEACTIVATED: publishOpToDiscord
+ *
+ * Discord op publishing has been removed from NexusOS.
  */
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+
 Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    const user   = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me().catch(() => null);
+  const body = await req.json().catch(() => ({}));
 
-    const { op_id } = await req.json();
-    if (!op_id) return Response.json({ error: 'op_id required' }, { status: 400 });
-
-    const result = await base44.asServiceRole.functions.invoke('heraldBot', {
-      action: 'publishOp',
-      payload: { op_id },
-    });
-
-    return Response.json(result?.data || { success: true });
-
-  } catch (error) {
-    console.error('publishOpToDiscord error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
-  }
+  return Response.json({
+    ok: true,
+    stub: true,
+    deactivated: true,
+    actor_id: user?.id ?? null,
+    op_id: body?.op_id ?? null,
+    message: 'publishOpToDiscord is deactivated',
+  });
 });

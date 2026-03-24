@@ -9,7 +9,7 @@
  * No user auth required — background cron job.
  * All external fetches have AbortSignal timeouts.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 const RSS_URL        = 'https://leonick.se/feeds/rsi/atom';
 const FETCH_TIMEOUT  = 10_000; // ms — generous for a background job
@@ -264,21 +264,6 @@ Deno.serve(async (req) => {
         console.warn('[rssCheck] Deposit stale batch failed:', (e as Error).message);
       }
 
-      // Herald Bot — warn members that deposits need re-verification.
-      // depositStaleAlert action not yet in heraldBot.ts — wrapped in .catch() so this
-      // fails silently until heraldBot is updated to handle it.
-      base44.asServiceRole.functions
-        .invoke('heraldBot', {
-          action: 'depositStaleAlert',
-          payload: {
-            patch_version:  patchVersion,
-            deposit_count:  stalledCount,
-            comm_link_url:  entry.link,
-          },
-        })
-        .catch((e: Error) =>
-          console.warn('[rssCheck] heraldBot depositStaleAlert failed:', e.message)
-        );
     }
 
     return Response.json({

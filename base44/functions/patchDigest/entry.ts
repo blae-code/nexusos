@@ -13,7 +13,7 @@
  * This function is idempotent on comm_link_url — safe to retry.
  * Claude API usage is server-side only; no AI attribution in outputs.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 // Max characters sent to LLM — keeps tokens reasonable for a big patch note
 const LLM_TEXT_LIMIT = 15_000;
@@ -151,23 +151,6 @@ affected_module must be one of: IndustryHub, ScoutIntel, FleetForge, OpBoard, Pr
       published_at:     now,
       processed_at:     now,
     });
-
-    // ── Herald Bot — non-fatal ────────────────────────────────────────────────
-    // heraldBot.ts patchDigest action expects: { patch_version, industry_summary,
-    // changes_json, comm_link_url } — field name must match what heraldBot reads.
-    base44.asServiceRole.functions
-      .invoke('heraldBot', {
-        action: 'patchDigest',
-        payload: {
-          patch_version:    effectivePatchVersion,
-          industry_summary: industrySummary,
-          changes_json:     changes,
-          comm_link_url,
-        },
-      })
-      .catch((e: Error) =>
-        console.warn('[patchDigest] heraldBot invocation failed:', e.message)
-      );
 
     return Response.json({
       success:      true,

@@ -1,7 +1,7 @@
-﻿import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 /**
- * OCR Extract — Takes a screenshot URL (from UploadFile or Discord attachment),
+ * OCR Extract — Takes a screenshot URL from upload,
  * sends to Claude via InvokeLLM with vision, extracts structured data,
  * then creates the appropriate entity records.
  *
@@ -12,14 +12,13 @@
  */
 Deno.serve(async (req) => {
   try {
-    const base44       = createClientFromRequest(req);
-    const user         = await base44.auth.me();
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { file_url, source_type, discord_id, callsign } = await req.json();
+    const { file_url, source_type, callsign } = await req.json();
     if (!file_url) return Response.json({ error: 'file_url required' }, { status: 400 });
 
-    // Use Claude vision to extract structured data
     const extracted = await base44.asServiceRole.integrations.Core.InvokeLLM({
       model: 'claude_sonnet_4_6',
       prompt: `You are an OCR extraction assistant for a Star Citizen org management tool.
@@ -44,7 +43,7 @@ Return null for any field you cannot read clearly.`,
       response_json_schema: {
         type: 'object',
         properties: {
-          screenshot_type: { type: 'string', enum: ['INVENTORY','MINING_SCAN','REFINERY_ORDER','TRANSACTION','CRAFT_QUEUE','SHIP_STATUS'] },
+          screenshot_type: { type: 'string', enum: ['INVENTORY', 'MINING_SCAN', 'REFINERY_ORDER', 'TRANSACTION', 'CRAFT_QUEUE', 'SHIP_STATUS'] },
           items: { type: 'array', items: { type: 'object' } },
           confidence: { type: 'number' },
           notes: { type: 'string' },
@@ -57,40 +56,29 @@ Return null for any field you cannot read clearly.`,
     }
 
     const resolvedCallsign = callsign || user.callsign || 'unknown';
-    const resolvedDiscordId = discord_id || '';
+    const resolvedUserId = user.id || null;
+    const resolvedSourceType = source_type === 'OCR_DISCORD' ? 'OCR_UPLOAD' : (source_type || 'OCR_UPLOAD');
     const now = new Date().toISOString();
     const created = [];
 
     if (extracted.screenshot_type === 'INVENTORY') {
-      for (const item of (extracted.items || [])) {
+      for (const item of extracted.items || []) {
         if (!item.material_name) continue;
+        const qualityPct = Number(item.quality_pct) || 0;
         const record = await base44.asServiceRole.entities.Material.create({
-          material_name:  item.material_name,
-          quantity_scu:   item.quantity_scu || 0,
-          quality_pct:    item.quality_pct  || 0,
-          material_type:  item.material_type || 'RAW',
-          t2_eligible:    (item.quality_pct || 0) >= 80,
-          logged_by:      resolvedDiscordId,
+          material_name: item.material_name,
+          quantity_scu: item.quantity_scu || 0,
+          quality_score: Math.round(qualityPct * 10),
+          quality_pct: qualityPct,
+          material_type: item.material_type || 'RAW',
+          t2_eligible: qualityPct >= 80,
+          logged_by_user_id: resolvedUserId,
           logged_by_callsign: resolvedCallsign,
-          source_type:    source_type || 'OCR_UPLOAD',
+          source_type: resolvedSourceType,
           screenshot_ref: file_url,
-          logged_at:      now,
+          logged_at: now,
         });
         created.push(record);
-      }
-
-      // Armory update ping via Herald Bot
-      if (created.length > 0) {
-        await base44.asServiceRole.functions.invoke('heraldBot', {
-          action: 'armoryUpdate',
-          payload: {
-            callsign:      resolvedCallsign,
-            material_name: `${created.length} items`,
-            quantity_scu:  created.reduce((s, r) => s + (r.quantity_scu || 0), 0),
-            quality_pct:   created[0]?.quality_pct || 0,
-            source_type:   source_type || 'OCR_UPLOAD',
-          },
-        });
       }
     }
 
@@ -101,18 +89,18 @@ Return null for any field you cannot read clearly.`,
         : null;
 
       await base44.asServiceRole.entities.RefineryOrder.create({
-        material_name:  item.material_name || 'Unknown',
-        quantity_scu:   item.quantity_scu  || 0,
-        method:         item.method        || null,
-        yield_pct:      item.yield_pct     || null,
-        cost_aUEC:      item.cost_aUEC     || null,
-        station:        item.station       || null,
-        submitted_by:   resolvedDiscordId,
+        material_name: item.material_name || 'Unknown',
+        quantity_scu: item.quantity_scu || 0,
+        method: item.method || null,
+        yield_pct: item.yield_pct || null,
+        cost_aUEC: item.cost_aUEC || null,
+        station: item.station || null,
+        submitted_by_user_id: resolvedUserId,
         submitted_by_callsign: resolvedCallsign,
-        started_at:     now,
-        completes_at:   completes,
-        status:         'ACTIVE',
-        source_type:    source_type || 'OCR_UPLOAD',
+        started_at: now,
+        completes_at: completes,
+        status: 'ACTIVE',
+        source_type: resolvedSourceType,
       });
       created.push({ type: 'REFINERY_ORDER', ...item });
     }
@@ -120,22 +108,21 @@ Return null for any field you cannot read clearly.`,
     if (extracted.screenshot_type === 'TRANSACTION') {
       const item = extracted.items?.[0] || {};
       await base44.asServiceRole.entities.CofferLog.create({
-        entry_type:     item.entry_type    || 'SALE',
-        amount_aUEC:    item.amount_aUEC   || 0,
-        commodity:      item.commodity     || null,
-        quantity_scu:   item.quantity_scu  || null,
-        station:        item.station       || null,
-        logged_by:      resolvedDiscordId,
+        entry_type: item.entry_type || 'SALE',
+        amount_aUEC: item.amount_aUEC || 0,
+        commodity: item.commodity || null,
+        quantity_scu: item.quantity_scu || null,
+        station: item.station || null,
+        logged_by_user_id: resolvedUserId,
         logged_by_callsign: resolvedCallsign,
-        source_type:    source_type || 'OCR_UPLOAD',
+        source_type: resolvedSourceType,
         screenshot_ref: file_url,
-        logged_at:      now,
+        logged_at: now,
       });
       created.push({ type: 'TRANSACTION', ...item });
     }
 
     if (extracted.screenshot_type === 'MINING_SCAN') {
-      // Return data for user confirmation — don't auto-create scout deposit
       return Response.json({
         success: true,
         screenshot_type: 'MINING_SCAN',
@@ -169,7 +156,6 @@ Return null for any field you cannot read clearly.`,
       confidence: extracted.confidence,
       notes: extracted.notes,
     });
-
   } catch (error) {
     console.error('ocrExtract error:', error);
     return Response.json({ error: error.message }, { status: 500 });

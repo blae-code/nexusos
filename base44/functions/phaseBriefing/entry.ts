@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       objectives = [],
       next_phase = null,
       custom_notes = '',
-      post_to_discord = true,
+      post_to_discord = false,
     } = body;
 
     let resolvedOpName = op_name;
@@ -192,26 +192,7 @@ ${briefingResult.action_items.length > 0 ? `**ACTION ITEMS**\n${briefingResult.a
       timestamp: new Date().toISOString(),
     };
 
-    // Post to Discord via Herald Bot
-    let discordPosted = false;
-    if (post_to_discord !== false) {
-      try {
-        await base44.functions.invoke('heraldBot', {
-          action: 'phaseBriefing',
-          payload: {
-            op_id,
-            op_name: resolvedOpName,
-            phase_name,
-            briefing_text: briefingMarkdown,
-            embed: discordEmbed,
-          },
-        });
-        discordPosted = true;
-      } catch (err) {
-        console.warn('Herald Bot post failed:', err.message);
-        // Don't fail the function, just warn
-      }
-    }
+    const discordPosted = false;
 
     return Response.json({
       success: true,
@@ -220,6 +201,7 @@ ${briefingResult.action_items.length > 0 ? `**ACTION ITEMS**\n${briefingResult.a
       embed: discordEmbed,
       discord_embed: discordEmbed,
       discord_posted: discordPosted,
+      delivery_mode: post_to_discord === false ? 'NEXUS_ONLY' : 'NEXUS_ONLY_DISCORD_DEACTIVATED',
     });
   } catch (error) {
     console.error('Phase briefing error:', error);
