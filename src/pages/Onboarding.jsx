@@ -130,9 +130,11 @@ function Step1Welcome({ callsign, onContinue }) {
 
 function Step2HowItWorks({ onContinue }) {
   const bullets = [
-    'Coordinates ops and tracks org resources across Industry, Scout Intel, and the Op Board.',
-    'Uses your issued username and hashed auth key for account access. Pioneer rank is treated as administrator access.',
-    'All data is private to Redscar Nomads and is never shared outside the org.',
+    { text: 'Industry Hub — Material tracking, refinery management, crafting queue, blueprint registry, and market prices.', color: '#C8A84B' },
+    { text: 'Ops Board — Plan, schedule, and run live operations with crew coordination and financial wrap-ups.', color: '#C0392B' },
+    { text: 'Scout Intel — Log and share deposit locations, plan mining routes, and track discoveries.', color: '#7AAECC' },
+    { text: 'Armory & Fleet — Manage org ships, equipment checkouts, and fleet readiness.', color: '#2edb7a' },
+    { text: 'Your data is private to Redscar Nomads. Pioneer rank grants admin access. Your callsign can be changed anytime in Settings.', color: '#9A9488' },
   ];
 
   return (
@@ -163,13 +165,13 @@ function Step2HowItWorks({ onContinue }) {
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  background: 'var(--acc)',
+                  background: bullet.color || 'var(--acc)',
                   marginTop: 5,
                   flexShrink: 0,
                 }}
               />
               <span style={{ fontSize: 12, color: 'var(--t1)', lineHeight: 1.6, maxWidth: 360, fontFamily: 'inherit' }}>
-                {bullet}
+                {bullet.text || bullet}
               </span>
             </li>
           ))}
