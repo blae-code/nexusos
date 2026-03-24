@@ -3,73 +3,51 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/core/data/SessionContext';
 import {
   Crosshair, LayoutGrid, Clock, PlusCircle, LifeBuoy, Archive,
-  Activity, Factory, BookOpen, GraduationCap, Radar, Map,
-  Shield, Wrench, Package, Ship, CheckCircle, Users,
-  Key, ShieldAlert, ClipboardList, User, Settings, LogOut,
+  Activity, Factory, BookOpen, GraduationCap, Radar,
+  Shield, Wrench, Package, Ship, Users,
+  Key, ShieldAlert, ClipboardList, Settings, LogOut,
 } from 'lucide-react';
-
-/* ── NAV DATA ──────────────────────────────────────────────────────────────── */
 
 const NAV = [
   {
-    label: 'COMMAND',
+    label: 'OPERATIONS',
     items: [
-      { icon: Activity, label: 'COMMAND CENTRE', path: '/app/command' },
       {
         icon: Crosshair, label: 'OPS BOARD', path: '/app/ops',
         children: [
-          { label: 'ACTIVE OPS', path: '/app/ops' },
           { label: 'TIMELINE', path: '/app/ops/timeline' },
           { label: 'CREATE OP', path: '/app/ops/new' },
-          { label: 'RESCUE', path: '/app/ops/rescue' },
-          { label: 'ARCHIVE', path: '/app/ops/archive' },
         ],
       },
+      { icon: LifeBuoy, label: 'RESCUE BOARD', path: '/app/ops/rescue' },
     ],
   },
   {
-    label: 'INDUSTRIAL',
+    label: 'INDUSTRY',
     items: [
-      {
-        icon: Factory, label: 'INDUSTRY HUB', path: '/app/industry',
-        children: [
-          { label: 'OVERVIEW', path: '/app/industry' },
-          { label: 'MATERIALS', path: '/app/industry/ledger' },
-          { label: 'REFINERY', path: '/app/industry/logistics' },
-          { label: 'CARGO', path: '/app/industry/cargo' },
-          { label: 'COFFER', path: '/app/industry/coffer' },
-          { label: 'COMMERCE', path: '/app/industry/commerce' },
-          { label: 'PROFIT CALC', path: '/app/industry/profit' },
-        ],
-      },
-      {
-        icon: Radar, label: 'SCOUT INTEL', path: '/app/scout',
-        children: [
-          { label: 'DEPOSITS', path: '/app/scout' },
-          { label: 'ROUTE PLANNER', path: '/app/scout/routes' },
-        ],
-      },
+      { icon: Factory, label: 'INDUSTRY HUB', path: '/app/industry' },
     ],
   },
   {
-    label: 'FLEET & ARMORY',
+    label: 'SCOUT INTEL',
     items: [
-      {
-        icon: Shield, label: 'ARMORY', path: '/app/armory',
-        children: [
-          { label: 'LOADOUTS', path: '/app/armory' },
-          { label: 'FLEET FORGE', path: '/app/armory/fleet' },
-          { label: 'ORG FLEET', path: '/app/armory/org-fleet' },
-          { label: 'INVENTORY', path: '/app/armory/inventory' },
-          { label: 'CREW', path: '/app/armory/schedule' },
-          { label: 'READINESS', path: '/app/armory/readiness' },
-        ],
-      },
+      { icon: Radar, label: 'SCOUT INTEL', path: '/app/scout' },
     ],
   },
   {
-    label: 'KNOWLEDGE',
+    label: 'ARMORY',
+    collapsed: true,
     items: [
+      { icon: Shield, label: 'ARMORY', path: '/app/armory' },
+      { icon: Ship, label: 'FLEET', path: '/app/armory/fleet' },
+      { icon: Package, label: 'INVENTORY', path: '/app/armory/inventory' },
+    ],
+  },
+  {
+    label: 'ORG',
+    collapsed: true,
+    items: [
+      { icon: Users, label: 'ORG ROSTER', path: '/app/roster' },
       { icon: BookOpen, label: 'HANDBOOK', path: '/app/handbook' },
       { icon: GraduationCap, label: 'TRAINING', path: '/app/training' },
     ],
@@ -86,11 +64,8 @@ const NAV = [
 ];
 
 const BOTTOM = [
-  { icon: User, label: 'PROFILE', path: '/app/profile' },
   { icon: Settings, label: 'SETTINGS', path: '/app/settings' },
 ];
-
-/* ── STYLES ────────────────────────────────────────────────────────────────── */
 
 const ICON_PROPS = { size: 14, strokeWidth: 1.5, style: { flexShrink: 0 } };
 
@@ -169,17 +144,8 @@ const S = {
   },
 };
 
-/* ── HELPERS ───────────────────────────────────────────────────────────────── */
-
-function isExact(pathname, path) {
-  return pathname === path;
-}
-
-function isUnder(pathname, path) {
-  return pathname === path || pathname.startsWith(path + '/');
-}
-
-/* ── COMPONENTS ────────────────────────────────────────────────────────────── */
+function isExact(pathname, path) { return pathname === path; }
+function isUnder(pathname, path) { return pathname === path || pathname.startsWith(path + '/'); }
 
 function NavItem({ icon: Icon, label, path, active }) {
   return (
@@ -208,18 +174,13 @@ function SubItem({ label, path, active }) {
   );
 }
 
-/* ── MAIN EXPORT ───────────────────────────────────────────────────────────── */
-
 export default function NexusSidebar() {
   const { pathname } = useLocation();
   const { isAdmin, logout } = useSession();
 
   return (
     <nav style={S.root}>
-      {/* Red left rail */}
       <div style={S.rail} />
-
-      {/* Wordmark */}
       <div style={S.wordmark}>
         <span style={S.wordmarkText}>
           <span style={{ color: '#E8E4DC' }}>NEXUS</span>
@@ -227,47 +188,35 @@ export default function NexusSidebar() {
         </span>
       </div>
 
-      {/* Scrollable nav */}
       <div style={S.scrollArea}>
         {NAV.map((group) => {
           if (group.adminOnly && !isAdmin) return null;
-
           return (
             <div key={group.label}>
               <div style={S.groupLabel}>{group.label}</div>
-
-              {group.items.map((item) => {
-                const parentActive = isUnder(pathname, item.path);
-
-                return (
-                  <React.Fragment key={item.path + item.label}>
-                    <NavItem
-                      icon={item.icon}
-                      label={item.label}
-                      path={item.path}
-                      active={!item.children ? isUnder(pathname, item.path) : false}
+              {group.items.map((item) => (
+                <React.Fragment key={item.path + item.label}>
+                  <NavItem
+                    icon={item.icon}
+                    label={item.label}
+                    path={item.path}
+                    active={!item.children ? isUnder(pathname, item.path) : false}
+                  />
+                  {item.children && item.children.map((child) => (
+                    <SubItem
+                      key={child.path + child.label}
+                      label={child.label}
+                      path={child.path}
+                      active={isExact(pathname, child.path)}
                     />
-                    {item.children && item.children.map((child) => (
-                      <SubItem
-                        key={child.path + child.label}
-                        label={child.label}
-                        path={child.path}
-                        active={
-                          child.path === item.path
-                            ? isExact(pathname, child.path)
-                            : isUnder(pathname, child.path)
-                        }
-                      />
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+                  ))}
+                </React.Fragment>
+              ))}
             </div>
           );
         })}
       </div>
 
-      {/* Bottom section */}
       <div style={S.bottom}>
         {BOTTOM.map((item) => (
           <NavItem

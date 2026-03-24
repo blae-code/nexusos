@@ -3,10 +3,11 @@
  * Route: /app/ops
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { Plus, RefreshCw, Crosshair, CalendarDays } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
+import OpsDashboard from '@/pages/OpsDashboard';
 
 const STATUS_ORDER = ['LIVE', 'PUBLISHED', 'DRAFT', 'COMPLETE', 'ARCHIVED'];
 
@@ -129,6 +130,13 @@ export default function OpBoard() {
   const rank = outletContext.rank;
   const callsign = outletContext.callsign;
   const discordId = outletContext.discordId;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const opsView = searchParams.get('view') === 'analytics' ? 'analytics' : 'board';
+  const setOpsView = (v) => {
+    const next = new URLSearchParams(searchParams);
+    if (v === 'board') next.delete('view'); else next.set('view', v);
+    setSearchParams(next, { replace: true });
+  };
 
   const navigate = useNavigate();
   const [ops, setOps] = useState([]);
@@ -204,10 +212,29 @@ export default function OpBoard() {
 
   const liveCount = ops.filter(o => o.status === 'LIVE').length;
 
+  if (opsView === 'analytics') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: 0, padding: '0 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
+          {[{ id: 'board', label: 'OPS BOARD' }, { id: 'analytics', label: 'ANALYTICS' }].map(t => (
+            <button key={t.id} onClick={() => setOpsView(t.id)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: opsView === t.id ? '2px solid #C0392B' : '2px solid transparent', color: opsView === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (opsView !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (opsView !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
+          ))}
+        </div>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}><OpsDashboard /></div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', animation: 'opsPageEntrance 200ms ease-out' }}>
       <style>{`@keyframes opsPageEntrance { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 20px 12px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
+        {/* OPS BOARD / ANALYTICS tab bar */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 4 }}>
+          {[{ id: 'board', label: 'OPS BOARD' }, { id: 'analytics', label: 'ANALYTICS' }].map(t => (
+            <button key={t.id} onClick={() => setOpsView(t.id)} style={{ padding: '6px 14px', background: 'transparent', border: 'none', borderBottom: opsView === t.id ? '2px solid #C0392B' : '2px solid transparent', color: opsView === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (opsView !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (opsView !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
+          ))}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>OPS BOARD</div>

@@ -8,34 +8,23 @@ import NexusShell from '@/core/shell/NexusShell';
 import LiveOp from '@/apps/ops-board/LiveOp';
 import AccessGate from '@/pages/AccessGate';
 import Onboarding from '@/pages/Onboarding';
-import CofferLedger from '@/pages/CofferLedger';
-import Commerce from '@/pages/Commerce';
-import CargoTracker from '@/pages/CargoTracker';
-import EpicArchive from '@/pages/EpicArchive';
-import FleetForge from '@/pages/FleetForge';
-import Logistics from '@/pages/Logistics';
-import OrgFleet from '@/pages/OrgFleet';
-import RoutePlanner from '@/pages/RoutePlanner';
 import IndustryHub from '@/apps/industry-hub/IndustryHub';
-import MaterialLedger from '@/pages/MaterialLedger';
 import NexusSettings from '@/pages/NexusSettings';
 import NexusTodo from '@/pages/NexusTodo';
 import OpBoard from '@/apps/ops-board/OpBoard';
 import OpsTimeline from '@/apps/ops-board/OpsTimeline';
 import OpCreator from '@/apps/ops-board/OpCreatorPage';
-import OrgRoster from '@/pages/OrgRoster';
-import ProfitCalc from '@/pages/ProfitCalc';
-import RescueBoard from '@/pages/RescueBoard';
 import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
 import InventoryManager from '@/pages/InventoryManager';
-import CrewScheduler from '@/pages/CrewScheduler';
+import FleetHub from '@/pages/FleetHub';
 import TrainingHub from '@/pages/TrainingHub';
 import AdminSettings from '@/pages/AdminSettings';
 import KeyManagement from '@/pages/KeyManagement';
-import OpsDashboard from '@/pages/OpsDashboard';
-import FleetReadiness from '@/pages/FleetReadiness';
+import RescueBoard from '@/pages/RescueBoard';
+import OrgRoster from '@/pages/OrgRoster';
+import EpicArchive from '@/pages/EpicArchive';
 import BootScreen from '@/pages/BootScreen';
 import Setup from '@/pages/Setup';
 
@@ -55,36 +44,53 @@ function App() {
 
             <Route path="/app" element={<NexusShell />}>
               <Route index element={<Navigate to="/app/industry" replace />} />
+
+              {/* Industry Hub — single entry point for all industry */}
               <Route path="industry" element={<IndustryHub />} />
-              <Route path="industry/coffer" element={<CofferLedger />} />
-              <Route path="industry/ledger" element={<MaterialLedger />} />
-              <Route path="industry/commerce" element={<Commerce />} />
-              <Route path="industry/logistics" element={<Logistics />} />
-              <Route path="industry/cargo" element={<CargoTracker />} />
-              <Route path="industry/profit" element={<ProfitCalc />} />
+              {/* Redirects for old standalone industry routes */}
+              <Route path="industry/ledger" element={<Navigate to="/app/industry?tab=materials" replace />} />
+              <Route path="industry/commerce" element={<Navigate to="/app/industry?tab=commerce" replace />} />
+              <Route path="industry/coffer" element={<Navigate to="/app/industry?tab=coffer" replace />} />
+              <Route path="industry/logistics" element={<Navigate to="/app/industry?tab=logistics" replace />} />
+              <Route path="industry/cargo" element={<Navigate to="/app/industry?tab=cargo" replace />} />
+              <Route path="industry/profit" element={<Navigate to="/app/industry?tab=commerce" replace />} />
+
+              {/* Scout Intel — Deposits + Routes tabs */}
               <Route path="scout" element={<ScoutIntel />} />
-              <Route path="scout/routes" element={<RoutePlanner />} />
+              <Route path="scout/routes" element={<Navigate to="/app/scout?tab=routes" replace />} />
+
+              {/* Ops Board — Board + Analytics tabs */}
               <Route path="ops" element={<OpBoard />} />
               <Route path="ops/timeline" element={<OpsTimeline />} />
               <Route path="ops/new" element={<OpCreator />} />
               <Route path="ops/:id" element={<LiveOp />} />
               <Route path="ops/rescue" element={<RescueBoard />} />
               <Route path="ops/archive" element={<EpicArchive />} />
+              {/* Redirect old command route */}
+              <Route path="command" element={<Navigate to="/app/ops?view=analytics" replace />} />
+
+              {/* Armory + Fleet Hub */}
               <Route path="armory" element={<Armory />} />
-              <Route path="armory/fleet" element={<FleetForge />} />
+              <Route path="armory/fleet" element={<FleetHub />} />
               <Route path="armory/inventory" element={<InventoryManager />} />
-              <Route path="armory/schedule" element={<CrewScheduler />} />
-              <Route path="armory/org-fleet" element={<OrgFleet />} />
-              <Route path="armory/readiness" element={<FleetReadiness />} />
-              <Route path="profile" element={<NexusSettings />} />
-              <Route path="settings" element={<NexusSettings />} />
-              <Route path="admin/todo" element={<NexusTodo />} />
-              <Route path="admin/settings" element={<AdminSettings />} />
-              <Route path="keys" element={<KeyManagement />} />
-              <Route path="command" element={<OpsDashboard />} />
+              {/* Redirects for old fleet sub-routes */}
+              <Route path="armory/org-fleet" element={<Navigate to="/app/armory/fleet" replace />} />
+              <Route path="armory/readiness" element={<Navigate to="/app/armory/fleet?tab=readiness" replace />} />
+              <Route path="armory/schedule" element={<Navigate to="/app/armory/fleet?tab=crew" replace />} />
+
+              {/* Org */}
+              <Route path="roster" element={<OrgRoster />} />
               <Route path="handbook" element={<RedscarHandbook />} />
               <Route path="training" element={<TrainingHub />} />
-              <Route path="roster" element={<OrgRoster />} />
+
+              {/* Settings — single entry point */}
+              <Route path="settings" element={<NexusSettings />} />
+              <Route path="profile" element={<Navigate to="/app/settings" replace />} />
+
+              {/* Admin */}
+              <Route path="keys" element={<KeyManagement />} />
+              <Route path="admin/settings" element={<AdminSettings />} />
+              <Route path="admin/todo" element={<NexusTodo />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
