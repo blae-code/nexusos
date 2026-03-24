@@ -1,8 +1,10 @@
-import { sessionNoStoreHeaders } from '../_shared/issuedKey/entry.ts';
-
+/**
+ * GET /auth/health — Health check for auth system.
+ * Self-contained.
+ */
 Deno.serve((req) => {
   if (req.method !== 'GET') {
-    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: { 'Cache-Control': 'no-store' } });
   }
 
   const ready = Boolean(Deno.env.get('SESSION_SIGNING_SECRET')?.trim());
@@ -19,6 +21,6 @@ Deno.serve((req) => {
       'If you lose your auth key, ask a Pioneer to revoke and regenerate it.',
     ],
   }, {
-    headers: sessionNoStoreHeaders(),
+    headers: { 'Cache-Control': 'no-store' },
   });
 });
