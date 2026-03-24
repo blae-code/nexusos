@@ -37,7 +37,7 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
     <div
       style={{
         height: 44,
-        background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)',
+        background: '#0A0908',
         borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         display: 'flex',
         alignItems: 'center',

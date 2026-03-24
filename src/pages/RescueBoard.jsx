@@ -91,22 +91,22 @@ export default function RescueBoard() {
     });
   };
 
-  const STATUS_COLORS = { OPEN: 'var(--danger)', RESPONDING: 'var(--warn)', RESOLVED: 'var(--live)' };
+  const STATUS_COLORS = { OPEN: '#C0392B', RESPONDING: '#C8A84B', RESOLVED: '#4A8C5C' };
+  const BORDER_COLORS = { OPEN: '#C0392B', RESPONDING: '#C8A84B', RESOLVED: '#5A5850' };
   const openCount = getActiveRescueCount(calls);
 
   return (
-    <div className="nexus-page-enter flex flex-col h-full overflow-auto p-4 gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <AlertTriangle size={16} style={{ color: 'var(--danger)' }} />
-          <span style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 600 }}>RESCUE BOARD</span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 16, gap: 16, animation: 'opsPageEntrance 200ms ease-out' }}>
+      <style>{`@keyframes opsPageEntrance { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <AlertTriangle size={16} style={{ color: '#C0392B' }} />
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>RESCUE BOARD</span>
           {openCount > 0 && (
-            <span className="nexus-tag" style={{ color: 'var(--danger)', borderColor: 'rgba(var(--danger-rgb), 0.4)', background: 'rgba(var(--danger-rgb), 0.08)' }}>
-              {openCount} ACTIVE
-            </span>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 10, color: '#C0392B', background: 'rgba(192,57,43,0.18)', border: '0.5px solid #C0392B', borderRadius: 2, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.15em' }}>{openCount} ACTIVE</span>
           )}
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="nexus-btn danger" style={{ padding: '6px 14px', fontSize: 11 }}>
+        <button onClick={() => setShowForm(!showForm)} style={{ background: '#C0392B', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#E8E4DC', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 12, padding: '8px 14px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6, transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = '#9B2D20'; }} onMouseLeave={e => { e.currentTarget.style.background = '#C0392B'; }}>
           <Radio size={11}/> SEND DISTRESS
         </button>
       </div>
@@ -146,12 +146,18 @@ export default function RescueBoard() {
       )}
 
       {/* Calls */}
-      <div className="flex flex-col gap-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {calls.map(call => (
           <div
             key={call.id}
-            className="nexus-card"
-            style={{ padding: '12px 14px', borderColor: call.status === 'OPEN' ? 'rgba(var(--danger-rgb), 0.3)' : call.status === 'RESPONDING' ? 'rgba(var(--warn-rgb), 0.3)' : 'var(--b1)' }}
+            style={{
+              background: call.status === 'OPEN' ? 'rgba(192,57,43,0.06)' : '#0F0F0D',
+              borderLeft: `2px solid ${BORDER_COLORS[call.status] || '#5A5850'}`,
+              borderTop: '0.5px solid rgba(200,170,100,0.10)',
+              borderRight: '0.5px solid rgba(200,170,100,0.10)',
+              borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+              borderRadius: 2, padding: '12px 14px',
+            }}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -186,10 +192,10 @@ export default function RescueBoard() {
         ))}
 
         {calls.length === 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 60, gap: 12 }}>
-            <NexusToken src={T('hospital-grey')} size={40} opacity={0.25} alt="No active calls" />
-            <span style={{ color: 'var(--t2)', fontSize: 13 }}>No active distress calls</span>
-            <span style={{ color: 'var(--t3)', fontSize: 11 }}>Verse is quiet — use SEND DISTRESS if you need assistance</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 20px', gap: 12 }}>
+            <span style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 11, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.22em', textAlign: 'center' }}>
+              NO ACTIVE RESCUE REQUESTS
+            </span>
           </div>
         )}
       </div>

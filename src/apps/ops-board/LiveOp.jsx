@@ -54,14 +54,17 @@ function Panel({ title, children, style }) {
   return (
     <div
       style={{
-        background: 'var(--bg1)',
-        border: '0.5px solid var(--b1)',
-        borderRadius: 3,
+        background: '#0F0F0D',
+        borderLeft: '2px solid #C0392B',
+        borderTop: '0.5px solid rgba(200,170,100,0.10)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        borderRadius: 2,
         padding: 14,
         ...style,
       }}
     >
-      {title ? <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 8 }}>{title}</div> : null}
+      {title ? <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: 10, paddingBottom: 6, borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>{title}</div> : null}
       {children}
     </div>
   );
@@ -255,9 +258,11 @@ export default function LiveOp() {
     >
       <button
         onClick={() => navigate('/app/ops')}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', display: 'flex', padding: 4, marginTop: 10 }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5850', display: 'flex', alignItems: 'center', gap: 4, padding: 4, marginTop: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 11, transition: 'color 150ms' }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#C8A84B'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = '#5A5850'; }}
       >
-        <ChevronLeft size={15} />
+        <ChevronLeft size={13} /> OPS BOARD
       </button>
 
       <div style={{ position: 'relative', width: 48, height: 48, flexShrink: 0 }}>
@@ -289,7 +294,7 @@ export default function LiveOp() {
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ color: 'var(--t0)', fontSize: 16, fontWeight: 500, letterSpacing: '0.05em', marginBottom: 4 }}>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 20, color: '#E8E4DC', letterSpacing: '0.05em', marginBottom: 4 }}>
           {op.name}
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', color: 'var(--t2)', fontSize: 10 }}>

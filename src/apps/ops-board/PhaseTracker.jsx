@@ -7,9 +7,10 @@ function PhaseNode({ label, index, status, totalPhases }) {
   const isDone = status === 'done';
   const isActive = status === 'active';
 
-  const nodeBg = isDone ? 'var(--live)' : isActive ? 'var(--acc)' : 'var(--bg3)';
-  const nodeBorder = isDone || isActive ? 'none' : '0.5px solid var(--b2)';
-  const labelColor = isDone ? 'var(--live)' : isActive ? 'var(--t0)' : 'var(--t2)';
+  const nodeBg = isDone ? '#5A5850' : isActive ? '#C0392B' : 'transparent';
+  const nodeBorder = isDone ? 'none' : isActive ? 'none' : '1px solid #5A5850';
+  const nodeSize = isActive ? 12 : 10;
+  const labelColor = isDone ? '#5A5850' : isActive ? '#E8E4DC' : '#5A5850';
 
   return (
     <div
@@ -26,8 +27,8 @@ function PhaseNode({ label, index, status, totalPhases }) {
       {/* Phase node circle */}
       <div
         style={{
-          width: 20,
-          height: 20,
+          width: nodeSize,
+          height: nodeSize,
           borderRadius: '50%',
           background: nodeBg,
           border: nodeBorder,
@@ -36,8 +37,8 @@ function PhaseNode({ label, index, status, totalPhases }) {
           justifyContent: 'center',
           flexShrink: 0,
           ...(isActive && {
-            boxShadow: '0 0 0 2px var(--bg0), 0 0 0 3px var(--b2)',
-            animation: 'node-pulse 2s ease-in-out infinite',
+            boxShadow: '0 0 0 3px rgba(192,57,43,0.2)',
+            animation: 'opNodePulse 2s ease-in-out infinite',
           }),
         }}
       >
@@ -63,9 +64,11 @@ function PhaseNode({ label, index, status, totalPhases }) {
       {/* Phase label */}
       <span
         style={{
-          fontSize: 9,
+          fontSize: 10,
           color: labelColor,
-          fontFamily: 'var(--font)',
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 500,
+          textTransform: 'uppercase',
           letterSpacing: '0.06em',
           textAlign: 'center',
           lineHeight: 1.3,
@@ -133,9 +136,9 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <style>{`
-        @keyframes node-pulse {
-          0%, 100% { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 3px var(--b2); }
-          50% { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 4px var(--acc); }
+        @keyframes opNodePulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px rgba(192,57,43,0.2); }
+          50% { transform: scale(1.15); box-shadow: 0 0 0 4px rgba(192,57,43,0.3); }
         }
       `}</style>
 
@@ -148,8 +151,8 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank
             top: '50%',
             left: 0,
             right: 0,
-            height: '0.5px',
-            background: 'var(--b1)',
+            height: 1,
+            background: 'rgba(200,170,100,0.10)',
             zIndex: 0,
             transform: 'translateY(-50%)',
           }}
@@ -162,8 +165,8 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, rank
               position: 'absolute',
               top: '50%',
               left: 0,
-              height: '0.5px',
-              background: 'var(--live)',
+              height: 1,
+              background: '#C0392B',
               zIndex: 1,
               transform: 'translateY(-50%)',
               width: `${(currentPhase / (phases.length - 1)) * 100}%`,

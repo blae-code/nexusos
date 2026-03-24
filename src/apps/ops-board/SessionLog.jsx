@@ -7,13 +7,13 @@ import { base44 } from '@/core/data/base44Client';
 import { ChevronDown } from 'lucide-react';
 
 const TYPE_DOT_COLORS = {
-  PHASE_ADVANCE:    'var(--acc)',
-  THREAT:           'var(--danger)',
-  THREAT_RESOLVED:  'var(--live)',
-  MATERIAL:         'var(--live)',
-  CRAFT:            'var(--live)',
-  PING:             'var(--live)',
-  MANUAL:           'var(--b2)',
+  PHASE_ADVANCE:    '#C0392B',
+  THREAT:           '#C0392B',
+  THREAT_RESOLVED:  '#4A8C5C',
+  MATERIAL:         '#C8A84B',
+  CRAFT:            '#C8A84B',
+  PING:             '#C8A84B',
+  MANUAL:           '#5A5850',
 };
 
 function relativeTime(isoStr) {
@@ -31,14 +31,18 @@ function LogEntry({ entry, index }) {
   const type = entry.type || 'MANUAL';
   const dotColor = TYPE_DOT_COLORS[type] || 'var(--b2)';
 
+  const isSystem = ['PHASE_ADVANCE', 'THREAT'].includes(type);
+  const isInfo = type === 'MANUAL';
+  const msgColor = isSystem ? '#C0392B' : isInfo ? '#9A9488' : '#E8E4DC';
+
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'flex-start',
-        gap: 8,
-        padding: '6px 0',
-        borderBottom: '0.5px solid var(--b0)',
+        gap: 12,
+        padding: '8px 14px',
+        borderBottom: '0.5px solid rgba(200,170,100,0.06)',
         animation: `log-entry-in 200ms ease-out both`,
         animationDelay: `${index * 30}ms`,
       }}
@@ -55,23 +59,20 @@ function LogEntry({ entry, index }) {
         }}
       />
 
+      {/* Type dot */}
+      <div style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0, marginTop: 4 }} />
+
       {/* Timestamp */}
-      <span
-        style={{
-          fontSize: 9,
-          color: 'var(--t3)',
-          fontFamily: 'monospace',
-          fontVariantNumeric: 'tabular-nums',
-          whiteSpace: 'nowrap',
-          minWidth: 48,
-          flexShrink: 0,
-        }}
-      >
+      <span style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10,
+        color: '#C8A84B', textTransform: 'uppercase',
+        width: 48, flexShrink: 0, fontVariantNumeric: 'tabular-nums',
+      }}>
         {relativeTime(entry.t)}
       </span>
 
       {/* Entry text */}
-      <span style={{ fontSize: 11, color: 'var(--t1)', fontFamily: 'var(--font)', flex: 1, lineHeight: 1.5 }}>
+      <span style={{ fontSize: 12, fontFamily: "'Barlow', sans-serif", fontWeight: 400, color: msgColor, flex: 1, lineHeight: 1.5 }}>
         {entry.text}
       </span>
     </div>

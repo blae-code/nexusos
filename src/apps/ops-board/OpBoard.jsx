@@ -11,11 +11,11 @@ import EmptyState from '@/core/design/EmptyState';
 const STATUS_ORDER = ['LIVE', 'PUBLISHED', 'DRAFT', 'COMPLETE', 'ARCHIVED'];
 
 const STATUS_CONFIG = {
-  LIVE:      { label: 'LIVE',      color: 'var(--live)',  bg: 'var(--live-bg)',  border: 'var(--live-b)',  stripe: '#27c96a',           stripeHover: '#4ddc88' },
-  PUBLISHED: { label: 'PUBLISHED', color: 'var(--info)',  bg: 'var(--info-bg)',  border: 'var(--info-b)',  stripe: 'var(--acc)',         stripeHover: 'var(--acc2)' },
-  DRAFT:     { label: 'DRAFT',     color: 'var(--warn)',  bg: 'var(--warn-bg)',  border: 'var(--warn-b)',  stripe: '#e8a020',           stripeHover: '#f0b840' },
-  COMPLETE:  { label: 'COMPLETE',  color: 'var(--t1)',    bg: 'var(--bg2)',      border: 'var(--b2)',      stripe: '#4a5070',           stripeHover: '#6a7090' },
-  ARCHIVED:  { label: 'ARCHIVED',  color: 'var(--t2)',    bg: 'var(--bg2)',      border: 'var(--b1)',      stripe: '#2e3248',           stripeHover: '#4a5070' },
+  LIVE:      { label: 'LIVE',      color: '#C0392B', bg: 'rgba(192,57,43,0.18)', border: '#C0392B', stripe: '#C0392B' },
+  PUBLISHED: { label: 'STAGING',   color: '#C8A84B', bg: 'rgba(200,168,75,0.12)', border: '#C8A84B', stripe: '#C8A84B' },
+  DRAFT:     { label: 'PLANNING',  color: '#5A5850', bg: 'rgba(90,88,80,0.12)',  border: '#5A5850', stripe: '#5A5850' },
+  COMPLETE:  { label: 'COMPLETE',  color: '#5A5850', bg: 'rgba(90,88,80,0.12)',  border: '#5A5850', stripe: '#5A5850' },
+  ARCHIVED:  { label: 'ARCHIVED',  color: '#5A5850', bg: 'rgba(90,88,80,0.12)',  border: '#5A5850', stripe: '#5A5850' },
 };
 
 const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
@@ -42,102 +42,82 @@ function OpCard({ op, rsvpCount, myRsvp, onRsvp, canLead }) {
   const cfg = STATUS_CONFIG[op.status] || STATUS_CONFIG.DRAFT;
   const isLive = op.status === 'LIVE';
   const totalSlots = Object.values(op.role_slots || {}).reduce((s, v) => s + (typeof v === 'object' ? (v.capacity ?? v) : v), 0);
-  const [hovered, setHovered] = React.useState(false);
+  const phases = Array.isArray(op.phases) ? op.phases : [];
+  const currentPhase = op.phase_current || 0;
 
   return (
-    <Link to={`/app/ops/${op.id}`} style={{ textDecoration: 'none', display: 'block', marginBottom: 8, overflow: 'hidden' }}>
+    <Link to={`/app/ops/${op.id}`} style={{ textDecoration: 'none', display: 'block', marginBottom: 8 }}>
       <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         style={{
-          background: 'var(--bg1)',
-          border: '0.5px solid var(--b1)',
-          borderLeft: `3px solid ${hovered ? cfg.stripeHover : cfg.stripe}`,
-          borderRadius: 3,
-          overflow: 'hidden',
+          background: '#0F0F0D',
+          borderLeft: `2px solid ${cfg.stripe}`,
+          borderTop: '0.5px solid rgba(200,170,100,0.10)',
+          borderRight: '0.5px solid rgba(200,170,100,0.10)',
+          borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+          borderRadius: 2,
+          padding: '20px 20px 16px',
           cursor: 'pointer',
-          transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-          transition: 'border-left-color 150ms ease, transform 150ms ease, box-shadow 150ms ease',
-          boxShadow: hovered ? '0 4px 16px rgba(0,0,0,0.3)' : 'none',
+          transition: 'background 150ms, border-color 150ms',
         }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#141410'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#0F0F0D'; }}
       >
-        {/* Header */}
-        <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          {isLive && <div className="pulse-live" style={{ flexShrink: 0 }} />}
+        {/* Status row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{
-            color: 'var(--t0)', fontSize: 14, fontWeight: 500,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+            textTransform: 'uppercase', letterSpacing: '0.15em',
+            color: cfg.color, background: cfg.bg,
+            border: `0.5px solid ${cfg.border}`, borderRadius: 2, padding: '2px 8px',
           }}>
-            {op.name}
-          </span>
-          <span
-            style={{
-              flexShrink: 0, padding: '2px 7px', borderRadius: 3, fontSize: 9,
-              letterSpacing: '0.1em', fontWeight: 500,
-              color: cfg.color, background: cfg.bg, border: `0.5px solid ${cfg.border}`,
-            }}
-          >
+            <div style={{
+              width: 6, height: 6, borderRadius: '50%', background: cfg.color, flexShrink: 0,
+              animation: isLive ? 'pulse-dot 2s ease-in-out infinite' : 'none',
+            }} />
             {cfg.label}
           </span>
-        </div>
-
-        {/* Body */}
-        <div style={{ padding: '0 14px 8px', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}>
-          <span style={{
-            padding: '2px 6px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em',
-            color: 'var(--t2)', background: 'var(--bg3)', border: '0.5px solid var(--b1)',
-            whiteSpace: 'nowrap',
-          }}>
-            {(op.type || '').replace(/_/g, ' ')}
-          </span>
-          {(op.system_name || op.location) && (
-            <span style={{ color: 'var(--t2)', fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {op.system_name}{op.location ? ` · ${op.location}` : ''}
-            </span>
-          )}
           {op.scheduled_at && (
-            <span style={{ color: 'var(--t3)', fontSize: 10, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-              {isLive ? 'started' : 'scheduled'} {relativeTime(op.scheduled_at)}
-            </span>
-          )}
-          {op.access_type === 'EXCLUSIVE' && (
-            <span style={{ padding: '2px 6px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em', color: 'var(--warn)', background: 'rgba(var(--warn-rgb), 0.05)', border: '0.5px solid rgba(var(--warn-rgb), 0.3)', whiteSpace: 'nowrap' }}>
-              EXCLUSIVE
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850', textTransform: 'uppercase' }}>
+              {relativeTime(op.scheduled_at)}
             </span>
           )}
         </div>
 
-        {/* Footer */}
-        <div style={{
-          padding: '7px 14px', borderTop: '0.5px solid var(--b0)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ color: 'var(--t1)', fontSize: 11 }}>{rsvpCount}</span>
-            <span style={{ color: 'var(--t3)', fontSize: 9 }}>/ {totalSlots || '?'} crew</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {['PUBLISHED', 'LIVE'].includes(op.status) && !canLead && (
-              <button
-                onClick={e => { e.preventDefault(); onRsvp(op.id); }}
-                style={{
-                  padding: '3px 10px', borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
-                  fontSize: 9, letterSpacing: '0.08em',
-                  background: myRsvp ? 'rgba(var(--live-rgb), 0.1)' : 'var(--bg3)',
-                  border: `0.5px solid ${myRsvp ? 'rgba(var(--live-rgb), 0.3)' : 'var(--b2)'}`,
-                  color: myRsvp ? 'var(--live)' : 'var(--t1)',
-                }}
-              >
-                {myRsvp ? '✓ RSVP\'D' : 'RSVP'}
-              </button>
-            )}
+        {/* Op name */}
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 15, color: '#E8E4DC', marginTop: 10, marginBottom: 4 }}>
+          {op.name}
+        </div>
+
+        {/* System/location */}
+        <div style={{ fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: 12, color: '#9A9488' }}>
+          {[op.type?.replace(/_/g, ' '), op.system_name || op.system, op.location].filter(Boolean).join(' · ')}
+        </div>
+
+        {/* Participant chips */}
+        {(rsvpCount > 0 || totalSlots > 0) && (
+          <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
             <span style={{
-              padding: '3px 10px', borderRadius: 3, fontSize: 9, letterSpacing: '0.08em',
-              color: 'var(--t2)', background: 'var(--bg3)', border: '0.5px solid var(--b1)',
-            }}>
-              VIEW →
-            </span>
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 10,
+              color: '#9A9488', background: 'rgba(200,170,100,0.08)',
+              border: '0.5px solid rgba(200,170,100,0.15)', borderRadius: 2, padding: '2px 6px',
+            }}>{rsvpCount} / {totalSlots || '?'} CREW</span>
+            {op.access_type === 'EXCLUSIVE' && (
+              <span style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 10,
+                color: '#C8A84B', background: 'rgba(200,168,75,0.08)',
+                border: '0.5px solid rgba(200,168,75,0.15)', borderRadius: 2, padding: '2px 6px',
+              }}>EXCLUSIVE</span>
+            )}
           </div>
+        )}
+
+        {/* Bottom row */}
+        <div style={{ marginTop: 12, borderTop: '0.5px solid rgba(200,170,100,0.06)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 11, color: '#5A5850' }}>
+            {phases.length > 0 ? `PHASE ${Math.min(phases.length, currentPhase + 1)} / ${phases.length}` : 'NO PHASES'}
+          </span>
+          <span style={{ color: '#5A5850', fontSize: 11 }}>→</span>
         </div>
       </div>
     </Link>
@@ -225,91 +205,87 @@ export default function OpBoard() {
   const liveCount = ops.filter(o => o.status === 'LIVE').length;
 
   return (
-    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)', flexShrink: 0 }}>
-        <span style={{ fontSize: 11, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-          Operations
-        </span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', animation: 'opsPageEntrance 200ms ease-out' }}>
+      <style>{`@keyframes opsPageEntrance { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 20px 12px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>OPS BOARD</div>
+            <div style={{ fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: 13, color: '#9A9488', marginTop: 2 }}>Manage and monitor field operations</div>
+          </div>
+          {canLead && (
+            <button onClick={() => navigate('/app/ops/new')} style={{
+              background: '#C0392B', border: 'none', borderRadius: 2, cursor: 'pointer',
+              color: '#E8E4DC', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+              fontSize: 12, textTransform: 'uppercase', padding: '9px 16px', transition: 'background 150ms',
+            }} onMouseEnter={e => { e.currentTarget.style.background = '#9B2D20'; }}
+               onMouseLeave={e => { e.currentTarget.style.background = '#C0392B'; }}>
+              + CREATE OP
+            </button>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {liveCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 3, background: 'var(--live-bg)', border: '0.5px solid var(--live-b)' }}>
-            <div className="pulse-live" />
-            <span style={{ color: 'var(--live)', fontSize: 9, letterSpacing: '0.1em' }}>{liveCount} OP{liveCount > 1 ? 'S' : ''} LIVE</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 2, background: 'rgba(192,57,43,0.18)', border: '0.5px solid #C0392B' }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#C0392B', animation: 'pulse-dot 2s ease-in-out infinite' }} />
+            <span style={{ color: '#C0392B', fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>{liveCount} OP{liveCount > 1 ? 'S' : ''} LIVE</span>
           </div>
         )}
-        <div style={{ display: 'flex', gap: 2 }}>
+        <div style={{ display: 'flex', gap: 0 }}>
           {[{ id: 'active', label: 'ACTIVE' }, { id: 'complete', label: 'COMPLETE' }, { id: 'all', label: 'ALL' }].map(f => (
             <button key={f.id} onClick={() => setStatusFilter(f.id)} style={{
-              padding: '4px 10px', borderRadius: 3, cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 9, letterSpacing: '0.1em',
-              background: statusFilter === f.id ? 'var(--bg3)' : 'transparent',
-              border: `0.5px solid ${statusFilter === f.id ? 'var(--b2)' : 'transparent'}`,
-              color: statusFilter === f.id ? 'var(--t0)' : 'var(--t2)',
-            }}>{f.label}</button>
+              padding: '6px 12px', border: 'none', cursor: 'pointer',
+              borderBottom: statusFilter === f.id ? '2px solid #C0392B' : '2px solid transparent',
+              background: 'transparent', fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em',
+              color: statusFilter === f.id ? '#E8E4DC' : '#5A5850', transition: 'color 150ms',
+            }} onMouseEnter={e => { if (statusFilter !== f.id) e.currentTarget.style.color = '#9A9488'; }}
+               onMouseLeave={e => { if (statusFilter !== f.id) e.currentTarget.style.color = '#5A5850'; }}>
+              {f.label}
+            </button>
           ))}
         </div>
         <div style={{ flex: 1 }} />
-        <button onClick={load} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t2)', padding: 2, display: 'flex' }}>
+        <button onClick={load} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5850', padding: 2, display: 'flex' }}>
           <RefreshCw size={12} />
         </button>
-        <button
-          onClick={() => navigate('/app/ops/timeline')}
-          style={{ background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3, cursor: 'pointer', color: 'var(--t2)', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, letterSpacing: '0.08em', fontFamily: 'inherit' }}
-        >
+        <button onClick={() => navigate('/app/ops/timeline')} style={{
+          background: '#141410', border: '0.5px solid rgba(200,170,100,0.10)', borderRadius: 2,
+          cursor: 'pointer', color: '#9A9488', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4,
+          fontSize: 10, letterSpacing: '0.08em', fontFamily: "'Barlow Condensed', sans-serif",
+        }}>
           <CalendarDays size={11} /> TIMELINE
         </button>
-        {canLead && (
-          <button
-            onClick={() => navigate('/app/ops/new')}
-            className="nexus-btn primary"
-            style={{
-              padding: '5px 12px',
-              fontSize: 10,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-            onMouseEnter={(e) => {
-              const arrow = e.currentTarget.querySelector('.op-arrow');
-              if (arrow) arrow.style.transform = 'translateX(3px)';
-            }}
-            onMouseLeave={(e) => {
-              const arrow = e.currentTarget.querySelector('.op-arrow');
-              if (arrow) arrow.style.transform = 'translateX(0)';
-            }}
-          >
-            <Plus size={11} /> NEW OP{' '}
-            <span className="op-arrow" style={{ display: 'inline-block', transition: 'transform 150ms ease' }}>
-              →
-            </span>
-          </button>
-        )}
         </div>
-        </div>
+      </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px' }}>
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-            <div className="nexus-loading-dots"><span /><span /><span /></div>
+            <div className="nexus-loading-dots" style={{ color: '#9A9488' }}><span /><span /><span /></div>
           </div>
         ) : grouped.length === 0 ? (
-          <EmptyState
-            icon={Crosshair}
-            title="No operations found"
-            detail="No ops match your current filters, or none have been created yet."
-            action={canLead}
-            actionLabel="Create Operation"
-            actionOnClick={() => navigate('/app/ops/new')}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', gap: 16 }}>
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style={{ opacity: 0.15 }}>
+              <circle cx="22" cy="22" r="20" stroke="#E8E4DC" strokeWidth="0.6" />
+              <circle cx="22" cy="22" r="14" stroke="#C0392B" strokeWidth="0.6" />
+              <circle cx="22" cy="22" r="7" fill="#C0392B" opacity="0.6" />
+              <circle cx="22" cy="22" r="3" fill="#E8E4DC" />
+              <line x1="22" y1="2" x2="22" y2="7.5" stroke="#E8E4DC" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+            <span style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 11, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.22em', textAlign: 'center' }}>
+              NO ACTIVE OPERATIONS — STAND BY
+            </span>
+          </div>
         ) : (
           grouped.map(({ status, ops: group }) => {
             const cfg = STATUS_CONFIG[status];
             return (
               <div key={status} style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <span style={{ color: cfg.color, fontSize: 9, letterSpacing: '0.15em' }}>{cfg.label}</span>
-                  <span style={{ color: 'var(--t3)', fontSize: 9 }}>{group.length}</span>
-                  <div style={{ flex: 1, height: '0.5px', background: 'var(--b0)' }} />
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 10, color: cfg.color, letterSpacing: '0.15em', textTransform: 'uppercase' }}>{cfg.label}</span>
+                  <span style={{ color: '#5A5850', fontSize: 9 }}>{group.length}</span>
+                  <div style={{ flex: 1, height: '0.5px', background: 'rgba(200,170,100,0.06)' }} />
                 </div>
                 {group.map(op => (
                   <OpCard key={op.id} op={op} rsvpCount={rsvpMap[op.id] || 0} myRsvp={myRsvps[op.id]} onRsvp={handleRsvp} canLead={canLead} />
