@@ -2,7 +2,7 @@
  * POST /auth/login — Issued username + auth key login.
  * First successful login activates the user and routes them into onboarding.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import {
   appendSessionCookie,
   createSessionToken,

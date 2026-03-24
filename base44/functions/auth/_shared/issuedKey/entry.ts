@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const enc = new TextEncoder();
 const KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
