@@ -243,27 +243,37 @@ export default function IndustryHub() {
     <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{
         display: 'flex', flexDirection: 'column', gap: 0,
-        padding: '10px 16px 0',
+        padding: '0 0 0 0',
         borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         background: '#0A0908', flexShrink: 0,
+        position: 'relative',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 0,
+          overflowX: 'auto', overflowY: 'hidden',
+          scrollbarWidth: 'none', msOverflowStyle: 'none',
+          padding: '0 16px',
+          maskImage: 'linear-gradient(to right, black 95%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, black 95%, transparent 100%)',
+        }}>
           {TABS.map((item) => (
             <button
               key={item.id} type="button" onClick={() => setTab(item.id)}
               style={{
-                padding: '11px 14px', background: 'transparent', border: 'none',
+                padding: '11px 12px', background: 'transparent', border: 'none',
                 borderBottom: tab === item.id ? '2px solid #C0392B' : '2px solid transparent',
                 color: tab === item.id ? '#E8E4DC' : '#5A5850',
-                fontSize: 12, fontWeight: 600, letterSpacing: '0.12em',
+                fontSize: 11, fontWeight: 600, letterSpacing: '0.10em',
                 cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif",
                 textTransform: 'uppercase', transition: 'color 120ms ease',
+                whiteSpace: 'nowrap', flexShrink: 0,
               }}
               onMouseEnter={e => { if (tab !== item.id) e.currentTarget.style.color = '#9A9488'; }}
               onMouseLeave={e => { if (tab !== item.id) e.currentTarget.style.color = '#5A5850'; }}
             >{item.label}</button>
           ))}
         </div>
+        <style>{`.nexus-industry-tabs::-webkit-scrollbar { display: none; }`}</style>
       </div>
 
       <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
