@@ -385,7 +385,7 @@ export default function LiveOp() {
         </div>
       )}
 
-      {layoutMode === 'ALT-TAB' ? (
+      {!isComplete && (layoutMode === 'ALT-TAB' ? (
         // Standard 2-column layout
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '60% 40%', gap: 16, padding: 24, overflow: 'hidden', minHeight: 0 }}>
           {/* Left column: Phase tracker + Mission Control + Crew grid */}
@@ -463,7 +463,7 @@ export default function LiveOp() {
             </Panel>
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }
