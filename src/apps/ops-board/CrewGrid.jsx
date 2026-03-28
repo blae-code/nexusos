@@ -17,9 +17,16 @@ function normalizeRoleSlots(slots) {
   }));
 }
 
+const SHIP_ROLE_COLORS = {
+  PILOT: '#3498DB', GUNNER: '#C0392B', ENGINEER: '#C8A84B',
+  MEDIC: '#4A8C5C', NAVIGATOR: '#8E44AD', LOADMASTER: '#E67E22',
+};
+
 function CrewCard({ rsvp, op, members }) {
   const isExclusive = op.access_type === 'EXCLUSIVE';
   const memberRecord = members?.find(m => m.callsign === rsvp.callsign);
+  const shipRole = rsvp.ship_role && rsvp.ship_role !== 'UNASSIGNED' ? rsvp.ship_role : null;
+  const shipRoleColor = shipRole ? (SHIP_ROLE_COLORS[shipRole] || '#5A5850') : null;
 
   return (
     <div className="nexus-card" style={{ padding: 12, gap: 8, display: 'flex', flexDirection: 'column' }}>
@@ -45,8 +52,20 @@ function CrewCard({ rsvp, op, members }) {
         </span>
       )}
 
+      {/* Ship role badge */}
+      {shipRole && (
+        <span style={{
+          fontSize: 8, fontWeight: 700, padding: '1px 6px', borderRadius: 2,
+          color: shipRoleColor, background: `${shipRoleColor}12`,
+          border: `0.5px solid ${shipRoleColor}33`,
+          fontFamily: 'var(--font)', letterSpacing: '0.06em',
+        }}>
+          {shipRole}{rsvp.assigned_ship_name ? ` · ${rsvp.assigned_ship_name}` : ''}
+        </span>
+      )}
+
       {/* Ship name */}
-      {rsvp.ship && (
+      {!shipRole && rsvp.ship && (
         <span style={{ fontSize: 9, color: 'var(--t2)', fontFamily: 'var(--font)', fontStyle: 'italic' }}>
           {rsvp.ship}
         </span>

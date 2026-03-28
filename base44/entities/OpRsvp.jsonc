@@ -1,0 +1,82 @@
+{
+  "name": "OpRsvp",
+  "type": "object",
+  "properties": {
+    "op_id": {
+      "type": "string"
+    },
+    "discord_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "callsign": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "description": "mining, escort, hauler, medic, salvage, fabricator, scout, roc_operator, hand_miner, refinery_coord, logistics"
+    },
+    "ship": {
+      "type": "string",
+      "description": "Ship name/model the member will fly"
+    },
+    "ship_class": {
+      "type": "string",
+      "enum": [
+        "FIGHTER",
+        "HEAVY_FIGHTER",
+        "MINER",
+        "HAULER",
+        "SALVAGER",
+        "MEDICAL",
+        "EXPLORER",
+        "GROUND_VEHICLE",
+        "OTHER"
+      ],
+      "description": "Broad class of ship for logistics planning"
+    },
+    "cargo_scu_available": {
+      "type": "integer",
+      "default": 0,
+      "description": "Available cargo capacity this member brings to the op (SCU)"
+    },
+    "ship_role": {
+      "type": "string",
+      "enum": [
+        "PILOT",
+        "GUNNER",
+        "ENGINEER",
+        "MEDIC",
+        "NAVIGATOR",
+        "LOADMASTER",
+        "UNASSIGNED"
+      ],
+      "default": "UNASSIGNED",
+      "description": "Specific ship station/role assignment for this crew member"
+    },
+    "assigned_ship_name": {
+      "type": "string",
+      "description": "Name of the specific org ship this member is assigned to crew"
+    },
+    "assigned_by": {
+      "type": "string",
+      "description": "Callsign of lead who made the ship role assignment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "CONFIRMED",
+        "DECLINED",
+        "TENTATIVE"
+      ],
+      "default": "CONFIRMED"
+    }
+  },
+  "required": [
+    "op_id",
+    "discord_id",
+    "status"
+  ]
+}

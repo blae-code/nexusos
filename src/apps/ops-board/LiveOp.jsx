@@ -16,6 +16,8 @@ import ThreatPanel from './ThreatPanel';
 import LiveOpTopbar from './LiveOpTopbar';
 import MissionControlPanel from './MissionControlPanel';
 import RoleReassignPanel from './RoleReassignPanel';
+import ShipRoleAssigner from './crew/ShipRoleAssigner';
+import ShipRoleDisplay from './crew/ShipRoleDisplay';
 import OpWrapUpPanel from './OpWrapUpPanel';
 import ResourceReportPanel from './ResourceReportPanel';
 import OpDebriefPanel from './debrief/OpDebriefPanel';
@@ -272,6 +274,7 @@ export default function LiveOp() {
   const splitCalcProps = { op, rsvps };
   const missionControlProps = { op, rsvps, callsign, rank };
   const roleReassignProps = { op, rsvps, rank, onUpdate: fetchOp };
+  const shipRoleProps = { op, rsvps, members, rank, callsign, onUpdate: fetchOp };
   const wrapUpProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
   const resourceReportProps = { op, rsvps, callsign, rank };
   const debriefProps = { op, rsvps, callsign, rank };
@@ -431,6 +434,14 @@ export default function LiveOp() {
                     <RoleReassignPanel {...roleReassignProps} />
                   </>
                 )}
+                {isLive && canManage && (
+                  <>
+                    <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+                    <ShipRoleAssigner {...shipRoleProps} />
+                  </>
+                )}
+                <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+                <ShipRoleDisplay rsvps={rsvps} />
                 <div style={{ height: '0.5px', background: 'var(--b0)' }} />
                 <CrewGrid {...crewGridProps} />
               </div>
@@ -457,6 +468,14 @@ export default function LiveOp() {
             <Panel title="CREW & RSVP">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <OpRsvpSection {...opRsvpProps} />
+                {isLive && canManage && (
+                  <>
+                    <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+                    <ShipRoleAssigner {...shipRoleProps} />
+                  </>
+                )}
+                <div style={{ height: '0.5px', background: 'var(--b0)' }} />
+                <ShipRoleDisplay rsvps={rsvps} />
                 <div style={{ height: '0.5px', background: 'var(--b0)' }} />
                 <CrewGrid {...crewGridProps} />
               </div>
