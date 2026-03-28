@@ -33,6 +33,7 @@ import CraftingCostCalc from '@/apps/industry-hub/CraftingCostCalc';
 import CargoSCUPlanner from '@/apps/industry-hub/CargoSCUPlanner';
 import MarketplaceTab from '@/apps/industry-hub/marketplace/MarketplaceTab';
 import FindCraftersTab from '@/apps/industry-hub/FindCraftersTab';
+import ProfitRouteCalculator from '@/apps/industry-hub/ProfitRouteCalculator';
 import IndustryTabBar from '@/components/IndustryTabBar';
 import { RefineryFlow } from '@/core/design/Illustrations';
 
@@ -65,6 +66,7 @@ const TABS = [
   { id: 'cargoplanner', label: 'SCU PLAN' },
   { id: 'marketplace', label: 'MARKETPLACE' },
   { id: 'findcrafters', label: 'FIND CRAFTERS' },
+  { id: 'profitroute', label: 'PROFIT ROUTE' },
 ];
 
 const METHOD_STYLE = {
@@ -330,6 +332,7 @@ export default function IndustryHub() {
         {tab === 'cargoplanner' ? <CargoSCUPlanner blueprints={blueprints} ships={orgShips} /> : null}
         {tab === 'marketplace' ? <MarketplaceTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} /> : null}
         {tab === 'findcrafters' ? <FindCraftersTab blueprints={blueprints} materials={materials} callsign={callsign} /> : null}
+        {tab === 'profitroute' ? <ProfitRouteCalculator /> : null}
       </div>
     </div>
   );
