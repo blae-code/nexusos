@@ -5,7 +5,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
-import { Plus, CheckCircle, XCircle, Clock, Package, BarChart3, MapPin } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Clock, Package, BarChart3, MapPin, Send } from 'lucide-react';
+import MaterialRequisitionDialog from '@/components/requisition/MaterialRequisitionDialog';
 import NewFabJobDialog from './NewFabJobDialog';
 import ProductionMargins from './ProductionMargins';
 import CapacityPlanner from './CapacityPlanner';
@@ -130,7 +131,8 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ACTIVE');
-  const [view, setView] = useState('jobs'); // 'jobs' | 'margins' | 'capacity'
+  const [view, setView] = useState('jobs');
+  const [reqDialog, setReqDialog] = useState(null); // 'jobs' | 'margins' | 'capacity'
   const linkedBlueprintId = searchParams.get('blueprint') || '';
   const linkedQuantity = Math.max(1, Math.min(50, Number(searchParams.get('quantity')) || 1));
 
@@ -267,6 +269,15 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
           ))}
         </div>
 
+        {/* Requisition button */}
+        <button
+          onClick={() => setReqDialog({ source_module: 'PRODUCTION' })}
+          className="nexus-btn"
+          style={{ padding: '5px 12px', fontSize: 9, flexShrink: 0, color: '#C0392B', borderColor: 'rgba(192,57,43,0.3)' }}
+        >
+          <Send size={10} /> REQUEST MATERIAL
+        </button>
+
         {/* New job button */}
         <button
           onClick={() => setShowNewDialog(true)}
@@ -314,6 +325,16 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
             }
           }}
           onCreated={handleJobCreated}
+        />
+      )}
+
+      {/* Material requisition dialog */}
+      {reqDialog && (
+        <MaterialRequisitionDialog
+          callsign={callsign}
+          prefill={reqDialog}
+          onClose={() => setReqDialog(null)}
+          onCreated={() => setReqDialog(null)}
         />
       )}
     </div>

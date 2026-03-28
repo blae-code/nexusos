@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Scroll, Package, Flame, Wrench } from 'lucide-react';
+import { ChevronDown, ChevronUp, Scroll, Package, Flame, Wrench, Send } from 'lucide-react';
 import PresenceDot from '@/components/PresenceDot';
+import MaterialRequisitionDialog from '@/components/requisition/MaterialRequisitionDialog';
 
 const CAT_COLORS = {
   WEAPON: '#C0392B', ARMOR: '#3498DB', GEAR: '#4A8C5C', COMPONENT: '#9A9488',
@@ -33,8 +34,9 @@ function SectionHeader({ icon: Icon, label, count, color }) {
   );
 }
 
-export default function CrafterResultCard({ result, member }) {
+export default function CrafterResultCard({ result, member, currentCallsign }) {
   const [expanded, setExpanded] = useState(false);
+  const [reqDialog, setReqDialog] = useState(null);
   const { callsign, blueprints, materials, refinery, craftJobs } = result;
 
   const hasBp = blueprints.length > 0;
@@ -155,6 +157,28 @@ export default function CrafterResultCard({ result, member }) {
                           fontSize: 9, color: m.quality_score >= 800 ? '#C8A84B' : '#5A5850',
                         }}>Q{m.quality_score}</span>
                       )}
+                      {currentCallsign && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setReqDialog({
+                            material_name: m.material_name,
+                            material_type: m.material_type,
+                            quantity_scu: m.quantity_scu,
+                            blueprint_name: m.needed_for || '',
+                            target_callsign: callsign,
+                            source_module: 'FIND_CRAFTERS',
+                          }); }}
+                          style={{
+                            padding: '2px 6px', borderRadius: 2, cursor: 'pointer',
+                            background: 'rgba(192,57,43,0.10)', border: '0.5px solid rgba(192,57,43,0.3)',
+                            color: '#C0392B', fontSize: 8, fontWeight: 600,
+                            fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.06em',
+                            display: 'flex', alignItems: 'center', gap: 3,
+                          }}
+                          title="Request this material"
+                        >
+                          <Send size={7} /> REQ
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -213,6 +237,16 @@ export default function CrafterResultCard({ result, member }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Requisition dialog */}
+      {reqDialog && (
+        <MaterialRequisitionDialog
+          callsign={currentCallsign}
+          prefill={reqDialog}
+          onClose={() => setReqDialog(null)}
+          onCreated={() => setReqDialog(null)}
+        />
       )}
     </div>
   );

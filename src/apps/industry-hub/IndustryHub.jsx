@@ -329,7 +329,7 @@ export default function IndustryHub() {
         {tab === 'costcalc' ? <CraftingCostCalc blueprints={blueprints} materials={materials} /> : null}
         {tab === 'cargoplanner' ? <CargoSCUPlanner blueprints={blueprints} ships={orgShips} /> : null}
         {tab === 'marketplace' ? <MarketplaceTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} /> : null}
-        {tab === 'findcrafters' ? <FindCraftersTab blueprints={blueprints} materials={materials} /> : null}
+        {tab === 'findcrafters' ? <FindCraftersTab blueprints={blueprints} materials={materials} callsign={callsign} /> : null}
       </div>
     </div>
   );

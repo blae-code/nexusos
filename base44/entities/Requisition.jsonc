@@ -1,0 +1,118 @@
+{
+  "name": "Requisition",
+  "type": "object",
+  "properties": {
+    "requested_by_callsign": {
+      "type": "string"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "ITEM",
+        "CREDIT",
+        "BLUEPRINT",
+        "SHIP_LOAN",
+        "MATERIAL"
+      ]
+    },
+    "item_name": {
+      "type": "string"
+    },
+    "material_name": {
+      "type": "string",
+      "description": "Material name for MATERIAL-type requisitions"
+    },
+    "material_type": {
+      "type": "string",
+      "description": "Material subtype (CMR, CMP, CMS, ORE, etc.)"
+    },
+    "quantity": {
+      "type": "integer",
+      "default": 1
+    },
+    "quantity_scu": {
+      "type": "number",
+      "description": "Requested SCU for material requisitions"
+    },
+    "amount_aUEC": {
+      "type": "integer"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "NORMAL",
+        "HIGH",
+        "URGENT"
+      ],
+      "default": "NORMAL"
+    },
+    "op_id": {
+      "type": "string"
+    },
+    "source_module": {
+      "type": "string",
+      "description": "Module that created this requisition (FIND_CRAFTERS, PRODUCTION, MANUAL)"
+    },
+    "source_blueprint_id": {
+      "type": "string",
+      "description": "Blueprint ID if requisition is for crafting materials"
+    },
+    "source_blueprint_name": {
+      "type": "string",
+      "description": "Blueprint item name for display"
+    },
+    "target_callsign": {
+      "type": "string",
+      "description": "Specific member targeted to fulfill this (e.g. material holder)"
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "NexusUser ID of targeted fulfiller"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "UNDER_REVIEW",
+        "APPROVED",
+        "DENIED",
+        "FULFILLED",
+        "CANCELLED"
+      ],
+      "default": "OPEN"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_notes": {
+      "type": "string"
+    },
+    "fulfilled_by": {
+      "type": "string"
+    },
+    "fulfilled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fulfillment_notes": {
+      "type": "string"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "requested_by_callsign",
+    "request_type",
+    "purpose"
+  ]
+}

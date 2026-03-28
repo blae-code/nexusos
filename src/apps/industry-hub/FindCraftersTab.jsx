@@ -4,18 +4,20 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Search, Users, Package, Scroll, Flame, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
+import { Search, Users, Package, Scroll, Flame, ChevronDown, ChevronUp, MessageSquare, Send } from 'lucide-react';
+import MaterialRequisitionDialog from '@/components/requisition/MaterialRequisitionDialog';
 import CrafterResultCard from './find-crafters/CrafterResultCard';
 import ItemSearchBar from './find-crafters/ItemSearchBar';
 
-export default function FindCraftersTab({ blueprints, materials }) {
+export default function FindCraftersTab({ blueprints, materials, callsign }) {
   const [members, setMembers] = useState([]);
   const [allMaterials, setAllMaterials] = useState(materials || []);
   const [refineryOrders, setRefineryOrders] = useState([]);
   const [craftQueue, setCraftQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchMode, setSearchMode] = useState('item'); // 'item' | 'material' | 'member'
+  const [searchMode, setSearchMode] = useState('item');
+  const [bulkReqDialog, setBulkReqDialog] = useState(null); // 'item' | 'material' | 'member'
 
   useEffect(() => {
     (async () => {
@@ -303,10 +305,19 @@ export default function FindCraftersTab({ blueprints, materials }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {results.map(r => (
-              <CrafterResultCard key={r.callsign} result={r} member={getMember(r.callsign)} />
+              <CrafterResultCard key={r.callsign} result={r} member={getMember(r.callsign)} currentCallsign={callsign} />
             ))}
           </div>
         </>
+      )}
+      {/* Bulk requisition dialog */}
+      {bulkReqDialog && (
+        <MaterialRequisitionDialog
+          callsign={callsign}
+          prefill={bulkReqDialog}
+          onClose={() => setBulkReqDialog(null)}
+          onCreated={() => setBulkReqDialog(null)}
+        />
       )}
     </div>
   );

@@ -13,6 +13,7 @@ const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
 
 const TYPE_CONFIG = {
   ITEM:       { icon: Package, color: '#7AAECC', label: 'ITEM' },
+  MATERIAL:   { icon: Package, color: '#4A8C5C', label: 'MATERIAL' },
   CREDIT:     { icon: CreditCard, color: '#C8A84B', label: 'CREDIT' },
   BLUEPRINT:  { icon: FileText, color: '#D8BC70', label: 'BLUEPRINT' },
   SHIP_LOAN:  { icon: Ship, color: '#2edb7a', label: 'SHIP LOAN' },
@@ -200,7 +201,7 @@ function RequisitionRow({ req, canApprove, callsign, onAction }) {
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
             color: '#E8E4DC', fontWeight: 500,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>{req.item_name || req.purpose?.substring(0, 40) || 'Unnamed'}</span>
+          }}>{req.item_name || req.material_name || req.purpose?.substring(0, 40) || 'Unnamed'}</span>
           {req.priority === 'URGENT' && (
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 8,
@@ -209,12 +210,20 @@ function RequisitionRow({ req, canApprove, callsign, onAction }) {
               padding: '1px 5px', borderRadius: 2, letterSpacing: '0.1em',
             }}>URGENT</span>
           )}
+          {req.source_module && req.source_module !== 'MANUAL' && (
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 8,
+              color: '#3498DB', background: 'rgba(52,152,219,0.10)',
+              border: '0.5px solid rgba(52,152,219,0.25)',
+              padding: '1px 5px', borderRadius: 2, letterSpacing: '0.08em',
+            }}>AUTO</span>
+          )}
         </div>
         <div style={{
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
           color: '#5A5850',
         }}>
-          {req.requested_by_callsign} · {req.quantity > 1 ? `×${req.quantity} · ` : ''}{req.amount_aUEC ? `${req.amount_aUEC.toLocaleString()} aUEC · ` : ''}
+          {req.requested_by_callsign}{req.target_callsign ? ` → ${req.target_callsign}` : ''} · {req.quantity_scu ? `${req.quantity_scu} SCU · ` : req.quantity > 1 ? `×${req.quantity} · ` : ''}{req.amount_aUEC ? `${req.amount_aUEC.toLocaleString()} aUEC · ` : ''}{req.source_blueprint_name ? `for ${req.source_blueprint_name} · ` : ''}
           {req.requested_at ? new Date(req.requested_at).toLocaleDateString() : ''}
         </div>
       </div>
