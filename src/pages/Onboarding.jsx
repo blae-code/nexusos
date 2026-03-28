@@ -196,6 +196,63 @@ function Step2HowItWorks({ onContinue }) {
   );
 }
 
+function StepInstallPWA({ onContinue }) {
+  const tips = [
+    {
+      icon: '📲',
+      title: 'Install as an App',
+      text: 'NexusOS is designed to run as a standalone app on your device. When prompted by your browser, tap "Install" or "Add to Home Screen" to pin it. On desktop Chrome, look for the install icon in the address bar.',
+    },
+    {
+      icon: '🖥️',
+      title: 'Use in Fullscreen',
+      text: 'For the best experience — especially during live ops — run NexusOS in fullscreen mode. Press F11 on desktop or launch from your home screen on mobile. The interface is built for immersive, distraction-free use.',
+    },
+    {
+      icon: '🔄',
+      title: 'Always Up to Date',
+      text: 'The app updates automatically in the background. No app store downloads required — just open it and you\'re always on the latest version.',
+    },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, animation: 'onboarding-fade-in 200ms ease-out both' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 480, margin: '0 auto' }}>
+        <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
+          Recommended Setup
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {tips.map((tip, i) => (
+            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 'var(--r-lg, 6px)',
+                background: 'var(--bg2, #1a1a18)', border: '0.5px solid var(--b1, rgba(200,170,100,0.12))',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 14,
+              }}>
+                {tip.icon}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ fontSize: 12, color: 'var(--t0)', fontWeight: 600, fontFamily: 'inherit' }}>{tip.title}</span>
+                <span style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.6, fontFamily: 'inherit' }}>{tip.text}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <button
+        onClick={onContinue}
+        className="nexus-btn primary"
+        style={{
+          padding: '10px 24px', fontSize: 11, letterSpacing: '0.12em',
+          fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer', alignSelf: 'center',
+        }}
+      >
+        CONTINUE
+      </button>
+    </div>
+  );
+}
+
 function Step3Privacy({ onContinue }) {
   const [scrollPercent, setScrollPercent] = useState(0);
   const scrollRef = useRef(null);
@@ -632,15 +689,16 @@ export default function Onboarding() {
           zIndex: 1,
         }}
       >
-        <StepIndicator currentStep={step} totalSteps={4} />
+        <StepIndicator currentStep={step} totalSteps={5} />
 
         <div className="step-container">
           {step === 0 && (
             <Step1Welcome callsign={user.callsign} onContinue={() => setStep(1)} />
           )}
           {step === 1 && <Step2HowItWorks onContinue={() => setStep(2)} />}
-          {step === 2 && <Step3Privacy onContinue={() => setStep(3)} />}
-          {step === 3 && <Step4Consent user={user} onComplete={handleComplete} />}
+          {step === 2 && <StepInstallPWA onContinue={() => setStep(3)} />}
+          {step === 3 && <Step3Privacy onContinue={() => setStep(4)} />}
+          {step === 4 && <Step4Consent user={user} onComplete={handleComplete} />}
         </div>
       </div>
     </div>
