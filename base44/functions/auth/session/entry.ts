@@ -1,6 +1,7 @@
 /**
  * GET /auth/session — Validate session cookie, return user data.
- * Self-contained: no local imports (each function deploys independently).
+ * Self-contained: no local imports. Each function deploys independently.
+ * v2 — entry files removed, standalone deployment.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
