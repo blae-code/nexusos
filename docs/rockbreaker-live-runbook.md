@@ -7,6 +7,7 @@ Launch, execute, and wrap a Rockbreaker op with enough operational discipline th
 
 ## Preflight
 - Confirm `/app/admin/todo` has no remaining critical auth or runtime items.
+- Confirm `/app/admin/settings` auth roundtrip passes before issuing or rotating real keys.
 - Confirm issued-key login works from `/`.
 - In Industry:
   - review blueprint ownership and craft queue blockers
@@ -54,7 +55,7 @@ Launch, execute, and wrap a Rockbreaker op with enough operational discipline th
 - Discord env drift: publish succeeds in-app but Herald cannot post.
 - Patch drift: Scout deposits were logged pre-LIVE and are stale after release.
 - Supply drift: blueprint or refinery blockers were cleared in PTU but not revalidated on LIVE.
-- Auth drift: invitation-based login or session persistence regressed after deploy.
+- Auth drift: invitation-based login or session persistence regressed after deploy, or `NexusUser` stopped persisting auth-critical fields.
 
 ## Minimum Rehearsal Before LIVE
 - One full dry run with a published Rockbreaker op

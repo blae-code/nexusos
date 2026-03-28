@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   try {
     const body = await requirePostJson(req);
     const base44 = createClientFromRequest(req);
-    const sessionUser = await requireSessionUser(base44);
+    const sessionUser = await requireSessionUser(req);
     const action = textValue(body?.action || 'upsert').toLowerCase();
     const opId = textValue(body?.op_id);
 

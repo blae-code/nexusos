@@ -6,13 +6,15 @@
  * Returns: { job, materials_consumed }
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 function norm(s) { return (s || '').toLowerCase().trim(); }
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
-  const user = await base44.auth.me();
-  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const session = await resolveIssuedKeySession(req);
+  if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const user = session.user;
 
   const body = await req.json();
   const { blueprint_id, quantity = 1, notes, fabricator_location } = body;

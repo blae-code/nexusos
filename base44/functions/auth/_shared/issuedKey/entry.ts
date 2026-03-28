@@ -7,7 +7,7 @@ export const SESSION_COOKIE_NAME = 'nexus_member_session';
 export const BROWSER_SESSION_TTL_SECONDS = 60 * 60 * 24;
 export const REMEMBER_ME_TTL_SECONDS = 60 * 60 * 24 * 30;
 
-type NexusUserRecord = {
+export type NexusUserRecord = {
   id: string;
   callsign?: string | null;
   login_name?: string | null;
@@ -30,13 +30,72 @@ type NexusUserRecord = {
   updated_date?: string | null;
 };
 
-type SessionTokenPayload = {
+export type SessionTokenPayload = {
   user_id: string;
   login_name: string;
   is_admin: boolean;
   iat: number;
   exp: number;
 };
+
+type AuthFailureResult = {
+  ok: false;
+  error: string;
+  status: number;
+  details?: Record<string, unknown>;
+};
+
+type AuthSuccessResult<T extends Record<string, unknown>> = {
+  ok: true;
+} & T;
+
+type SignInRequestBody = {
+  username?: string | null;
+  login_name?: string | null;
+  callsign?: string | null;
+  key?: string | null;
+  remember_me?: boolean | null;
+};
+
+export const AUTH_CRITICAL_FIELDS = [
+  'login_name',
+  'username',
+  'callsign',
+  'nexus_rank',
+  'auth_key_hash',
+  'key_prefix',
+  'key_issued_at',
+  'key_revoked',
+  'session_invalidated_at',
+  'onboarding_complete',
+  'consent_given',
+  'consent_timestamp',
+  'is_admin',
+] as const;
+
+export const AUTH_ISSUE_REQUIRED_FIELDS = [
+  'login_name',
+  'username',
+  'callsign',
+  'nexus_rank',
+  'auth_key_hash',
+  'key_prefix',
+  'key_issued_at',
+  'key_revoked',
+  'onboarding_complete',
+  'is_admin',
+] as const;
+
+export const AUTH_REGENERATE_REQUIRED_FIELDS = [
+  ...AUTH_ISSUE_REQUIRED_FIELDS,
+  'session_invalidated_at',
+] as const;
+
+export const AUTH_ONBOARDING_REQUIRED_FIELDS = [
+  'onboarding_complete',
+  'consent_given',
+  'consent_timestamp',
+] as const;
 
 function toBase64Url(bytes: Uint8Array): string {
   return btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(''))
@@ -51,7 +110,7 @@ function fromBase64Url(value: string): Uint8Array {
 }
 
 export function normalizeLoginName(value: string): string {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
 }
 
 export function normalizeCallsign(value: string): string {
@@ -66,6 +125,10 @@ export function normalizeCallsign(value: string): string {
 
 export function resolveUserLoginName(user: Partial<NexusUserRecord>): string {
   return normalizeLoginName(String(user.login_name || user.username || user.callsign || ''));
+}
+
+export function resolvePersistedLoginName(user: Partial<NexusUserRecord>): string {
+  return normalizeLoginName(String(user.login_name || user.username || ''));
 }
 
 export function resolveUserCallsign(user: Partial<NexusUserRecord>): string {
@@ -197,6 +260,93 @@ export function keyPrefixFromAuthKey(authKey: string): string {
   return authKey.slice(0, 8);
 }
 
+function sameTimestamp(left: unknown, right: unknown): boolean {
+  const leftTime = new Date(String(left || '')).getTime();
+  const rightTime = new Date(String(right || '')).getTime();
+
+  if (Number.isFinite(leftTime) && Number.isFinite(rightTime)) {
+    return leftTime === rightTime;
+  }
+
+  return String(left || '') === String(right || '');
+}
+
+function hasExpectedField<T extends object, K extends keyof T>(expected: Partial<T>, field: K): boolean {
+  return Object.prototype.hasOwnProperty.call(expected, field);
+}
+
+export function missingLoginAuthFields(user: Partial<NexusUserRecord> | null | undefined): string[] {
+  const missing = [];
+
+  if (!resolvePersistedLoginName(user || {})) {
+    missing.push('login_name');
+  }
+
+  if (!String(user?.auth_key_hash || '').trim()) {
+    missing.push('auth_key_hash');
+  }
+
+  return missing;
+}
+
+export function buildAuthFieldChecks(
+  user: Partial<NexusUserRecord> | null | undefined,
+  expected: Partial<NexusUserRecord> = {},
+): Record<string, boolean> {
+  const expectedLoginName = resolvePersistedLoginName(expected);
+  const expectedCallsign = expected.callsign ? normalizeCallsign(String(expected.callsign)) : '';
+  const expectedRank = expected.nexus_rank ? String(expected.nexus_rank).toUpperCase() : '';
+
+  return {
+    login_name: expectedLoginName
+      ? resolvePersistedLoginName(user || {}) === expectedLoginName
+      : Boolean(resolvePersistedLoginName(user || {})),
+    username: expectedLoginName
+      ? normalizeLoginName(String(user?.username || '')) === expectedLoginName
+      : Boolean(normalizeLoginName(String(user?.username || ''))),
+    callsign: expectedCallsign
+      ? normalizeCallsign(String(user?.callsign || '')) === expectedCallsign
+      : Boolean(normalizeCallsign(String(user?.callsign || ''))),
+    nexus_rank: expectedRank
+      ? String(user?.nexus_rank || '').toUpperCase() === expectedRank
+      : Boolean(String(user?.nexus_rank || '').trim()),
+    auth_key_hash: hasExpectedField(expected, 'auth_key_hash')
+      ? String(user?.auth_key_hash || '') === String(expected.auth_key_hash || '')
+      : Boolean(String(user?.auth_key_hash || '').trim()),
+    key_prefix: hasExpectedField(expected, 'key_prefix')
+      ? String(user?.key_prefix || '') === String(expected.key_prefix || '')
+      : Boolean(String(user?.key_prefix || '').trim()),
+    key_issued_at: hasExpectedField(expected, 'key_issued_at')
+      ? sameTimestamp(user?.key_issued_at, expected.key_issued_at)
+      : Boolean(String(user?.key_issued_at || '').trim()),
+    key_revoked: hasExpectedField(expected, 'key_revoked')
+      ? user?.key_revoked === expected.key_revoked
+      : typeof user?.key_revoked === 'boolean',
+    session_invalidated_at: hasExpectedField(expected, 'session_invalidated_at')
+      ? sameTimestamp(user?.session_invalidated_at, expected.session_invalidated_at)
+      : Boolean(String(user?.session_invalidated_at || '').trim()),
+    onboarding_complete: hasExpectedField(expected, 'onboarding_complete')
+      ? user?.onboarding_complete === expected.onboarding_complete
+      : typeof user?.onboarding_complete === 'boolean',
+    consent_given: hasExpectedField(expected, 'consent_given')
+      ? user?.consent_given === expected.consent_given
+      : typeof user?.consent_given === 'boolean',
+    consent_timestamp: hasExpectedField(expected, 'consent_timestamp')
+      ? sameTimestamp(user?.consent_timestamp, expected.consent_timestamp)
+      : Boolean(String(user?.consent_timestamp || '').trim()),
+    is_admin: hasExpectedField(expected, 'is_admin')
+      ? user?.is_admin === expected.is_admin
+      : typeof user?.is_admin === 'boolean',
+  };
+}
+
+export function requiredAuthFieldsPass(
+  checks: Record<string, boolean>,
+  requiredFields: readonly string[],
+): boolean {
+  return requiredFields.every((field) => checks[field] === true);
+}
+
 export async function createSessionToken(
   user: Partial<NexusUserRecord> & { id: string },
   secret: string,
@@ -205,7 +355,7 @@ export async function createSessionToken(
   const now = Date.now();
   const payload: SessionTokenPayload = {
     user_id: user.id,
-    login_name: resolveUserLoginName(user),
+    login_name: resolvePersistedLoginName(user) || resolveUserLoginName(user),
     is_admin: isAdminUser(user),
     iat: now,
     exp: now + sessionTtlSeconds(rememberMe) * 1000,
@@ -290,9 +440,277 @@ export async function findUserByLoginName(
   return matches[0] || null;
 }
 
+export async function verifyAuthUserReadback(
+  base44: ReturnType<typeof createClientFromRequest>,
+  userId: string,
+  expected: Partial<NexusUserRecord>,
+  requiredFields: readonly string[],
+): Promise<{ ok: boolean; user: NexusUserRecord | null; field_checks: Record<string, boolean> }> {
+  const user = await findUserById(base44, userId);
+  const fieldChecks = buildAuthFieldChecks(user, expected);
+
+  return {
+    ok: Boolean(user?.id) && requiredAuthFieldsPass(fieldChecks, requiredFields),
+    user,
+    field_checks: fieldChecks,
+  };
+}
+
+export async function authenticateIssuedKeyCredentials(
+  base44: ReturnType<typeof createClientFromRequest>,
+  loginName: string,
+  authKey: string,
+  secret: string,
+): Promise<AuthFailureResult | AuthSuccessResult<{ user: NexusUserRecord }>> {
+  const user = await findUserByLoginName(base44, loginName);
+  if (!user) {
+    return { ok: false, error: 'user_not_found', status: 401 };
+  }
+
+  if (user.key_revoked) {
+    return { ok: false, error: 'key_revoked', status: 403 };
+  }
+
+  const missingFields = missingLoginAuthFields(user);
+  if (missingFields.length > 0) {
+    return {
+      ok: false,
+      error: 'missing_auth_fields',
+      status: 401,
+      details: {
+        missing_fields: missingFields,
+        field_checks: buildAuthFieldChecks(user),
+      },
+    };
+  }
+
+  const presentedHash = await hashAuthKey(authKey, secret);
+  if (presentedHash !== user.auth_key_hash) {
+    return { ok: false, error: 'hash_mismatch', status: 401 };
+  }
+
+  return { ok: true, user };
+}
+
+export async function hydrateAuthenticatedUser(
+  base44: ReturnType<typeof createClientFromRequest>,
+  user: NexusUserRecord,
+  fallbackLoginName: string,
+): Promise<AuthFailureResult | AuthSuccessResult<{
+  user: NexusUserRecord;
+  login_name: string;
+  callsign: string;
+  onboarding_complete: boolean;
+  is_admin: boolean;
+  isNew: boolean;
+}>> {
+  const now = new Date().toISOString();
+  const isNew = !user.joined_at;
+  const loginName = resolvePersistedLoginName(user) || normalizeLoginName(fallbackLoginName);
+  const callsign = resolveUserCallsign(user);
+  const onboardingComplete = isOnboardingComplete(user);
+  const admin = isAdminUser(user);
+
+  await base44.asServiceRole.entities.NexusUser.update(user.id, {
+    login_name: loginName,
+    username: loginName,
+    callsign,
+    joined_at: user.joined_at || now,
+    last_seen_at: now,
+    is_admin: admin,
+    key_revoked: false,
+    ...(onboardingComplete ? { onboarding_complete: true } : {}),
+  });
+
+  const readback = await verifyAuthUserReadback(base44, user.id, {
+    login_name: loginName,
+    username: loginName,
+    callsign,
+    auth_key_hash: user.auth_key_hash,
+    key_revoked: false,
+    is_admin: admin,
+  }, ['login_name', 'username', 'callsign', 'auth_key_hash', 'key_revoked', 'is_admin']);
+
+  if (!readback.ok || !readback.user) {
+    return {
+      ok: false,
+      error: 'schema_persist_failed',
+      status: 500,
+      details: {
+        field_checks: readback.field_checks,
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    user: {
+      ...readback.user,
+      joined_at: readback.user.joined_at || user.joined_at || now,
+      last_seen_at: readback.user.last_seen_at || now,
+      onboarding_complete: onboardingComplete,
+      is_admin: admin,
+    },
+    login_name: loginName,
+    callsign,
+    onboarding_complete: onboardingComplete,
+    is_admin: admin,
+    isNew,
+  };
+}
+
+function signInBodyFromRequest(body: SignInRequestBody) {
+  return {
+    username: normalizeLoginName(String(body?.username || body?.login_name || body?.callsign || '')),
+    authKey: String(body?.key || '').trim(),
+    rememberMe: body?.remember_me === true,
+  };
+}
+
+async function parseSignInBody(req: Request): Promise<AuthFailureResult | AuthSuccessResult<{
+  username: string;
+  authKey: string;
+  rememberMe: boolean;
+}>> {
+  let body: SignInRequestBody;
+  try {
+    body = await req.json();
+  } catch {
+    return { ok: false, error: 'invalid_body', status: 400 };
+  }
+
+  const parsed = signInBodyFromRequest(body);
+  if (!parsed.username || !parsed.authKey) {
+    return { ok: false, error: 'invalid_credentials', status: 400 };
+  }
+
+  return { ok: true, ...parsed };
+}
+
+export async function handleIssuedKeySignIn(req: Request): Promise<Response> {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
+  }
+
+  const parsedBody = await parseSignInBody(req);
+  if (!parsedBody.ok) {
+    return Response.json({ error: parsedBody.error }, { status: parsedBody.status, headers: sessionNoStoreHeaders() });
+  }
+
+  try {
+    const secret = getSessionSigningSecret();
+    const base44 = createClientFromRequest(req);
+    const authResult = await authenticateIssuedKeyCredentials(base44, parsedBody.username, parsedBody.authKey, secret);
+
+    if (!authResult.ok) {
+      return Response.json({
+        error: authResult.error,
+        ...(authResult.details || {}),
+      }, { status: authResult.status, headers: sessionNoStoreHeaders() });
+    }
+
+    const hydrated = await hydrateAuthenticatedUser(base44, authResult.user, parsedBody.username);
+    if (!hydrated.ok) {
+      return Response.json({
+        error: hydrated.error,
+        ...(hydrated.details || {}),
+      }, { status: hydrated.status, headers: sessionNoStoreHeaders() });
+    }
+
+    const token = await createSessionToken(hydrated.user, secret, parsedBody.rememberMe);
+    const headers = new Headers(sessionNoStoreHeaders());
+    appendSessionCookie(headers, token, req, parsedBody.rememberMe);
+
+    return Response.json({
+      success: true,
+      isNew: hydrated.isNew,
+      onboarding_complete: hydrated.onboarding_complete,
+      nexus_rank: hydrated.user.nexus_rank || 'AFFILIATE',
+      is_admin: hydrated.is_admin,
+      login_name: hydrated.login_name,
+      username: hydrated.login_name,
+      callsign: hydrated.callsign,
+    }, { headers });
+  } catch (error) {
+    if (String(error?.message || '').includes('SESSION_SIGNING_SECRET')) {
+      return Response.json({ error: 'session_secret_missing' }, { status: 500, headers: sessionNoStoreHeaders() });
+    }
+
+    console.error('[issuedKeySignIn]', error);
+    return Response.json({ error: 'login_failed' }, { status: 500, headers: sessionNoStoreHeaders() });
+  }
+}
+
+export async function handleIssuedKeySession(req: Request): Promise<Response> {
+  if (req.method !== 'GET') {
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
+  }
+
+  try {
+    const secret = getSessionSigningSecret();
+    const cookies = parseCookies(req);
+    const payload = await decodeSessionToken(cookies[SESSION_COOKIE_NAME], secret);
+
+    if (!payload?.user_id) {
+      return Response.json({ authenticated: false }, { status: 401, headers: sessionNoStoreHeaders() });
+    }
+
+    const base44 = createClientFromRequest(req);
+    const user = await findUserById(base44, payload.user_id)
+      || await findUserByLoginName(base44, payload.login_name);
+
+    if (!user) {
+      return Response.json({ authenticated: false, error: 'user_not_found' }, { status: 401, headers: sessionNoStoreHeaders() });
+    }
+
+    if (user.key_revoked) {
+      return Response.json({ authenticated: false, error: 'key_revoked' }, { status: 401, headers: sessionNoStoreHeaders() });
+    }
+
+    const missingFields = missingLoginAuthFields(user);
+    if (missingFields.length > 0) {
+      return Response.json({
+        authenticated: false,
+        error: 'missing_auth_fields',
+        missing_fields: missingFields,
+        field_checks: buildAuthFieldChecks(user),
+      }, { status: 401, headers: sessionNoStoreHeaders() });
+    }
+
+    if (user.onboarding_complete !== true && isOnboardingComplete(user)) {
+      await base44.asServiceRole.entities.NexusUser.update(user.id, { onboarding_complete: true });
+      user.onboarding_complete = true;
+    }
+
+    const invalidatedAt = user.session_invalidated_at ? new Date(user.session_invalidated_at).getTime() : 0;
+    if (invalidatedAt && invalidatedAt > payload.iat) {
+      return Response.json({ authenticated: false }, { status: 401, headers: sessionNoStoreHeaders() });
+    }
+
+    return Response.json(toSessionResponse(user), { status: 200, headers: sessionNoStoreHeaders() });
+  } catch (error) {
+    if (String(error?.message || '').includes('SESSION_SIGNING_SECRET')) {
+      return Response.json({ authenticated: false, error: 'session_secret_missing' }, { status: 500, headers: sessionNoStoreHeaders() });
+    }
+
+    console.error('[issuedKeySession]', error);
+    return Response.json({ authenticated: false, error: 'session_unavailable' }, { status: 500, headers: sessionNoStoreHeaders() });
+  }
+}
+
+export async function handleIssuedKeyLogout(req: Request): Promise<Response> {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: sessionNoStoreHeaders() });
+  }
+
+  const headers = new Headers(sessionNoStoreHeaders());
+  clearSessionCookie(headers, req);
+  return Response.json({ success: true }, { headers });
+}
+
 export function toSessionResponse(user: NexusUserRecord) {
   const isAdmin = isAdminUser(user);
-  const loginName = resolveUserLoginName(user);
+  const loginName = resolvePersistedLoginName(user) || resolveUserLoginName(user);
   const onboardingComplete = isOnboardingComplete(user);
 
   return {

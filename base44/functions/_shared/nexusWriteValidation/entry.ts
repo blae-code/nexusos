@@ -1,3 +1,5 @@
+import { resolveIssuedKeySession } from '../../auth/_shared/issuedKey/entry.ts';
+
 export class NexusWriteError extends Error {
   status: number;
   code: string;
@@ -68,12 +70,12 @@ export async function requirePostJson(req: Request) {
   }
 }
 
-export async function requireSessionUser(base44: any) {
-  const user = await base44.auth.me().catch(() => null);
-  if (!user?.id) {
+export async function requireSessionUser(req: Request) {
+  const resolved = await resolveIssuedKeySession(req).catch(() => null);
+  if (!resolved?.user?.id) {
     throw new NexusWriteError('unauthorized', 401);
   }
-  return user;
+  return resolved.user;
 }
 
 export function textValue(value: unknown) {

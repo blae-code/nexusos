@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import { withAppBase } from '@/core/data/app-base-path';
+import { authApi } from '@/core/data/auth-api';
 
 const AuthContext = createContext();
 
@@ -107,10 +108,17 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      setIsAuthenticated(true);
+      const session = await authApi.getSession();
+      if (session?.authenticated) {
+        setUser(session.user || null);
+        setIsAuthenticated(true);
+        setIsLoadingAuth(false);
+        return;
+      }
+
+      setUser(null);
       setIsLoadingAuth(false);
+      setIsAuthenticated(false);
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
@@ -129,19 +137,18 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
+    authApi.logout().catch(() => {});
     
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
-      base44.auth.logout(window.location.href);
-    } else {
-      // Just remove the token without redirect
-      base44.auth.logout();
+      window.location.assign(withAppBase('/gate'));
     }
   };
 
   const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
-    base44.auth.redirectToLogin(window.location.href);
+    const gatePath = withAppBase('/gate');
+    const target = new URL(gatePath, window.location.origin);
+    target.searchParams.set('redirect_to', `${window.location.pathname}${window.location.search}`);
+    window.location.assign(target.toString());
   };
 
   return (

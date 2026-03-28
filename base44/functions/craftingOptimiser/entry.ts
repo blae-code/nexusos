@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -7,9 +8,8 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
+    const session = await resolveIssuedKeySession(req);
+    if (!session) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -99,7 +99,7 @@ Return ONLY valid JSON (no markdown, no explanation):
   "summary": "brief operational summary of the suggested sequence"
 }`;
 
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
       response_json_schema: {
         type: 'object',

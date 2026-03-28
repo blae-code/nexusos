@@ -2,11 +2,17 @@
  * POST /authDiag — Diagnose service role access to NexusUser entity.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { requireAdminSession } from '../auth/_shared/issuedKey/entry.ts';
 
 Deno.serve(async (req) => {
   const results = {};
 
   try {
+    const adminSession = await requireAdminSession(req);
+    if (!adminSession) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const base44 = createClientFromRequest(req);
     results.sdk_created = true;
 

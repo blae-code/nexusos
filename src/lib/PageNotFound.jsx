@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { authApi } from '@/core/data/auth-api';
 import { useQuery } from '@tanstack/react-query';
 
 
@@ -10,12 +10,8 @@ export default function PageNotFound({}) {
     const { data: authData, isFetched } = useQuery({
         queryKey: ['user'],
         queryFn: async () => {
-            try {
-                const user = await base44.auth.me();
-                return { user, isAuthenticated: true };
-            } catch (error) {
-                return { user: null, isAuthenticated: false };
-            }
+            const session = await authApi.getSession();
+            return { user: session?.user || null, isAuthenticated: Boolean(session?.authenticated), isAdmin: Boolean(session?.is_admin || session?.user?.is_admin) };
         }
     });
     
@@ -40,7 +36,7 @@ export default function PageNotFound({}) {
                     </div>
                     
                     {/* Admin Note */}
-                    {isFetched && authData.isAuthenticated && authData.user?.role === 'admin' && (
+                    {isFetched && authData.isAuthenticated && authData.isAdmin && (
                         <div className="mt-8 p-4 bg-slate-100 rounded-lg border border-slate-200">
                             <div className="flex items-start space-x-3">
                                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mt-0.5">

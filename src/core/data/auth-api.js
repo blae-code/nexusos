@@ -1,48 +1,34 @@
-import { getBase44Client } from '@/core/data/base44Client';
-
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
-const SESSION_TOKEN_KEY = 'nexus_session_token';
-
-/** Store the session token in localStorage for SDK-based session calls */
-function storeSessionToken(token) {
-  if (token) {
-    try { localStorage.setItem(SESSION_TOKEN_KEY, token); } catch { /* noop */ }
+function buildFunctionUrl(functionPath, searchParams) {
+  const origin = typeof window === 'undefined' ? 'http://127.0.0.1' : window.location.origin;
+  const url = new URL(`/api/functions/${functionPath}`, origin);
+  if (searchParams) {
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value != null && value !== '') {
+        url.searchParams.set(key, value);
+      }
+    });
   }
+  return url;
 }
 
-/** Retrieve stored session token */
-function getSessionToken() {
-  try { return localStorage.getItem(SESSION_TOKEN_KEY) || null; } catch { return null; }
+async function parseJson(response) {
+  try { return await response.json(); } catch { return null; }
 }
 
-/** Clear stored session token */
-function clearSessionToken() {
-  try { localStorage.removeItem(SESSION_TOKEN_KEY); } catch { /* noop */ }
+async function parseApiResponse(response) {
+  const data = await parseJson(response);
+  return { ok: response.ok, status: response.status, ...(data || {}) };
 }
 
-/**
- * Call a backend function via the Base44 SDK.
- * Uses invoke() — supports nested paths like 'auth/login'.
- */
-async function sdkInvoke(functionPath, payload = {}) {
-  const client = getBase44Client();
-
+async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await client.functions.invoke(functionPath, payload);
-    // invoke returns axios response: { data, status, headers }
-    return response?.data ?? response;
-  } catch (err) {
-    const status = err?.response?.status || err?.status;
-    const data = err?.response?.data;
-    console.error(`[auth-api] invoke('${functionPath}') failed: status=${status}`, err?.message, data);
-
-    // Return error response data for auth errors (401, 403, etc.) so callers can handle them
-    if (data && typeof data === 'object') {
-      return data;
-    }
-
-    throw err;
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    globalThis.clearTimeout(timeoutId);
   }
 }
 
@@ -53,114 +39,178 @@ async function sdkInvoke(functionPath, payload = {}) {
 /** @typedef {{ recoveryToken?: string, reset?: boolean, timeoutMs?: number }} BootstrapSystemAdminOptions */
 
 export const authApi = {
-  async getHealth({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    try {
-      return await sdkInvoke('auth/health', { _method: 'GET' });
-    } catch {
-      return { ok: false };
-    }
+  async getHealth(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/health'), {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 
   async login(username, key, /** @type {LoginOptions} */ options = {}) {
-    const { rememberMe = false } = options;
-    const result = await sdkInvoke('auth/login', { username, key, remember_me: rememberMe });
+    const { rememberMe = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = options;
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/login'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, key, remember_me: rememberMe }),
+    }, timeoutMs);
 
-    // Store session token for subsequent session checks
-    if (result?.session_token) {
-      storeSessionToken(result.session_token);
-    }
-
-    return result || {};
+    return parseApiResponse(response);
   },
 
   async register(username, key, /** @type {LoginOptions} */ options = {}) {
-    const { rememberMe = false } = options;
-    const result = await sdkInvoke('auth/register', { username, key, remember_me: rememberMe });
+    const { rememberMe = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = options;
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/register'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, key, remember_me: rememberMe }),
+    }, timeoutMs);
 
-    if (result?.session_token) {
-      storeSessionToken(result.session_token);
+    return parseApiResponse(response);
+  },
+
+  async getSession(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/session'), {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    }, timeoutMs);
+
+    const data = await parseApiResponse(response);
+    if (!response.ok) {
+      return { authenticated: false, ...(data || {}), status: response.status };
     }
-
-    return result || {};
+    return { ...(data || {}), status: response.status };
   },
 
-  async getSession({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const sessionToken = getSessionToken();
-    if (!sessionToken) {
-      return { authenticated: false };
-    }
+  async logout(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/logout'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+    }, timeoutMs);
 
-    try {
-      const result = await sdkInvoke('auth/session', { session_token: sessionToken });
-      if (result?.authenticated === false) {
-        // Token is invalid/expired — clear it
-        clearSessionToken();
-      }
-      return result || { authenticated: false };
-    } catch {
-      return { authenticated: false };
-    }
+    return parseApiResponse(response);
   },
 
-  async logout({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    clearSessionToken();
-    try {
-      return await sdkInvoke('auth/logout', {});
-    } catch {
-      return { success: true };
-    }
+  async listManagedUsers(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 
-  async listManagedUsers({ timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
-    const sessionToken = getSessionToken();
-    return sdkInvoke('auth/keys', { _method: 'GET', session_token: sessionToken });
+  async issueAuthKey(/** @type {KeyIssueOptions} */ { username, callsign, nexusRank, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'issue',
+        username,
+        callsign,
+        nexus_rank: nexusRank,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 
-  async issueAuthKey(/** @type {KeyIssueOptions} */ { username, callsign, nexusRank }) {
-    const sessionToken = getSessionToken();
-    return sdkInvoke('auth/keys', {
-      action: 'issue',
-      username,
-      callsign,
-      nexus_rank: nexusRank,
-      session_token: sessionToken,
-    });
+  async revokeAuthKey(/** @type {KeyMutationOptions} */ { userId, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'revoke',
+        user_id: userId,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 
-  async revokeAuthKey(/** @type {KeyMutationOptions} */ { userId }) {
-    const sessionToken = getSessionToken();
-    return sdkInvoke('auth/keys', { action: 'revoke', user_id: userId, session_token: sessionToken });
+  async regenerateAuthKey(/** @type {KeyMutationOptions} */ { userId, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'regenerate',
+        user_id: userId,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 
-  async regenerateAuthKey(/** @type {KeyMutationOptions} */ { userId }) {
-    const sessionToken = getSessionToken();
-    return sdkInvoke('auth/keys', { action: 'regenerate', user_id: userId, session_token: sessionToken });
+  async updateManagedUserRank({ userId, nexusRank, timeoutMs = AUTH_REQUEST_TIMEOUT_MS }) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update_rank',
+        user_id: userId,
+        nexus_rank: nexusRank,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 
-  async updateManagedUserRank({ userId, nexusRank }) {
-    const sessionToken = getSessionToken();
-    return sdkInvoke('auth/keys', {
-      action: 'update_rank',
-      user_id: userId,
-      nexus_rank: nexusRank,
-      session_token: sessionToken,
-    });
+  async completeOnboarding({ consentGiven = true, aiEnabled = true, consentVersion = '1.0', timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('completeOnboarding'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        consent_given: consentGiven,
+        ai_features_enabled: aiEnabled,
+        consent_version: consentVersion,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 
-  async completeOnboarding({ consentGiven = true, aiEnabled = true, consentVersion = '1.0' } = {}) {
-    const sessionToken = getSessionToken();
-    return sdkInvoke('completeOnboarding', {
-      consent_given: consentGiven,
-      ai_features_enabled: aiEnabled,
-      consent_version: consentVersion,
-      session_token: sessionToken,
-    });
-  },
-
-  async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, reset = false } = {}) {
-    return sdkInvoke('auth/bootstrap', {
+  async bootstrapSystemAdmin(/** @type {BootstrapSystemAdminOptions} */ { recoveryToken, reset = false, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const payload = {
       ...(recoveryToken ? { recovery_token: recoveryToken } : {}),
       ...(reset ? { reset: true } : {}),
-    });
+    };
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/bootstrap'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
+  },
+
+  async runAuthRoundtrip(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/roundtrip'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+    }, timeoutMs);
+
+    return parseApiResponse(response);
   },
 };

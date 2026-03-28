@@ -9,6 +9,7 @@
  *   prices      — per-station prices for a specific commodity id
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 const UEX_API_BASE  = 'https://uexcorp.space/api/2.0';
 const FETCH_TIMEOUT = 15_000;
@@ -31,8 +32,8 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const user   = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await resolveIssuedKeySession(req);
+    if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body   = await req.json();
     const action = body?.action ?? '';

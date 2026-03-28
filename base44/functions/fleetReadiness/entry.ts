@@ -3,6 +3,7 @@
  * Returns enriched ship cards with stats from UEX Corp API + SC API server status
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 const UEX_API_BASE = 'https://uexcorp.space/api/2.0';
 const SC_API_BASE = 'https://api.starcitizen-api.com';
@@ -65,12 +66,12 @@ async function getHydrogenFuelPrice(uexCommodities) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await resolveIssuedKeySession(req);
+    if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Fetch in parallel: org ships from DB, UEX vehicle specs, verse status, UEX commodities
     const [orgShips, uexVehicles, verseStatus, uexCommodities] = await Promise.allSettled([
-      base44.entities.OrgShip.list('name', 200),
+      base44.asServiceRole.entities.OrgShip.list('name', 200),
       fetchUEX('/vehicles'),
       getVerseStatus(),
       fetchUEX('/commodities'),

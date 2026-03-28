@@ -2,6 +2,7 @@
 // and cross-references with org Material entity for live stock valuation.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../../auth/_shared/issuedKey/entry.ts';
 
 const UEX_BASE = 'https://api.uexcorp.space/2.0';
 
@@ -23,8 +24,8 @@ Deno.serve(async (req) => {
   }
 
   const base44 = createClientFromRequest(req);
-  const user = await base44.auth.me();
-  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const session = await resolveIssuedKeySession(req);
+  if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
   const apiKey = Deno.env.get('UEX_API_KEY');
   if (!apiKey) return Response.json({ error: 'UEX_API_KEY not configured' }, { status: 500 });

@@ -69,7 +69,6 @@ export default function Logistics() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
-  const [viewerProfile, setViewerProfile] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [consignments, setConsignments] = useState([]);
   const [ships, setShips] = useState([]);
@@ -97,8 +96,7 @@ export default function Logistics() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [viewerResult, jobsResult, consignmentsResult, shipsResult, materialsResult, commoditiesResult] = await Promise.allSettled([
-      base44.auth.me(),
+    const [jobsResult, consignmentsResult, shipsResult, materialsResult, commoditiesResult] = await Promise.allSettled([
       base44.entities.CargoJob.list('-created_at', 200),
       base44.entities.Consignment.list('-created_at', 200),
       base44.entities.OrgShip.list('-last_synced', 200),
@@ -107,7 +105,6 @@ export default function Logistics() {
     ]);
 
     const unavailable = [];
-    setViewerProfile(viewerResult.status === 'fulfilled' ? viewerResult.value : null);
     if (jobsResult.status === 'fulfilled') setJobs(toArray(jobsResult.value)); else { setJobs([]); unavailable.push('CargoJob'); }
     if (consignmentsResult.status === 'fulfilled') setConsignments(toArray(consignmentsResult.value)); else { setConsignments([]); unavailable.push('Consignment'); }
     if (shipsResult.status === 'fulfilled') setShips(toArray(shipsResult.value)); else { setShips([]); unavailable.push('OrgShip'); }
@@ -127,8 +124,8 @@ export default function Logistics() {
     return () => unsubscribers.forEach((unsubscribe) => typeof unsubscribe === 'function' && unsubscribe());
   }, [load]);
 
-  const viewerId = viewerProfile?.id || user?.id || '';
-  const viewerCallsign = viewerProfile?.callsign || user?.callsign || 'UNKNOWN';
+  const viewerId = user?.id || '';
+  const viewerCallsign = user?.callsign || 'UNKNOWN';
   const priceLookup = useMemo(() => buildPriceLookup(materials, commodities), [materials, commodities]);
   const jobsWithMetrics = useMemo(() => {
     return jobs.map((job) => {

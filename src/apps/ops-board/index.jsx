@@ -1,10 +1,11 @@
 /**
  * Op Board list view — LIVE | UPCOMING | ARCHIVE
- * Props: { rank, callsign, userId }
+ * Props: { rank, userId }
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { useSession } from '@/core/data/SessionContext';
 import { Plus } from 'lucide-react';
 import { SectionHeader } from './opBoardHelpers';
 import RSVPDialog from './RSVPDialog';
@@ -19,8 +20,9 @@ const SECTION_TABS = ['LIVE', 'UPCOMING', 'ARCHIVE'];
 
 // ─── Main OpBoard module ──────────────────────────────────────────────────────
 
-export default function OpBoardModule({ rank, callsign, userId: userIdProp }) {
+export default function OpBoardModule({ rank, userId: userIdProp }) {
   const navigate = useNavigate();
+  const { user } = useSession();
 
   const [tab, setTab]                         = useState('LIVE');
   const [ops, setOps]                         = useState([]);
@@ -28,16 +30,11 @@ export default function OpBoardModule({ rank, callsign, userId: userIdProp }) {
   const [userRsvps, setUserRsvps]             = useState([]);
   const [rsvpDialogOp, setRsvpDialogOp]       = useState(null);
   const [rsvpDialogRsvps, setRsvpDialogRsvps] = useState([]);
-  const [selfUserId, setSelfUserId]           = useState(userIdProp || null);
+  const [selfUserId, setSelfUserId]           = useState(userIdProp || user?.id || null);
 
-  // Resolve session user id if not passed as prop
   useEffect(() => {
-    if (!userIdProp) {
-      base44.auth.me()
-        .then(u => { if (u?.id) setSelfUserId(String(u.id)); })
-        .catch(() => {});
-    }
-  }, [userIdProp]);
+    setSelfUserId(userIdProp || user?.id || null);
+  }, [user?.id, userIdProp]);
 
   const loadOps = async () => {
     const data = await base44.entities.Op.list('-scheduled_at', 100);

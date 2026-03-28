@@ -41,6 +41,24 @@ export default function AccessGate() {
   const [health, setHealth] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
 
+  const authErrorMessage = (result) => {
+    switch (result?.error) {
+      case 'key_revoked':
+        return 'ACCESS REVOKED — Your auth key has been revoked by a Pioneer. Contact org leadership for a new key.';
+      case 'session_secret_missing':
+      case 'login_failed':
+        return 'SERVICE UNAVAILABLE — The authentication service is temporarily unreachable. Wait a moment and try again.';
+      case 'missing_auth_fields':
+      case 'schema_persist_failed':
+        return 'ACCOUNT RECORD INCOMPLETE — Your access record is missing required auth fields. Contact a Pioneer to repair or regenerate your key.';
+      case 'user_not_found':
+        return 'UNKNOWN USER — No account found with that username. Check your spelling or contact a Pioneer to verify your invite.';
+      case 'hash_mismatch':
+      default:
+        return 'INVALID CREDENTIALS — The username or auth key is incorrect. Both are case-sensitive. Check your key and try again.';
+    }
+  };
+
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const authenticatedDestination = useMemo(
     () => normalizeAuthenticatedDestination(searchParams.get('redirect_to'), user?.onboarding_complete),
@@ -70,26 +88,14 @@ export default function AccessGate() {
     try {
       const loginRes = await authApi.login(username.trim(), authKey.trim(), { rememberMe });
 
-      if (loginRes.error === 'key_revoked') {
-        setError('ACCESS REVOKED — Your auth key has been revoked by a Pioneer. Contact org leadership for a new key.');
-        setSubmitting(false);
-        return;
-      }
-
-      if (loginRes.error === 'login_failed') {
-        setError('SERVICE UNAVAILABLE — The authentication service is temporarily unreachable. Wait a moment and try again.');
-        setSubmitting(false);
-        return;
-      }
-
-      if (loginRes.error === 'not_found') {
-        setError('UNKNOWN USER — No account found with that username. Check your spelling or contact a Pioneer to verify your invite.');
-        setSubmitting(false);
-        return;
-      }
-
       if (loginRes.error) {
-        setError('INVALID CREDENTIALS — The username or auth key is incorrect. Both are case-sensitive. Check your key and try again.');
+        console.warn('[AccessGate] login failed', {
+          status: loginRes.status,
+          error: loginRes.error,
+          field_checks: loginRes.field_checks,
+          details: loginRes.details,
+        });
+        setError(authErrorMessage(loginRes));
         setSubmitting(false);
         return;
       }
@@ -101,8 +107,9 @@ export default function AccessGate() {
         return;
       }
 
-      setError('Authentication failed. Try again.');
-    } catch {
+      setError('INVALID CREDENTIALS — The username or auth key is incorrect. Both are case-sensitive. Check your key and try again.');
+    } catch (nextError) {
+      console.warn('[AccessGate] login request failed', nextError);
       setError('CONNECTION FAILED — Cannot reach the NexusOS server. Check your internet connection and try again.');
     }
 

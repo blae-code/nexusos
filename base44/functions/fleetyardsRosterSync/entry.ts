@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { requireAdminSession } from '../auth/_shared/issuedKey/entry.ts';
 
 async function fetchFleetYardsRoster(handle) {
   const response = await fetch(`https://api.fleetyards.net/v1/orgs/${handle}`, {
@@ -71,9 +72,8 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (user?.role !== 'admin') {
+    const adminSession = await requireAdminSession(req);
+    if (!adminSession) {
       return new Response(JSON.stringify({ error: 'Forbidden: Admin only' }), { status: 403 });
     }
 

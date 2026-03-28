@@ -1,90 +1,106 @@
 /**
- * generateKey — Creates a new NexusUser with a hashed auth key.
- * Called by Pioneers from the Key Management UI.
- * Body: { callsign, nexus_rank, issued_by_callsign }
- * Returns: { key, key_prefix, user_id }
+ * generateKey — Legacy admin-only invite issuance endpoint.
+ * Prefer auth/keys, but keep this path functional for older callers.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import { normalizeCallsign, normalizeLoginName } from './auth/_shared/issuedKey.ts';
-
-const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const enc = new TextEncoder();
-
-function randomBlock(len) {
-  const bytes = new Uint8Array(len);
-  crypto.getRandomValues(bytes);
-  let result = '';
-  for (let i = 0; i < len; i++) result += CHARS[bytes[i] % CHARS.length];
-  return result;
-}
-
-function generateAuthKey() {
-  return `RSN-${randomBlock(4)}-${randomBlock(4)}-${randomBlock(4)}`;
-}
-
-async function hmacHash(key, secret) {
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(key));
-  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+import {
+  AUTH_ISSUE_REQUIRED_FIELDS,
+  generateAuthKey,
+  getSessionSigningSecret,
+  hashAuthKey,
+  keyPrefixFromAuthKey,
+  normalizeCallsign,
+  normalizeLoginName,
+  requireAdminSession,
+  verifyAuthUserReadback,
+} from '../auth/_shared/issuedKey/entry.ts';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+    return Response.json({ error: 'method_not_allowed' }, { status: 405 });
   }
 
-  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
-  if (!secret) {
-    return Response.json({ error: 'SESSION_SIGNING_SECRET not configured' }, { status: 500 });
+  const adminSession = await requireAdminSession(req);
+  if (!adminSession) {
+    return Response.json({ error: 'forbidden' }, { status: 403 });
   }
-
-  const base44 = createClientFromRequest(req);
-  const user = await base44.auth.me();
-  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
   let body;
-  try { body = await req.json(); } catch { return Response.json({ error: 'Invalid body' }, { status: 400 }); }
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: 'invalid_body' }, { status: 400 });
+  }
 
   const loginName = normalizeLoginName(body.username || body.login_name || body.callsign);
   const callsign = normalizeCallsign(body.callsign || body.username || body.login_name);
-  const { nexus_rank, issued_by_callsign } = body;
-  if (!loginName || !callsign || !nexus_rank) {
-    return Response.json({ error: 'username/callsign and nexus_rank are required' }, { status: 400 });
+  const nexusRank = String(body.nexus_rank || '').trim().toUpperCase();
+  if (!loginName || !callsign || !nexusRank) {
+    return Response.json({ error: 'missing_required_fields' }, { status: 400 });
   }
 
-  // Check callsign uniqueness
+  const base44 = createClientFromRequest(req);
   const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
-  const existing = (allUsers || []).find((u) =>
-    normalizeLoginName(u.login_name || u.username || u.callsign) === loginName
-    || normalizeCallsign(u.callsign || '') === callsign
+  const existing = (allUsers || []).find((user) =>
+    normalizeLoginName(user.login_name || user.username || user.callsign) === loginName
+    || normalizeCallsign(user.callsign || '') === callsign
   );
   if (existing) {
     return Response.json({ error: 'callsign_taken' }, { status: 409 });
   }
 
-  // Generate key and hash with HMAC-SHA256
-  const authKey = generateAuthKey();
-  const authKeyHash = await hmacHash(authKey, secret);
-  const keyPrefix = authKey.slice(0, 8);
+  let secret = '';
+  try {
+    secret = getSessionSigningSecret();
+  } catch {
+    return Response.json({ error: 'session_secret_missing' }, { status: 500 });
+  }
 
-  // Create NexusUser
-  const newUser = await base44.asServiceRole.entities.NexusUser.create({
+  const authKey = generateAuthKey();
+  const authKeyHash = await hashAuthKey(authKey, secret);
+  const keyPrefix = keyPrefixFromAuthKey(authKey);
+  const now = new Date().toISOString();
+  const issuedBy = normalizeCallsign(body.issued_by_callsign || adminSession.user.callsign || adminSession.user.login_name || 'SYSTEM');
+
+  const created = await base44.asServiceRole.entities.NexusUser.create({
     login_name: loginName,
+    username: loginName,
     callsign,
     auth_key_hash: authKeyHash,
     key_prefix: keyPrefix,
-    nexus_rank,
-    key_issued_by: issued_by_callsign || 'SYSTEM',
-    key_issued_at: new Date().toISOString(),
+    nexus_rank: nexusRank,
+    key_issued_by: issuedBy,
+    key_issued_at: now,
     key_revoked: false,
     onboarding_complete: false,
+    is_admin: nexusRank === 'PIONEER' && callsign === 'SYSTEM-ADMIN',
   });
+
+  const readback = await verifyAuthUserReadback(base44, created?.id, {
+    login_name: loginName,
+    username: loginName,
+    callsign,
+    nexus_rank: nexusRank,
+    auth_key_hash: authKeyHash,
+    key_prefix: keyPrefix,
+    key_issued_at: now,
+    key_revoked: false,
+    onboarding_complete: false,
+  }, AUTH_ISSUE_REQUIRED_FIELDS);
+
+  if (!readback.ok) {
+    if (created?.id) {
+      await base44.asServiceRole.entities.NexusUser.delete(created.id).catch(() => {});
+    }
+    return Response.json({
+      error: 'schema_persist_failed',
+      field_checks: readback.field_checks,
+    }, { status: 500 });
+  }
 
   return Response.json({
     key: authKey,
     key_prefix: keyPrefix,
-    user_id: newUser?.id || null,
+    user_id: created?.id || null,
   });
 });

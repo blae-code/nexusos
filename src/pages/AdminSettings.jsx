@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import { authApi } from '@/core/data/auth-api';
@@ -40,6 +40,20 @@ export default function AdminSettings() {
   const [testResults, setTestResults] = useState({});
   const [testingSecretId, setTestingSecretId] = useState('');
   const [authHealth, setAuthHealth] = useState(null);
+  const [authRoundtrip, setAuthRoundtrip] = useState(null);
+  const [runningRoundtrip, setRunningRoundtrip] = useState(false);
+
+  const runAuthRoundtrip = useCallback(async () => {
+    setRunningRoundtrip(true);
+    try {
+      const result = await authApi.runAuthRoundtrip();
+      setAuthRoundtrip(result || null);
+    } catch (error) {
+      setAuthRoundtrip({ ok: false, error: error?.message || 'roundtrip_failed' });
+    } finally {
+      setRunningRoundtrip(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -49,18 +63,21 @@ export default function AdminSettings() {
     Promise.all([
       base44.functions.invoke('getSecretStatus', {}),
       authApi.getHealth(),
-    ]).then(([secretRes, healthRes]) => {
+      authApi.runAuthRoundtrip(),
+    ]).then(([secretRes, healthRes, roundtripRes]) => {
       if (!active) return;
       const payload = secretRes?.data || secretRes || {};
       setSecrets(payload?.secrets || {});
       setEnvironment(payload?.environment || {});
       setAuthHealth(healthRes || null);
+      setAuthRoundtrip(roundtripRes || null);
       setLoading(false);
     }).catch(() => {
       if (!active) return;
       setSecrets({});
       setEnvironment({});
       setAuthHealth(null);
+      setAuthRoundtrip(null);
       setLoading(false);
     });
 
@@ -102,6 +119,7 @@ export default function AdminSettings() {
   const launchReady = Boolean(
     authHealth?.ok
     && authHealth?.auth_mode === 'issued_key'
+    && authRoundtrip?.ok === true
     && REQUIRED_SECRETS.every((item) => secrets[item.id]?.configured),
   );
 
@@ -246,6 +264,63 @@ export default function AdminSettings() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#E8A020', fontSize: 11 }}>
             <ShieldAlert size={14} />
             Unable to read auth runtime health.
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10, flexWrap: 'wrap' }}>
+          <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>Auth Roundtrip</div>
+          <button
+            type="button"
+            onClick={runAuthRoundtrip}
+            disabled={runningRoundtrip}
+            style={{
+              padding: '4px 10px',
+              background: 'transparent',
+              border: '0.5px solid var(--b1)',
+              borderRadius: 3,
+              color: runningRoundtrip ? 'var(--t3)' : 'var(--t1)',
+              cursor: runningRoundtrip ? 'wait' : 'pointer',
+              fontFamily: 'inherit',
+              fontSize: 9,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <RefreshCw size={11} />
+            {runningRoundtrip ? 'RUNNING...' : 'RUN CHECK'}
+          </button>
+        </div>
+
+        {authRoundtrip ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <StatusChip ok={authRoundtrip.ok === true} label={authRoundtrip.ok ? 'Pass' : 'Fail'} />
+              <StatusChip ok={authRoundtrip.secret_present === true} label="Secret" />
+              <StatusChip ok={authRoundtrip.schema_fields_present === true} label="Schema" />
+              <StatusChip ok={authRoundtrip.create_ok === true} label="Create" />
+              <StatusChip ok={authRoundtrip.readback_ok === true} label="Readback" />
+              <StatusChip ok={authRoundtrip.hash_match_ok === true} label="Hash" />
+              <StatusChip ok={authRoundtrip.cleanup_ok === true} label="Cleanup" />
+            </div>
+            <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.7 }}>
+              {authRoundtrip.error
+                ? `Roundtrip failed: ${authRoundtrip.error}`
+                : 'Creates a temporary NexusUser, verifies auth-critical field persistence, checks key hashing, and removes the diagnostic record.'}
+            </div>
+            {authRoundtrip.details && Object.keys(authRoundtrip.details).length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {Object.entries(authRoundtrip.details).map(([field, ok]) => (
+                  <StatusChip key={field} ok={ok === true} label={field} />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.7 }}>
+            Run the auth roundtrip before issuing real keys. Deploys are not launch-ready until this passes.
           </div>
         )}
       </div>

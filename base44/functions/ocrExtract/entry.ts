@@ -3,6 +3,7 @@ import {
   buildMaterialRecord,
   buildRefineryOrderRecord,
 } from '../_shared/nexusWriteValidation/entry.ts';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 /**
  * OCR Extract — Takes a screenshot URL from upload,
@@ -17,8 +18,9 @@ import {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await resolveIssuedKeySession(req);
+    if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = session.user;
 
     const { file_url, source_type, callsign } = await req.json();
     if (!file_url) return Response.json({ error: 'file_url required' }, { status: 400 });

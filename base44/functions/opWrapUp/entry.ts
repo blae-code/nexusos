@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -7,9 +8,8 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
+    const session = await resolveIssuedKeySession(req);
+    if (!session) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -71,7 +71,7 @@ Write a brief tactical debrief that:
 Use military/tactical tone. Keep it under 300 words. Do NOT include any markdown code blocks.
 Return ONLY the markdown text for the debrief.`;
 
-    const result = await base44.integrations.Core.InvokeLLM({
+    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
     });
 

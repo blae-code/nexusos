@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 /**
  * Get Patch Data — real-time API for frontend consumption
@@ -9,8 +10,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 Deno.serve(async (req: Request) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await resolveIssuedKeySession(req);
+    if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const url = new URL(req.url);
     const branch = url.searchParams.get('branch') || 'LIVE'; // LIVE or PTU

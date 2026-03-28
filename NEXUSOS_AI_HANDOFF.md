@@ -117,6 +117,12 @@ condensed version of this document for fast context loading.
 
 ## Authentication architecture — CRITICAL, DO NOT CHANGE
 
+Current live auth contract note:
+
+- Historical context remains in this document.
+- The current issued-key schema and persistence contract now live in `docs/auth-schema.md`.
+- When these conflict, `docs/auth-schema.md` and `base44/functions/auth/_shared/issuedKey/entry.ts` win.
+
 ### Two tiers — completely separate, never mixed
 
 **TIER 1 — System Administrator only:**

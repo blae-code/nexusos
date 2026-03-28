@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
 /**
  * Generates an org-state insight using Claude.
@@ -8,8 +9,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user   = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await resolveIssuedKeySession(req);
+    if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const [materials, craftQueue, refineryOrders, deposits] = await Promise.all([
       base44.asServiceRole.entities.Material.list('-logged_at', 50),

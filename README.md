@@ -14,8 +14,11 @@ VITE_BASE44_APP_ID=your_app_id
 VITE_BASE44_APP_BASE_URL=your_backend_url
 ```
 
-4. Start the client with `npm run dev`.
-5. Sign in through the Access Gate with a real issued username and auth key.
+4. Make sure `VITE_BASE44_APP_BASE_URL` points at the Base44 deployment you want to proxy through.
+5. Start the client with `npm run dev`.
+6. Sign in through the Access Gate with a real issued username and auth key.
+
+Local auth and SDK traffic run through the Vite same-origin `/api` proxy so issued-key session cookies work during local development.
 
 For administrator recovery, bootstrap or repair the fixed `system-admin` account from `/app/keys` once an admin session exists, or via the protected bootstrap function using `SYSTEM_ADMIN_BOOTSTRAP_SECRET`.
 
@@ -32,6 +35,7 @@ For administrator recovery, bootstrap or repair the fixed `system-admin` account
 
 ## Operational Docs
 - [Architecture](./docs/architecture.md)
+- [Auth Schema](./docs/auth-schema.md)
 - [Collaboration Workflow](./docs/collaboration.md)
 - [Base44 Sync Rules](./docs/base44-sync.md)
 - [Design System](./docs/design-system.md)
@@ -52,6 +56,8 @@ Use `.\version-bump.ps1 patch|minor|major "release note"` for releases. Version 
 
 ## Deployment
 Publish from Base44 after the branch is green and the required auth/runtime environment is configured.
+
+Do not issue live member keys until the admin auth roundtrip check passes in `/app/admin/settings`.
 
 GitHub remains the source of truth. Any Base44 editor polish must be mirrored back into the repo immediately after publishing.
 

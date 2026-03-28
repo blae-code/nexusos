@@ -67,7 +67,6 @@ export default function Commerce() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
-  const [viewerProfile, setViewerProfile] = useState(null);
   const [wallets, setWallets] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [contracts, setContracts] = useState([]);
@@ -90,8 +89,7 @@ export default function Commerce() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [viewerResult, walletsResult, transactionsResult, contractsResult, cofferResult, cargoLogsResult] = await Promise.allSettled([
-      base44.auth.me(),
+    const [walletsResult, transactionsResult, contractsResult, cofferResult, cargoLogsResult] = await Promise.allSettled([
       base44.entities.Wallet.list('-last_updated', 100),
       base44.entities.Transaction.list('-created_at', 200),
       base44.entities.Contract.list('-created_at', 200),
@@ -100,7 +98,6 @@ export default function Commerce() {
     ]);
 
     const unavailable = [];
-    setViewerProfile(viewerResult.status === 'fulfilled' ? viewerResult.value : null);
     if (walletsResult.status === 'fulfilled') setWallets(toArray(walletsResult.value)); else { setWallets([]); unavailable.push('Wallet'); }
     if (transactionsResult.status === 'fulfilled') setTransactions(toArray(transactionsResult.value)); else { setTransactions([]); unavailable.push('Transaction'); }
     if (contractsResult.status === 'fulfilled') setContracts(toArray(contractsResult.value)); else { setContracts([]); unavailable.push('Contract'); }
@@ -121,10 +118,10 @@ export default function Commerce() {
     return () => unsubscribers.forEach((unsubscribe) => typeof unsubscribe === 'function' && unsubscribe());
   }, [load]);
 
-  const viewerId = viewerProfile?.id || user?.id || '';
-  const viewerCallsign = viewerProfile?.callsign || user?.callsign || 'UNKNOWN';
+  const viewerId = user?.id || '';
+  const viewerCallsign = user?.callsign || 'UNKNOWN';
   const currentWallet = wallets.find((wallet) => wallet.member_id === viewerId) || null;
-  const walletBalance = Number(currentWallet?.balance_aUEC ?? viewerProfile?.wallet_balance ?? 0) || 0;
+  const walletBalance = Number(currentWallet?.balance_aUEC ?? user?.wallet_balance ?? 0) || 0;
   const walletTransactions = transactions
     .filter((entry) => entry.wallet_id === currentWallet?.id || entry.member_id === viewerId)
     .sort((left, right) => new Date(right.created_at || right.created_date || 0).getTime() - new Date(left.created_at || left.created_date || 0).getTime());
