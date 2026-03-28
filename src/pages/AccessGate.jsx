@@ -130,7 +130,7 @@ export default function AccessGate() {
       <video autoPlay muted loop playsInline style={{
         position: 'absolute', inset: 0, width: '100%', height: '100%',
         objectFit: 'cover', zIndex: 0, opacity: 0.18
-      }} src="/video/nexus-boot-loop.mp4" />
+      }} src="/video/nexus-boot-loop02.mp4" />
 
       {/* STARFIELD */}
       {stars.map(star => (

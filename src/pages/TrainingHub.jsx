@@ -377,7 +377,7 @@ export default function TrainingHub() {
           zIndex: 0,
           opacity: 0.1,
         }}
-        src="/video/nexus-boot-loop.mp4"
+        src="/video/nexus-boot-loop02.mp4"
       />
 
       {/* Red bloom */}

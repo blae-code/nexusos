@@ -22,7 +22,7 @@ export default function BootScreen() {
           objectFit: 'cover',
           zIndex: 0
         }}
-        src="/video/nexus-boot-loop.mp4"
+        src="/video/nexus-boot-loop02.mp4"
       />
       <div style={{
         position: 'absolute',

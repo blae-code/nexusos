@@ -39,7 +39,7 @@ COMPONENT RULES:
 
 ACCESS GATE SPECIFIC:
 - Full-screen void bg + 120 star particles + amber bloom at bottom + faint red bloom upper-right
-- Background video: /video/nexus-boot-loop.mp4 at opacity 0.18
+- Background video: /video/nexus-boot-loop02.mp4 at opacity 0.18
 - Panel: left: 10vw, width: 400px, NOT centred
 - NEXUSOS title: Beyond Mars 62px
 - Footer fixed bottom: "● VERSE 4.7.0" gold left / "REDSCAR · NOMADS · ETERNAL VOYAGE" muted right
@@ -54,4 +54,4 @@ KEY IDENTIFIERS:
 - Live URL: nomadnexus.space
 - Discord Guild: 1029380236367896616
 - RSI Org: RSNM
-- Boot video: public/video/nexus-boot-loop.mp4
+- Boot video: public/video/nexus-boot-loop02.mp4
