@@ -58,7 +58,7 @@ function getBreadcrumb(pathname, search) {
   if (pathname === '/app/training') return { module: 'Training', page: null };
   if (pathname === '/app/keys') return { module: 'Admin', page: 'Keys' };
   if (pathname === '/app/admin/settings') return { module: 'Admin', page: 'Settings' };
-  if (pathname === '/app/admin/todo') return { module: 'Admin', page: 'Tasks' };
+  if (pathname === '/app/admin/readiness' || pathname === '/app/admin/todo') return { module: 'Admin', page: 'Readiness' };
   return { module: 'NexusOS', page: null };
 }
 
@@ -68,7 +68,7 @@ function routeForNotification(notification) {
   if (moduleName === 'SCOUT') return '/app/scout';
   if (moduleName === 'INDUSTRY') return '/app/industry';
   if (moduleName === 'ARMORY') return '/app/armory';
-  if (moduleName === 'ORG') return '/app/admin/todo';
+  if (moduleName === 'ORG') return '/app/roster';
   return null;
 }
 

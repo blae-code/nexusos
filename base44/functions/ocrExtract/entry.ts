@@ -76,7 +76,7 @@ Return null for any field you cannot read clearly.`,
           screenshot_ref: file_url,
           logged_at: now,
         }, { ...user, id: resolvedUserId, callsign: resolvedCallsign }));
-        created.push(record);
+        created.push({ entity: 'Material', id: record.id });
       }
     }
 
@@ -86,19 +86,19 @@ Return null for any field you cannot read clearly.`,
         ? new Date(Date.now() + item.completes_at_hours * 3600000).toISOString()
         : null;
 
-      await base44.asServiceRole.entities.RefineryOrder.create(buildRefineryOrderRecord({
+      const record = await base44.asServiceRole.entities.RefineryOrder.create(buildRefineryOrderRecord({
         ...item,
         started_at: now,
         completes_at: completes,
         status: 'ACTIVE',
         source_type: resolvedSourceType,
       }, { ...user, id: resolvedUserId, callsign: resolvedCallsign }));
-      created.push({ type: 'REFINERY_ORDER', ...item });
+      created.push({ entity: 'RefineryOrder', id: record.id });
     }
 
     if (extracted.screenshot_type === 'TRANSACTION') {
       const item = extracted.items?.[0] || {};
-      await base44.asServiceRole.entities.CofferLog.create({
+      const record = await base44.asServiceRole.entities.CofferLog.create({
         entry_type: item.entry_type || 'SALE',
         amount_aUEC: item.amount_aUEC || 0,
         commodity: item.commodity || null,
@@ -110,7 +110,7 @@ Return null for any field you cannot read clearly.`,
         screenshot_ref: file_url,
         logged_at: now,
       });
-      created.push({ type: 'TRANSACTION', ...item });
+      created.push({ entity: 'CofferLog', id: record.id });
     }
 
     if (extracted.screenshot_type === 'MINING_SCAN') {
@@ -144,6 +144,7 @@ Return null for any field you cannot read clearly.`,
       success: true,
       screenshot_type: extracted.screenshot_type,
       records_created: created.length,
+      created_records: created,
       confidence: extracted.confidence,
       notes: extracted.notes,
     });

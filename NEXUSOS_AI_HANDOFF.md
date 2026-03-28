@@ -4,17 +4,22 @@
 **Repo:** <https://github.com/blae-code/nexusos>
 **Owner:** <blae@katrasoluta.com> (System Administrator)
 **Org:** Redscar Nomads — Star Citizen industrial org
-**Stack:** Base44 Elite 1 · React · discord.js v14 · Claude API · Deno (Base44 functions)
+**Stack:** Base44 Elite 1 · React · Claude API · Deno (Base44 functions)
 **Last updated by:** Claude Sonnet 4.6 (Claude Code session, March 2026)
 
 ---
 
 ## Purpose of this document
 
-This document is the single source of truth for any AI assistant continuing
+This document is a historical design ledger for any AI assistant continuing
 work on NexusOS. It captures not just the spec but the reasoning behind every
 architectural decision, so that Claude Code, Base44's AI, GitHub Copilot, or
 any other assistant can continue without regressing on decisions already made.
+
+Current runtime contracts override this file where it has drifted:
+- `docs/auth-schema.md` for issued-key authentication and `NexusUser` persistence
+- `docs/architecture.md` for active runtime and integration behavior
+- `/app/admin/readiness` and `base44/functions/prodReadiness/entry.ts` for production-release checks
 
 If you are an AI reading this: treat every decision in this document as final
 unless the human owner explicitly overrides it in the current session. Do not
@@ -41,7 +46,7 @@ Module status (all core frontend modules are built):
 6. Commerce — wallet, trade desk, contracts — **BUILT**
 7. Logistics — cargo board, manifest, consignment, dispatch — **BUILT**
 8. Epic Archive — completed ops, leaderboards, patch history — **BUILT**
-9. Herald Bot — `functions/heraldBot.ts` — **STUB, needs full implementation**
+9. Herald Bot compatibility — legacy optional outbound integration only
 
 Shell visual design work (see Visual Design Direction section) is pending.
 
@@ -105,8 +110,9 @@ intel deposit panel.
 
 ### src/pages/NexusTodo.jsx — PRODUCTION READINESS TRACKER
 
-Lives at `/app/admin/todo`. Tracks env var setup status, Discord integration
-backlog, and integration readiness. Not a placeholder — actively used.
+Lives at `/app/admin/readiness`. Tracks auth health, entity coverage, live
+integration readiness, and sample-data cleanliness. Not a placeholder —
+actively used.
 
 ### CLAUDE.md — PROJECT MEMORY
 

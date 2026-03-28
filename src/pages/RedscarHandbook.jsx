@@ -211,7 +211,7 @@ export default function RedscarHandbook() {
             },
             {
               title: '3. Go Live',
-              detail: 'Move the op live only when crew, route, and supply chain are actually ready. Herald should mirror the transition into Discord when configured.',
+              detail: 'Move the op live only when crew, route, and supply chain are actually ready. Treat the in-app live state and notifications as the operational source of truth.',
             },
             {
               title: '4. Run Phases',
@@ -219,7 +219,7 @@ export default function RedscarHandbook() {
             },
             {
               title: '5. Wrap',
-              detail: 'End the op from the live surface, generate the debrief, and confirm the archive and Discord summary reflect what actually happened.',
+              detail: 'End the op from the live surface, generate the debrief, and confirm the archive and in-app summary reflect what actually happened.',
             },
           ].map(({ title, detail }) => (
             <div key={title} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 3, borderLeft: '2px solid var(--warn)' }}>

@@ -89,7 +89,7 @@ This app **invokes** (Base44 functions):
 | `MaterialTablePrimitives.jsx` | SortableColHeader, StaticColHeader, and other table UI atoms | **Complete** |
 | `MaterialEditRow.jsx` | Inline-editable material row (edit mode toggle per row) | **Complete** |
 | `OCRReviewTable.jsx` | Review table for bulk OCR results before confirmation | **Complete** |
-| `DiscordPathCard.jsx` | Card explaining Discord OCR drop zone path | **Complete** |
+| `DiscordPathCard.jsx` | OCR upload guidance card for the in-app materials flow | **Complete** |
 | `Blueprints.jsx` | Blueprint registry with category/ownership filters, gap sidebar, priority panel | **Complete** |
 | `BlueprintRow.jsx` | Collapsible blueprint row with lazy RecipePanel | **Complete** |
 | `BlueprintFilterChips.jsx` | Chip, TierBadge, CategoryTag UI atoms | **Complete** |

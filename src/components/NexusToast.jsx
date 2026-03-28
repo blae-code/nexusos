@@ -7,8 +7,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, Info, X } from 'lucide-react';
 
+/**
+ * @typedef {'success' | 'error' | 'warning' | 'info'} ToastType
+ * @typedef {{ id: number, message: string, type: ToastType, duration: number }} ToastItem
+ */
+
+/** @type {(toast: ToastItem) => void} */
 let _addToast = () => {};
 
+/**
+ * @param {string} message
+ * @param {ToastType} [type]
+ * @param {number} [duration]
+ */
 export function showToast(message, type = 'info', duration = 5000) {
   _addToast({ id: Date.now() + Math.random(), message, type, duration });
 }
@@ -60,6 +71,7 @@ function Toast({ toast, onDismiss }) {
 }
 
 export default function NexusToastContainer() {
+  /** @type {[ToastItem[], React.Dispatch<React.SetStateAction<ToastItem[]>>]} */
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((toast) => {

@@ -213,4 +213,34 @@ export const authApi = {
 
     return parseApiResponse(response);
   },
+
+  async runProdReadiness(action = 'full_audit', payload = {}, /** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('prodReadiness'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        ...payload,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
+  },
+
+  async cleanupProdReadinessRecords(records, /** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('prodReadiness'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'cleanup_records',
+        records,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
+  },
 };

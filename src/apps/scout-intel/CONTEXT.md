@@ -43,7 +43,6 @@ This app **invokes** (Base44 functions):
 |----------|---------|
 | `generateInsight` | DepositPanelModes DetailMode "Plan Run" — route recommendation for selected deposit |
 | `routePlanner` | RoutePlannerPanel "Generate Route" — full multi-deposit optimised route plan |
-| `heraldBot` | LogForm on submit — fires `scoutPing` action to `#nexusos-intel` (non-fatal) |
 
 ---
 
@@ -64,7 +63,7 @@ This app **invokes** (Base44 functions):
 3. **Select deposit** — Click marker on SVG map → DepositPanel switches to detail mode → shows quality, volume, risk, ship type, votes, scout callsign, timestamp
 4. **Vote on deposit** — CONFIRM button increments `confirmed_votes`; MARK STALE increments `stale_votes`; auto-sets `is_stale=true` when `stale_votes >= 3`
 5. **Plan route (single deposit)** — Detail mode "Plan Run" → calls `generateInsight` with `context: 'scout_route'` → displays recommendation inline
-6. **Log new deposit** — DepositPanel "+ LOG DEPOSIT" → LogForm → material (autocomplete), system, location, quality slider, volume, risk, ship type, notes → ScoutDeposit.create → Herald Bot fires `scoutPing` to #nexusos-intel
+6. **Log new deposit** — DepositPanel "+ LOG DEPOSIT" → LogForm → material (autocomplete), system, location, quality slider, volume, risk, ship type, notes → ScoutDeposit.create → live map state updates for all active users
 7. **View crafting gaps** — Default mode DepositPanel shows GapRow list: priority blueprints → missing ingredients → best available deposit shown per gap
 8. **Generate route plan** — ScoutIntelModule or RoutePlannerPanel → select target material, quality threshold, risk tolerance → `routePlanner` function → RouteOverlay shows waypoint sequence + yield/time stats
 9. **Log to op** — Detail mode "Log to Op" (only when live op exists) → appends scout ping entry to `Op.session_log`
@@ -96,8 +95,6 @@ This app **invokes** (Base44 functions):
 
 2. **Unused variables in `ScoutIntelModule.jsx`**: `systemColors` and `riskColor` objects are declared but never used in the component render. Clean up.
 
-3. **`heraldBot` error silently dropped (`LogForm.jsx` line ~178)**: The `.catch(console.warn)` on the scoutPing call means Discord notifications fail silently. Acceptable for now, but should surface to user as a non-blocking warning.
-
 4. **`generateInsight` called with ad hoc `context` param**: The "Plan Run" call in `DepositPanelModes.jsx` passes `{ context: 'scout_route', ... }` but the current `generateInsight` function may not have a scout-route-specific prompt branch. Verify the function handles this context key and returns meaningful data, or implement `scoutRoute` as its own Base44 function.
 
 5. **`SYSTEM_COORDS` hardcoded in `RouteOverlay.jsx`**: Stanton at (50,50), Pyro at (75,30), Nyx at (25,70). If the starmap data source changes, this won't auto-update. Not critical for current scope.
@@ -109,7 +106,6 @@ This app **invokes** (Base44 functions):
 ## What NOT to Touch
 
 - **Do not** change the `ScoutDeposit` vote logic threshold — `is_stale = true` when `stale_votes >= 3`. This is consistent across `DepositPanelModes.jsx` and `NEXUSOS_AI_HANDOFF.md`.
-- **Do not** change `heraldBot` action name `scoutPing` — it is matched in `functions/heraldBot.ts` for channel routing to `#nexusos-intel`.
 - **Do not** add the T2 eligibility logic here — that belongs in Industry Hub. Scout Intel shows raw quality numbers only.
 - **Do not** expose the `generateInsight` call as an "AI" feature — route recommendations must appear as system-generated data with no AI attribution in the UI.
 - **Do not** remove the `liveOp` prop thread through `index.jsx → SystemMap → DepositPanel → DepositPanelModes` — the op overlay and "Log to Op" functionality depend on it. The liveOp filter (`status: 'LIVE'`) must stay in `index.jsx`.

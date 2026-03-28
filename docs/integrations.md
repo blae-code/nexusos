@@ -45,5 +45,5 @@ Priority: HIGH
 
 ## Discord / Herald Bot
 Purpose: Optional outbound notifications and Discord-side workflow automation.
-Status: not part of the active login path.
-Used by: Operations notifications, rescue alerts, refinery alerts, patch alerts
+Status: legacy compatibility path only, not part of the active login flow or the release-blocking production path.
+Used by: Optional operations mirroring, rescue alerts, refinery alerts, patch alerts

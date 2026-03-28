@@ -36,10 +36,10 @@ NexusOS is a Base44-backed operations console for Redscar Nomads. The app is str
 - `src/core/data/SessionContext.jsx` always hydrates from the live session endpoint.
 - Commerce, Logistics, and the shell now assume live data and degrade to read-only only when a required Base44 entity is absent in the deployment.
 
-## Discord / External Integrations
+## External Integrations
 
-- Herald Bot remains an optional outbound Discord integration for ops, rescue, refinery, armory, and patch notifications.
-- Discord is no longer part of the active login path.
+- UEX, StarCitizen API, FleetYards, OCR, and LLM-backed functions are part of the active runtime and must pass live readiness checks before release.
+- Discord endpoints remain as deactivated compatibility stubs only. They are not part of the active login, notification, or production-ops path.
 - Patch intelligence is handled by `rssCheck.ts`, `patchDigest.ts`, `patchDigestProcessor.ts`, `patchFeedPoller.ts`, and `patchIntelligenceAgent.ts`.
 
 ## Delivery Path

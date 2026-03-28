@@ -1,38 +1,78 @@
-import React, { useEffect, useState } from 'react';
-import { Zap } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowRight, Route, TrendingUp } from 'lucide-react';
+import { base44 } from '@/core/data/base44Client';
 
-const ROUTE_EXAMPLES = [
-  { from: 'New Babbage', to: 'Levski', profit: 45000, margin: '42%', volume: 850, risk: 'LOW' },
-  { from: 'Port Olisar', to: 'Grim Hex', profit: 38500, margin: '38%', volume: 620, risk: 'MEDIUM' },
-  { from: 'Area 18', to: 'Loreville', profit: 52000, margin: '48%', volume: 1200, risk: 'LOW' },
-  { from: 'Klescher', to: 'Arccorp', profit: 28000, margin: '31%', volume: 450, risk: 'HIGH' },
-  { from: 'Levski', to: 'New Babbage', profit: 41500, margin: '40%', volume: 920, risk: 'LOW' },
-];
+function formatProfit(value) {
+  return `${Math.round(Number(value) || 0).toLocaleString()} aUEC`;
+}
+
+function formatVolume(value) {
+  return `${Math.round(Number(value) || 0).toLocaleString()} SCU`;
+}
 
 export default function ProfitableRoutes() {
-  const [routes, setRoutes] = useState([]);
+  const [cargoLogs, setCargoLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Simulate loading profitable routes from historical data
-    setTimeout(() => {
-      setRoutes(ROUTE_EXAMPLES.sort((a, b) => b.profit - a.profit));
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const records = await base44.entities.CargoLog.list('-logged_at', 200).catch(() => []);
+      setCargoLogs(Array.isArray(records) ? records : []);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   }, []);
 
-  const getRiskColor = (risk) => {
-    switch (risk) {
-      case 'LOW':
-        return '#4A8C5C';
-      case 'MEDIUM':
-        return '#C8A84B';
-      case 'HIGH':
-        return '#C0392B';
-      default:
-        return 'var(--t2)';
-    }
-  };
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    const unsubscribe = base44.entities.CargoLog.subscribe(() => {
+      load();
+    });
+    return () => unsubscribe?.();
+  }, [load]);
+
+  const routes = useMemo(() => {
+    const grouped = new Map();
+
+    cargoLogs.forEach((entry) => {
+      const from = String(entry.origin_station || '').trim();
+      const to = String(entry.destination_station || '').trim();
+      if (!from || !to) {
+        return;
+      }
+
+      const key = `${from}:::${to}`;
+      const current = grouped.get(key) || {
+        from,
+        to,
+        profit: 0,
+        volume: 0,
+        runs: 0,
+        marginTotal: 0,
+        lastLoggedAt: null,
+      };
+
+      current.profit += Number(entry.profit_loss || 0) || 0;
+      current.volume += Number(entry.quantity_scu || 0) || 0;
+      current.runs += 1;
+      current.marginTotal += Number(entry.margin_pct || 0) || 0;
+      current.lastLoggedAt = entry.logged_at || current.lastLoggedAt;
+      grouped.set(key, current);
+    });
+
+    return Array.from(grouped.values())
+      .filter((route) => route.profit > 0)
+      .map((route) => ({
+        ...route,
+        avgMargin: route.runs > 0 ? route.marginTotal / route.runs : 0,
+      }))
+      .sort((left, right) => right.profit - left.profit)
+      .slice(0, 6);
+  }, [cargoLogs]);
 
   if (loading) {
     return (
@@ -57,80 +97,69 @@ export default function ProfitableRoutes() {
     >
       <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--b1)', background: 'var(--bg2)' }}>
         <div style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Zap size={12} style={{ color: '#C0392B' }} />
-          TOP PROFIT ROUTES (by recent activity)
+          <TrendingUp size={12} style={{ color: '#C0392B' }} />
+          TOP PROFIT ROUTES (live cargo history)
         </div>
       </div>
 
-      <div style={{ maxHeight: 400, overflow: 'auto' }}>
-        {routes.map((route, idx) => (
-          <div
-            key={idx}
-            style={{
-              padding: '12px 16px',
-              borderBottom: '0.5px solid var(--b0)',
-              background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
-              display: 'grid',
-              gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1fr',
-              gap: 16,
-              alignItems: 'center',
-            }}
-          >
-            {/* Route */}
-            <div>
-              <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600 }}>
-                {route.from} → {route.to}
-              </div>
-              <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 2 }}>
-                {route.volume} SCU demand
-              </div>
-            </div>
-
-            {/* Profit */}
-            <div>
-              <div style={{ color: '#C0392B', fontSize: 12, fontWeight: 700 }}>
-                {route.profit.toLocaleString()} aUEC
-              </div>
-              <div style={{ color: 'var(--t2)', fontSize: 9 }}>gross</div>
-            </div>
-
-            {/* Margin */}
-            <div>
-              <div style={{ color: '#C8A84B', fontSize: 12, fontWeight: 700 }}>
-                {route.margin}
-              </div>
-              <div style={{ color: 'var(--t2)', fontSize: 9 }}>margin</div>
-            </div>
-
-            {/* Risk */}
-            <div>
-              <div style={{ color: getRiskColor(route.risk), fontSize: 10, fontWeight: 600 }}>
-                {route.risk}
-              </div>
-              <div style={{ color: 'var(--t2)', fontSize: 9 }}>risk level</div>
-            </div>
-
-            {/* Action */}
-            <div>
-              <button
-                style={{
-                  padding: '6px 10px',
-                  background: 'var(--bg2)',
-                  border: '0.5px solid var(--b1)',
-                  borderRadius: 4,
-                  color: 'var(--t1)',
-                  fontSize: 9,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  fontWeight: 500,
-                }}
-              >
-                SELECT
-              </button>
-            </div>
+      {routes.length === 0 ? (
+        <div style={{ padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <Route size={28} style={{ color: 'var(--t3)', opacity: 0.25 }} />
+          <div style={{ color: 'var(--t1)', fontSize: 11, fontWeight: 600 }}>No profitable route history yet</div>
+          <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6, textAlign: 'center', maxWidth: 280 }}>
+            Log real cargo runs with origin, destination, and profit data to surface the best-performing lanes here.
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div style={{ maxHeight: 400, overflow: 'auto' }}>
+          {routes.map((route, index) => (
+            <div
+              key={`${route.from}-${route.to}`}
+              style={{
+                padding: '12px 16px',
+                borderBottom: '0.5px solid var(--b0)',
+                background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
+                display: 'grid',
+                gridTemplateColumns: '2fr 1.1fr 1fr 0.9fr',
+                gap: 16,
+                alignItems: 'center',
+              }}
+            >
+              <div>
+                <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>{route.from}</span>
+                  <ArrowRight size={12} style={{ color: 'var(--t3)' }} />
+                  <span>{route.to}</span>
+                </div>
+                <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 2 }}>
+                  {formatVolume(route.volume)} across {route.runs} run{route.runs === 1 ? '' : 's'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ color: '#C0392B', fontSize: 12, fontWeight: 700 }}>
+                  {formatProfit(route.profit)}
+                </div>
+                <div style={{ color: 'var(--t2)', fontSize: 9 }}>net profit</div>
+              </div>
+
+              <div>
+                <div style={{ color: '#C8A84B', fontSize: 12, fontWeight: 700 }}>
+                  {route.avgMargin.toFixed(1)}%
+                </div>
+                <div style={{ color: 'var(--t2)', fontSize: 9 }}>avg margin</div>
+              </div>
+
+              <div>
+                <div style={{ color: 'var(--info)', fontSize: 10, fontWeight: 600 }}>
+                  {new Date(route.lastLoggedAt || Date.now()).toLocaleDateString()}
+                </div>
+                <div style={{ color: 'var(--t2)', fontSize: 9 }}>last logged</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

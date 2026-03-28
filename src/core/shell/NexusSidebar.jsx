@@ -64,7 +64,7 @@ const NAV = [
     items: [
       { icon: Key, label: 'KEY MANAGEMENT', path: '/app/keys' },
       { icon: ShieldAlert, label: 'ADMIN SETTINGS', path: '/app/admin/settings' },
-      { icon: ClipboardList, label: 'TASK BOARD', path: '/app/admin/todo' },
+      { icon: ClipboardList, label: 'READINESS', path: '/app/admin/readiness' },
     ],
   },
 ];

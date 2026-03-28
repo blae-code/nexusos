@@ -11,6 +11,10 @@
     "typecheck": "tsc -p ./jsconfig.json",
     "base44:check": "node ./scripts/base44-editor/check-base44-editor.mjs",
     "preview": "vite preview",
+    "test:e2e:live": "playwright test -c ./playwright.live.config.mjs",
+    "audit:repo-sample-data": "node ./scripts/prod/audit-repo-sample-data.mjs",
+    "audit:prod": "node ./scripts/prod/audit-prod.mjs",
+    "verify:prod-ready": "node ./scripts/prod/verify-prod-ready.mjs",
     "version:sync": "node ./scripts/versioning/sync-versioning.mjs",
     "version:check": "node ./scripts/versioning/check-versioning.mjs",
     "prepare": "node ./scripts/install-git-hooks.mjs"
@@ -85,6 +89,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.13.5",
     "@types/react": "^18.2.66",

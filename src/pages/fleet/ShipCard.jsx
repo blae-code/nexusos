@@ -24,7 +24,7 @@ const CLASS_LABELS = {
 
 const ALL_STATUSES = ['AVAILABLE', 'ASSIGNED', 'MAINTENANCE', 'DESTROYED', 'ARCHIVED'];
 
-export default function ShipCard({ ship, onEdit, onRefresh }) {
+export default function ShipCard({ ship, onEdit = null, onRefresh = null }) {
   const [expanded, setExpanded] = useState(false);
   const [statusMenu, setStatusMenu] = useState(false);
   const [saving, setSaving] = useState(false);

@@ -4,20 +4,15 @@ import { useSession } from '@/core/data/SessionContext';
 import { authApi } from '@/core/data/auth-api';
 import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, XCircle, HelpCircle } from 'lucide-react';
 import { showToast } from '@/components/NexusToast';
+import ReadinessAuditPanel from '@/components/admin/ReadinessAuditPanel';
 
 const REQUIRED_SECRETS = [
   { id: 'UEX_API_KEY', label: 'UEX API Key', help: 'Powers commodity price tracking and market data. Get yours at uexcorp.space/api', critical: false },
   { id: 'SC_API_KEY', label: 'StarCitizen API Key', help: 'Used for RSI organization roster sync and game data. Available at robertsspaceindustries.com/account/settings', critical: false },
   { id: 'SESSION_SIGNING_SECRET', label: 'Session Signing Secret', help: 'CRITICAL — Used to sign all auth session cookies. Must be a strong random string. Without this, authentication will not work.', critical: true },
   { id: 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', label: 'System Admin Bootstrap Secret', help: 'Emergency recovery secret for the system admin account. Set during initial deployment.', critical: true },
-  { id: 'APP_URL', label: 'App URL', help: 'The public URL of your NexusOS deployment. Used for cookie domains and invite links. Example: https://your-nexusos.app', critical: true },
-];
-
-const PUBLIC_CONFIG = [
-  { id: 'AUTH_MODE', label: 'Auth Mode', value: 'Issued Key' },
-  { id: 'INVITE_FLOW', label: 'Invite Flow', value: 'Pioneer Issued' },
-  { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', value: 'blae' },
-  { id: 'RSI_ORG_SID', label: 'RSI Org SID', value: 'RSNM' },
+  { id: 'APP_URL', label: 'App URL', help: 'The public URL of your NexusOS deployment. Used for cookie domains and invite links. Format: https://your-nexusos.app', critical: true },
+  { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', help: 'Required for fleet sync and readiness proofs that depend on live FleetYards roster data.', critical: true },
 ];
 
 function StatusChip({ ok, label }) {
@@ -35,7 +30,7 @@ function StatusChip({ ok, label }) {
 export default function AdminSettings() {
   const { isAdmin } = useSession();
   const [secrets, setSecrets] = useState({});
-  const [environment, setEnvironment] = useState(/** @type {{ app_url?: string | null }} */ ({}));
+  const [environment, setEnvironment] = useState(/** @type {{ app_url?: string | null, fleetyards_handle?: string | null }} */ ({}));
   const [loading, setLoading] = useState(true);
   const [testResults, setTestResults] = useState({});
   const [testingSecretId, setTestingSecretId] = useState('');
@@ -115,6 +110,13 @@ export default function AdminSettings() {
   );
 
   const appUrl = environment?.app_url || null;
+  const fleetYardsHandle = environment?.fleetyards_handle || null;
+  const publicConfig = useMemo(() => ([
+    { id: 'AUTH_MODE', label: 'Auth Mode', value: 'Issued Key' },
+    { id: 'INVITE_FLOW', label: 'Invite Flow', value: 'Pioneer Issued' },
+    { id: 'APP_URL', label: 'App URL', value: appUrl || 'UNSET' },
+    { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', value: fleetYardsHandle || 'UNSET' },
+  ]), [appUrl, fleetYardsHandle]);
 
   const launchReady = Boolean(
     authHealth?.ok
@@ -147,7 +149,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20, animation: 'pageEntrance 200ms ease-out' }}>
+    <div style={{ padding: '24px', maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20, animation: 'pageEntrance 200ms ease-out' }}>
       <div>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>ADMIN SETTINGS</div>
         <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase' }}>Deployment Readiness</div>
@@ -325,8 +327,10 @@ export default function AdminSettings() {
         )}
       </div>
 
+      <ReadinessAuditPanel autoRun compact={false} />
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {PUBLIC_CONFIG.map((item) => (
+        {publicConfig.map((item) => (
           <div key={item.id} style={{ padding: '12px 14px', background: 'var(--bg2)', border: '0.5px solid var(--b1)', borderRadius: 3 }}>
             <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500, marginBottom: 6 }}>{item.label}</div>
             <div style={{ fontSize: 11, color: 'var(--acc2)', fontFamily: 'monospace', background: 'var(--bg1)', padding: '6px 8px', borderRadius: 3 }}>

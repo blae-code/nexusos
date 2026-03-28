@@ -1,6 +1,6 @@
-# Herald Bot Integration
+# Herald Bot Compatibility
 
-Herald Bot is the Discord delivery layer for NexusOS. The implementation lives primarily in `functions/heraldBot.ts` and is designed to degrade safely when Discord has not been fully configured yet.
+Herald Bot is a legacy, optional outbound Discord integration for NexusOS. It is not part of the active login, session, onboarding, readiness, or release-blocking production path. The implementation remains in `functions/heraldBot.ts` only as a compatibility surface for org workflows that still want Discord-side mirroring.
 
 ## Implemented Flows
 - Publish op announcements and RSVP embeds
@@ -14,7 +14,7 @@ Herald Bot is the Discord delivery layer for NexusOS. The implementation lives p
 ## Auth Relationship
 - Invitation-based auth is now handled through the issued-key flow in `functions/auth/*`.
 - Herald Bot is no longer part of the active login path.
-- Herald remains an optional outbound Discord integration for notifications and interaction plumbing.
+- Herald remains optional outbound notification plumbing only.
 
 ## Required Environment
 - `HERALD_BOT_TOKEN`
@@ -37,8 +37,9 @@ Herald Bot is the Discord delivery layer for NexusOS. The implementation lives p
 - Any future voice-state sync, which requires infrastructure beyond the current serverless functions
 
 ## Recommended Validation Order
-1. Run `/app/admin/todo` and refresh setup status.
-2. Confirm guild and channel resolution are green.
-3. Publish a test op from `/app/ops/new`.
-4. Move the op live and confirm Herald posts the live notice.
-5. End the op and confirm debrief generation.
+1. Run `/app/admin/readiness` and confirm the release-blocking auth, entity, and integration checks are green.
+2. Decide whether Discord mirroring is needed for this deployment. If not, stop here.
+3. Confirm guild and channel resolution are green.
+4. Publish a test op from `/app/ops/new`.
+5. Move the op live and confirm Herald posts the live notice.
+6. End the op and confirm debrief generation.

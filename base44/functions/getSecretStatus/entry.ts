@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'forbidden' }, { status: 403, headers: sessionNoStoreHeaders() });
     }
 
-    const secrets = ['UEX_API_KEY', 'SC_API_KEY', 'SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL']
+    const secrets = ['UEX_API_KEY', 'SC_API_KEY', 'SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL', 'FLEETYARDS_HANDLE']
       .reduce((acc, secretId) => {
         acc[secretId] = {
           configured: Boolean(String(Deno.env.get(secretId) || '').trim()),
@@ -24,6 +24,7 @@ Deno.serve(async (req) => {
       secrets,
       environment: {
         app_url: String(Deno.env.get('APP_URL') || '').trim() || null,
+        fleetyards_handle: String(Deno.env.get('FLEETYARDS_HANDLE') || '').trim() || null,
       },
     }, { headers: sessionNoStoreHeaders() });
   } catch (error) {

@@ -40,7 +40,6 @@ For administrator recovery, bootstrap or repair the fixed `system-admin` account
 - [Base44 Sync Rules](./docs/base44-sync.md)
 - [Design System](./docs/design-system.md)
 - [AI Handoff](./NEXUSOS_AI_HANDOFF.md)
-- [Discord Bot](./docs/discord-bot.md)
 - [Versioning](./docs/versioning.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Task Ledger](./TASK_LEDGER.md)

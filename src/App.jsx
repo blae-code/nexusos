@@ -96,7 +96,8 @@ function App() {
               {/* Admin */}
               <Route path="keys" element={withRouteBoundary(<KeyManagement />, true)} />
               <Route path="admin/settings" element={withRouteBoundary(<AdminSettings />, true)} />
-              <Route path="admin/todo" element={withRouteBoundary(<NexusTodo />, true)} />
+              <Route path="admin/readiness" element={withRouteBoundary(<NexusTodo />, true)} />
+              <Route path="admin/todo" element={<Navigate to="/app/admin/readiness" replace />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

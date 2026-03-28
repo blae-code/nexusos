@@ -1,11 +1,11 @@
 /**
- * Discord path instruction card — Materials.
+ * OCR path instruction card — Materials.
  * No closed-over variables — no props.
  */
 import React from 'react';
-import { MessageSquare } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
-// ─── Discord path instruction card ────────────────────────────────────────────
+// ─── OCR path instruction card ────────────────────────────────────────────────
 
 export default function DiscordPathCard() {
   return (
@@ -18,11 +18,10 @@ export default function DiscordPathCard() {
       alignItems: 'flex-start',
       gap: 8,
     }}>
-      <MessageSquare size={13} style={{ color: 'var(--t2)', flexShrink: 0, marginTop: 1 }} />
+      <Upload size={13} style={{ color: 'var(--t2)', flexShrink: 0, marginTop: 1 }} />
       <span style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
-        Fastest path: drop your screenshot in{' '}
-        <span style={{ color: 'var(--t1)' }}>#nexusos-ocr</span> on Discord.
-        Herald Bot extracts and posts a confirmation.
+        Fastest path: upload your screenshot directly in the Materials OCR panel.
+        NexusOS extracts the data and routes the result into the correct in-app workflow.
       </span>
     </div>
   );

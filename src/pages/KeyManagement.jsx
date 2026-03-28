@@ -86,6 +86,7 @@ function GeneratedKeyPanel({ generatedKey, copied, onCopy }) {
 export default function KeyManagement() {
   const { isAdmin, user } = useSession();
   const issuerCallsign = user?.callsign || 'SYSTEM-ADMIN';
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -443,6 +444,7 @@ export default function KeyManagement() {
             username={generatedKey.contextLabel?.match(/For (\S+)/)?.[1] || ''}
             rank={generatedKey.contextLabel?.match(/· (\S+)/)?.[1] || rank}
             authKey={generatedKey.key}
+            appUrl={appUrl}
           />
         )}
       </div>

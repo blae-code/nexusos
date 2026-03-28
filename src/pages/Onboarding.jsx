@@ -171,7 +171,7 @@ function Step2HowItWorks({ onContinue }) {
                 }}
               />
               <span style={{ fontSize: 12, color: 'var(--t1)', lineHeight: 1.6, maxWidth: 360, fontFamily: 'inherit' }}>
-                {bullet.text || bullet}
+                {bullet.text}
               </span>
             </li>
           ))}

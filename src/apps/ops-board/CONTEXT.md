@@ -35,17 +35,17 @@ Route prefix: `/app/ops`
 ## Entity Ownership
 **Entities owned by this app (reads + writes):**
 - `Op` — full CRUD: create, update status/phases/session_log/readiness_gate, list/filter
-- `OpRsvp` — create, update status, filter by op_id or discord_id
+- `OpRsvp` — create, update status, filter by op_id or user_id
 
 **Entities read-only (cross-app):**
 - `CofferLog` — SplitCalc creates entries (entry_type: 'OP_SPLIT') — writes to Industry-Hub's ledger
 - `game_cache_items` — LootTally reads for material autocomplete
 
 **Functions invoked:**
-- `heraldBot` — actions: `opActivate`, `opEnd`, `publishOp`, `phaseAdvance`, `opGo`, `threatAlert`
+- `notifyUser` / `sendNexusNotification` — op published, phase advance, threat, and live-op state notifications
 
 ## Cross-App Data Dependencies
-- **Session context** (`@/core/data/SessionContext`): rank, callsign, discordId via useOutletContext
+- **Session context** (`@/core/data/SessionContext`): rank, callsign, user identity via outlet context
 - **SplitCalc → CofferLog**: writes to the ledger owned by Industry Hub — callers should be aware
 - **LootTally → game_cache_items**: shared cache entity, read-only
 
@@ -54,8 +54,8 @@ Route prefix: `/app/ops`
 2. **Create op** — multi-section form (BASICS, ACCESS, ROLE SLOTS, SETTINGS, PHASES), save as DRAFT or PUBLISHED
 3. **RSVP** — role selector grid, ship input, confirm/decline, real-time capacity display
 4. **Live op detail** — 2-layout (ALT-TAB / 2ND MONITOR), phase advance, crew grid, session log, readiness gate, threat panel, loot tally, split calc
-5. **Phase advance** — confirm → Herald Bot ping → session log entry
-6. **Threat alert** — report with severity, Herald Bot ping, resolve
+5. **Phase advance** — confirm → notification + session log entry
+6. **Threat alert** — report with severity, notification, resolve
 7. **Split payout** — gross haul entry, equal/custom split, log entries to CofferLog
 8. **Archive ops** — completed ops table with duration, crew count, pagination
 
@@ -73,10 +73,10 @@ Route prefix: `/app/ops`
 ### Sub-components — Live Op
 | File | Status | Notes |
 |------|--------|-------|
-| `PhaseTracker.jsx` | Complete | Visual progress, confirm-advance flow, Herald Bot ping |
-| `ReadinessGate.jsx` | Complete | Checklist to GO, rank-gated, GO fires heraldBot opGo |
+| `PhaseTracker.jsx` | Complete | Visual progress, confirm-advance flow, in-app notification |
+| `ReadinessGate.jsx` | Complete | Checklist to GO, rank-gated, GO state transition |
 | `SessionLog.jsx` | Complete | Type-coloured event feed, manual entry, auto-scroll |
-| `ThreatPanel.jsx` | Complete | Report/resolve threats, severity tokens, Herald Bot |
+| `ThreatPanel.jsx` | Complete | Report/resolve threats, severity tokens, in-app notification |
 | `CrewGrid.jsx` | Complete | Confirmed + empty slot grid, 2/3-col layout modes |
 | `LootTally.jsx` | Complete | Phase ≥4 only, material autocomplete, SCOUT+ gate |
 | `OpRsvpSection.jsx` | Complete | Role slots, capacity bars, RSVP flow, leave confirmation |
@@ -114,13 +114,12 @@ Route prefix: `/app/ops`
 1. **`OpCreator.jsx` bug (line ~204)**: `setError()` is called on creation failure but `error` state is never declared as a `useState`. Error messages from the server are silently discarded. Fix: add `const [error, setError] = useState(null)` and render an error banner.
 2. **localStorage violation in `LiveOp.jsx` (lines ~88, ~97)**: Layout mode is persisted to `localStorage` under key `nexus_layout_mode`. CLAUDE.md explicitly forbids localStorage. Fix: remove persistence or use the session context / URL param instead.
 3. **Duplicate op list views**: `OpBoard.jsx` (status-grouped cards) and `index.jsx` (tab-based: LIVE/UPCOMING/ARCHIVE) both implement op list views. Only one should be the canonical `/app/ops` route. Current routing uses OpBoard.jsx — index.jsx is orphaned.
-4. **Settings toggles not all persisted**: `OpCreator.jsx` shows toggles for reminder24h, reminder1h, postPhaseUpdates, autoWrapUp, atHereOnGo, createDiscordEvent but not all are included in the Op.create() payload.
+4. **Settings toggles not all persisted**: `OpCreator.jsx` shows operator settings toggles but not all are included in the `Op.create()` payload.
 5. **Legacy components** (listed above with Legacy status): All `*Legacy.jsx` files and legacy `src/components/ops` survivors are dead code — nothing imports them from the new structure. Candidates for deletion once confirmed.
 6. **After Action data model** requires op outcome fields to be added to the `Op` entity or a separate `OpRecord` entity.
 
 ## What NOT to Touch
-- `heraldBot` invocation shape — actions are hardcoded strings matched by the bot: `opActivate`, `opEnd`, `publishOp`, `phaseAdvance`, `opGo`, `threatAlert`. Do not rename.
 - `op.session_log` structure — array of `{ type, text, t, id? }` objects. Type values are PHASE_ADVANCE, THREAT, THREAT_RESOLVED, MATERIAL, CRAFT, PING, MANUAL. Adding new types requires updating SessionLog.jsx display logic too.
 - `op.readiness_gate` structure — array of `{ title, detail, priority, done, locked, assignee }`. Changing shape breaks ReadinessGate.jsx.
 - `OpRsvp.status` enum — CONFIRMED/DECLINED/TENTATIVE. Used in multiple filter calls.
-- Rank gate constants: `PIONEER_RANKS = ['PIONEER', 'FOUNDER']` and `SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER']`. Matches Discord role → nexus_rank mapping in NEXUSOS_AI_HANDOFF.md.
+- Rank gate constants: `PIONEER_RANKS = ['PIONEER', 'FOUNDER']` and `SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER']`.

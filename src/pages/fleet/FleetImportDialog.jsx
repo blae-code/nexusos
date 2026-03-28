@@ -244,8 +244,6 @@ export default function FleetImportDialog({ onClose, onImported, ownerCallsign }
       return record;
     });
 
-    console.log('[FleetImport] Importing', records.length, 'records. Sample:', JSON.stringify(records[0]));
-
     // Import one at a time to avoid bulk issues
     for (let i = 0; i < records.length; i++) {
       try {
