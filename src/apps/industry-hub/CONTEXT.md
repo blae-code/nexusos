@@ -2,7 +2,7 @@
 
 **Route:** `/app/industry` (with `?tab=overview|materials|blueprints|craft|refinery`)
 **Directory:** `src/apps/industry-hub/`
-**Status:** COMPLETE — production-ready; two in-progress alternative views (see below)
+**Status:** COMPLETE — production-ready active path only
 
 ---
 
@@ -34,7 +34,7 @@ This app **reads from** (shared data):
 
 | Entity | Context |
 |--------|---------|
-| `ScoutDeposit` | Overview ScoutIntelRow; ScoutDepositsTab voting |
+| `ScoutDeposit` | Overview scout intel rows and material gap context |
 | `game_cache_items` | AddBlueprintDialog item autocomplete |
 | `NexusUser` | AddBlueprintDialog holder autocomplete (callsign lookup) |
 | `game_cache_commodities` | Not directly — scout module uses this |
@@ -55,7 +55,7 @@ This app **invokes** (Base44 functions):
 
 | Dependency | Source | Used In |
 |------------|--------|---------|
-| Scout deposits (read) | `src/apps/scout-intel/` | ScoutDepositsTab; Overview intel rows |
+| Scout deposits (read) | `src/apps/scout-intel/` | Overview intel rows and material gap context |
 | Op session_log (read) | `src/apps/ops-board/` | Not directly read in Industry Hub |
 | CofferLog (write) | shared | Not currently written by Industry Hub |
 
@@ -102,19 +102,15 @@ This app **invokes** (Base44 functions):
 | `CraftQueueTab.jsx` | Craft queue table with AI optimisation button | **Complete** |
 | `CraftQueueRows.jsx` | OptimisedRow + DefaultRow sub-components for CraftQueueTab | **Complete** |
 | `RefineryManagement.jsx` | Refinery batch input form with yield forecast | **Complete** |
-| `RefineryOrdersTab.jsx` | Refinery orders table with live countdown timers + collect action | **Complete** |
 | `RefineryEfficiencyCalculator.jsx` | Standalone efficiency calculator widget | **Complete** |
 | `PatchDigestHeader.jsx` | Latest patch banner — loads PatchDigest.list(-processed_at, 1) | **Complete** |
 | `PatchDigestCard.jsx` | Expandable card showing individual patch version change detail | **Complete** |
 | `OcrUploadPanel.jsx` | Drag-drop OCR upload with INVENTORY/REFINERY/MINING_SCAN/CRAFT_QUEUE handlers | **Complete** |
 | `OcrPreview.jsx` | Confirmation display for auto-saved OCR results | **Complete** |
 | `OcrUpload.jsx` | Simpler OCR upload variant | **Complete** |
-| `ScoutDepositsTab.jsx` | Scout deposit card grid with confirmed/stale vote buttons | **Complete** |
 | `IndustryVisuals.jsx` | BlueprintHolderChip, BlueprintPriorityTag, MaterialGlyph and other visual atoms | **Complete** |
 | `LivePatchIntel.jsx` | Live patch intel display component | **Complete** |
 | `CofferLogTab.jsx` | Coffer transaction log view | **Complete** |
-| `MaterialsTab.jsx` | Alternative simpler materials view (no OCR integration) | **In-progress** |
-| `CraftQueueTabV2.jsx` | Alternative card-based craft queue grouped by status | **In-progress** |
 | `BlueprintAvailability.jsx` | Blueprint availability tracker | **Complete** |
 | `BlueprintCard.jsx` | Blueprint card component | **Complete** |
 | `BlueprintModal.jsx` | Blueprint detail modal | **Complete** |
@@ -125,17 +121,9 @@ This app **invokes** (Base44 functions):
 
 ## Known Issues / Next Tasks
 
-1. **`MaterialsTab.jsx` — "Add Material" button is a stub**: Button rendered but no onClick handler. Either wire up a Material.create dialog or remove this view in favour of `Materials.jsx` which already has full add-via-OCR support.
+1. **Legacy blueprint wrappers remain in repo**: `BlueprintsModule.jsx` and `BlueprintsTab.jsx` are older carryovers that are not part of the active routed app. They are not current release blockers, but they should be audited and removed when the surrounding legacy surfaces are retired.
 
-2. **`CraftQueueTabV2.jsx` — "Add to Queue" button is a stub**: Same pattern — button visible, no handler. Route to RecipePanel or implement a standalone craft request form.
-
-3. **`RefineryOrdersTab.jsx` — "Add Order" button is a stub**: No handler. The actual refinery submission lives in `RefineryManagement.jsx` which is inline-toggled from `IndustryHub.jsx`'s refinery tab, not from RefineryOrdersTab itself.
-
-4. **`ScoutDepositsTab.jsx` — "+ Report Deposit" button is a stub**: Button has no handler. Route to `src/apps/scout-intel/LogForm.jsx` or implement inline. Current vote buttons (confirm/stale) are functional.
-
-5. **Duplicate alternatives**: `MaterialsTab.jsx` vs `Materials.jsx` and `CraftQueueTabV2.jsx` vs `CraftQueueTab.jsx` are parallel implementations. The active production path uses `Materials.jsx` and `CraftQueueTab.jsx`. The V2/Tab versions should be audited and likely deleted.
-
-6. **Legacy components from old `components/industry/`**: `BlueprintsModule.jsx`, `BlueprintsTab.jsx` were moved from the old directory. They are not imported anywhere in the active code. Audit and delete.
+2. **Keep the active path authoritative**: `Materials.jsx`, `CraftQueueTab.jsx`, `RefineryManagement.jsx`, and the overview widgets are the current production surface. Do not reintroduce alternate tab variants without wiring them fully into the routed app and readiness checks.
 
 ---
 
@@ -145,4 +133,4 @@ This app **invokes** (Base44 functions):
 - **Do not** move `RecipePanel.jsx` — it exports `ingredientStatus()` which is imported by `PriorityPanel.jsx` and `GapSidebar.jsx` via relative paths.
 - **Do not** change T2 eligibility threshold — it is `quality_pct >= 80` hardcoded in `Materials.jsx` and `IndustryOverviewWidgets.jsx`. This is a hard game mechanic from CLAUDE.md.
 - **Do not** label the InsightStrip as "AI" — it renders as "OP READINESS" or similar. The Claude API call is hidden; see CLAUDE.md AI visibility rule.
-- **Do not** use the `generateInsight` function outside the InsightStrip context — it reads full org state and is rate-sensitive.
+- **Do not** use the `generateInsight` org-readiness mode outside the InsightStrip context — Scout Intel now uses the separate `context: 'scout_route'` branch for tactical deposit guidance.

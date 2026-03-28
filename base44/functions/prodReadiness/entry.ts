@@ -97,6 +97,21 @@ function textValue(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+async function listSessionEntityRecords(base44: any, entityName: string, limit = 5) {
+  const entity = base44.entities?.[entityName];
+  if (!entity || typeof entity.list !== 'function') {
+    throw new Error('entity_not_available');
+  }
+
+  const records = await entity.list('-created_date', limit).catch(async () => {
+    return await entity.list().catch(() => {
+      throw new Error('entity_unreadable');
+    });
+  });
+
+  return toArray(records);
+}
+
 function isOk(checks: ReadinessCheck[]) {
   return checks.every((check) => check.ok);
 }
@@ -180,9 +195,105 @@ async function runEntityAudit(base44: any): Promise<ReadinessCheck[]> {
   return results;
 }
 
+async function runSessionSurfaceCheck(
+  base44: any,
+  config: {
+    id: string;
+    label: string;
+    entityNames: string[];
+    okDetail: string;
+    failurePrefix: string;
+    mode: 'live_write' | 'shared_entity';
+  },
+): Promise<ReadinessCheck> {
+  const unavailable: string[] = [];
+
+  for (const entityName of config.entityNames) {
+    try {
+      await listSessionEntityRecords(base44, entityName, 1);
+    } catch {
+      unavailable.push(entityName);
+    }
+  }
+
+  const ok = unavailable.length === 0;
+  return {
+    id: config.id,
+    label: config.label,
+    ok,
+    severity: 'critical',
+    detail: ok
+      ? config.okDetail
+      : `${config.failurePrefix} ${unavailable.join(', ')}`,
+    meta: {
+      runtime_mode: ok ? config.mode : (config.id === 'rescue_surface' ? 'local_cache' : 'read_only'),
+      missing_entities: unavailable,
+    },
+  };
+}
+
+async function runLiveFunctionCheck(
+  checks: ReadinessCheck[],
+  cleanupTargets: CleanupTarget[],
+  req: Request,
+  config: {
+    id: string;
+    label: string;
+    pathname: string;
+    body?: Record<string, unknown>;
+    method?: 'GET' | 'POST';
+    validate: (response: { ok: boolean; status: number; data: any }) => boolean;
+    successDetail: (response: { ok: boolean; status: number; data: any }) => string;
+    failureDetail?: (response: { ok: boolean; status: number; data: any }) => string;
+    meta?: (response: { ok: boolean; status: number; data: any }) => Record<string, unknown> | undefined;
+    collectCleanupTargets?: (response: { ok: boolean; status: number; data: any }) => CleanupTarget[];
+  },
+) {
+  try {
+    const response = await invokeLiveFunction(req, config.pathname, {
+      method: config.method || 'POST',
+      body: config.body ? JSON.stringify(config.body) : undefined,
+    });
+    const ok = config.validate(response);
+    const nextCleanupTargets = config.collectCleanupTargets ? config.collectCleanupTargets(response) : [];
+    cleanupTargets.push(...nextCleanupTargets);
+    checks.push({
+      id: config.id,
+      label: config.label,
+      ok,
+      severity: 'critical',
+      detail: ok
+        ? config.successDetail(response)
+        : (config.failureDetail
+          ? config.failureDetail(response)
+          : `${config.label} failed: ${textValue(response.data?.error) || response.status}`),
+      meta: config.meta ? config.meta(response) : undefined,
+    });
+  } catch (error) {
+    checks.push({
+      id: config.id,
+      label: config.label,
+      ok: false,
+      severity: 'critical',
+      detail: `${config.label} failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
+    });
+  }
+}
+
 async function runIntegrationAudit(base44: any, req: Request, adminUserId: string): Promise<{ checks: ReadinessCheck[]; cleanupTargets: CleanupTarget[] }> {
   const checks: ReadinessCheck[] = [];
   const cleanupTargets: CleanupTarget[] = [];
+  const scoutRoutePayload = {
+    deposits: [
+      { material: 'Quantanium', system: 'Stanton', location: 'ARC-L1 Belt', quality: 92, volume: 'LARGE', risk: 'HIGH', reporter: 'SCOUT-1' },
+      { material: 'Taranite', system: 'Stanton', location: 'Wala Ridge', quality: 88, volume: 'MEDIUM', risk: 'MEDIUM', reporter: 'SCOUT-2' },
+      { material: 'Gold', system: 'Pyro', location: 'Bloom Front', quality: 81, volume: 'SMALL', risk: 'LOW', reporter: 'SCOUT-3' },
+    ],
+    ship_class: 'MINER',
+    max_risk: 'HIGH',
+    include_refueling: true,
+    minimum_quality: 80,
+  };
 
   const uexKey = textValue(Deno.env.get('UEX_API_KEY'));
   if (!uexKey) {
@@ -276,6 +387,33 @@ async function runIntegrationAudit(base44: any, req: Request, adminUserId: strin
     }
   }
 
+  checks.push(await runSessionSurfaceCheck(base44, {
+    id: 'commerce_surface',
+    label: 'Commerce write surfaces',
+    entityNames: ['Wallet', 'Transaction', 'Contract', 'CofferLog', 'CargoLog'],
+    okDetail: 'Commerce is in live-write mode for the current admin session.',
+    failurePrefix: 'Commerce would degrade to read-only for the current admin session because these entities are unavailable:',
+    mode: 'live_write',
+  }));
+
+  checks.push(await runSessionSurfaceCheck(base44, {
+    id: 'logistics_surface',
+    label: 'Logistics write surfaces',
+    entityNames: ['CargoJob', 'Consignment', 'OrgShip', 'Material', 'GameCacheCommodity'],
+    okDetail: 'Logistics is in live-write mode for the current admin session.',
+    failurePrefix: 'Logistics would degrade to read-only for the current admin session because these entities are unavailable:',
+    mode: 'live_write',
+  }));
+
+  checks.push(await runSessionSurfaceCheck(base44, {
+    id: 'rescue_surface',
+    label: 'Rescue shared-state mode',
+    entityNames: ['RescueCall'],
+    okDetail: 'Rescue board is using the shared RescueCall entity for the current admin session.',
+    failurePrefix: 'Rescue would fall back to local cache for the current admin session because these entities are unavailable:',
+    mode: 'shared_entity',
+  }));
+
   try {
     const authRoundtrip = await invokeLiveFunction(req, '/api/functions/auth/roundtrip', { method: 'POST' });
     checks.push({
@@ -348,94 +486,203 @@ async function runIntegrationAudit(base44: any, req: Request, adminUserId: strin
     });
   }
 
-  try {
-    const response = await invokeLiveFunction(req, '/api/functions/generateInsight', {
-      method: 'POST',
-      body: JSON.stringify({ context: 'prod_readiness' }),
-    });
-    checks.push({
-      id: 'generate_insight',
-      label: 'generateInsight',
-      ok: response.ok && Boolean(response.data?.insight),
-      severity: 'critical',
-      detail: response.ok && response.data?.insight
-        ? 'generateInsight returned a live response.'
-        : `generateInsight failed: ${textValue(response.data?.error) || response.status}`,
-    });
-  } catch (error) {
-    checks.push({
-      id: 'generate_insight',
-      label: 'generateInsight',
-      ok: false,
-      severity: 'critical',
-      detail: `generateInsight failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
-    });
-  }
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'generate_insight',
+    label: 'generateInsight',
+    pathname: '/api/functions/generateInsight',
+    body: { context: 'prod_readiness' },
+    validate: (response) => response.ok && Boolean(response.data?.insight),
+    successDetail: () => 'generateInsight returned a live response.',
+  });
 
-  try {
-    const response = await invokeLiveFunction(req, '/api/functions/predictiveAnalytics', {
-      method: 'POST',
-      body: JSON.stringify({ action: 'trade_intel' }),
-    });
-    checks.push({
-      id: 'predictive_analytics',
-      label: 'predictiveAnalytics',
-      ok: response.ok && Array.isArray(response.data?.intel),
-      severity: 'critical',
-      detail: response.ok && Array.isArray(response.data?.intel)
-        ? 'predictiveAnalytics returned trade intel.'
-        : `predictiveAnalytics failed: ${textValue(response.data?.error) || response.status}`,
-    });
-  } catch (error) {
-    checks.push({
-      id: 'predictive_analytics',
-      label: 'predictiveAnalytics',
-      ok: false,
-      severity: 'critical',
-      detail: `predictiveAnalytics failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
-    });
-  }
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'generate_insight_scout_route',
+    label: 'generateInsight (scout route)',
+    pathname: '/api/functions/generateInsight',
+    body: {
+      context: 'scout_route',
+      deposit_id: 'readiness-deposit',
+      material_name: 'Quantanium',
+      system_name: 'Stanton',
+      location_detail: 'ARC-L1 Belt',
+      quality_pct: 92,
+      risk_level: 'HIGH',
+    },
+    validate: (response) => response.ok && Boolean(response.data?.insight?.detail),
+    successDetail: () => 'generateInsight returned a scout-route recommendation.',
+  });
 
-  try {
-    const ocrResponse = await invokeLiveFunction(req, '/api/functions/ocrExtract', {
-      method: 'POST',
-      body: JSON.stringify({
-        file_url: appUrlPath('/fixtures/ocr-transaction.svg'),
-        source_type: 'OCR_UPLOAD',
-      }),
-    });
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'predictive_analytics',
+    label: 'predictiveAnalytics',
+    pathname: '/api/functions/predictiveAnalytics',
+    body: { action: 'trade_intel' },
+    validate: (response) => response.ok && Array.isArray(response.data?.intel),
+    successDetail: () => 'predictiveAnalytics returned trade intel.',
+  });
 
-    const createdRecords = toArray(ocrResponse.data?.created_records);
-    createdRecords.forEach((record) => {
-      const entity = textValue(record.entity);
-      const id = textValue(record.id);
-      if (entity && id) {
-        cleanupTargets.push({ entity, id });
-      }
-    });
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'route_planner',
+    label: 'routePlanner',
+    pathname: '/api/functions/routePlanner',
+    body: {
+      stations: ['Area 18', 'Loreville', 'Port Olisar'],
+      shipClass: 'HAULER',
+      cargoAmount: 96,
+      commodityPrice: 42,
+    },
+    validate: (response) => response.ok && Array.isArray(response.data?.route?.legs),
+    successDetail: () => 'routePlanner returned a deterministic route.',
+  });
 
-    checks.push({
-      id: 'ocr_extract',
-      label: 'OCR extract',
-      ok: ocrResponse.ok && ocrResponse.data?.success === true,
-      severity: 'critical',
-      detail: ocrResponse.ok && ocrResponse.data?.success === true
-        ? `ocrExtract processed the live fixture as ${textValue(ocrResponse.data?.screenshot_type) || 'UNKNOWN'}.`
-        : `ocrExtract failed: ${textValue(ocrResponse.data?.error) || ocrResponse.status}`,
-      meta: {
-        screenshot_type: ocrResponse.data?.screenshot_type || null,
-        records_created: ocrResponse.data?.records_created || 0,
-      },
-    });
-  } catch (error) {
-    checks.push({
-      id: 'ocr_extract',
-      label: 'OCR extract',
-      ok: false,
-      severity: 'critical',
-      detail: `ocrExtract failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
-    });
-  }
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'scout_route_optimizer',
+    label: 'scoutRouteOptimizer',
+    pathname: '/api/functions/scoutRouteOptimizer',
+    body: scoutRoutePayload,
+    validate: (response) => response.ok && Array.isArray(response.data?.waypoints),
+    successDetail: () => 'scoutRouteOptimizer returned an AI route plan.',
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'crafting_optimiser',
+    label: 'craftingOptimiser',
+    pathname: '/api/functions/craftingOptimiser',
+    body: {
+      materials: [
+        { material_name: 'Quantanium', quantity_scu: 12, quality_pct: 92 },
+        { material_name: 'Taranite', quantity_scu: 6, quality_pct: 88 },
+      ],
+      blueprints: [
+        {
+          item_name: 'Quantum Injector',
+          tier: 'T2',
+          category: 'COMPONENT',
+          recipe_materials: [
+            { material: 'Quantanium', quantity_scu: 8, min_quality: 80 },
+            { material: 'Taranite', quantity_scu: 4, min_quality: 80 },
+          ],
+        },
+      ],
+      craftQueue: [
+        {
+          id: 'cq-readiness',
+          blueprint_name: 'Quantum Injector',
+          quantity: 1,
+          status: 'OPEN',
+          priority_flag: true,
+          requested_by_callsign: 'SYSTEM-ADMIN',
+        },
+      ],
+    },
+    validate: (response) => response.ok && Array.isArray(response.data?.optimized_sequence),
+    successDetail: () => 'craftingOptimiser returned a valid sequence.',
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'refinery_calculator',
+    label: 'refineryCalculator',
+    pathname: '/api/functions/refineryCalculator',
+    body: {
+      material_name: 'Quantanium',
+      quantity_scu: 12,
+      quality_pct: 91,
+      refinery_method: 'FERRON_EXCHANGE',
+      station: 'ARC-L1',
+    },
+    validate: (response) => response.ok && Number.isFinite(Number(response.data?.estimated_output_scu)),
+    successDetail: () => 'refineryCalculator returned a batch forecast.',
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'refinery_efficiency',
+    label: 'refineryEfficiencyCalculator',
+    pathname: '/api/functions/refineryEfficiencyCalculator',
+    body: {
+      material_name: 'Quantanium',
+      raw_scu: 12,
+      refinery_method: 'FERRON',
+      material_quality: 91,
+    },
+    validate: (response) => response.ok && Number.isFinite(Number(response.data?.efficiency_score)),
+    successDetail: () => 'refineryEfficiencyCalculator returned an efficiency report.',
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'phase_briefing',
+    label: 'phaseBriefing',
+    pathname: '/api/functions/phaseBriefing',
+    body: {
+      op_id: 'readiness-op',
+      op_name: 'Readiness Drill',
+      phase_name: 'Ingress',
+      phase_number: 1,
+      total_phases: 3,
+      crew_list: [{ callsign: 'SYSTEM-ADMIN', role: 'Lead' }],
+      objectives: ['Confirm launch corridor'],
+      threats: ['Minor interdiction risk'],
+    },
+    validate: (response) => response.ok && response.data?.success === true && Boolean(response.data?.briefing),
+    successDetail: () => 'phaseBriefing returned a tactical brief.',
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'op_wrap_up',
+    label: 'opWrapUp',
+    pathname: '/api/functions/opWrapUp',
+    body: {
+      op_id: 'readiness-op',
+      op_name: 'Readiness Drill',
+      op_type: 'CHECK',
+      duration_minutes: 45,
+      crew_list: [{ callsign: 'SYSTEM-ADMIN', role: 'Lead' }],
+      session_log: [{ time: 'T+00', message: 'Readiness drill started' }],
+      materials_logged: [{ material_name: 'Quantanium', quantity_scu: 8, quality_pct: 82 }],
+      total_value_aUEC: 50000,
+    },
+    validate: (response) => response.ok && Boolean(response.data?.debrief_text),
+    successDetail: () => 'opWrapUp returned a debrief.',
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'ocr_extract',
+    label: 'OCR extract',
+    pathname: '/api/functions/ocrExtract',
+    body: {
+      file_url: appUrlPath('/fixtures/ocr-transaction.svg'),
+      source_type: 'OCR_UPLOAD',
+    },
+    validate: (response) => response.ok && response.data?.success === true,
+    successDetail: (response) => `ocrExtract processed the live fixture as ${textValue(response.data?.screenshot_type) || 'UNKNOWN'}.`,
+    meta: (response) => ({
+      screenshot_type: response.data?.screenshot_type || null,
+      records_created: response.data?.records_created || 0,
+    }),
+    collectCleanupTargets: (response) => toArray(response.data?.created_records)
+      .map((record) => ({
+        entity: textValue(record.entity),
+        id: textValue(record.id),
+      }))
+      .filter((record) => record.entity && record.id),
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'org_health_agent',
+    label: 'orgHealthAgent',
+    pathname: '/api/functions/orgHealthAgent',
+    body: { mode: 'self_test' },
+    validate: (response) => response.ok && response.data?.ok === true && response.data?.mutations_performed === false,
+    successDetail: () => 'orgHealthAgent self-test completed without mutations.',
+  });
+
+  await runLiveFunctionCheck(checks, cleanupTargets, req, {
+    id: 'patch_intelligence_agent',
+    label: 'patchIntelligenceAgent',
+    pathname: '/api/functions/patchIntelligenceAgent',
+    body: { mode: 'self_test' },
+    validate: (response) => response.ok && response.data?.ok === true && response.data?.mutations_performed === false,
+    successDetail: () => 'patchIntelligenceAgent self-test completed without mutations.',
+  });
 
   try {
     const notification = await createNotification(base44, {

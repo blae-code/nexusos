@@ -22,6 +22,16 @@ function severityColor(severity) {
   return '#9DA1CD';
 }
 
+function runtimeModeConfig(runtimeMode) {
+  if (runtimeMode === 'shared_entity' || runtimeMode === 'live_write') {
+    return { color: '#27C96A', background: 'rgba(39,201,106,0.12)', label: runtimeMode.replace('_', ' ') };
+  }
+  if (runtimeMode === 'read_only' || runtimeMode === 'local_cache') {
+    return { color: '#E8A020', background: 'rgba(232,160,32,0.12)', label: runtimeMode.replace('_', ' ') };
+  }
+  return null;
+}
+
 export default function ReadinessAuditPanel({ autoRun = false, compact = false, title = 'Production Readiness' }) {
   const [result, setResult] = useState(null);
   const [runningAction, setRunningAction] = useState('');
@@ -162,7 +172,24 @@ export default function ReadinessAuditPanel({ autoRun = false, compact = false, 
                       <AlertTriangle size={12} style={{ color: severityColor(check.severity), flexShrink: 0, marginTop: 2 }} />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: 'var(--t0)', fontSize: 10, fontWeight: 600 }}>{check.label}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <div style={{ color: 'var(--t0)', fontSize: 10, fontWeight: 600 }}>{check.label}</div>
+                        {runtimeModeConfig(check?.meta?.runtime_mode) ? (
+                          <span
+                            style={{
+                              color: runtimeModeConfig(check.meta.runtime_mode).color,
+                              background: runtimeModeConfig(check.meta.runtime_mode).background,
+                              fontSize: 9,
+                              padding: '2px 6px',
+                              borderRadius: 999,
+                              letterSpacing: '0.08em',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {runtimeModeConfig(check.meta.runtime_mode).label}
+                          </span>
+                        ) : null}
+                      </div>
                       <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6, marginTop: 2 }}>{check.detail}</div>
                     </div>
                   </div>

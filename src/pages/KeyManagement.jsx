@@ -4,6 +4,7 @@ import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
 import InviteMessageBuilder from '@/components/InviteMessageBuilder';
 import { showToast } from '@/components/NexusToast';
+import { base44 } from '@/core/data/base44Client';
 
 const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 const SYSTEM_ADMIN_LOGIN = 'system-admin';
@@ -22,8 +23,64 @@ function relativeTime(isoStr) {
 
 function userStatus(user) {
   if (user.key_revoked) return 'REVOKED';
+  if (!user.key_prefix && !user.key_issued_at) return 'NO KEY';
   if (user.joined_at) return 'REGISTERED';
   return 'INVITED';
+}
+
+function normalizeManagedUser(user) {
+  const loginName = String(user?.username || user?.login_name || user?.callsign || '').trim();
+  const callsign = String(user?.callsign || user?.username || user?.login_name || 'UNKNOWN').trim();
+  const rank = String(user?.nexus_rank || 'AFFILIATE').trim().toUpperCase() || 'AFFILIATE';
+
+  return {
+    id: user?.id,
+    login_name: loginName,
+    username: loginName,
+    callsign,
+    nexus_rank: rank,
+    key_prefix: user?.key_prefix || null,
+    key_issued_by: user?.key_issued_by || null,
+    key_issued_at: user?.key_issued_at || null,
+    key_revoked: user?.key_revoked === true,
+    joined_at: user?.joined_at || null,
+    onboarding_complete: user?.onboarding_complete === true,
+    last_seen_at: user?.last_seen_at || null,
+    notifications_seen_at: user?.notifications_seen_at || null,
+    is_admin: user?.is_admin === true || rank === 'PIONEER',
+  };
+}
+
+function mergeManagedUsers(primaryUsers, fallbackUsers) {
+  const merged = new Map();
+
+  fallbackUsers.forEach((user) => {
+    const normalized = normalizeManagedUser(user);
+    if (normalized.id) {
+      merged.set(normalized.id, normalized);
+    }
+  });
+
+  primaryUsers.forEach((user) => {
+    const normalized = normalizeManagedUser(user);
+    if (!normalized.id) return;
+
+    const existing = merged.get(normalized.id) || {};
+    merged.set(normalized.id, {
+      ...existing,
+      ...normalized,
+      username: normalized.username || existing.username || existing.login_name || existing.callsign || '',
+      login_name: normalized.login_name || existing.login_name || existing.username || '',
+      callsign: normalized.callsign || existing.callsign || existing.username || 'UNKNOWN',
+      nexus_rank: normalized.nexus_rank || existing.nexus_rank || 'AFFILIATE',
+    });
+  });
+
+  return [...merged.values()].sort((left, right) => {
+    const leftTime = new Date(left.key_issued_at || left.last_seen_at || left.joined_at || 0).getTime();
+    const rightTime = new Date(right.key_issued_at || right.last_seen_at || right.joined_at || 0).getTime();
+    return rightTime - leftTime;
+  });
 }
 
 function GeneratedKeyPanel({ generatedKey, copied, onCopy }) {
@@ -108,13 +165,22 @@ export default function KeyManagement() {
   const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await authApi.listManagedUsers();
-      const nextUsers = Array.isArray(res?.users) ? res.users : [];
+      const [managedRes, rosterRes] = await Promise.all([
+        authApi.listManagedUsers(),
+        base44.entities.NexusUser.list('-joined_at', 500).catch(() => []),
+      ]);
+      const rosterUsers = Array.isArray(rosterRes) ? rosterRes : [];
+      const managedUsers = managedRes?.ok === false
+        ? []
+        : (Array.isArray(managedRes?.users) ? managedRes.users : []);
+      const nextUsers = mergeManagedUsers(managedUsers, rosterUsers);
       setUsers(nextUsers);
       setRankDrafts(Object.fromEntries(nextUsers.map((managedUser) => [managedUser.id, managedUser.nexus_rank || 'AFFILIATE'])));
-      setError('');
+      setError(managedRes?.ok === false ? (managedRes.error || 'Key authorization controls are unavailable, but the member roster is readable.') : '');
     } catch (err) {
-      setError(err?.message || 'Failed to load issued keys.');
+      setUsers([]);
+      setRankDrafts({});
+      setError(err?.message || 'Failed to load key authorization data.');
     } finally {
       setLoading(false);
     }
@@ -185,9 +251,11 @@ export default function KeyManagement() {
       if (res?.error) {
         setError(res.error);
       } else if (res?.key) {
+        const displayName = managedUser.username || managedUser.login_name || managedUser.callsign || 'UNKNOWN';
+        const nextRank = rankDrafts[managedUser.id] || managedUser.nexus_rank || 'AFFILIATE';
         setGeneratedKey({
           key: res.key,
-          contextLabel: `Regenerated For ${managedUser.username.toUpperCase()} · ${managedUser.nexus_rank}`,
+          contextLabel: `${userStatus(managedUser) === 'NO KEY' ? 'Issued For' : 'Regenerated For'} ${displayName.toUpperCase()} · ${String(nextRank).toUpperCase()}`,
         });
         await loadUsers();
       } else {
@@ -251,6 +319,7 @@ export default function KeyManagement() {
     INVITED: '#4AE830',
     REGISTERED: '#C8A84B',
     REVOKED: '#C0392B',
+    'NO KEY': '#E8A020',
   };
 
   const systemAdminUser = users.find((managedUser) =>
@@ -333,6 +402,23 @@ export default function KeyManagement() {
       }}>
         <Shield size={18} style={{ color: '#C0392B' }} />
         Key Management
+      </div>
+
+      <div style={{
+        background: '#0F0F0D',
+        borderLeft: '2px solid #E8A020',
+        borderTop: '0.5px solid rgba(200,170,100,0.10)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        borderRadius: 2,
+        padding: '12px 16px',
+        marginBottom: 24,
+        color: '#9A9488',
+        fontSize: 11,
+        lineHeight: 1.6,
+      }}>
+        This table shows all readable <strong style={{ color: '#E8E4DC' }}>NexusUser</strong> member records, including members who do not yet have an issued key.
+        Members marked <strong style={{ color: '#E8A020' }}>NO KEY</strong> can receive their first key from the row action.
       </div>
 
       <div style={{
@@ -653,8 +739,10 @@ export default function KeyManagement() {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          <span>Issued Users ({users.length})</span>
-          <span style={{ color: '#9A9488', letterSpacing: '0.1em' }}>Issuer: {issuerCallsign}</span>
+          <span>Authorized Members ({users.length})</span>
+          <span style={{ color: '#9A9488', letterSpacing: '0.1em' }}>
+            Issuer: {issuerCallsign} · No Key: {users.filter((managedUser) => userStatus(managedUser) === 'NO KEY').length}
+          </span>
         </div>
 
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -687,11 +775,12 @@ export default function KeyManagement() {
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#9A9488', fontSize: 11 }}>No invites issued yet.</td>
+                <td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#9A9488', fontSize: 11 }}>No readable NexusUser members found.</td>
               </tr>
             ) : users.map((managedUser, index) => {
               const status = userStatus(managedUser);
               const isConfirming = revokeConfirm === managedUser.id;
+              const displayUsername = managedUser.username || managedUser.login_name || managedUser.callsign || 'UNKNOWN';
               return (
                 <tr
                   key={managedUser.id}
@@ -701,7 +790,7 @@ export default function KeyManagement() {
                   }}
                 >
                   <td style={{ padding: '10px 16px', color: '#E8E4DC', fontSize: 12, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, letterSpacing: '0.06em' }}>
-                    {managedUser.username}
+                    {displayUsername}
                   </td>
                   <td style={{ padding: '10px 16px', color: '#9A9488', fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.06em' }}>
                     {managedUser.callsign}
@@ -795,7 +884,7 @@ export default function KeyManagement() {
                           letterSpacing: '0.06em',
                         }}
                       >
-                        {submitting && workingUserId === managedUser.id ? <RefreshCw size={10} /> : 'REGENERATE'}
+                        {submitting && workingUserId === managedUser.id ? <RefreshCw size={10} /> : status === 'NO KEY' ? 'ISSUE KEY' : 'REGENERATE'}
                       </button>
 
                       {managedUser.key_revoked ? null : isConfirming ? (

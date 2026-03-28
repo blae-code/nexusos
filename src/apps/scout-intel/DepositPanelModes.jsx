@@ -305,7 +305,7 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
         quality_pct: qualityPct,
         risk_level: deposit.risk_level,
       });
-      setRouteResult(result);
+      setRouteResult(result?.insight || result || null);
     } catch {
       setRouteResult({ recommendation: 'Route data unavailable.' });
     }
@@ -467,7 +467,7 @@ export function DetailMode({ deposit, liveOp, callsign, onBack, onDepositUpdated
             ROUTE RECOMMENDATION
           </div>
           <div style={{ color: 'var(--t1)', fontSize: 10, lineHeight: 1.5 }}>
-            {routeResult.recommendation || routeResult.insight || routeResult.text || 'No recommendation available.'}
+            {routeResult?.detail || routeResult?.recommendation || routeResult?.text || 'No recommendation available.'}
           </div>
         </div>
       )}

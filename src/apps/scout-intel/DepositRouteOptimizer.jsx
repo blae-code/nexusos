@@ -64,61 +64,13 @@ export default function DepositRouteOptimizer({ deposits, onRouteCalculated, onC
       reporter: d.reported_by_callsign,
     }));
 
-    const prompt = `You are a Star Citizen mining route optimizer for an industrial org. Given these scouted mineral deposits, calculate the most efficient route to visit as many high-value deposits as possible.
-
-DEPOSITS:
-${JSON.stringify(depositSummaries, null, 2)}
-
-PARAMETERS:
-- Ship class: ${shipClass}
-- Max acceptable risk: ${maxRisk}
-- Include refueling stops: ${includeRefueling ? 'Yes' : 'No'}
-- Minimum quality threshold: ${minQuality}%
-
-INSTRUCTIONS:
-1. Order the deposits into an optimal visiting sequence, prioritizing:
-   - Highest quality deposits first within each system
-   - Minimizing travel between systems (cluster same-system deposits together)
-   - Placing lower-risk deposits earlier when quality is similar
-2. ${includeRefueling ? 'Insert refueling stops between system jumps or after every 3 deposits. Suggest the nearest safe station for refueling.' : 'No refueling stops needed.'}
-3. For each waypoint, estimate travel time in minutes from the previous stop.
-4. Provide a safety assessment for the overall route.
-5. Calculate total estimated session time and total expected yield in SCU.
-
-Return a structured route plan.`;
-
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            route_name: { type: 'string' },
-            waypoints: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  order: { type: 'integer' },
-                  type: { type: 'string', description: 'DEPOSIT or REFUEL' },
-                  name: { type: 'string' },
-                  system: { type: 'string' },
-                  location: { type: 'string' },
-                  material: { type: 'string' },
-                  quality_pct: { type: 'number' },
-                  risk_level: { type: 'string' },
-                  travel_minutes: { type: 'integer' },
-                  notes: { type: 'string' },
-                },
-              },
-            },
-            total_session_minutes: { type: 'integer' },
-            total_estimated_yield_scu: { type: 'number' },
-            safety_rating: { type: 'string', description: 'LOW_RISK, MODERATE, HIGH_RISK, DANGEROUS' },
-            safety_notes: { type: 'string' },
-            route_summary: { type: 'string' },
-          },
-        },
+      const result = await base44.functions.invoke('scoutRouteOptimizer', {
+        deposits: depositSummaries,
+        ship_class: shipClass,
+        max_risk: maxRisk,
+        include_refueling: includeRefueling,
+        minimum_quality: minQuality,
       });
 
       onRouteCalculated(result);

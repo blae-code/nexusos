@@ -4,9 +4,11 @@ import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
 import {
   createRescueCall,
   getActiveRescueCount,
+  getRescueRuntimeStatus,
   loadRescueCalls,
   refreshRescueCalls,
   subscribeToRescueCalls,
+  subscribeToRescueRuntimeStatus,
   updateRescueCall,
 } from '@/core/data/rescue-board-store';
 
@@ -14,6 +16,7 @@ export default function RescueBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
   const callsign = outletContext.callsign;
   const [calls, setCalls] = useState(() => loadRescueCalls());
+  const [runtimeStatus, setRuntimeStatus] = useState(() => getRescueRuntimeStatus());
   const sessionCallsign = callsign || 'UNKNOWN';
   const [form, setForm] = useState({ location: '', system: 'STANTON', situation: '', callsign: sessionCallsign });
   const [showForm, setShowForm] = useState(false);
@@ -35,9 +38,11 @@ export default function RescueBoard() {
     });
 
     const unsubscribe = subscribeToRescueCalls(setCalls);
+    const unsubscribeRuntime = subscribeToRescueRuntimeStatus(setRuntimeStatus);
     return () => {
       active = false;
       unsubscribe();
+      unsubscribeRuntime();
     };
   }, []);
 
@@ -76,6 +81,10 @@ export default function RescueBoard() {
   const STATUS_COLORS = { OPEN: '#C0392B', RESPONDING: '#C8A84B', RESOLVED: '#4A8C5C' };
   const BORDER_COLORS = { OPEN: '#C0392B', RESPONDING: '#C8A84B', RESOLVED: '#5A5850' };
   const openCount = getActiveRescueCount(calls);
+  const isSharedMode = runtimeStatus.mode === 'shared_entity';
+  const runtimeTone = isSharedMode ? '#4A8C5C' : '#C0392B';
+  const runtimeBackground = isSharedMode ? 'rgba(74,140,92,0.12)' : 'rgba(192,57,43,0.14)';
+  const runtimeLabel = isSharedMode ? 'SHARED ENTITY' : 'LOCAL CACHE';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 16, gap: 16, animation: 'opsPageEntrance 200ms ease-out' }}>
@@ -84,6 +93,9 @@ export default function RescueBoard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <AlertTriangle size={16} style={{ color: '#C0392B' }} />
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>RESCUE BOARD</span>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 10, color: runtimeTone, background: runtimeBackground, border: `0.5px solid ${runtimeTone}`, borderRadius: 2, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            {runtimeLabel}
+          </span>
           {openCount > 0 && (
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 10, color: '#C0392B', background: 'rgba(192,57,43,0.18)', border: '0.5px solid #C0392B', borderRadius: 2, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.15em' }}>{openCount} ACTIVE</span>
           )}
@@ -91,6 +103,13 @@ export default function RescueBoard() {
         <button onClick={() => setShowForm(!showForm)} style={{ background: '#C0392B', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#E8E4DC', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 12, padding: '8px 14px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6, transition: 'background 150ms' }} onMouseEnter={e => { e.currentTarget.style.background = '#9B2D20'; }} onMouseLeave={e => { e.currentTarget.style.background = '#C0392B'; }}>
           <Radio size={11}/> SEND DISTRESS
         </button>
+      </div>
+
+      <div className="nexus-card-2" style={{ color: isSharedMode ? 'var(--t1)' : 'var(--warn)', fontSize: 11, lineHeight: 1.6, borderColor: isSharedMode ? 'rgba(74,140,92,0.28)' : 'rgba(192,57,43,0.32)' }}>
+        {isSharedMode
+          ? 'Rescue is operating against the shared RescueCall entity. Distress calls and status updates are visible to other issued-key users.'
+          : 'Rescue is in degraded local-cache mode. Calls and status changes only exist in this browser until the shared RescueCall entity is restored.'}
+        {runtimeStatus.reason ? ` ${runtimeStatus.reason}` : ''}
       </div>
 
       {showForm && (

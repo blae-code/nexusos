@@ -20,6 +20,15 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const now    = new Date();
     const nowIso = now.toISOString();
+    let body: Record<string, unknown> = {};
+
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+
+    const selfTest = body?.mode === 'self_test';
 
     console.log('[orgHealthAgent] Daily org health check starting...');
 
@@ -134,6 +143,18 @@ Do not mention AI. Do not use corporate language. Write as if this is a system s
     } catch (e) {
       console.warn('[orgHealthAgent] Claude briefing failed:', e.message);
       briefing = `## READINESS STATUS\nAutomated briefing unavailable — system intelligence offline.\n## PRIORITY ACTIONS\nManual review required.\n## ALERTS\norgHealthAgent Claude call failed: ${e.message}`;
+    }
+
+    if (selfTest) {
+      return Response.json({
+        ok: true,
+        mode: 'self_test',
+        generated_at: nowIso,
+        housekeeping_preview: housekeeping,
+        briefing_length: briefing.length,
+        notifications_written: false,
+        mutations_performed: false,
+      });
     }
 
     try {

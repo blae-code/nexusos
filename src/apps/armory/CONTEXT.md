@@ -37,12 +37,13 @@ Cross-app integrations:
     readiness surfaced here
 
 Known issues / next tasks:
-  1. Fleetyards API client to be built in
-     src/core/data/fleetyards.js
-  2. sc-data ingestion pipeline to be built in
-     scripts/ingest-ship-data.js
-  3. Fleet ownership auth flow still needs a
-     member-authorized Fleetyards OAuth layer
+  1. Keep Fleetyards and related fleet sync
+     health visible in prod readiness audits so
+     degraded fleet data is caught before release.
+  2. Optional member-authorized ownership import
+     can be treated as future enhancement work;
+     it is not required for the current shipped
+     org-fleet and dispatch surfaces.
 
 What NOT to touch:
   Wallet/Transaction — owned by COMMERCE

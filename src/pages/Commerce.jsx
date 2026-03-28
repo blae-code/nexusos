@@ -40,6 +40,12 @@ const STATUS_STYLES = {
   EXPIRED: { color: 'var(--t2)', bg: 'rgba(157,161,205,0.12)' },
 };
 
+const SURFACE_MODE_STYLES = {
+  live: { color: 'var(--live)', bg: 'rgba(74,232,48,0.14)' },
+  degraded: { color: 'var(--warn)', bg: 'rgba(243,156,18,0.16)' },
+  blocked: { color: 'var(--danger)', bg: 'rgba(192,57,43,0.14)' },
+};
+
 function MetricCard({ label, value, detail, color = 'var(--t0)' }) {
   return (
     <div className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 6, minHeight: 104 }}>
@@ -59,6 +65,15 @@ function StatusPill({ status }) {
   );
 }
 
+function SurfaceModePill({ label, tone = 'live' }) {
+  const style = SURFACE_MODE_STYLES[tone] || SURFACE_MODE_STYLES.degraded;
+  return (
+    <span style={{ padding: '3px 8px', borderRadius: 999, background: style.bg, color: style.color, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+      {label}
+    </span>
+  );
+}
+
 export default function Commerce() {
   const navigate = useNavigate();
   const { user } = useSession();
@@ -67,6 +82,13 @@ export default function Commerce() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
+  const [entityAvailability, setEntityAvailability] = useState({
+    Wallet: true,
+    Transaction: true,
+    Contract: true,
+    CofferLog: true,
+    CargoLog: true,
+  });
   const [wallets, setWallets] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [contracts, setContracts] = useState([]);
@@ -97,12 +119,20 @@ export default function Commerce() {
       base44.entities.CargoLog.list('-logged_at', 200),
     ]);
 
+    const nextAvailability = {
+      Wallet: walletsResult.status === 'fulfilled',
+      Transaction: transactionsResult.status === 'fulfilled',
+      Contract: contractsResult.status === 'fulfilled',
+      CofferLog: cofferResult.status === 'fulfilled',
+      CargoLog: cargoLogsResult.status === 'fulfilled',
+    };
     const unavailable = [];
     if (walletsResult.status === 'fulfilled') setWallets(toArray(walletsResult.value)); else { setWallets([]); unavailable.push('Wallet'); }
     if (transactionsResult.status === 'fulfilled') setTransactions(toArray(transactionsResult.value)); else { setTransactions([]); unavailable.push('Transaction'); }
     if (contractsResult.status === 'fulfilled') setContracts(toArray(contractsResult.value)); else { setContracts([]); unavailable.push('Contract'); }
     if (cofferResult.status === 'fulfilled') setCofferEntries(toArray(cofferResult.value)); else { setCofferEntries([]); unavailable.push('CofferLog'); }
     if (cargoLogsResult.status === 'fulfilled') setCargoLogs(toArray(cargoLogsResult.value)); else { setCargoLogs([]); unavailable.push('CargoLog'); }
+    setEntityAvailability(nextAvailability);
     setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Commerce will degrade to read-only until those entities are available.` : '');
     setLoading(false);
   }, []);
@@ -120,6 +150,18 @@ export default function Commerce() {
 
   const viewerId = user?.id || '';
   const viewerCallsign = user?.callsign || 'UNKNOWN';
+  const capabilities = useMemo(() => ({
+    walletWrite: Boolean(entityAvailability.Wallet && entityAvailability.Transaction),
+    contractsWrite: Boolean(entityAvailability.Contract),
+    tradeLive: Boolean(entityAvailability.CargoLog),
+    cofferLive: Boolean(entityAvailability.CofferLog),
+    logisticsBridgeLive: Boolean(entityAvailability.Contract && entityAvailability.CargoLog),
+  }), [entityAvailability]);
+  const surfaceSummary = useMemo(() => ([
+    capabilities.walletWrite ? 'Wallet writes enabled.' : 'Wallet is read-only because Wallet or Transaction is unavailable.',
+    capabilities.contractsWrite ? 'Contracts can issue and transition normally.' : 'Contracts are read-only because the Contract entity is unavailable.',
+    capabilities.tradeLive ? 'Trade profitability is using live cargo records.' : 'Trade profitability is informational only because CargoLog is unavailable.',
+  ]), [capabilities]);
   const currentWallet = wallets.find((wallet) => wallet.member_id === viewerId) || null;
   const walletBalance = Number(currentWallet?.balance_aUEC ?? user?.wallet_balance ?? 0) || 0;
   const walletTransactions = transactions
@@ -142,8 +184,21 @@ export default function Commerce() {
   const activeContracts = contracts.filter((contract) => ['ACTIVE', 'IN_TRANSIT'].includes(contract.status));
   const contractExposure = contracts.filter((contract) => ['OPEN', 'ACTIVE', 'IN_TRANSIT'].includes(contract.status)).reduce((sum, contract) => sum + (Number(contract.collateral_aUEC) || 0), 0);
 
+  useEffect(() => {
+    if (!capabilities.walletWrite) {
+      setShowTransactionForm(false);
+    }
+    if (!capabilities.contractsWrite) {
+      setShowContractForm(false);
+    }
+  }, [capabilities.contractsWrite, capabilities.walletWrite]);
+
   const handleLogTransaction = async (event) => {
     event.preventDefault();
+    if (!capabilities.walletWrite) {
+      setError('Wallet writes are disabled because Wallet or Transaction is unavailable in this deployment.');
+      return;
+    }
     const amount = Math.round(Number(transactionForm.amount_aUEC) || 0);
     if (!viewerId || amount <= 0) {
       setError('Enter a valid transaction amount before logging wallet activity.');
@@ -191,6 +246,10 @@ export default function Commerce() {
 
   const handleCreateContract = async (event) => {
     event.preventDefault();
+    if (!capabilities.contractsWrite) {
+      setError('Contract issuance is disabled because the Contract entity is unavailable in this deployment.');
+      return;
+    }
     if (!viewerId || !contractForm.title.trim()) {
       setError('Enter a contract title before issuing a contract.');
       return;
@@ -225,6 +284,10 @@ export default function Commerce() {
   };
 
   const handleContractUpdate = async (contract, patch) => {
+    if (!capabilities.contractsWrite) {
+      setError('Contract updates are disabled because the Contract entity is unavailable in this deployment.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -258,50 +321,79 @@ export default function Commerce() {
 
       {warning ? <div className="nexus-card-2" style={{ color: 'var(--warn)', fontSize: 11, lineHeight: 1.6 }}>{warning}</div> : null}
       {error ? <div className="nexus-card-2" style={{ color: 'var(--danger)', fontSize: 11, lineHeight: 1.6 }}>{error}</div> : null}
+      <div className="nexus-card-2" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <SurfaceModePill label={capabilities.walletWrite ? 'wallet live' : 'wallet read-only'} tone={capabilities.walletWrite ? 'live' : 'blocked'} />
+        <SurfaceModePill label={capabilities.contractsWrite ? 'contracts live' : 'contracts blocked'} tone={capabilities.contractsWrite ? 'live' : 'blocked'} />
+        <SurfaceModePill label={capabilities.tradeLive ? 'trade live' : 'trade limited'} tone={capabilities.tradeLive ? 'live' : 'degraded'} />
+        <SurfaceModePill label={capabilities.cofferLive ? 'coffer live' : 'coffer limited'} tone={capabilities.cofferLive ? 'live' : 'degraded'} />
+      </div>
+      <div className="nexus-card-2" style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
+        {surfaceSummary.join(' ')}
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
         <button type="button" onClick={() => setActiveTab('wallet')} className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 170, textAlign: 'left', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div className="nexus-avatar"><Coins size={14} /></div><div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Wallet</div></div>
-            <span className="nexus-pill nexus-pill-live">LIVE</span>
+            <SurfaceModePill label={capabilities.walletWrite ? 'LIVE' : 'READ-ONLY'} tone={capabilities.walletWrite ? 'live' : 'blocked'} />
           </div>
-          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>Personal aUEC balance, manual adjustments, pending ledger entries, and a readable activity timeline.</div>
+          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>
+            {capabilities.walletWrite
+              ? 'Personal aUEC balance, manual adjustments, pending ledger entries, and a readable activity timeline.'
+              : 'Wallet history remains visible, but manual balance changes are disabled until Wallet and Transaction are restored.'}
+          </div>
           <div style={{ marginTop: 'auto', color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.08em' }}>OPEN WALLET -&gt;</div>
         </button>
 
         <button type="button" onClick={() => navigate('/app/industry/coffer')} className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 170, textAlign: 'left', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div className="nexus-avatar"><TrendingUp size={14} /></div><div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Coffer</div></div>
-            <span className="nexus-pill nexus-pill-live">LIVE</span>
+            <SurfaceModePill label={capabilities.cofferLive ? 'LIVE' : 'LIMITED'} tone={capabilities.cofferLive ? 'live' : 'degraded'} />
           </div>
-          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>Org treasury, contribution history, and shared expenditure records handled in the dedicated coffer ledger.</div>
+          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>
+            {capabilities.cofferLive
+              ? 'Org treasury, contribution history, and shared expenditure records handled in the dedicated coffer ledger.'
+              : 'Coffer navigation remains available, but shared treasury history is incomplete until CofferLog is restored.'}
+          </div>
           <div style={{ marginTop: 'auto', color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.08em' }}>OPEN COFFER -&gt;</div>
         </button>
 
         <button type="button" onClick={() => setActiveTab('trade')} className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 170, textAlign: 'left', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div className="nexus-avatar"><Route size={14} /></div><div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Trade Desk</div></div>
-            <span className="nexus-pill nexus-pill-live">LIVE</span>
+            <SurfaceModePill label={capabilities.tradeLive ? 'LIVE' : 'READ-ONLY'} tone={capabilities.tradeLive ? 'live' : 'degraded'} />
           </div>
-          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>Route mapping, profitability snapshots from logged cargo runs, and quick access to deeper route tools.</div>
+          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>
+            {capabilities.tradeLive
+              ? 'Route mapping, profitability snapshots from logged cargo runs, and quick access to deeper route tools.'
+              : 'Route tools remain available, but profitability snapshots are degraded until CargoLog is restored.'}
+          </div>
           <div style={{ marginTop: 'auto', color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.08em' }}>OPEN TRADE -&gt;</div>
         </button>
 
         <button type="button" onClick={() => setActiveTab('contracts')} className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 170, textAlign: 'left', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div className="nexus-avatar"><FileText size={14} /></div><div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Contracts</div></div>
-            <span className="nexus-pill nexus-pill-live">LIVE</span>
+            <SurfaceModePill label={capabilities.contractsWrite ? 'LIVE' : 'BLOCKED'} tone={capabilities.contractsWrite ? 'live' : 'blocked'} />
           </div>
-          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>Courier, exchange, and auction contracts with lifecycle state, assignee tracking, and manifest summaries.</div>
+          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>
+            {capabilities.contractsWrite
+              ? 'Courier, exchange, and auction contracts with lifecycle state, assignee tracking, and manifest summaries.'
+              : 'Existing contract records can be reviewed, but issuing and state transitions are disabled until Contract is restored.'}
+          </div>
           <div style={{ marginTop: 'auto', color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.08em' }}>OPEN CONTRACTS -&gt;</div>
         </button>
 
         <button type="button" onClick={() => navigate('/app/industry/logistics')} className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 170, textAlign: 'left', cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div className="nexus-avatar"><Package size={14} /></div><div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Logistics Bridge</div></div>
-            <span className="nexus-pill nexus-pill-live">LIVE</span>
+            <SurfaceModePill label={capabilities.logisticsBridgeLive ? 'LIVE' : 'CHECK'} tone={capabilities.logisticsBridgeLive ? 'live' : 'degraded'} />
           </div>
-          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>Courier execution, cargo jobs, consignments, and dispatch planning are now live under Logistics.</div>
+          <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7 }}>
+            {capabilities.logisticsBridgeLive
+              ? 'Courier execution, cargo jobs, consignments, and dispatch planning are now live under Logistics.'
+              : 'Logistics navigation remains available, but cross-app finance handoff is degraded until contract and cargo records are fully available.'}
+          </div>
           <div style={{ marginTop: 'auto', color: 'var(--acc2)', fontSize: 10, letterSpacing: '0.08em' }}>OPEN LOGISTICS -&gt;</div>
         </button>
       </div>
@@ -337,9 +429,13 @@ export default function Commerce() {
           <div className="nexus-card-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{viewerCallsign}</div>
-              <div style={{ color: 'var(--t2)', fontSize: 10 }}>Wallet entries update the active profile balance when the live entity surface is available.</div>
+              <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+                {capabilities.walletWrite
+                  ? 'Wallet entries update the active profile balance when the live entity surface is available.'
+                  : 'Wallet history is visible, but new ledger entries are disabled in this deployment.'}
+              </div>
             </div>
-            <button type="button" onClick={() => setShowTransactionForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }}>
+            <button type="button" onClick={() => setShowTransactionForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }} disabled={!capabilities.walletWrite}>
               <Plus size={12} />
               Log Wallet Activity
             </button>
@@ -349,7 +445,7 @@ export default function Commerce() {
             <form onSubmit={handleLogTransaction} className="nexus-card-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>TYPE</label>
-                <select className="nexus-input" value={transactionForm.type} onChange={(event) => setTransactionForm((current) => ({ ...current, type: event.target.value }))}>
+                <select className="nexus-input" value={transactionForm.type} onChange={(event) => setTransactionForm((current) => ({ ...current, type: event.target.value }))} disabled={!capabilities.walletWrite}>
                   <option value="CREDIT">CREDIT</option>
                   <option value="DEBIT">DEBIT</option>
                   <option value="PENDING">PENDING</option>
@@ -357,15 +453,15 @@ export default function Commerce() {
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>AMOUNT</label>
-                <input className="nexus-input" type="number" min="1" value={transactionForm.amount_aUEC} onChange={(event) => setTransactionForm((current) => ({ ...current, amount_aUEC: event.target.value }))} placeholder="125000" required />
+                <input className="nexus-input" type="number" min="1" value={transactionForm.amount_aUEC} onChange={(event) => setTransactionForm((current) => ({ ...current, amount_aUEC: event.target.value }))} placeholder="125000" required disabled={!capabilities.walletWrite} />
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>DESCRIPTION</label>
-                <input className="nexus-input" value={transactionForm.description} onChange={(event) => setTransactionForm((current) => ({ ...current, description: event.target.value }))} placeholder="Courier contract payout" required />
+                <input className="nexus-input" value={transactionForm.description} onChange={(event) => setTransactionForm((current) => ({ ...current, description: event.target.value }))} placeholder="Courier contract payout" required disabled={!capabilities.walletWrite} />
               </div>
               <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button type="button" className="nexus-btn" onClick={() => setShowTransactionForm(false)}>Cancel</button>
-                <button type="submit" className="nexus-btn primary" disabled={busy}>{busy ? 'Logging...' : 'Save Entry'}</button>
+                <button type="submit" className="nexus-btn primary" disabled={busy || !capabilities.walletWrite}>{busy ? 'Logging...' : 'Save Entry'}</button>
               </div>
             </form>
           ) : null}
@@ -376,7 +472,14 @@ export default function Commerce() {
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Transaction History</div>
             </div>
             {walletTransactions.length === 0 ? (
-              <EmptyState icon={ArrowRightLeft} title="No wallet activity logged" detail="Create credits, debits, or pending payouts to start the live member finance ledger." action actionLabel="Create Entry" actionOnClick={() => setShowTransactionForm(true)} />
+              <EmptyState
+                icon={ArrowRightLeft}
+                title="No wallet activity logged"
+                detail={capabilities.walletWrite ? 'Create credits, debits, or pending payouts to start the live member finance ledger.' : 'Wallet history is readable, but this deployment cannot create new ledger entries yet.'}
+                action={capabilities.walletWrite}
+                actionLabel="Create Entry"
+                actionOnClick={() => setShowTransactionForm(true)}
+              />
             ) : (
               walletTransactions.map((entry) => (
                 <div key={entry.id} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 120px 160px', gap: 10, padding: '10px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'center' }}>
@@ -432,15 +535,19 @@ export default function Commerce() {
             <MetricCard label="Open" value={String(openContracts.length)} detail="Contracts available for a courier or counterparty to accept." color="var(--acc)" />
             <MetricCard label="Active" value={String(activeContracts.length)} detail="Contracts already claimed and still in progress." color="var(--info)" />
             <MetricCard label="Exposure" value={formatCompactAuec(contractExposure)} detail="Collateral currently tied up in active finance commitments." color="var(--warn)" />
-            <MetricCard label="Courier Bridge" value="LIVE" detail="Courier contracts can move directly into Logistics for fulfilment and dispatch planning." color="var(--live)" />
+            <MetricCard label="Courier Bridge" value={capabilities.contractsWrite ? 'LIVE' : 'LIMITED'} detail={capabilities.contractsWrite ? 'Courier contracts can move directly into Logistics for fulfilment and dispatch planning.' : 'Cross-app courier handoff is degraded until contract writes are restored.'} color={capabilities.contractsWrite ? 'var(--live)' : 'var(--warn)'} />
           </div>
 
           <div className="nexus-card-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Issue New Contract</div>
-              <div style={{ color: 'var(--t2)', fontSize: 10 }}>Courier contracts can carry cargo manifests that Logistics will honor as the delivery brief.</div>
+              <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+                {capabilities.contractsWrite
+                  ? 'Courier contracts can carry cargo manifests that Logistics will honor as the delivery brief.'
+                  : 'Contract review remains available, but new contract issuance is disabled in this deployment.'}
+              </div>
             </div>
-            <button type="button" onClick={() => setShowContractForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }}>
+            <button type="button" onClick={() => setShowContractForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }} disabled={!capabilities.contractsWrite}>
               <Plus size={12} />
               New Contract
             </button>
@@ -450,7 +557,7 @@ export default function Commerce() {
             <form onSubmit={handleCreateContract} className="nexus-card-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>TYPE</label>
-                <select className="nexus-input" value={contractForm.contract_type} onChange={(event) => setContractForm((current) => ({ ...current, contract_type: event.target.value }))}>
+                <select className="nexus-input" value={contractForm.contract_type} onChange={(event) => setContractForm((current) => ({ ...current, contract_type: event.target.value }))} disabled={!capabilities.contractsWrite}>
                   <option value="COURIER">COURIER</option>
                   <option value="EXCHANGE">EXCHANGE</option>
                   <option value="AUCTION">AUCTION</option>
@@ -458,46 +565,53 @@ export default function Commerce() {
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>TITLE</label>
-                <input className="nexus-input" value={contractForm.title} onChange={(event) => setContractForm((current) => ({ ...current, title: event.target.value }))} placeholder="Pyro relief courier run" required />
+                <input className="nexus-input" value={contractForm.title} onChange={(event) => setContractForm((current) => ({ ...current, title: event.target.value }))} placeholder="Pyro relief courier run" required disabled={!capabilities.contractsWrite} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>DESCRIPTION</label>
-                <textarea className="nexus-input" value={contractForm.description} onChange={(event) => setContractForm((current) => ({ ...current, description: event.target.value }))} placeholder="What the counterparty needs and what qualifies as completion." style={{ minHeight: 72, resize: 'vertical' }} />
+                <textarea className="nexus-input" value={contractForm.description} onChange={(event) => setContractForm((current) => ({ ...current, description: event.target.value }))} placeholder="What the counterparty needs and what qualifies as completion." style={{ minHeight: 72, resize: 'vertical' }} disabled={!capabilities.contractsWrite} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>REWARD</label>
-                <input className="nexus-input" type="number" min="0" value={contractForm.reward_aUEC} onChange={(event) => setContractForm((current) => ({ ...current, reward_aUEC: event.target.value }))} placeholder="180000" />
+                <input className="nexus-input" type="number" min="0" value={contractForm.reward_aUEC} onChange={(event) => setContractForm((current) => ({ ...current, reward_aUEC: event.target.value }))} placeholder="180000" disabled={!capabilities.contractsWrite} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>COLLATERAL</label>
-                <input className="nexus-input" type="number" min="0" value={contractForm.collateral_aUEC} onChange={(event) => setContractForm((current) => ({ ...current, collateral_aUEC: event.target.value }))} placeholder="450000" />
+                <input className="nexus-input" type="number" min="0" value={contractForm.collateral_aUEC} onChange={(event) => setContractForm((current) => ({ ...current, collateral_aUEC: event.target.value }))} placeholder="450000" disabled={!capabilities.contractsWrite} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>EXPIRES</label>
-                <input className="nexus-input" type="datetime-local" value={contractForm.expires_at} onChange={(event) => setContractForm((current) => ({ ...current, expires_at: event.target.value }))} />
+                <input className="nexus-input" type="datetime-local" value={contractForm.expires_at} onChange={(event) => setContractForm((current) => ({ ...current, expires_at: event.target.value }))} disabled={!capabilities.contractsWrite} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>PICKUP</label>
-                <input className="nexus-input" value={contractForm.pickup_location} onChange={(event) => setContractForm((current) => ({ ...current, pickup_location: event.target.value }))} placeholder="Patch City" />
+                <input className="nexus-input" value={contractForm.pickup_location} onChange={(event) => setContractForm((current) => ({ ...current, pickup_location: event.target.value }))} placeholder="Patch City" disabled={!capabilities.contractsWrite} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>DELIVERY</label>
-                <input className="nexus-input" value={contractForm.delivery_location} onChange={(event) => setContractForm((current) => ({ ...current, delivery_location: event.target.value }))} placeholder="Ruin Station" />
+                <input className="nexus-input" value={contractForm.delivery_location} onChange={(event) => setContractForm((current) => ({ ...current, delivery_location: event.target.value }))} placeholder="Ruin Station" disabled={!capabilities.contractsWrite} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>CARGO MANIFEST</label>
-                <textarea className="nexus-input" value={contractForm.cargo_manifest_text} onChange={(event) => setContractForm((current) => ({ ...current, cargo_manifest_text: event.target.value }))} placeholder={'Medical Supplies: 32\nHydrogen Fuel: 16'} style={{ minHeight: 88, resize: 'vertical', whiteSpace: 'pre-wrap' }} />
+                <textarea className="nexus-input" value={contractForm.cargo_manifest_text} onChange={(event) => setContractForm((current) => ({ ...current, cargo_manifest_text: event.target.value }))} placeholder={'Medical Supplies: 32\nHydrogen Fuel: 16'} style={{ minHeight: 88, resize: 'vertical', whiteSpace: 'pre-wrap' }} disabled={!capabilities.contractsWrite} />
               </div>
               <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button type="button" className="nexus-btn" onClick={() => setShowContractForm(false)}>Cancel</button>
-                <button type="submit" className="nexus-btn primary" disabled={busy}>{busy ? 'Issuing...' : 'Issue Contract'}</button>
+                <button type="submit" className="nexus-btn primary" disabled={busy || !capabilities.contractsWrite}>{busy ? 'Issuing...' : 'Issue Contract'}</button>
               </div>
             </form>
           ) : null}
 
           <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {contracts.length === 0 ? (
-              <EmptyState icon={FileText} title="No contracts issued" detail="Create a courier, exchange, or auction contract to start testing cross-app finance flows." action actionLabel="Issue Contract" actionOnClick={() => setShowContractForm(true)} />
+              <EmptyState
+                icon={FileText}
+                title="No contracts issued"
+                detail={capabilities.contractsWrite ? 'Create a courier, exchange, or auction contract to start testing cross-app finance flows.' : 'Contract history is readable, but new contract creation is disabled in this deployment.'}
+                action={capabilities.contractsWrite}
+                actionLabel="Issue Contract"
+                actionOnClick={() => setShowContractForm(true)}
+              />
             ) : (
               contracts
                 .slice()
@@ -529,12 +643,12 @@ export default function Commerce() {
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 150 }}>
                         {contract.status === 'OPEN' ? (
-                          <button type="button" className="nexus-btn" onClick={() => handleContractUpdate(contract, { status: contract.contract_type === 'COURIER' ? 'IN_TRANSIT' : 'ACTIVE', assignee_id: viewerId, assignee_callsign: viewerCallsign, accepted_at: new Date().toISOString() })} disabled={busy}>
+                          <button type="button" className="nexus-btn" onClick={() => handleContractUpdate(contract, { status: contract.contract_type === 'COURIER' ? 'IN_TRANSIT' : 'ACTIVE', assignee_id: viewerId, assignee_callsign: viewerCallsign, accepted_at: new Date().toISOString() })} disabled={busy || !capabilities.contractsWrite}>
                             Accept
                           </button>
                         ) : null}
                         {['ACTIVE', 'IN_TRANSIT'].includes(contract.status) && (isIssuer || isAssignee) ? (
-                          <button type="button" className="nexus-btn" onClick={() => handleContractUpdate(contract, { status: 'COMPLETE', completed_at: new Date().toISOString() })} disabled={busy}>
+                          <button type="button" className="nexus-btn" onClick={() => handleContractUpdate(contract, { status: 'COMPLETE', completed_at: new Date().toISOString() })} disabled={busy || !capabilities.contractsWrite}>
                             Complete
                           </button>
                         ) : null}
@@ -544,7 +658,7 @@ export default function Commerce() {
                           </button>
                         ) : null}
                         {contract.status === 'OPEN' && isIssuer ? (
-                          <button type="button" className="nexus-btn" onClick={() => handleContractUpdate(contract, { status: 'EXPIRED' })} disabled={busy}>
+                          <button type="button" className="nexus-btn" onClick={() => handleContractUpdate(contract, { status: 'EXPIRED' })} disabled={busy || !capabilities.contractsWrite}>
                             Expire
                           </button>
                         ) : null}

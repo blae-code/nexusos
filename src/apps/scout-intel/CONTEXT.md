@@ -15,7 +15,7 @@ Covers:
 - Deposit voting (confirm fresh / mark stale)
 - Crafting gap analysis — cross-references priority blueprints against deposit locations
 - Scout leaderboard (deposit count per callsign)
-- AI-powered route optimisation ("Plan Run" → `generateInsight`, "Generate Route" → `routePlanner`)
+- AI-powered route optimisation ("Plan Run" → `generateInsight`, side-panel optimiser → `scoutRouteOptimizer`, deterministic route planner → `routePlanner`)
 - Live op overlay (highlights craft-target deposits when an op is LIVE)
 
 ---
@@ -42,6 +42,7 @@ This app **invokes** (Base44 functions):
 | Function | Context |
 |----------|---------|
 | `generateInsight` | DepositPanelModes DetailMode "Plan Run" — route recommendation for selected deposit |
+| `scoutRouteOptimizer` | DepositRouteOptimizer side-panel — structured multi-stop route plan from filtered deposits |
 | `routePlanner` | RoutePlannerPanel "Generate Route" — full multi-deposit optimised route plan |
 
 ---
@@ -95,11 +96,9 @@ This app **invokes** (Base44 functions):
 
 2. **Unused variables in `ScoutIntelModule.jsx`**: `systemColors` and `riskColor` objects are declared but never used in the component render. Clean up.
 
-4. **`generateInsight` called with ad hoc `context` param**: The "Plan Run" call in `DepositPanelModes.jsx` passes `{ context: 'scout_route', ... }` but the current `generateInsight` function may not have a scout-route-specific prompt branch. Verify the function handles this context key and returns meaningful data, or implement `scoutRoute` as its own Base44 function.
+4. **`SYSTEM_COORDS` hardcoded in `RouteOverlay.jsx`**: Stanton at (50,50), Pyro at (75,30), Nyx at (25,70). If the starmap data source changes, this won't auto-update. Not critical for current scope.
 
-5. **`SYSTEM_COORDS` hardcoded in `RouteOverlay.jsx`**: Stanton at (50,50), Pyro at (75,30), Nyx at (25,70). If the starmap data source changes, this won't auto-update. Not critical for current scope.
-
-6. **Dual map implementations**: `SystemMap.jsx` (full-featured, used by `index.jsx`) and `ScoutMap.jsx` (zoom-enabled, used by `ScoutIntelModule.jsx`) are parallel. The active route uses `index.jsx` → `SystemMap.jsx`. Decide whether to unify or keep both for different contexts.
+5. **Dual map implementations**: `SystemMap.jsx` (full-featured, used by `index.jsx`) and `ScoutMap.jsx` (zoom-enabled, used by `ScoutIntelModule.jsx`) are parallel. The active route uses `index.jsx` → `SystemMap.jsx`. Decide whether to unify or keep both for different contexts.
 
 ---
 

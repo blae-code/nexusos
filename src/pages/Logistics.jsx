@@ -42,6 +42,12 @@ const STATUS_STYLES = {
   RETURNED: { color: 'var(--t2)', bg: 'rgba(157,161,205,0.12)' },
 };
 
+const SURFACE_MODE_STYLES = {
+  live: { color: 'var(--live)', bg: 'rgba(74,232,48,0.14)' },
+  degraded: { color: 'var(--warn)', bg: 'rgba(243,156,18,0.16)' },
+  blocked: { color: 'var(--danger)', bg: 'rgba(192,57,43,0.14)' },
+};
+
 function MetricCard({ label, value, detail, color = 'var(--t0)' }) {
   return (
     <div className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 6, minHeight: 104 }}>
@@ -61,6 +67,15 @@ function StatusPill({ status }) {
   );
 }
 
+function SurfaceModePill({ label, tone = 'live' }) {
+  const style = SURFACE_MODE_STYLES[tone] || SURFACE_MODE_STYLES.degraded;
+  return (
+    <span style={{ padding: '3px 8px', borderRadius: 999, background: style.bg, color: style.color, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+      {label}
+    </span>
+  );
+}
+
 export default function Logistics() {
   const navigate = useNavigate();
   const { user } = useSession();
@@ -69,6 +84,13 @@ export default function Logistics() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
+  const [entityAvailability, setEntityAvailability] = useState({
+    CargoJob: true,
+    Consignment: true,
+    OrgShip: true,
+    Material: true,
+    GameCacheCommodity: true,
+  });
   const [jobs, setJobs] = useState([]);
   const [consignments, setConsignments] = useState([]);
   const [ships, setShips] = useState([]);
@@ -104,12 +126,20 @@ export default function Logistics() {
       base44.entities.GameCacheCommodity.list('-baseline_price', 200),
     ]);
 
+    const nextAvailability = {
+      CargoJob: jobsResult.status === 'fulfilled',
+      Consignment: consignmentsResult.status === 'fulfilled',
+      OrgShip: shipsResult.status === 'fulfilled',
+      Material: materialsResult.status === 'fulfilled',
+      GameCacheCommodity: commoditiesResult.status === 'fulfilled',
+    };
     const unavailable = [];
     if (jobsResult.status === 'fulfilled') setJobs(toArray(jobsResult.value)); else { setJobs([]); unavailable.push('CargoJob'); }
     if (consignmentsResult.status === 'fulfilled') setConsignments(toArray(consignmentsResult.value)); else { setConsignments([]); unavailable.push('Consignment'); }
     if (shipsResult.status === 'fulfilled') setShips(toArray(shipsResult.value)); else { setShips([]); unavailable.push('OrgShip'); }
     if (materialsResult.status === 'fulfilled') setMaterials(toArray(materialsResult.value)); else { setMaterials([]); unavailable.push('Material'); }
     if (commoditiesResult.status === 'fulfilled') setCommodities(toArray(commoditiesResult.value)); else { setCommodities([]); unavailable.push('GameCacheCommodity'); }
+    setEntityAvailability(nextAvailability);
     setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Logistics will degrade to read-only until those entities are available.` : '');
     setLoading(false);
   }, []);
@@ -126,6 +156,19 @@ export default function Logistics() {
 
   const viewerId = user?.id || '';
   const viewerCallsign = user?.callsign || 'UNKNOWN';
+  const capabilities = useMemo(() => ({
+    cargoWrites: Boolean(entityAvailability.CargoJob),
+    manifestWrites: Boolean(entityAvailability.CargoJob),
+    consignmentWrites: Boolean(entityAvailability.Consignment),
+    dispatchWrites: Boolean(entityAvailability.CargoJob && entityAvailability.OrgShip),
+    pricingLive: Boolean(entityAvailability.Material && entityAvailability.GameCacheCommodity),
+    fleetLive: Boolean(entityAvailability.OrgShip),
+  }), [entityAvailability]);
+  const surfaceSummary = useMemo(() => ([
+    capabilities.cargoWrites ? 'Cargo board can issue and claim jobs.' : 'Cargo board is read-only because CargoJob is unavailable.',
+    capabilities.consignmentWrites ? 'Consignments can post and settle normally.' : 'Consignment workflow is blocked because Consignment is unavailable.',
+    capabilities.dispatchWrites ? 'Dispatch can assign ships against shared fleet data.' : 'Dispatch cannot persist assignments until CargoJob and OrgShip are both available.',
+  ]), [capabilities]);
   const priceLookup = useMemo(() => buildPriceLookup(materials, commodities), [materials, commodities]);
   const jobsWithMetrics = useMemo(() => {
     return jobs.map((job) => {
@@ -140,8 +183,21 @@ export default function Logistics() {
   const availableShips = ships.filter((ship) => ship.status === 'AVAILABLE' && Number(ship.cargo_scu || 0) > 0);
   const activeManifestValue = activeJobs.reduce((sum, job) => sum + job.manifestValue, 0);
 
+  useEffect(() => {
+    if (!capabilities.cargoWrites) {
+      setShowJobForm(false);
+    }
+    if (!capabilities.consignmentWrites) {
+      setShowConsignmentForm(false);
+    }
+  }, [capabilities.cargoWrites, capabilities.consignmentWrites]);
+
   const handleCreateJob = async (event) => {
     event.preventDefault();
+    if (!capabilities.cargoWrites) {
+      setError('Cargo job creation is disabled because the CargoJob entity is unavailable in this deployment.');
+      return;
+    }
     if (!viewerId || !jobForm.title.trim() || !jobForm.pickup_location.trim() || !jobForm.delivery_location.trim()) {
       setError('Enter a title, pickup, and delivery location before posting a cargo job.');
       return;
@@ -182,6 +238,10 @@ export default function Logistics() {
   };
 
   const handleJobUpdate = async (job, patch) => {
+    if (!capabilities.manifestWrites) {
+      setError('Cargo job updates are disabled because the CargoJob entity is unavailable in this deployment.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -196,6 +256,10 @@ export default function Logistics() {
 
   const handleCreateConsignment = async (event) => {
     event.preventDefault();
+    if (!capabilities.consignmentWrites) {
+      setError('Consignment creation is disabled because the Consignment entity is unavailable in this deployment.');
+      return;
+    }
     if (!viewerId || !consignmentForm.goods_text.trim() || !consignmentForm.asking_price_aUEC) {
       setError('Enter goods and an asking price before posting a consignment.');
       return;
@@ -225,6 +289,10 @@ export default function Logistics() {
   };
 
   const handleConsignmentUpdate = async (consignment, patch) => {
+    if (!capabilities.consignmentWrites) {
+      setError('Consignment updates are disabled because the Consignment entity is unavailable in this deployment.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -258,6 +326,15 @@ export default function Logistics() {
 
       {warning ? <div className="nexus-card-2" style={{ color: 'var(--warn)', fontSize: 11, lineHeight: 1.6 }}>{warning}</div> : null}
       {error ? <div className="nexus-card-2" style={{ color: 'var(--danger)', fontSize: 11, lineHeight: 1.6 }}>{error}</div> : null}
+      <div className="nexus-card-2" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <SurfaceModePill label={capabilities.cargoWrites ? 'cargo live' : 'cargo read-only'} tone={capabilities.cargoWrites ? 'live' : 'blocked'} />
+        <SurfaceModePill label={capabilities.consignmentWrites ? 'consignment live' : 'consignment blocked'} tone={capabilities.consignmentWrites ? 'live' : 'blocked'} />
+        <SurfaceModePill label={capabilities.dispatchWrites ? 'dispatch live' : 'dispatch limited'} tone={capabilities.dispatchWrites ? 'live' : 'degraded'} />
+        <SurfaceModePill label={capabilities.pricingLive ? 'pricing live' : 'pricing limited'} tone={capabilities.pricingLive ? 'live' : 'degraded'} />
+      </div>
+      <div className="nexus-card-2" style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
+        {surfaceSummary.join(' ')}
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
         <MetricCard label="Open Jobs" value={String(openJobs.length)} detail="Cargo work orders currently available to claim." color="var(--acc)" />
@@ -291,9 +368,13 @@ export default function Logistics() {
           <div className="nexus-card-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Post Cargo Job</div>
-              <div style={{ color: 'var(--t2)', fontSize: 10 }}>Manifest lines accept `Commodity: Qty` or `Commodity xQty` input.</div>
+              <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+                {capabilities.cargoWrites
+                  ? 'Manifest lines accept `Commodity: Qty` or `Commodity xQty` input.'
+                  : 'Cargo board data remains visible, but new job posting is disabled in this deployment.'}
+              </div>
             </div>
-            <button type="button" onClick={() => setShowJobForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }}>
+            <button type="button" onClick={() => setShowJobForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }} disabled={!capabilities.cargoWrites}>
               <Plus size={12} />
               New Cargo Job
             </button>
@@ -303,7 +384,7 @@ export default function Logistics() {
             <form onSubmit={handleCreateJob} className="nexus-card-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>JOB TYPE</label>
-                <select className="nexus-input" value={jobForm.job_type} onChange={(event) => setJobForm((current) => ({ ...current, job_type: event.target.value }))}>
+                <select className="nexus-input" value={jobForm.job_type} onChange={(event) => setJobForm((current) => ({ ...current, job_type: event.target.value }))} disabled={!capabilities.cargoWrites}>
                   <option value="HAUL">HAUL</option>
                   <option value="COLLECT">COLLECT</option>
                   <option value="DELIVER">DELIVER</option>
@@ -311,19 +392,19 @@ export default function Logistics() {
               </div>
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>TITLE</label>
-                <input className="nexus-input" value={jobForm.title} onChange={(event) => setJobForm((current) => ({ ...current, title: event.target.value }))} placeholder="Pyro relief run" required />
+                <input className="nexus-input" value={jobForm.title} onChange={(event) => setJobForm((current) => ({ ...current, title: event.target.value }))} placeholder="Pyro relief run" required disabled={!capabilities.cargoWrites} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>PICKUP</label>
-                <input className="nexus-input" value={jobForm.pickup_location} onChange={(event) => setJobForm((current) => ({ ...current, pickup_location: event.target.value }))} placeholder="Patch City" required />
+                <input className="nexus-input" value={jobForm.pickup_location} onChange={(event) => setJobForm((current) => ({ ...current, pickup_location: event.target.value }))} placeholder="Patch City" required disabled={!capabilities.cargoWrites} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>DELIVERY</label>
-                <input className="nexus-input" value={jobForm.delivery_location} onChange={(event) => setJobForm((current) => ({ ...current, delivery_location: event.target.value }))} placeholder="Ruin Station" required />
+                <input className="nexus-input" value={jobForm.delivery_location} onChange={(event) => setJobForm((current) => ({ ...current, delivery_location: event.target.value }))} placeholder="Ruin Station" required disabled={!capabilities.cargoWrites} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>RISK TIER</label>
-                <select className="nexus-input" value={jobForm.risk_tier} onChange={(event) => setJobForm((current) => ({ ...current, risk_tier: event.target.value }))}>
+                <select className="nexus-input" value={jobForm.risk_tier} onChange={(event) => setJobForm((current) => ({ ...current, risk_tier: event.target.value }))} disabled={!capabilities.cargoWrites}>
                   <option value="">AUTO</option>
                   <option value="GREEN">GREEN</option>
                   <option value="AMBER">AMBER</option>
@@ -332,30 +413,37 @@ export default function Logistics() {
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>REWARD</label>
-                <input className="nexus-input" type="number" min="0" value={jobForm.reward_aUEC} onChange={(event) => setJobForm((current) => ({ ...current, reward_aUEC: event.target.value }))} placeholder="180000" />
+                <input className="nexus-input" type="number" min="0" value={jobForm.reward_aUEC} onChange={(event) => setJobForm((current) => ({ ...current, reward_aUEC: event.target.value }))} placeholder="180000" disabled={!capabilities.cargoWrites} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>COLLATERAL</label>
-                <input className="nexus-input" type="number" min="0" value={jobForm.collateral_aUEC} onChange={(event) => setJobForm((current) => ({ ...current, collateral_aUEC: event.target.value }))} placeholder="Auto if blank" />
+                <input className="nexus-input" type="number" min="0" value={jobForm.collateral_aUEC} onChange={(event) => setJobForm((current) => ({ ...current, collateral_aUEC: event.target.value }))} placeholder="Auto if blank" disabled={!capabilities.cargoWrites} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>CARGO MANIFEST</label>
-                <textarea className="nexus-input" value={jobForm.cargo_manifest_text} onChange={(event) => setJobForm((current) => ({ ...current, cargo_manifest_text: event.target.value }))} placeholder={'Medical Supplies: 32\nHydrogen Fuel: 16'} style={{ minHeight: 88, resize: 'vertical', whiteSpace: 'pre-wrap' }} />
+                <textarea className="nexus-input" value={jobForm.cargo_manifest_text} onChange={(event) => setJobForm((current) => ({ ...current, cargo_manifest_text: event.target.value }))} placeholder={'Medical Supplies: 32\nHydrogen Fuel: 16'} style={{ minHeight: 88, resize: 'vertical', whiteSpace: 'pre-wrap' }} disabled={!capabilities.cargoWrites} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>NOTES</label>
-                <textarea className="nexus-input" value={jobForm.notes} onChange={(event) => setJobForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Escort required on final jump." style={{ minHeight: 72, resize: 'vertical' }} />
+                <textarea className="nexus-input" value={jobForm.notes} onChange={(event) => setJobForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Escort required on final jump." style={{ minHeight: 72, resize: 'vertical' }} disabled={!capabilities.cargoWrites} />
               </div>
               <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button type="button" className="nexus-btn" onClick={() => setShowJobForm(false)}>Cancel</button>
-                <button type="submit" className="nexus-btn primary" disabled={busy}>{busy ? 'Posting...' : 'Post Job'}</button>
+                <button type="submit" className="nexus-btn primary" disabled={busy || !capabilities.cargoWrites}>{busy ? 'Posting...' : 'Post Job'}</button>
               </div>
             </form>
           ) : null}
 
           <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {openJobs.length === 0 ? (
-              <EmptyState icon={Truck} title="No open cargo jobs" detail="Post a new job or wait for another courier order to arrive." action actionLabel="Post Job" actionOnClick={() => setShowJobForm(true)} />
+              <EmptyState
+                icon={Truck}
+                title="No open cargo jobs"
+                detail={capabilities.cargoWrites ? 'Post a new job or wait for another courier order to arrive.' : 'Cargo jobs cannot be created or claimed until the CargoJob entity is restored.'}
+                action={capabilities.cargoWrites}
+                actionLabel="Post Job"
+                actionOnClick={() => setShowJobForm(true)}
+              />
             ) : (
               openJobs.map((job) => (
                 <div key={job.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.9fr) auto', gap: 12, padding: '12px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'start' }}>
@@ -374,7 +462,7 @@ export default function Logistics() {
                     <div>Value: <span style={{ color: 'var(--t0)' }}>{job.manifestValue > 0 ? formatCompactAuec(job.manifestValue) : 'Ad hoc'}</span></div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 140 }}>
-                    <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'CLAIMED', courier_id: viewerId, courier_callsign: viewerCallsign, claimed_at: new Date().toISOString() })} disabled={busy}>Claim Job</button>
+                    <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'CLAIMED', courier_id: viewerId, courier_callsign: viewerCallsign, claimed_at: new Date().toISOString() })} disabled={busy || !capabilities.cargoWrites}>Claim Job</button>
                     <button type="button" className="nexus-btn" onClick={() => navigate('/app/industry/commerce')}>Open Commerce</button>
                   </div>
                 </div>
@@ -416,10 +504,10 @@ export default function Logistics() {
                       <div>Value: <span style={{ color: 'var(--t0)' }}>{job.manifestValue > 0 ? formatCompactAuec(job.manifestValue) : 'Ad hoc'}</span></div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 150 }}>
-                      {job.status === 'CLAIMED' && isCourier ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'IN_TRANSIT' })} disabled={busy}>Launch</button> : null}
-                      {job.status === 'IN_TRANSIT' && isCourier ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'DELIVERED', delivered_at: new Date().toISOString() })} disabled={busy}>Mark Delivered</button> : null}
-                      {job.status === 'DELIVERED' && isIssuer && !job.confirmed_at ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { confirmed_at: new Date().toISOString() })} disabled={busy}>Confirm Delivery</button> : null}
-                      {['CLAIMED', 'IN_TRANSIT'].includes(job.status) && (isIssuer || isCourier) ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'FAILED', failed_at: new Date().toISOString() })} disabled={busy}>Fail Job</button> : null}
+                      {job.status === 'CLAIMED' && isCourier ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'IN_TRANSIT' })} disabled={busy || !capabilities.manifestWrites}>Launch</button> : null}
+                      {job.status === 'IN_TRANSIT' && isCourier ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'DELIVERED', delivered_at: new Date().toISOString() })} disabled={busy || !capabilities.manifestWrites}>Mark Delivered</button> : null}
+                      {job.status === 'DELIVERED' && isIssuer && !job.confirmed_at ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { confirmed_at: new Date().toISOString() })} disabled={busy || !capabilities.manifestWrites}>Confirm Delivery</button> : null}
+                      {['CLAIMED', 'IN_TRANSIT'].includes(job.status) && (isIssuer || isCourier) ? <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { status: 'FAILED', failed_at: new Date().toISOString() })} disabled={busy || !capabilities.manifestWrites}>Fail Job</button> : null}
                     </div>
                   </div>
                 );
@@ -439,9 +527,13 @@ export default function Logistics() {
           <div className="nexus-card-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>New Consignment</div>
-              <div style={{ color: 'var(--t2)', fontSize: 10 }}>Goods entries use the same manifest format as cargo jobs.</div>
+              <div style={{ color: 'var(--t2)', fontSize: 10 }}>
+                {capabilities.consignmentWrites
+                  ? 'Goods entries use the same manifest format as cargo jobs.'
+                  : 'Consignment history remains visible, but new postings are disabled in this deployment.'}
+              </div>
             </div>
-            <button type="button" onClick={() => setShowConsignmentForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }}>
+            <button type="button" onClick={() => setShowConsignmentForm((current) => !current)} className="nexus-btn primary" style={{ padding: '7px 12px' }} disabled={!capabilities.consignmentWrites}>
               <Plus size={12} />
               New Consignment
             </button>
@@ -451,30 +543,37 @@ export default function Logistics() {
             <form onSubmit={handleCreateConsignment} className="nexus-card-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>ASKING PRICE</label>
-                <input className="nexus-input" type="number" min="0" value={consignmentForm.asking_price_aUEC} onChange={(event) => setConsignmentForm((current) => ({ ...current, asking_price_aUEC: event.target.value }))} placeholder="240000" required />
+                <input className="nexus-input" type="number" min="0" value={consignmentForm.asking_price_aUEC} onChange={(event) => setConsignmentForm((current) => ({ ...current, asking_price_aUEC: event.target.value }))} placeholder="240000" required disabled={!capabilities.consignmentWrites} />
               </div>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>COMMISSION %</label>
-                <input className="nexus-input" type="number" min="0" max="100" value={consignmentForm.commission_rate} onChange={(event) => setConsignmentForm((current) => ({ ...current, commission_rate: event.target.value }))} />
+                <input className="nexus-input" type="number" min="0" max="100" value={consignmentForm.commission_rate} onChange={(event) => setConsignmentForm((current) => ({ ...current, commission_rate: event.target.value }))} disabled={!capabilities.consignmentWrites} />
               </div>
               <div style={{ gridColumn: 'span 1' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>NOTES</label>
-                <input className="nexus-input" value={consignmentForm.notes} onChange={(event) => setConsignmentForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Fast sale preferred" />
+                <input className="nexus-input" value={consignmentForm.notes} onChange={(event) => setConsignmentForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Fast sale preferred" disabled={!capabilities.consignmentWrites} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>GOODS</label>
-                <textarea className="nexus-input" value={consignmentForm.goods_text} onChange={(event) => setConsignmentForm((current) => ({ ...current, goods_text: event.target.value }))} placeholder={'Agricium: 24\nTitanium: 18'} style={{ minHeight: 88, resize: 'vertical', whiteSpace: 'pre-wrap' }} required />
+                <textarea className="nexus-input" value={consignmentForm.goods_text} onChange={(event) => setConsignmentForm((current) => ({ ...current, goods_text: event.target.value }))} placeholder={'Agricium: 24\nTitanium: 18'} style={{ minHeight: 88, resize: 'vertical', whiteSpace: 'pre-wrap' }} required disabled={!capabilities.consignmentWrites} />
               </div>
               <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button type="button" className="nexus-btn" onClick={() => setShowConsignmentForm(false)}>Cancel</button>
-                <button type="submit" className="nexus-btn primary" disabled={busy}>{busy ? 'Posting...' : 'Post Consignment'}</button>
+                <button type="submit" className="nexus-btn primary" disabled={busy || !capabilities.consignmentWrites}>{busy ? 'Posting...' : 'Post Consignment'}</button>
               </div>
             </form>
           ) : null}
 
           <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {consignments.length === 0 ? (
-              <EmptyState icon={Package} title="No consignments posted" detail="Create a consignment to start seller payout and commission workflows." action actionLabel="Post Consignment" actionOnClick={() => setShowConsignmentForm(true)} />
+              <EmptyState
+                icon={Package}
+                title="No consignments posted"
+                detail={capabilities.consignmentWrites ? 'Create a consignment to start seller payout and commission workflows.' : 'Consignment history is readable, but posting and settlement are disabled in this deployment.'}
+                action={capabilities.consignmentWrites}
+                actionLabel="Post Consignment"
+                actionOnClick={() => setShowConsignmentForm(true)}
+              />
             ) : (
               consignments
                 .slice()
@@ -497,9 +596,9 @@ export default function Logistics() {
                         <div>Payout: <span style={{ color: 'var(--t0)' }}>{formatCompactAuec(payout)}</span></div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 150 }}>
-                        {consignment.status === 'PENDING' ? <button type="button" className="nexus-btn" onClick={() => handleConsignmentUpdate(consignment, { status: 'LISTED' })} disabled={busy}>List For Sale</button> : null}
-                        {consignment.status === 'LISTED' ? <button type="button" className="nexus-btn" onClick={() => handleConsignmentUpdate(consignment, { status: 'SOLD', proceeds_aUEC: Number(consignment.asking_price_aUEC) || 0, settled_at: new Date().toISOString() })} disabled={busy}>Mark Sold</button> : null}
-                        {['PENDING', 'LISTED'].includes(consignment.status) ? <button type="button" className="nexus-btn" onClick={() => handleConsignmentUpdate(consignment, { status: 'RETURNED' })} disabled={busy}>Return Goods</button> : null}
+                        {consignment.status === 'PENDING' ? <button type="button" className="nexus-btn" onClick={() => handleConsignmentUpdate(consignment, { status: 'LISTED' })} disabled={busy || !capabilities.consignmentWrites}>List For Sale</button> : null}
+                        {consignment.status === 'LISTED' ? <button type="button" className="nexus-btn" onClick={() => handleConsignmentUpdate(consignment, { status: 'SOLD', proceeds_aUEC: Number(consignment.asking_price_aUEC) || 0, settled_at: new Date().toISOString() })} disabled={busy || !capabilities.consignmentWrites}>Mark Sold</button> : null}
+                        {['PENDING', 'LISTED'].includes(consignment.status) ? <button type="button" className="nexus-btn" onClick={() => handleConsignmentUpdate(consignment, { status: 'RETURNED' })} disabled={busy || !capabilities.consignmentWrites}>Return Goods</button> : null}
                       </div>
                     </div>
                   );
@@ -545,7 +644,7 @@ export default function Logistics() {
                               <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600 }}>{ship.name}</div>
                               <div style={{ color: 'var(--t2)', fontSize: 10 }}>{ship.model} · {Number(ship.cargo_scu || 0)} SCU</div>
                             </div>
-                            <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { assigned_ship_id: ship.id, assigned_ship_name: ship.name })} disabled={busy}>Assign</button>
+                            <button type="button" className="nexus-btn" onClick={() => handleJobUpdate(job, { assigned_ship_id: ship.id, assigned_ship_name: ship.name })} disabled={busy || !capabilities.dispatchWrites}>Assign</button>
                           </div>
                         ))
                       )}

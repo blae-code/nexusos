@@ -112,6 +112,14 @@ Extract ONLY industry-relevant changes in JSON format:
 
 Deno.serve(async (req: Request) => {
   try {
+    let body: Record<string, unknown> = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+    const selfTest = body?.mode === 'self_test';
+
     // Minimal auth check — agent can run with service role
     let isAgent = false;
     try {
@@ -138,6 +146,23 @@ Deno.serve(async (req: Request) => {
     const allFeeds = [...liveFeeds, ...ptuFeeds];
     if (allFeeds.length === 0) {
       return Response.json({ success: true, message: 'No patches found', processed: 0, timestamp: new Date().toISOString() });
+    }
+
+    if (selfTest) {
+      const samplePatch = allFeeds[0];
+      const analysis = samplePatch
+        ? await analyzeWithClaude(samplePatch.version, samplePatch.branch, samplePatch.title, samplePatch.contentPreview)
+        : { highlights: [], affected_systems: [], impact_level: 'unknown', action_required: false };
+
+      return Response.json({
+        ok: true,
+        mode: 'self_test',
+        processed: 0,
+        feed_count: allFeeds.length,
+        sample_version: samplePatch?.version || null,
+        analysis_preview: analysis,
+        mutations_performed: false,
+      });
     }
 
     // Check existing to avoid duplicates
