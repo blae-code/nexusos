@@ -516,12 +516,6 @@ export default function TrainingHub() {
 
       {/* Modal */}
       <TrainingModal module={selectedModule} onClose={() => setSelectedModule(null)} onLaunch={handleLaunch} />
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
-        @import url('https://fonts.cdnfonts.com/css/beyond-mars');
-        @import url('https://fonts.cdnfonts.com/css/earth-orbiter');
-      `}</style>
     </div>
   );
 }

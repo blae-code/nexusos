@@ -444,12 +444,8 @@ export default function AccessGate() {
         }}>REDSCAR {"\u00B7"} NOMADS {"\u00B7"} ETERNAL VOYAGE</div>
       </div>
 
-      {/* KEYFRAMES + FONT IMPORTS */}
+      {/* KEYFRAMES */}
       <style>{`
-        @import url('https://fonts.cdnfonts.com/css/beyond-mars');
-        @import url('https://fonts.cdnfonts.com/css/earth-orbiter');
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap');
-
         @keyframes twinkle {
           0%, 100% { opacity: 0.4; }
           50% { opacity: 0.08; }
