@@ -69,7 +69,10 @@ const API_TESTS = {
     return res.ok;
   },
   SC_API_KEY: async (apiKey) => {
-    const res = await fetch(`https://api.starcitizen-api.com/api/v2/live/vehicles?key=${apiKey}`);
+    // Key passed as header, matching verseStatus pattern
+    const res = await fetch('https://api.starcitizen-api.com/api/v2/live/vehicles', {
+      headers: { apikey: apiKey },
+    });
     return res.ok;
   },
 };

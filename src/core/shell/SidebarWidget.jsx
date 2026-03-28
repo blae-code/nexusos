@@ -35,17 +35,21 @@ export default function SidebarWidget() {
   const [tick, setTick] = useState(0);
 
   const load = useCallback(async () => {
-    const [refs, ops, reqs] = await Promise.all([
-      base44.entities.RefineryOrder.filter({ status: 'ACTIVE' }),
-      base44.entities.Op.filter({ status: 'PUBLISHED' }),
-      base44.entities.Requisition.filter({ status: 'OPEN' }),
-    ]);
-    setRefinery((refs || []).slice(0, 3));
-    const sorted = (ops || [])
-      .filter(o => o.scheduled_at)
-      .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
-    setNextOp(sorted[0] || null);
-    setPendingReqs((reqs || []).length);
+    try {
+      const [refs, ops, reqs] = await Promise.all([
+        base44.entities.RefineryOrder.filter({ status: 'ACTIVE' }).catch(() => []),
+        base44.entities.Op.filter({ status: 'PUBLISHED' }).catch(() => []),
+        base44.entities.Requisition.filter({ status: 'OPEN' }).catch(() => []),
+      ]);
+      setRefinery((refs || []).slice(0, 3));
+      const sorted = (ops || [])
+        .filter(o => o.scheduled_at)
+        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+      setNextOp(sorted[0] || null);
+      setPendingReqs((reqs || []).length);
+    } catch {
+      // entity unavailable — widget stays hidden
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);

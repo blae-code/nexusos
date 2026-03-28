@@ -51,6 +51,8 @@
 
   /* ── Typography ──────────────────────────────────── */
   --font: 'Barlow Condensed', 'Barlow', 'SF Mono', ui-monospace, monospace;
+  --font-display: 'Barlow Condensed', 'Barlow', sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
 
   /* ── Spacing ─────────────────────────────────────── */
   --r-sm: 2px;

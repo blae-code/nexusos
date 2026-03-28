@@ -73,6 +73,7 @@ Return ONLY the markdown text for the debrief.`;
 
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
+      model: 'claude-sonnet-4-6',
     });
 
     // The debrief markdown text

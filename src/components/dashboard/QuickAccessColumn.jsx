@@ -109,17 +109,20 @@ export default function QuickAccessColumn() {
   const [coffer, setCoffer] = useState({ balance: 0, transaction: null });
 
   const load = async () => {
-    const [ro, cq, cl] = await Promise.all([
-      base44.entities.RefineryOrder.list('-completes_at', 20),
-      base44.entities.CraftQueue.list('-created_date', 20),
-      base44.entities.CofferLog.list('-logged_at', 1),
-    ]);
-    setOrders(ro || []);
-    setCraftQueue(cq || []);
-    
-    const allEntries = cl || [];
-    const total = allEntries.reduce((sum, e) => sum + (e.entry_type === 'SALE' || e.entry_type === 'CRAFT_SALE' ? e.amount_aUEC : -e.amount_aUEC), 0);
-    setCoffer({ balance: total, transaction: allEntries[0] || null });
+    try {
+      const [ro, cq, cl] = await Promise.all([
+        base44.entities.RefineryOrder.list('-completes_at', 20).catch(() => []),
+        base44.entities.CraftQueue.list('-created_date', 20).catch(() => []),
+        base44.entities.CofferLog.list('-logged_at', 1).catch(() => []),
+      ]);
+      setOrders(ro || []);
+      setCraftQueue(cq || []);
+      const allEntries = cl || [];
+      const total = allEntries.reduce((sum, e) => sum + (e.entry_type === 'SALE' || e.entry_type === 'CRAFT_SALE' ? e.amount_aUEC : -e.amount_aUEC), 0);
+      setCoffer({ balance: total, transaction: allEntries[0] || null });
+    } catch {
+      // entity unavailable — widgets render empty
+    }
   };
 
   useEffect(() => {
