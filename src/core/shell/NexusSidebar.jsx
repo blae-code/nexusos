@@ -5,7 +5,7 @@ import SidebarWidget from './SidebarWidget';
 import {
   Crosshair, LayoutGrid, Clock, PlusCircle, LifeBuoy, Archive,
   Activity, Factory, BookOpen, GraduationCap, Radar, BarChart3,
-  Shield, Wrench, Package, Ship, Users,
+  Shield, Wrench, Package, Ship, Users, Tags,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
   Database,
 } from 'lucide-react';
@@ -44,6 +44,7 @@ const NAV = [
     items: [
       { icon: Shield, label: 'ARMORY', path: '/app/armory' },
       { icon: Ship, label: 'FLEET', path: '/app/armory/fleet' },
+      { icon: Tags, label: 'ASSETS', path: '/app/armory/assets' },
       { icon: Package, label: 'INVENTORY', path: '/app/armory/inventory' },
     ],
   },

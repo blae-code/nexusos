@@ -29,6 +29,7 @@ import OrgRoster from '@/pages/OrgRoster';
 import EpicArchive from '@/pages/EpicArchive';
 import BootScreen from '@/pages/BootScreen';
 import DebtTracker from '@/pages/DebtTracker';
+import AssetManager from '@/pages/AssetManager';
 import MarketIntelligence from '@/apps/market-intel/MarketIntelligence';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 import MissionPlannerPage from '@/apps/ops-board/mission-planner/MissionPlannerPage';
@@ -82,6 +83,7 @@ function App() {
               <Route path="armory" element={withRouteBoundary(<Armory />, true)} />
               <Route path="armory/fleet" element={withRouteBoundary(<FleetHub />, true)} />
               <Route path="armory/inventory" element={withRouteBoundary(<InventoryManager />, true)} />
+              <Route path="armory/assets" element={withRouteBoundary(<AssetManager />, true)} />
               {/* Market Intelligence */}
               <Route path="market" element={withRouteBoundary(<MarketIntelligence />, true)} />
 

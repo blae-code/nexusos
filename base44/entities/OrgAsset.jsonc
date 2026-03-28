@@ -1,0 +1,146 @@
+{
+  "name": "OrgAsset",
+  "type": "object",
+  "properties": {
+    "asset_name": {
+      "type": "string",
+      "description": "Name or designation of the asset (e.g. Cutlass Black 'Shadow Fang')"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "SHIP",
+        "VEHICLE",
+        "FPS_WEAPON",
+        "FPS_ARMOR",
+        "SHIP_COMPONENT",
+        "EQUIPMENT",
+        "OTHER"
+      ],
+      "description": "Category of asset"
+    },
+    "model": {
+      "type": "string",
+      "description": "Model or variant (e.g. Cutlass Black, P8-SC, Pembroke armor)"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Manufacturer (e.g. Drake, Kastak Arms, RSI)"
+    },
+    "serial_tag": {
+      "type": "string",
+      "description": "Unique org serial tag for tracking (e.g. RSN-SHP-042)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "STORED",
+        "DEPLOYED",
+        "MAINTENANCE",
+        "DAMAGED",
+        "DESTROYED",
+        "LOANED",
+        "MISSING"
+      ],
+      "default": "STORED",
+      "description": "Current operational status"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "PRISTINE",
+        "GOOD",
+        "FAIR",
+        "DAMAGED",
+        "WRECKED"
+      ],
+      "default": "GOOD"
+    },
+    "assigned_to_callsign": {
+      "type": "string",
+      "description": "Callsign of the member currently responsible"
+    },
+    "assigned_to_id": {
+      "type": "string",
+      "description": "NexusUser ID of the assigned member"
+    },
+    "previous_owner_callsign": {
+      "type": "string",
+      "description": "Callsign of the previous holder (for audit trail)"
+    },
+    "location_system": {
+      "type": "string",
+      "description": "Star system where asset is located (e.g. STANTON, PYRO)"
+    },
+    "location_detail": {
+      "type": "string",
+      "description": "Specific location (e.g. Port Olisar Hangar B, Lorville Storage)"
+    },
+    "linked_ship_id": {
+      "type": "string",
+      "description": "FK to OrgShip if this asset is installed on a ship"
+    },
+    "linked_ship_name": {
+      "type": "string",
+      "description": "Denormalized ship name for display"
+    },
+    "estimated_value_aUEC": {
+      "type": "integer",
+      "default": 0,
+      "description": "Estimated value in aUEC"
+    },
+    "quantity": {
+      "type": "integer",
+      "default": 1,
+      "description": "Quantity (for stackable items like ammo or consumables)"
+    },
+    "quality_score": {
+      "type": "integer",
+      "description": "Quality 1-1000 for crafted items"
+    },
+    "acquisition_source": {
+      "type": "string",
+      "enum": [
+        "PURCHASED",
+        "CRAFTED",
+        "LOOTED",
+        "DONATED",
+        "OP_REWARD",
+        "SALVAGED",
+        "OTHER"
+      ],
+      "default": "PURCHASED"
+    },
+    "acquired_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "op_id": {
+      "type": "string",
+      "description": "FK to Op if acquired during an operation"
+    },
+    "is_org_property": {
+      "type": "boolean",
+      "default": true,
+      "description": "True if owned by the org, false if personal but tracked"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_audit_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this asset was last verified/audited"
+    },
+    "last_audit_by": {
+      "type": "string",
+      "description": "Callsign of who last audited"
+    }
+  },
+  "required": [
+    "asset_name",
+    "asset_type",
+    "status"
+  ]
+}
