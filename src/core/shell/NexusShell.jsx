@@ -14,10 +14,13 @@ import { preloadCriticalTokens } from '@/core/data/tokenMap';
 import { qualityPercentFromRecord } from '@/core/data/quality';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import { showToast } from '@/components/NexusToast';
+import AmbientBackground from './components/AmbientBackground';
+import { useOperationalState } from './useOperationalState';
 
 export default function NexusShell() {
   const location = useLocation();
   const { session, user, source, isAuthenticated, isAdmin, loading } = useSession();
+  useOperationalState();
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
@@ -238,8 +241,7 @@ export default function NexusShell() {
 
   return (
     <div style={{ height: '100vh', background: '#08080A', position: 'relative' }}>
-      {/* Ambient bloom */}
-      <div style={{ position: 'fixed', bottom: 0, left: 220, right: 0, height: '40vh', background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(192,57,43,0.04), transparent)', pointerEvents: 'none', zIndex: 0 }} aria-hidden="true" />
+      <AmbientBackground />
       <NexusSidebar />
       <div style={{ marginLeft: 220, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <NexusTopbar />

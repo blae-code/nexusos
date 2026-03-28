@@ -63,6 +63,24 @@
   --sidebar-w: 56px;
 }
 
+/* ── Live-op colour temperature shift ───────────── */
+/* Applied by useOperationalState.js when Op.status === 'LIVE'.  */
+/* @property enables smooth CSS transition on the custom colour. */
+@property --acc {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #C8A84B;
+}
+
+:root {
+  transition: --acc 400ms ease;
+}
+
+:root.op-live {
+  --acc:     #D39B40;   /* 8° warmer on hue wheel from #C8A84B */
+  --acc-rgb: 211, 155, 64;
+}
+
 /* ── Global reset and base ───────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
