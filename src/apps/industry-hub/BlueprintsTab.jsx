@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import React, { useState } from 'react';
-import { Plus, ChevronDown, ChevronUp, Star, FileText } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 import { ScanPattern } from '@/core/design/Illustrations';
+import NexusToken from '@/core/design/NexusToken';
+import { blueprintToken } from '@/core/data/tokenMap';
 
 const CATEGORY_COLOURS = {
   WEAPON:         '#ff6b35',
@@ -152,11 +153,12 @@ export default function BlueprintsTab({ blueprints, materials, onRefresh }) {
                       {b.owned_by_callsign || 'UNOWNED'}
                     </td>
                     <td style={{ padding: '8px 12px' }}>
-                      {b.is_priority ? (
-                        <Star size={12} style={{ color: 'var(--warn)' }} />
-                      ) : (
-                        <span style={{ color: 'var(--t3)' }}>—</span>
-                      )}
+                      <NexusToken
+                        src={blueprintToken(!!b.owned_by, !!b.is_priority)}
+                        size={18}
+                        alt={b.owned_by ? 'owned' : 'unowned'}
+                        title={b.is_priority ? 'Priority acquisition' : b.owned_by ? 'Owned' : 'Not owned'}
+                      />
                     </td>
                     <td style={{ padding: '8px 12px', display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                       {(b.available_systems || []).map(sys => (

@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
+import NexusToken from '@/core/design/NexusToken';
+import { rankToken } from '@/core/data/tokenMap';
 
 /* ═══ Helpers ═══════════════════════════════════════════════════════════════ */
 
@@ -569,14 +571,12 @@ export default function NexusTopbar() {
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 12, color: '#E8E4DC' }}>
             {user?.callsign || 'UNKNOWN'}
           </span>
-          <span style={{
-            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 9,
-            color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.08em',
-            background: 'rgba(90,88,80,0.15)', border: '0.5px solid rgba(90,88,80,0.25)',
-            borderRadius: 2, padding: '1px 5px',
-          }}>
-            {user?.rank || 'AFFILIATE'}
-          </span>
+          <NexusToken
+            src={rankToken(user?.nexus_rank || user?.rank || 'AFFILIATE')}
+            size={16}
+            alt={user?.nexus_rank || user?.rank || 'AFFILIATE'}
+            title={user?.nexus_rank || user?.rank || 'AFFILIATE'}
+          />
           {user?.op_role && (
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#C8A84B' }}>
               {user.op_role}

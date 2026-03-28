@@ -4,25 +4,8 @@
  */
 import React from 'react';
 import { RankBadge } from '@/core/design';
-
-const ROLE_COLORS = {
-  mining:       'var(--info)',
-  escort:       'var(--danger)',
-  fabricator:   'var(--acc2)',
-  scout:        'var(--live)',
-  combat:       'var(--danger)',
-  support:      'var(--acc)',
-  salvage:      'var(--warn)',
-  hauler:       'var(--warn)',
-  refinery:     'var(--info)',
-  medic:        'var(--live)',
-  rescue:       'var(--live)',
-  medical:      'var(--live)',
-};
-
-function roleColor(role) {
-  return ROLE_COLORS[(role || '').toLowerCase()] || 'var(--b2)';
-}
+import NexusToken from '@/core/design/NexusToken';
+import { roleToken } from '@/core/data/tokenMap';
 
 function normalizeRoleSlots(slots) {
   if (!slots) return [];
@@ -35,20 +18,16 @@ function normalizeRoleSlots(slots) {
 
 function CrewCard({ rsvp, op }) {
   const isExclusive = op.access_type === 'EXCLUSIVE';
-  const rCol = roleColor(rsvp.role);
 
   return (
     <div className="nexus-card" style={{ padding: 12, gap: 8, display: 'flex', flexDirection: 'column' }}>
-      {/* Top row: dot + callsign + online dot */}
+      {/* Top row: role token + callsign + rank badge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            background: rCol,
-            flexShrink: 0,
-          }}
+        <NexusToken
+          src={roleToken((rsvp.role || 'UNASSIGNED').toUpperCase())}
+          size={22}
+          alt={rsvp.role || 'unassigned'}
+          title={rsvp.role || 'Unassigned'}
         />
         <span style={{ fontSize: 11, color: 'var(--t0)', fontFamily: 'var(--font)', fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {rsvp.callsign || '—'}
@@ -113,6 +92,12 @@ function EmptySlotCard({ roleName }) {
         border: '0.5px dashed var(--b1)',
       }}
     >
+      <NexusToken
+        src={roleToken((roleName || 'UNASSIGNED').toUpperCase())}
+        size={22}
+        opacity={0.3}
+        alt={roleName}
+      />
       <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
         {roleName}
       </span>

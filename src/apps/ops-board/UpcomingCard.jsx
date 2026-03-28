@@ -2,7 +2,7 @@ import React from 'react';
 import { Clock, ChevronRight } from 'lucide-react';
 import { normalizeRoleSlots, TypeTag, relativeTime, utcString } from './opBoardHelpers';
 import NexusToken from '@/core/design/NexusToken';
-import { opTypeToken } from '@/core/data/tokenMap';
+import { opTypeToken, roleToken } from '@/core/data/tokenMap';
 
 export default function UpcomingCard({ op, userRsvp, onRsvp, onView }) {
   const slots      = normalizeRoleSlots(op.role_slots);
@@ -63,10 +63,12 @@ export default function UpcomingCard({ op, userRsvp, onRsvp, onView }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
           {slots.map((slot, i) => (
             <span key={i} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
               fontSize: 9, padding: '2px 7px', borderRadius: 4,
               border: '0.5px solid var(--b2)', background: 'var(--bg3)',
               color: 'var(--t1)', letterSpacing: '0.05em',
             }}>
+              <NexusToken src={roleToken(slot.name.toUpperCase())} size={16} alt="" />
               {slot.name.toUpperCase()} ×{slot.capacity}
             </span>
           ))}

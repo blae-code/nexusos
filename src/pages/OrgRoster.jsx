@@ -3,6 +3,8 @@ import { base44 } from '@/core/data/base44Client';
 import { Search } from 'lucide-react';
 import MemberPerformanceTab from '@/components/MemberPerformanceTab';
 import { ConstellationRoster } from '@/core/design/Illustrations';
+import NexusToken from '@/core/design/NexusToken';
+import { rankToken } from '@/core/data/tokenMap';
 
 const RANK_ORDER = ['PIONEER','FOUNDER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];
 
@@ -34,7 +36,10 @@ function MemberCard({ user }) {
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Joined {user.joined_at ? new Date(user.joined_at).toLocaleDateString() : '—'}</span>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Last seen {timeAgo(user.last_seen_at)}</span>
       </div>
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 10, color: '#5A5850', background: 'rgba(90,88,80,0.15)', border: '0.5px solid rgba(90,88,80,0.25)', borderRadius: 2, padding: '2px 6px', textTransform: 'uppercase' }}>{rank}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <NexusToken src={rankToken(rank)} size={18} alt={rank} title={rank} />
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 10, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{rank}</span>
+      </div>
     </div>
   );
 }

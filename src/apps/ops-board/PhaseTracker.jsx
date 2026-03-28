@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
+import NexusToken from '@/core/design/NexusToken';
+import { phaseToken } from '@/core/data/tokenMap';
 
 const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 
-function PhaseNode({ label, index, status, totalPhases }) {
-  const isDone = status === 'done';
-  const isActive = status === 'active';
-
-  const nodeBg = isDone ? '#5A5850' : isActive ? '#C0392B' : 'transparent';
-  const nodeBorder = isDone ? 'none' : isActive ? 'none' : '1px solid #5A5850';
-  const nodeSize = isActive ? 12 : 10;
-  const labelColor = isDone ? '#5A5850' : isActive ? '#E8E4DC' : '#5A5850';
+function PhaseNode({ label, index, status }) {
+  const tokenState = status === 'done' ? 'DONE' : status === 'active' ? 'ACTIVE' : 'LOCKED';
+  const labelColor = status === 'active' ? 'var(--t0)' : 'var(--t3)';
 
   return (
     <div
@@ -25,42 +22,14 @@ function PhaseNode({ label, index, status, totalPhases }) {
         gap: 6,
       }}
     >
-      {/* Phase node circle */}
-      <div
-        style={{
-          width: nodeSize,
-          height: nodeSize,
-          borderRadius: '50%',
-          background: nodeBg,
-          border: nodeBorder,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          ...(isActive && {
-            boxShadow: '0 0 0 3px rgba(192,57,43,0.2)',
-            animation: 'opNodePulse 2s ease-in-out infinite',
-          }),
-        }}
-      >
-        {isDone ? (
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <polyline
-              points="3 8 5 10 9 3"
-              stroke="white"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : isActive ? (
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />
-        ) : (
-          <span style={{ color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)', fontWeight: 600 }}>
-            {index + 1}
-          </span>
-        )}
-      </div>
+      <NexusToken
+        src={phaseToken(index + 1, tokenState)}
+        size={36}
+        opacity={tokenState === 'LOCKED' ? 0.35 : 1}
+        pulse={tokenState === 'ACTIVE' ? 'live' : false}
+        alt={`Phase ${index + 1}`}
+        title={label}
+      />
 
       {/* Phase label */}
       <span
@@ -138,13 +107,6 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, opNa
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <style>{`
-        @keyframes opNodePulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px rgba(192,57,43,0.2); }
-          50% { transform: scale(1.15); box-shadow: 0 0 0 4px rgba(192,57,43,0.3); }
-        }
-      `}</style>
-
       {/* Connector line container */}
       <div style={{ position: 'relative', minWidth: 'max-content' }}>
         {/* Background line */}
@@ -161,7 +123,7 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, opNa
           }}
         />
 
-        {/* Completed segment overlay */}
+        {/* Completed segment — green fill progresses left-to-right */}
         {currentPhase > 0 && (
           <div
             style={{
@@ -169,7 +131,7 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, opNa
               top: '50%',
               left: 0,
               height: 1,
-              background: '#C0392B',
+              background: 'var(--live)',
               zIndex: 1,
               transform: 'translateY(-50%)',
               width: `${(currentPhase / (phases.length - 1)) * 100}%`,
@@ -179,7 +141,7 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, opNa
         )}
 
         {/* Phase nodes */}
-        <div style={{ display: 'flex', gap: 12, padding: '16px 0', position: 'relative', zIndex: 2 }}>
+        <div style={{ display: 'flex', gap: 12, padding: '8px 0', position: 'relative', zIndex: 2 }}>
           {phases.map((phase, index) => {
             const status = index < currentPhase ? 'done' : index === currentPhase ? 'active' : 'locked';
             const label = typeof phase === 'object' ? (phase.name || `Phase ${index + 1}`) : phase;
