@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Columns, Download, LogOut, Monitor, Save } from 'lucide-react';
+import { Bell, Columns, Download, LogOut, Monitor, Save, Link2, CheckCircle, XCircle } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { useOutletContext } from 'react-router-dom';
 import PersonalWalletPanel from '@/components/PersonalWalletPanel';
@@ -93,6 +93,101 @@ function WalletBalanceEditor({ user, patchUser }) {
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 11, color: '#5A5850', marginTop: 6 }}>
         Update your in-game aUEC balance manually. This is displayed in the topbar.
       </div>
+    </div>
+  );
+}
+
+function UexTokenSection({ user, patchUser }) {
+  const [token, setToken] = useState(user?.uex_api_token || '');
+  const [handle, setHandle] = useState(user?.uex_handle || '');
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [status, setStatus] = useState(null); // 'connected' | 'invalid' | null
+
+  useEffect(() => {
+    setToken(user?.uex_api_token || '');
+    setHandle(user?.uex_handle || '');
+  }, [user?.uex_api_token, user?.uex_handle]);
+
+  const save = async () => {
+    if (!user?.id) return;
+    setSaving(true);
+    try {
+      await base44.entities.NexusUser.update(user.id, { uex_api_token: token, uex_handle: handle });
+      patchUser({ uex_api_token: token, uex_handle: handle });
+      showToast('UEX credentials saved', 'success');
+    } catch {
+      showToast('Failed to save UEX credentials', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const testConnection = async () => {
+    if (!token.trim()) { setStatus('invalid'); return; }
+    setTesting(true);
+    setStatus(null);
+    try {
+      const res = await fetch('https://uexcorp.space/api/2.0/user', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      setStatus(res.ok ? 'connected' : 'invalid');
+    } catch {
+      setStatus('invalid');
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const displayToken = token ? `${token.slice(0, 8)}${'•'.repeat(Math.max(0, token.length - 8))}` : '';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div>
+        <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 6 }}>UEX API Token</div>
+        <div className="flex items-center gap-2">
+          <input
+            className="nexus-input"
+            type="password"
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            placeholder="Enter your UEX API token"
+            style={{ flex: 1 }}
+          />
+          <button onClick={testConnection} disabled={testing} className="nexus-btn" style={{ padding: '6px 12px', fontSize: 10 }}>
+            <Link2 size={11} />
+            {testing ? 'TESTING...' : 'TEST'}
+          </button>
+        </div>
+        {status === 'connected' && (
+          <div className="flex items-center gap-1" style={{ marginTop: 6, color: '#4A8C5C', fontSize: 10 }}>
+            <CheckCircle size={11} /> CONNECTED
+          </div>
+        )}
+        {status === 'invalid' && (
+          <div className="flex items-center gap-1" style={{ marginTop: 6, color: '#C0392B', fontSize: 10 }}>
+            <XCircle size={11} /> INVALID TOKEN
+          </div>
+        )}
+        <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
+          Get your token from uexcorp.space → Account → API. Each member uses their own token.
+        </div>
+      </div>
+      <div>
+        <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 6 }}>UEX Handle</div>
+        <input
+          className="nexus-input"
+          value={handle}
+          onChange={e => setHandle(e.target.value)}
+          placeholder="Your UEX username"
+        />
+        <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
+          Your UEX username — used to identify your marketplace listings as org member.
+        </div>
+      </div>
+      <button onClick={save} disabled={saving} className="nexus-btn primary" style={{ padding: '6px 12px', fontSize: 10, alignSelf: 'flex-start' }}>
+        <Save size={11} /> {saving ? 'SAVING' : 'SAVE CREDENTIALS'}
+      </button>
     </div>
   );
 }
@@ -316,6 +411,10 @@ export default function NexusSettings() {
       <Section title="WALLET">
         <WalletBalanceEditor user={user} patchUser={patchUser} />
         <PersonalWalletPanel />
+      </Section>
+
+      <Section title="INTEGRATIONS">
+        <UexTokenSection user={user} patchUser={patchUser} />
       </Section>
 
       <Section title="DATA">

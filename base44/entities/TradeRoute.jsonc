@@ -1,0 +1,70 @@
+{
+  "name": "TradeRoute",
+  "type": "object",
+  "properties": {
+    "commodity_name": {
+      "type": "string"
+    },
+    "origin_terminal": {
+      "type": "string"
+    },
+    "origin_system": {
+      "type": "string"
+    },
+    "destination_terminal": {
+      "type": "string"
+    },
+    "destination_system": {
+      "type": "string"
+    },
+    "buy_price": {
+      "type": "number"
+    },
+    "sell_price": {
+      "type": "number"
+    },
+    "profit_per_scu": {
+      "type": "number"
+    },
+    "margin_pct": {
+      "type": "number"
+    },
+    "investment_required": {
+      "type": "integer",
+      "description": "aUEC needed for max load"
+    },
+    "max_scu": {
+      "type": "integer",
+      "description": "Max profitable SCU"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ]
+    },
+    "jump_count": {
+      "type": "integer"
+    },
+    "route_score": {
+      "type": "number",
+      "description": "UEX route score"
+    },
+    "is_flagged": {
+      "type": "boolean",
+      "default": false
+    },
+    "flagged_by": {
+      "type": "string"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "commodity_name"
+  ]
+}

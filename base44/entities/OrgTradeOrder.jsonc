@@ -1,0 +1,103 @@
+{
+  "name": "OrgTradeOrder",
+  "type": "object",
+  "properties": {
+    "order_type": {
+      "type": "string",
+      "enum": [
+        "WTS",
+        "WTB"
+      ]
+    },
+    "posted_by_callsign": {
+      "type": "string"
+    },
+    "item_name": {
+      "type": "string"
+    },
+    "item_category": {
+      "type": "string",
+      "enum": [
+        "FPS_WEAPON",
+        "FPS_ARMOR",
+        "SHIP_COMPONENT",
+        "MATERIAL",
+        "COMMODITY",
+        "BLUEPRINT",
+        "CURRENCY",
+        "OTHER"
+      ]
+    },
+    "quantity": {
+      "type": "integer",
+      "default": 1
+    },
+    "price_aUEC": {
+      "type": "integer",
+      "description": "Asking/offering price (0 = negotiable)"
+    },
+    "price_negotiable": {
+      "type": "boolean",
+      "default": false
+    },
+    "quality_score": {
+      "type": "integer",
+      "description": "1-1000 if applicable"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "PRISTINE",
+        "GOOD",
+        "DAMAGED",
+        "ANY"
+      ]
+    },
+    "system_location": {
+      "type": "string",
+      "description": "Where trade happens"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "NEGOTIATING",
+        "COMPLETED",
+        "CANCELLED",
+        "EXPIRED"
+      ],
+      "default": "OPEN"
+    },
+    "fulfilled_by_callsign": {
+      "type": "string"
+    },
+    "fulfilled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "post_to_uex": {
+      "type": "boolean",
+      "default": false
+    },
+    "uex_listing_id": {
+      "type": "string",
+      "description": "If posted to UEX"
+    },
+    "posted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "order_type",
+    "posted_by_callsign",
+    "item_name"
+  ]
+}

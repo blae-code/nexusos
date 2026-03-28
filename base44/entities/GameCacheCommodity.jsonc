@@ -1,0 +1,66 @@
+{
+  "name": "GameCacheCommodity",
+  "type": "object",
+  "properties": {
+    "wiki_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "buy_price_uex": {
+      "type": "number"
+    },
+    "sell_price_uex": {
+      "type": "number"
+    },
+    "best_buy_terminal": {
+      "type": "string"
+    },
+    "best_sell_terminal": {
+      "type": "string"
+    },
+    "best_buy_system": {
+      "type": "string"
+    },
+    "best_sell_system": {
+      "type": "string"
+    },
+    "margin_pct": {
+      "type": "number"
+    },
+    "price_trend": {
+      "type": "string",
+      "enum": [
+        "UP",
+        "DOWN",
+        "STABLE"
+      ]
+    },
+    "player_avg_sell": {
+      "type": "number",
+      "description": "UEX player marketplace average sell price"
+    },
+    "npc_avg_buy": {
+      "type": "number"
+    },
+    "npc_avg_sell": {
+      "type": "number"
+    },
+    "price_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "wiki_id",
+    "name"
+  ]
+}

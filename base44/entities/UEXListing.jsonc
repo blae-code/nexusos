@@ -1,0 +1,86 @@
+{
+  "name": "UEXListing",
+  "type": "object",
+  "properties": {
+    "uex_listing_id": {
+      "type": "string",
+      "description": "UEX internal listing ID"
+    },
+    "listing_type": {
+      "type": "string",
+      "enum": [
+        "WTS",
+        "WTB",
+        "SERVICE"
+      ],
+      "description": "Sell, buy, or service offer"
+    },
+    "item_name": {
+      "type": "string"
+    },
+    "item_category": {
+      "type": "string",
+      "description": "weapon, armor, ship_component, commodity, etc."
+    },
+    "price_aUEC": {
+      "type": "integer",
+      "description": "Asking price"
+    },
+    "quantity": {
+      "type": "integer",
+      "default": 1
+    },
+    "quality_score": {
+      "type": "integer",
+      "description": "1-1000 if applicable"
+    },
+    "condition": {
+      "type": "string",
+      "description": "PRISTINE/GOOD/DAMAGED"
+    },
+    "seller_handle": {
+      "type": "string",
+      "description": "UEX username of seller"
+    },
+    "seller_org": {
+      "type": "string",
+      "description": "Seller org tag"
+    },
+    "system_location": {
+      "type": "string",
+      "description": "STANTON/PYRO/NYX"
+    },
+    "description": {
+      "type": "string"
+    },
+    "listing_url": {
+      "type": "string",
+      "description": "Direct URL to UEX listing"
+    },
+    "is_org_member": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if seller is a Redscar member"
+    },
+    "is_flagged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin flagged as priority"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "item_name"
+  ]
+}

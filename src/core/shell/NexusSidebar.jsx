@@ -5,7 +5,7 @@ import SidebarWidget from './SidebarWidget';
 import {
   Crosshair, LayoutGrid, Clock, PlusCircle, LifeBuoy, Archive,
   Activity, Factory, BookOpen, GraduationCap, Radar, BarChart3,
-  Shield, Wrench, Package, Ship, Users, Tags,
+  Shield, Wrench, Package, Ship, Users, Tags, TrendingUp,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
   Database,
 } from 'lucide-react';
@@ -29,7 +29,7 @@ const NAV = [
     label: 'INDUSTRY',
     items: [
       { icon: Factory, label: 'INDUSTRY HUB', path: '/app/industry' },
-      { icon: BarChart3, label: 'MARKET INTEL', path: '/app/market' },
+      { icon: TrendingUp, label: 'MARKET HUB', path: '/app/market' },
     ],
   },
   {

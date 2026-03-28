@@ -1,0 +1,45 @@
+{
+  "name": "MarketSync",
+  "type": "object",
+  "properties": {
+    "sync_type": {
+      "type": "string",
+      "enum": [
+        "COMMODITY_PRICES",
+        "MARKETPLACE_LISTINGS",
+        "TRADE_ROUTES",
+        "ITEMS_PRICES",
+        "FUEL_PRICES"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "PARTIAL",
+        "FAILED"
+      ],
+      "default": "SUCCESS"
+    },
+    "records_synced": {
+      "type": "integer"
+    },
+    "duration_ms": {
+      "type": "integer"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "triggered_by": {
+      "type": "string",
+      "description": "callsign or AUTO"
+    }
+  },
+  "required": [
+    "sync_type"
+  ]
+}

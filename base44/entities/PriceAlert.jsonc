@@ -1,0 +1,50 @@
+{
+  "name": "PriceAlert",
+  "type": "object",
+  "properties": {
+    "commodity_name": {
+      "type": "string"
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "SELL_ABOVE",
+        "SELL_BELOW",
+        "BUY_ABOVE",
+        "BUY_BELOW",
+        "MARGIN_ABOVE"
+      ]
+    },
+    "threshold_aUEC": {
+      "type": "number",
+      "description": "Trigger price or margin %"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "created_by_callsign": {
+      "type": "string"
+    },
+    "last_triggered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trigger_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "notify_all": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "commodity_name",
+    "alert_type",
+    "threshold_aUEC"
+  ]
+}

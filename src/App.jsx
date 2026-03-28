@@ -31,6 +31,7 @@ import BootScreen from '@/pages/BootScreen';
 import DebtTracker from '@/pages/DebtTracker';
 import AssetManager from '@/pages/AssetManager';
 import MarketIntelligence from '@/apps/market-intel/MarketIntelligence';
+import MarketHub from '@/apps/market-hub/MarketHub';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 import MissionPlannerPage from '@/apps/ops-board/mission-planner/MissionPlannerPage';
 
@@ -85,7 +86,8 @@ function App() {
               <Route path="armory/inventory" element={withRouteBoundary(<InventoryManager />, true)} />
               <Route path="armory/assets" element={withRouteBoundary(<AssetManager />, true)} />
               {/* Market Intelligence */}
-              <Route path="market" element={withRouteBoundary(<MarketIntelligence />, true)} />
+              <Route path="market" element={withRouteBoundary(<MarketHub />, true)} />
+              <Route path="market/legacy" element={withRouteBoundary(<MarketIntelligence />, true)} />
 
               {/* Redirects for old fleet sub-routes */}
               <Route path="armory/org-fleet" element={<Navigate to="/app/armory/fleet" replace />} />

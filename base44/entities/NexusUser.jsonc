@@ -1,0 +1,109 @@
+{
+  "name": "NexusUser",
+  "type": "object",
+  "properties": {
+    "login_name": {
+      "type": "string",
+      "description": "Lowercase login identifier"
+    },
+    "username": {
+      "type": "string",
+      "description": "Display username"
+    },
+    "callsign": {
+      "type": "string",
+      "description": "Member callsign \u2014 unique uppercase display name"
+    },
+    "auth_key_hash": {
+      "type": "string",
+      "description": "HMAC hash of the auth key \u2014 never expose to frontend"
+    },
+    "key_prefix": {
+      "type": "string",
+      "description": "First 8 chars of key for display"
+    },
+    "key_issued_by": {
+      "type": "string"
+    },
+    "key_issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "key_revoked": {
+      "type": "boolean",
+      "default": false
+    },
+    "session_token": {
+      "type": "string"
+    },
+    "session_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_invalidated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nexus_rank": {
+      "type": "string",
+      "enum": [
+        "PIONEER",
+        "FOUNDER",
+        "VOYAGER",
+        "SCOUT",
+        "VAGRANT",
+        "AFFILIATE"
+      ]
+    },
+    "is_admin": {
+      "type": "boolean",
+      "default": false
+    },
+    "op_role": {
+      "type": "string"
+    },
+    "aUEC_balance": {
+      "type": "integer",
+      "default": 0
+    },
+    "joined_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consent_given": {
+      "type": "boolean",
+      "default": false
+    },
+    "consent_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consent_version": {
+      "type": "string"
+    },
+    "ai_features_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "uex_api_token": {
+      "type": "string",
+      "description": "User's personal UEX API token"
+    },
+    "uex_handle": {
+      "type": "string",
+      "description": "UEX username \u2014 used for org member detection on marketplace listings"
+    }
+  },
+  "required": [
+    "callsign",
+    "nexus_rank"
+  ]
+}
