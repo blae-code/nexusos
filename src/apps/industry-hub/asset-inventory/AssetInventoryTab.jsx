@@ -33,13 +33,17 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
   const [ocrMode, setOcrMode] = useState(null);
   const [search, setSearch] = useState('');
 
+  const [members, setMembers] = useState([]);
+
   const load = useCallback(async () => {
-    const [assets, ships] = await Promise.all([
+    const [assets, ships, mems] = await Promise.all([
       base44.entities.PersonalAsset.list('-logged_at', 500).catch(() => []),
       base44.entities.OrgShip.list('name', 300).catch(() => []),
+      base44.entities.NexusUser.list('-last_seen_at', 500).catch(() => []),
     ]);
     setPersonalAssets(assets || []);
     setOrgShips(ships || []);
+    setMembers(mems || []);
     setLoading(false);
   }, []);
 
@@ -108,6 +112,7 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
   const totalMaterials = myMaterials.assets.length + myMaterials.orgMats.length;
   const totalScu = Object.values(materialInventory).reduce((s, v) => s + v.scu, 0);
   const totalValue = myAssets.reduce((s, a) => s + (a.estimated_value_aUEC || 0), 0);
+  const donatedCount = myAssets.filter(a => a.is_contributed).length;
 
   if (loading) {
     return (
@@ -175,6 +180,7 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
             { label: 'TOTAL SCU', value: totalScu.toFixed(1), color: '#C8A84B' },
             { label: 'SHIPS', value: myShips.length, color: '#3498DB' },
             { label: 'OTHER ASSETS', value: otherAssets.length, color: '#9A9488' },
+            { label: 'DONATED', value: donatedCount, color: '#C8A84B' },
             { label: 'EST. VALUE', value: `${(totalValue / 1000).toFixed(0)}K`, color: '#E8A020' },
           ].map(k => (
             <div key={k.label} style={{
@@ -254,6 +260,8 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
             otherAssets={otherAssets}
             search={search}
             onRefresh={load}
+            callsign={callsign}
+            members={members}
           />
         )}
         {subTab === 'ships' && (

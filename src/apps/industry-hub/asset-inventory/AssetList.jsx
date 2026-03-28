@@ -1,10 +1,11 @@
 /**
  * AssetList — displays personal material assets + org materials held by the user.
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Trash2, Package, Boxes } from 'lucide-react';
+import { Trash2, Package, Boxes, Heart } from 'lucide-react';
 import { showToast } from '@/components/NexusToast';
+import DonateDialog from './DonateDialog';
 
 const COND_COLORS = { PRISTINE: '#4A8C5C', GOOD: '#C8A84B', DAMAGED: '#C0392B' };
 const CAT_COLORS = {
@@ -12,7 +13,38 @@ const CAT_COLORS = {
   CONSUMABLE: '#E8A020', MATERIAL: '#4A8C5C', CURRENCY: '#C8A84B', OTHER: '#5A5850',
 };
 
-function AssetRow({ asset, isOrgMat, onDelete }) {
+function OwnershipBadge({ isOrgMat, isContributed }) {
+  if (isOrgMat) {
+    return (
+      <span style={{
+        fontSize: 8, fontWeight: 700, padding: '2px 7px', borderRadius: 2,
+        color: '#3498DB', background: 'rgba(52,152,219,0.12)',
+        border: '0.5px solid rgba(52,152,219,0.3)',
+        letterSpacing: '0.08em',
+      }}>ORG</span>
+    );
+  }
+  if (isContributed) {
+    return (
+      <span style={{
+        fontSize: 8, fontWeight: 700, padding: '2px 7px', borderRadius: 2,
+        color: '#C8A84B', background: 'rgba(200,168,75,0.10)',
+        border: '0.5px solid rgba(200,168,75,0.25)',
+        letterSpacing: '0.08em',
+      }}>DONATED</span>
+    );
+  }
+  return (
+    <span style={{
+      fontSize: 8, fontWeight: 700, padding: '2px 7px', borderRadius: 2,
+      color: '#9A9488', background: 'rgba(154,148,136,0.08)',
+      border: '0.5px solid rgba(154,148,136,0.15)',
+      letterSpacing: '0.08em',
+    }}>PERSONAL</span>
+  );
+}
+
+function AssetRow({ asset, isOrgMat, onDelete, onDonate }) {
   const name = isOrgMat ? asset.material_name : asset.item_name;
   const qty = isOrgMat ? asset.quantity_scu : asset.quantity;
   const unit = isOrgMat ? 'SCU' : '×';
@@ -20,6 +52,7 @@ function AssetRow({ asset, isOrgMat, onDelete }) {
   const loc = isOrgMat ? asset.location || asset.held_in : asset.location;
   const catColor = isOrgMat ? '#4A8C5C' : (CAT_COLORS[asset.category] || '#5A5850');
   const catLabel = isOrgMat ? (asset.material_type || 'MAT') : (asset.category || 'OTHER');
+  const isContributed = !isOrgMat && asset.is_contributed;
 
   return (
     <div style={{
@@ -46,13 +79,8 @@ function AssetRow({ asset, isOrgMat, onDelete }) {
         {loc && <div style={{ fontSize: 9, color: '#5A5850', marginTop: 1 }}>{loc}</div>}
       </div>
 
-      {/* Source badge */}
-      <span style={{
-        fontSize: 8, padding: '1px 5px', borderRadius: 2,
-        color: isOrgMat ? '#3498DB' : '#9A9488',
-        background: isOrgMat ? 'rgba(52,152,219,0.10)' : 'rgba(154,148,136,0.08)',
-        border: `0.5px solid ${isOrgMat ? 'rgba(52,152,219,0.25)' : 'rgba(154,148,136,0.15)'}`,
-      }}>{isOrgMat ? 'ORG MAT' : 'PERSONAL'}</span>
+      {/* Ownership badge */}
+      <OwnershipBadge isOrgMat={isOrgMat} isContributed={isContributed} />
 
       {/* Quantity */}
       <span style={{
@@ -77,6 +105,15 @@ function AssetRow({ asset, isOrgMat, onDelete }) {
         }}>{asset.condition}</span>
       )}
 
+      {/* Donate (personal, not already donated) */}
+      {!isOrgMat && !isContributed && (
+        <button onClick={() => onDonate(asset)} title="Donate to Org" style={{
+          background: 'none', border: 'none', cursor: 'pointer', color: '#C8A84B', padding: 3,
+        }}>
+          <Heart size={11} />
+        </button>
+      )}
+
       {/* Delete (personal only) */}
       {!isOrgMat && (
         <button onClick={() => onDelete(asset)} title="Remove" style={{
@@ -89,7 +126,8 @@ function AssetRow({ asset, isOrgMat, onDelete }) {
   );
 }
 
-export default function AssetList({ materialAssets, orgMaterials, otherAssets, search, onRefresh }) {
+export default function AssetList({ materialAssets, orgMaterials, otherAssets, search, onRefresh, callsign, members }) {
+  const [donateAsset, setDonateAsset] = useState(null);
   const q = (search || '').toLowerCase();
 
   const filteredMats = useMemo(() =>
@@ -130,24 +168,46 @@ export default function AssetList({ materialAssets, orgMaterials, otherAssets, s
       background: '#0F0F0D', border: '0.5px solid rgba(200,170,100,0.10)',
       borderRadius: 2, overflow: 'hidden',
     }}>
-      {/* Column headers */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px',
-        background: '#141410', borderBottom: '0.5px solid rgba(200,170,100,0.08)',
-        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, color: '#5A5850',
-        letterSpacing: '0.15em', textTransform: 'uppercase',
-      }}>
-        <span style={{ minWidth: 62 }}>TYPE</span>
-        <span style={{ flex: 1 }}>NAME</span>
-        <span style={{ minWidth: 50 }}>SOURCE</span>
-        <span style={{ minWidth: 60, textAlign: 'right' }}>QTY</span>
-        <span style={{ minWidth: 35 }}>QUAL</span>
-        <span style={{ minWidth: 40 }}>COND</span>
-        <span style={{ width: 20 }} />
-      </div>
-      {filteredOrg.map(m => <AssetRow key={`org-${m.id}`} asset={m} isOrgMat onDelete={() => {}} />)}
-      {filteredMats.map(a => <AssetRow key={`pa-${a.id}`} asset={a} isOrgMat={false} onDelete={handleDelete} />)}
-      {filteredOther.map(a => <AssetRow key={`ot-${a.id}`} asset={a} isOrgMat={false} onDelete={handleDelete} />)}
+      {/* Section: Org Property */}
+      {filteredOrg.length > 0 && (
+        <div style={{
+          padding: '6px 12px', background: 'rgba(52,152,219,0.05)',
+          borderBottom: '0.5px solid rgba(52,152,219,0.15)',
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
+          color: '#3498DB', letterSpacing: '0.18em', textTransform: 'uppercase',
+          fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <Package size={9} /> ORG PROPERTY — IN YOUR CUSTODY ({filteredOrg.length})
+        </div>
+      )}
+      {filteredOrg.map(m => <AssetRow key={`org-${m.id}`} asset={m} isOrgMat onDelete={() => {}} onDonate={() => {}} />)}
+
+      {/* Section: Personal Assets */}
+      {(filteredMats.length + filteredOther.length) > 0 && (
+        <div style={{
+          padding: '6px 12px', background: 'rgba(154,148,136,0.04)',
+          borderBottom: '0.5px solid rgba(154,148,136,0.10)',
+          borderTop: filteredOrg.length > 0 ? '0.5px solid rgba(200,170,100,0.08)' : 'none',
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
+          color: '#9A9488', letterSpacing: '0.18em', textTransform: 'uppercase',
+          fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <Heart size={9} /> PERSONAL ASSETS ({filteredMats.length + filteredOther.length})
+        </div>
+      )}
+      {filteredMats.map(a => <AssetRow key={`pa-${a.id}`} asset={a} isOrgMat={false} onDelete={handleDelete} onDonate={setDonateAsset} />)}
+      {filteredOther.map(a => <AssetRow key={`ot-${a.id}`} asset={a} isOrgMat={false} onDelete={handleDelete} onDonate={setDonateAsset} />)}
+
+      {/* Donate dialog */}
+      {donateAsset && (
+        <DonateDialog
+          asset={donateAsset}
+          callsign={callsign}
+          members={members}
+          onClose={() => setDonateAsset(null)}
+          onDone={() => { setDonateAsset(null); onRefresh(); }}
+        />
+      )}
     </div>
   );
 }
