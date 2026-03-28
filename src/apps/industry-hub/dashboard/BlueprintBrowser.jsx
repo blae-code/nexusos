@@ -3,8 +3,9 @@
  * Users can claim/unclaim ownership with a single click.
  */
 import React, { useCallback, useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Grid3X3, LayoutGrid } from 'lucide-react';
 import BlueprintBrowserCard from './BlueprintBrowserCard';
+import BlueprintMissionMatrix from './BlueprintMissionMatrix';
 
 const CATEGORIES = [
   'ALL', 'WEAPON', 'ARMOR', 'GEAR', 'COMPONENT',
@@ -20,6 +21,7 @@ const OWNERSHIP_FILTERS = [
 ];
 
 export default function BlueprintBrowser({ blueprints, callsign, onBlueprintUpdated }) {
+  const [viewMode, setViewMode] = useState('grid');
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [ownershipFilter, setOwnershipFilter] = useState('all');
@@ -74,6 +76,23 @@ export default function BlueprintBrowser({ blueprints, callsign, onBlueprintUpda
               {totalOwned}/{(blueprints || []).length} org-owned · {myCount} yours · Click "I HAVE THIS" to claim
             </div>
           </div>
+          <div style={{ display: 'flex', border: '0.5px solid rgba(200,170,100,0.12)', borderRadius: 2, overflow: 'hidden' }}>
+            <button onClick={() => setViewMode('grid')} style={{
+              padding: '6px 10px', background: viewMode === 'grid' ? 'rgba(200,170,100,0.08)' : '#141410',
+              border: 'none', color: viewMode === 'grid' ? '#C8A84B' : '#5A5850', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, fontWeight: 600,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}><LayoutGrid size={11} /> BROWSE</button>
+            <button onClick={() => setViewMode('matrix')} style={{
+              padding: '6px 10px', background: viewMode === 'matrix' ? 'rgba(200,170,100,0.08)' : '#141410',
+              border: 'none', color: viewMode === 'matrix' ? '#C8A84B' : '#5A5850', cursor: 'pointer',
+              borderLeft: '0.5px solid rgba(200,170,100,0.12)',
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, fontWeight: 600,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}><Grid3X3 size={11} /> MISSION MATRIX</button>
+          </div>
         </div>
 
         {/* Search */}
@@ -125,6 +144,13 @@ export default function BlueprintBrowser({ blueprints, callsign, onBlueprintUpda
         </div>
       </div>
 
+      {/* Mission Matrix view */}
+      {viewMode === 'matrix' ? (
+        <div style={{ padding: '14px 16px' }}>
+          <BlueprintMissionMatrix blueprints={blueprints} callsign={callsign} />
+        </div>
+      ) : (
+      <>
       {/* Grid */}
       <div style={{
         display: 'grid',
@@ -158,6 +184,8 @@ export default function BlueprintBrowser({ blueprints, callsign, onBlueprintUpda
       }}>
         Showing {filtered.length} of {(blueprints || []).length}
       </div>
+      </>
+      )}
     </div>
   );
 }
