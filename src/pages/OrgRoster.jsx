@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Search } from 'lucide-react';
+import PresenceDot from '@/components/PresenceDot';
 import MemberPerformanceTab from '@/components/MemberPerformanceTab';
 import { ConstellationRoster } from '@/core/design/Illustrations';
 import NexusToken from '@/core/design/NexusToken';
@@ -16,10 +17,10 @@ function timeAgo(iso) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function MemberCard({ user }) {
-  const rank = user.nexus_rank || 'AFFILIATE';
-  const isAdmin = user.is_admin === true;
-  const opRole = user.op_role || '';
+function MemberCard({ member }) {
+  const rank = member.nexus_rank || 'AFFILIATE';
+  const isAdmin = member.is_admin === true;
+  const opRole = member.op_role || '';
 
   return (
     <div style={{
@@ -30,11 +31,14 @@ function MemberCard({ user }) {
       borderBottom: `0.5px solid ${isAdmin ? 'rgba(200,168,75,0.4)' : 'rgba(200,170,100,0.10)'}`,
       borderRadius: 2, padding: 20,
     }}>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#E8E4DC', marginBottom: 4 }}>{user.callsign}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <PresenceDot lastSeenAt={member.last_seen_at} size={7} />
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#E8E4DC' }}>{member.callsign}</span>
+      </div>
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 12, color: '#C8A84B', textTransform: 'uppercase', marginBottom: 8 }}>{opRole || <span style={{ color: '#5A5850', fontStyle: 'italic' }}>UNASSIGNED</span>}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Joined {user.joined_at ? new Date(user.joined_at).toLocaleDateString() : '—'}</span>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Last seen {timeAgo(user.last_seen_at)}</span>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Joined {member.joined_at ? new Date(member.joined_at).toLocaleDateString() : '—'}</span>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850' }}>Last seen {timeAgo(member.last_seen_at)}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <NexusToken src={rankToken(rank)} size={18} alt={rank} title={rank} />
@@ -115,7 +119,7 @@ export default function OrgRoster() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
-        {filtered.map(u => <MemberCard key={u.id} user={u} />)}
+        {filtered.map(u => <MemberCard key={u.id} member={u} />)}
       </div>
 
       {filtered.length === 0 && (

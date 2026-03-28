@@ -6,6 +6,7 @@ import React from 'react';
 import { RankBadge } from '@/core/design';
 import NexusToken from '@/core/design/NexusToken';
 import { roleToken } from '@/core/data/tokenMap';
+import PresenceDot from '@/components/PresenceDot';
 
 function normalizeRoleSlots(slots) {
   if (!slots) return [];
@@ -16,8 +17,9 @@ function normalizeRoleSlots(slots) {
   }));
 }
 
-function CrewCard({ rsvp, op }) {
+function CrewCard({ rsvp, op, members }) {
   const isExclusive = op.access_type === 'EXCLUSIVE';
+  const memberRecord = members?.find(m => m.callsign === rsvp.callsign);
 
   return (
     <div className="nexus-card" style={{ padding: 12, gap: 8, display: 'flex', flexDirection: 'column' }}>
@@ -33,8 +35,7 @@ function CrewCard({ rsvp, op }) {
           {rsvp.callsign || '—'}
         </span>
         {rsvp.rank && <RankBadge rank={rsvp.rank} size={12} />}
-        {/* Online indicator — placeholder for future real-time presence */}
-        {/* <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--live)', flexShrink: 0, animation: 'pulse-dot 2.5s ease-in-out infinite' }} /> */}
+        <PresenceDot lastSeenAt={memberRecord?.last_seen_at} size={6} />
       </div>
 
       {/* Role name */}
@@ -108,7 +109,7 @@ function EmptySlotCard({ roleName }) {
   );
 }
 
-export default function CrewGrid({ rsvps = [], op = {}, layoutMode = 'ALT-TAB' }) {
+export default function CrewGrid({ rsvps = [], op = {}, layoutMode = 'ALT-TAB', members = [] }) {
   const confirmed = rsvps.filter(r => r.status === 'CONFIRMED');
   const normalizedSlots = normalizeRoleSlots(op.role_slots);
 
@@ -152,7 +153,7 @@ export default function CrewGrid({ rsvps = [], op = {}, layoutMode = 'ALT-TAB' }
         >
           {gridItems.map((item, idx) =>
             item.type === 'crew' ? (
-              <CrewCard key={item.data.id} rsvp={item.data} op={op} />
+              <CrewCard key={item.data.id} rsvp={item.data} op={op} members={members} />
             ) : (
               <EmptySlotCard key={`empty-${idx}`} roleName={item.data} />
             )

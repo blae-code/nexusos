@@ -104,6 +104,7 @@ export default function LiveOp() {
 
   const [op, setOp] = useState(null);
   const [rsvps, setRsvps] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activating, setActivating] = useState(false);
@@ -112,9 +113,10 @@ export default function LiveOp() {
 
   const fetchOp = useCallback(async () => {
     try {
-      const [ops, rsvpData] = await Promise.all([
+      const [ops, rsvpData, memberData] = await Promise.all([
         base44.entities.Op.filter({ id }),
         base44.entities.OpRsvp.filter({ op_id: id }),
+        base44.entities.NexusUser.list('-last_seen_at', 200).catch(() => []),
       ]);
 
       const opData = Array.isArray(ops) ? ops[0] : null;
@@ -125,6 +127,7 @@ export default function LiveOp() {
 
       setOp(opData);
       setRsvps(rsvpData || []);
+      setMembers(memberData || []);
       setError(null);
     } catch {
       setError('Failed to load op');
@@ -259,7 +262,7 @@ export default function LiveOp() {
 
   const phaseTrackerProps = { phases, currentPhase, opId: op.id, opName: op.name, rank, onAdvance: handlePhaseAdvance };
   const readinessGateProps = { op, rank, onUpdate: handleGateUpdate };
-  const crewGridProps = { rsvps, op, layoutMode };
+  const crewGridProps = { rsvps, op, layoutMode, members };
   const opRsvpProps = { op, rsvps, callsign, sessionUserId, rank };
   const sessionLogProps = { op, callsign, rank, onUpdate: handleLogUpdate };
   const liveEventLogProps = { op, callsign, rank, currentPhase, onSessionLogSync: handleLogUpdate };

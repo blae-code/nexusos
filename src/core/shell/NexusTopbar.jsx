@@ -190,8 +190,8 @@ export default function NexusTopbar() {
       const active = (refineryOrders || []).filter(r => r.status === 'ACTIVE' || r.status === 'READY');
       setRefineryCount(active.length);
 
-      // Online (last 15 min)
-      const cutoff = Date.now() - 15 * 60 * 1000;
+      // Online (last 5 min)
+      const cutoff = Date.now() - 5 * 60 * 1000;
       const online = (members || []).filter(m => m.last_seen_at && new Date(m.last_seen_at).getTime() > cutoff);
       setOnlineCount(online.length);
 

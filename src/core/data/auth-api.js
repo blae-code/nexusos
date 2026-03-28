@@ -214,6 +214,16 @@ export const authApi = {
     return parseApiResponse(response);
   },
 
+  async heartbeat(/** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('heartbeat'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+    }, timeoutMs);
+
+    return parseApiResponse(response);
+  },
+
   async runProdReadiness(action = 'full_audit', payload = {}, /** @type {TimeoutOptions} */ { timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
     const response = await fetchWithTimeout(buildFunctionUrl('prodReadiness'), {
       method: 'POST',

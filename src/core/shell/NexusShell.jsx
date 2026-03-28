@@ -16,11 +16,13 @@ import AppErrorBoundary from '@/components/AppErrorBoundary';
 import { showToast } from '@/components/NexusToast';
 import AmbientBackground from './components/AmbientBackground';
 import { useOperationalState } from './useOperationalState';
+import usePresence from '@/core/hooks/usePresence';
 
 export default function NexusShell() {
   const location = useLocation();
   const { session, user, source, isAuthenticated, isAdmin, loading } = useSession();
   useOperationalState();
+  usePresence(isAuthenticated);
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
