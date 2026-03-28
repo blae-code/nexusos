@@ -2,7 +2,7 @@
  * PostExchangeForm — form for posting a new barter/exchange listing.
  * Props: { materials, commodities, viewerId, viewerCallsign, onDone }
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import {
   buildPriceLookup,
@@ -10,6 +10,7 @@ import {
   formatCompactAuec,
 } from '@/core/data/commerce-logistics';
 
+/** @type {import('react').CSSProperties} */
 const FIELD_STYLE = {
   display: 'flex',
   flexDirection: 'column',

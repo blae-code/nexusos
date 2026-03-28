@@ -474,7 +474,7 @@ export default function TrainingHub() {
             <OperationalReferenceStrip
               sectionLabel="TRAINING REFERENCE"
               title="Learn The Workflow, Then Enter The Live Tool"
-              description="Training is the guided front door for the same live surfaces members use day to day. Each module points into the real workspace rather than a separate demo."
+              description="Training is the guided front door for the same live surfaces members use day to day. Each module points into the real workspace rather than a separate sandbox."
               notes={[
                 { label: 'When To Use', value: 'Learn Or Reorient', detail: 'Use Training when a member needs fast orientation, a refresher on a workflow, or a safe path into an existing live module.' },
                 { label: 'Data Depends On', value: 'Same Live Routes', detail: 'Training launches the real app routes and assumes the same shared entities, permissions, and runtime availability as the production workspace.' },

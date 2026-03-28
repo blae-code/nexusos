@@ -20,7 +20,7 @@ VITE_BASE44_APP_BASE_URL=your_backend_url
 
 Local auth and SDK traffic run through the Vite same-origin `/api` proxy so issued-key session cookies work during local development.
 
-For administrator recovery, bootstrap or repair the fixed `system-admin` account from `/app/keys` once an admin session exists, or via the protected bootstrap function using `SYSTEM_ADMIN_BOOTSTRAP_SECRET`.
+For administrator recovery, bootstrap or repair the fixed `system-admin` account from `/app/admin/keys` once an admin session exists, or via the protected bootstrap function using `SYSTEM_ADMIN_BOOTSTRAP_SECRET`. The old public `resetAdmin` recovery path has been removed.
 
 ## Auth Model
 - Users are invited by a Pioneer/admin user.
@@ -35,6 +35,7 @@ For administrator recovery, bootstrap or repair the fixed `system-admin` account
 
 ## Operational Docs
 - [Architecture](./docs/architecture.md)
+- [Admin Control Plane](./docs/admin-control-plane.md)
 - [Auth Schema](./docs/auth-schema.md)
 - [Collaboration Workflow](./docs/collaboration.md)
 - [Base44 Sync Rules](./docs/base44-sync.md)

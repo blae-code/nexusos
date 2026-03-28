@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import { requireAdminSession } from '../auth/_shared/issuedKey/entry.ts';
 
-async function fetchFleetYardsRoster(handle) {
+export async function fetchFleetYardsRoster(handle) {
   const response = await fetch(`https://api.fleetyards.net/v1/orgs/${handle}`, {
     method: 'GET',
     headers: { 'Accept': 'application/json' },
@@ -27,7 +27,7 @@ async function fetchFleetYardsRoster(handle) {
   }));
 }
 
-function mapShipClassToEnum(classification) {
+export function mapShipClassToEnum(classification) {
   if (!classification) return 'OTHER';
   const lower = classification.toLowerCase();
   
@@ -43,7 +43,7 @@ function mapShipClassToEnum(classification) {
   return 'OTHER';
 }
 
-async function syncRoster(base44, fleetyardsHandle) {
+export async function syncFleetYardsRoster(base44, fleetyardsHandle) {
   const ships = await fetchFleetYardsRoster(fleetyardsHandle);
   const now = new Date().toISOString();
   
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'FLEETYARDS_HANDLE not configured' }), { status: 500 });
     }
 
-    await syncRoster(base44, handle);
+    await syncFleetYardsRoster(base44, handle);
 
     return new Response(JSON.stringify({ success: true, synced_at: new Date().toISOString() }), {
       status: 200,

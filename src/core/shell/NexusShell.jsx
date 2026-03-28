@@ -225,6 +225,10 @@ export default function NexusShell() {
     return <Navigate to={redirectTo} replace />;
   }
 
+  if (location.pathname === '/app/keys') {
+    return <Navigate to="/app/admin/keys" replace />;
+  }
+
   if (location.pathname.startsWith('/app/admin') && !isAdmin) {
     return <Navigate to="/app/industry" replace />;
   }

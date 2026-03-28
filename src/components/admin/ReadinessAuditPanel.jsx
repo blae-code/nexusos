@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
 import { authApi } from '@/core/data/auth-api';
 import { showToast } from '@/components/NexusToast';
@@ -30,6 +31,14 @@ function runtimeModeConfig(runtimeMode) {
     return { color: '#E8A020', background: 'rgba(232,160,32,0.12)', label: runtimeMode.replace('_', ' ') };
   }
   return null;
+}
+
+function dataConsolePath(entity, id = '') {
+  const params = new URLSearchParams();
+  if (entity) params.set('entity', entity);
+  if (id) params.set('record', id);
+  const suffix = params.toString();
+  return suffix ? `/app/admin/data?${suffix}` : '/app/admin/data';
 }
 
 export default function ReadinessAuditPanel({ autoRun = false, compact = false, title = 'Production Readiness' }) {
@@ -67,6 +76,10 @@ export default function ReadinessAuditPanel({ autoRun = false, compact = false, 
   const failures = Array.isArray(result?.failures) ? result.failures : [];
   const flaggedRecords = Array.isArray(result?.flagged_records) ? result.flagged_records : [];
   const cleanup = result?.cleanup || null;
+  const adminChecks = checks.filter((check) => check?.meta?.area === 'admin_control_plane');
+  const generalChecks = checks.filter((check) => check?.meta?.area !== 'admin_control_plane');
+  const adminFailures = failures.filter((failure) => failure?.meta?.area === 'admin_control_plane');
+  const generalFailures = failures.filter((failure) => failure?.meta?.area !== 'admin_control_plane');
 
   const summary = useMemo(() => {
     const passed = checks.filter((check) => check.ok).length;
@@ -140,31 +153,75 @@ export default function ReadinessAuditPanel({ autoRun = false, compact = false, 
             {cleanup ? <AuditChip ok={cleanup.ok === true} label={`cleanup ${cleanup.ok ? 'ok' : 'failed'}`} /> : null}
           </div>
 
-          {failures.length > 0 ? (
+          {adminFailures.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600 }}>Failures</div>
-              {failures.map((failure, index) => (
+              <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600 }}>Admin Control Plane</div>
+              {adminFailures.map((failure, index) => (
                 <div key={`${failure.id}-${index}`} style={{ padding: '10px 12px', background: 'var(--bg1)', borderRadius: 3, borderLeft: `2px solid ${severityColor(failure.severity)}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                     <span style={{ color: severityColor(failure.severity), fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>{failure.severity || 'warn'}</span>
                     <span style={{ color: 'var(--t0)', fontSize: 10, fontWeight: 600 }}>{failure.id}</span>
                   </div>
                   <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>{failure.detail}</div>
+                  {failure?.meta?.entity ? (
+                    <div style={{ marginTop: 8 }}>
+                      <Link to={dataConsolePath(failure.meta.entity)} className="nexus-btn" style={{ textDecoration: 'none' }}>Open {failure.meta.entity}</Link>
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
-          ) : checks.length > 0 ? (
+          ) : null}
+
+          {generalFailures.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600 }}>Failures</div>
+              {generalFailures.map((failure, index) => (
+                <div key={`${failure.id}-${index}`} style={{ padding: '10px 12px', background: 'var(--bg1)', borderRadius: 3, borderLeft: `2px solid ${severityColor(failure.severity)}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                    <span style={{ color: severityColor(failure.severity), fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700 }}>{failure.severity || 'warn'}</span>
+                    <span style={{ color: 'var(--t0)', fontSize: 10, fontWeight: 600 }}>{failure.id}</span>
+                  </div>
+                  <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>{failure.detail}</div>
+                  {failure?.meta?.entity ? (
+                    <div style={{ marginTop: 8 }}>
+                      <Link to={dataConsolePath(failure.meta.entity)} className="nexus-btn" style={{ textDecoration: 'none' }}>Open {failure.meta.entity}</Link>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : checks.length > 0 && adminFailures.length === 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#27C96A', fontSize: 10 }}>
               <CheckCircle2 size={13} />
               No current readiness failures.
             </div>
           ) : null}
 
-          {!compact && checks.length > 0 ? (
+          {!compact && adminChecks.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600 }}>Admin Control Plane Checks</div>
+              <div style={{ display: 'grid', gap: 6 }}>
+                {adminChecks.map((check) => (
+                  <div key={check.id} style={{ padding: '8px 10px', background: 'var(--bg1)', borderRadius: 3, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    {check.ok ? <CheckCircle2 size={12} style={{ color: '#27C96A', flexShrink: 0, marginTop: 2 }} /> : <AlertTriangle size={12} style={{ color: severityColor(check.severity), flexShrink: 0, marginTop: 2 }} />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <div style={{ color: 'var(--t0)', fontSize: 10, fontWeight: 600 }}>{check.label}</div>
+                      </div>
+                      <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6, marginTop: 2 }}>{check.detail}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {!compact && generalChecks.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ color: 'var(--t0)', fontSize: 11, fontWeight: 600 }}>Checks</div>
               <div style={{ display: 'grid', gap: 6 }}>
-                {checks.map((check) => (
+                {generalChecks.map((check) => (
                   <div key={check.id} style={{ padding: '8px 10px', background: 'var(--bg1)', borderRadius: 3, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     {check.ok ? (
                       <CheckCircle2 size={12} style={{ color: '#27C96A', flexShrink: 0, marginTop: 2 }} />
@@ -209,6 +266,11 @@ export default function ReadinessAuditPanel({ autoRun = false, compact = false, 
                     </div>
                     <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 2 }}>
                       {record.field}: {record.value}
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                      <Link to={dataConsolePath(record.entity, record.id)} className="nexus-btn" style={{ textDecoration: 'none' }}>
+                        Open In Data Console
+                      </Link>
                     </div>
                   </div>
                 ))}

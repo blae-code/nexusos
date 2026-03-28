@@ -22,6 +22,7 @@ import InventoryManager from '@/pages/InventoryManager';
 import FleetHub from '@/pages/FleetHub';
 import TrainingHub from '@/pages/TrainingHub';
 import AdminSettings from '@/pages/AdminSettings';
+import AdminDataConsole from '@/pages/AdminDataConsole';
 import KeyManagement from '@/pages/KeyManagement';
 import RescueBoard from '@/pages/RescueBoard';
 import OrgRoster from '@/pages/OrgRoster';
@@ -98,8 +99,10 @@ function App() {
               <Route path="profile" element={<Navigate to="/app/settings" replace />} />
 
               {/* Admin */}
-              <Route path="keys" element={withRouteBoundary(<KeyManagement />, true)} />
+              <Route path="keys" element={<Navigate to="/app/admin/keys" replace />} />
+              <Route path="admin/keys" element={withRouteBoundary(<KeyManagement />, true)} />
               <Route path="admin/settings" element={withRouteBoundary(<AdminSettings />, true)} />
+              <Route path="admin/data" element={withRouteBoundary(<AdminDataConsole />, true)} />
               <Route path="admin/readiness" element={withRouteBoundary(<NexusTodo />, true)} />
               <Route path="admin/todo" element={<Navigate to="/app/admin/readiness" replace />} />
             </Route>

@@ -29,7 +29,8 @@ Claude API (hidden AI layer), VS Code + Claude Code (this environment).
 ## Member auth model
 Invitation-based auth is the member authentication standard.
 Members log in at /gate with an issued username + auth key (RSN-XXXX-XXXX-XXXX).
-Keys are issued and revoked by Pioneer+ via Key Management (/app/keys).
+Keys are issued and revoked by Pioneer+ via Key Management (/app/admin/keys).
+The old public resetAdmin endpoint is removed; recovery goes through auth/bootstrap.
 Discord roles remain the canonical source of NexusOS rank, synced on login
 and every 30 minutes in the background. Discord is not a login step.
 

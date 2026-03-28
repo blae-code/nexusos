@@ -87,7 +87,8 @@ function getBreadcrumb(pathname, search) {
   if (pathname === '/app/settings' || pathname === '/app/profile') return { module: 'Settings', page: null };
   if (pathname === '/app/handbook') return { module: 'Handbook', page: null };
   if (pathname === '/app/training') return { module: 'Training', page: null };
-  if (pathname === '/app/keys') return { module: 'Admin', page: 'Keys' };
+  if (pathname === '/app/keys' || pathname === '/app/admin/keys') return { module: 'Admin', page: 'Keys' };
+  if (pathname === '/app/admin/data') return { module: 'Admin', page: 'Data Console' };
   if (pathname === '/app/admin/settings') return { module: 'Admin', page: 'Settings' };
   if (pathname === '/app/admin/readiness' || pathname === '/app/admin/todo') return { module: 'Admin', page: 'Readiness' };
   return { module: 'NexusOS', page: null };

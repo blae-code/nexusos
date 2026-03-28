@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import { authApi } from '@/core/data/auth-api';
+import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, XCircle, HelpCircle } from 'lucide-react';
 import { showToast } from '@/components/NexusToast';
 import ReadinessAuditPanel from '@/components/admin/ReadinessAuditPanel';
+import SystemOperationsPanel from '@/components/admin/SystemOperationsPanel';
 
 const REQUIRED_SECRETS = [
   { id: 'UEX_API_KEY', label: 'UEX API Key', help: 'Powers commodity price tracking and market data. Get yours at uexcorp.space/api', critical: false },
@@ -173,6 +175,12 @@ export default function AdminSettings() {
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <Link to="/app/admin/keys" className="nexus-btn primary" style={{ textDecoration: 'none' }}>Open Key Management</Link>
+        <Link to="/app/admin/data" className="nexus-btn" style={{ textDecoration: 'none' }}>Open Data Console</Link>
+        <Link to="/app/admin/readiness" className="nexus-btn" style={{ textDecoration: 'none' }}>Open Readiness</Link>
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {REQUIRED_SECRETS.map((secret) => {
           const status = secrets[secret.id] || { configured: false, protected: false };
@@ -327,6 +335,8 @@ export default function AdminSettings() {
         )}
       </div>
 
+      <SystemOperationsPanel />
+
       <ReadinessAuditPanel autoRun compact={false} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -346,6 +356,7 @@ export default function AdminSettings() {
           NexusOS no longer edits deployment secrets in-app. Use this page to verify readiness, then update secrets and automations directly in the deployment environment before publishing live.
         </div>
       </div>
+
     </div>
   );
 }

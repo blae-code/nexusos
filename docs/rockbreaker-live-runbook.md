@@ -8,6 +8,7 @@ Launch, execute, and wrap a Rockbreaker op with enough operational discipline th
 ## Preflight
 - Confirm `/app/admin/readiness` has no remaining critical auth, entity, integration, or sample-data failures.
 - Confirm `/app/admin/settings` auth roundtrip passes before issuing or rotating real keys.
+- Confirm `/app/admin/data` can open the live entity registry and recent admin audit log.
 - Confirm issued-key login works from `/`.
 - In Industry:
   - review blueprint ownership and craft queue blockers

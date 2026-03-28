@@ -50,7 +50,7 @@ const SURFACE_MODE_STYLES = {
   blocked: { color: 'var(--danger)', bg: 'rgba(192,57,43,0.14)' },
 };
 
-function MetricCard({ label, value, rawValue, formatter, detail, color = 'var(--t0)' }) {
+function MetricCard({ label, value = '—', rawValue = null, formatter = null, detail, color = 'var(--t0)' }) {
   const animated = useCountUp(typeof rawValue === 'number' ? rawValue : 0);
   const displayValue = typeof rawValue === 'number' && formatter ? formatter(animated) : value;
   return (

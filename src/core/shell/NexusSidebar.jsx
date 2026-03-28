@@ -7,6 +7,7 @@ import {
   Activity, Factory, BookOpen, GraduationCap, Radar, BarChart3,
   Shield, Wrench, Package, Ship, Users,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
+  Database,
 } from 'lucide-react';
 
 const NAV = [
@@ -63,7 +64,8 @@ const NAV = [
     label: 'ADMINISTRATION',
     adminOnly: true,
     items: [
-      { icon: Key, label: 'KEY MANAGEMENT', path: '/app/keys' },
+      { icon: Key, label: 'KEY MANAGEMENT', path: '/app/admin/keys' },
+      { icon: Database, label: 'DATA CONSOLE', path: '/app/admin/data' },
       { icon: ShieldAlert, label: 'ADMIN SETTINGS', path: '/app/admin/settings' },
       { icon: ClipboardList, label: 'READINESS', path: '/app/admin/readiness' },
     ],

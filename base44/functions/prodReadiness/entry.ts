@@ -19,6 +19,7 @@ type CleanupTarget = {
 const ENTITY_AUDIT_PLAN = [
   { id: 'NexusUser', label: 'Issued users', severity: 'critical' },
   { id: 'NexusNotification', label: 'Notifications', severity: 'critical' },
+  { id: 'AdminActionLog', label: 'Admin audit log', severity: 'critical' },
   { id: 'Material', label: 'Industry materials', severity: 'critical' },
   { id: 'Blueprint', label: 'Blueprint registry', severity: 'critical' },
   { id: 'CraftQueue', label: 'Craft queue', severity: 'critical' },
@@ -65,6 +66,7 @@ const SAMPLE_DATA_SCAN_PLAN = [
 const CLEANUP_ALLOWLIST = new Set([
   'NexusUser',
   'NexusNotification',
+  'AdminActionLog',
   'Material',
   'RefineryOrder',
   'CofferLog',
@@ -121,6 +123,7 @@ function summarizeFailures(checks: ReadinessCheck[]) {
     id: check.id,
     severity: check.severity,
     detail: check.detail,
+    meta: check.meta,
   }));
 }
 
@@ -280,6 +283,204 @@ async function runLiveFunctionCheck(
   }
 }
 
+async function runAdminControlPlaneAudit(
+  base44: any,
+  req: Request,
+): Promise<{ checks: ReadinessCheck[]; cleanupTargets: CleanupTarget[] }> {
+  const checks: ReadinessCheck[] = [];
+  const cleanupTargets: CleanupTarget[] = [];
+
+  let seedLogId = '';
+  try {
+    const created = await base44.asServiceRole.entities.AdminActionLog.create({
+      acted_by_user_id: 'prod-readiness',
+      acted_by_callsign: 'PROD-READINESS',
+      action_type: 'READINESS_SELF_TEST',
+      entity_name: 'SYSTEM',
+      record_id: 'admin-action-log-self-test',
+      record_label: 'AdminActionLog self-test',
+      reason: 'prod_readiness',
+      strategy: 'self_test',
+      before_snapshot: { mode: 'write_check' },
+      after_snapshot: { ok: true },
+      created_at: new Date().toISOString(),
+    });
+    seedLogId = textValue(created?.id);
+    if (seedLogId) {
+      cleanupTargets.push({ entity: 'AdminActionLog', id: seedLogId });
+    }
+
+    const verify = seedLogId
+      ? await base44.asServiceRole.entities.AdminActionLog.filter({ id: seedLogId }).catch(() => [])
+      : [];
+
+    checks.push({
+      id: 'admin_action_log_entity',
+      label: 'Admin audit log entity',
+      ok: Boolean(seedLogId) && Array.isArray(verify) && verify.length > 0,
+      severity: 'critical',
+      detail: seedLogId && Array.isArray(verify) && verify.length > 0
+        ? 'AdminActionLog accepted a write and was immediately readable.'
+        : 'AdminActionLog write or readback failed.',
+      meta: { area: 'admin_control_plane', entity: 'AdminActionLog' },
+    });
+  } catch (error) {
+    checks.push({
+      id: 'admin_action_log_entity',
+      label: 'Admin audit log entity',
+      ok: false,
+      severity: 'critical',
+      detail: `AdminActionLog write failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
+      meta: { area: 'admin_control_plane', entity: 'AdminActionLog' },
+    });
+  }
+
+  try {
+    const listEntities = await invokeLiveFunction(req, '/api/functions/adminData', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'list_entities' }),
+    });
+
+    const entities = toArray(listEntities.data?.entities);
+    const hasAdminActionLog = entities.some((item) => textValue(item?.id) === 'AdminActionLog');
+
+    checks.push({
+      id: 'admin_data_entities',
+      label: 'Admin data entity registry',
+      ok: listEntities.ok && entities.length > 0 && hasAdminActionLog,
+      severity: 'critical',
+      detail: listEntities.ok && entities.length > 0 && hasAdminActionLog
+        ? `adminData listed ${entities.length} registered entities for the admin session.`
+        : `adminData entity listing failed: ${textValue(listEntities.data?.error) || listEntities.status}`,
+      meta: { area: 'admin_control_plane' },
+    });
+  } catch (error) {
+    checks.push({
+      id: 'admin_data_entities',
+      label: 'Admin data entity registry',
+      ok: false,
+      severity: 'critical',
+      detail: `adminData list_entities failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
+      meta: { area: 'admin_control_plane' },
+    });
+  }
+
+  try {
+    const notification = await createNotification(base44, {
+      type: 'ADMIN_SELF_TEST',
+      title: 'Admin data self test',
+      body: 'Temporary admin data record fetch/edit check.',
+      severity: 'INFO',
+      source_module: 'ADMIN',
+    });
+
+    const notificationId = textValue(notification?.id);
+    if (notificationId) {
+      cleanupTargets.push({ entity: 'NexusNotification', id: notificationId });
+    }
+
+    const getRecord = await invokeLiveFunction(req, '/api/functions/adminData', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'get_record',
+        entity: 'NexusNotification',
+        id: notificationId,
+      }),
+    });
+
+    const updateRecord = await invokeLiveFunction(req, '/api/functions/adminData', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'update_record',
+        entity: 'NexusNotification',
+        id: notificationId,
+        patch: { body: 'Temporary admin data record fetch/edit check. Updated.' },
+      }),
+    });
+
+    const recentLogs = await base44.asServiceRole.entities.AdminActionLog.list('-created_at', 20).catch(() => []);
+    toArray(recentLogs)
+      .filter((record) => textValue(record?.entity_name) === 'NexusNotification' && textValue(record?.record_id) === notificationId)
+      .forEach((record) => {
+        const logId = textValue(record?.id);
+        if (logId) {
+          cleanupTargets.push({ entity: 'AdminActionLog', id: logId });
+        }
+      });
+
+    checks.push({
+      id: 'admin_data_record_flow',
+      label: 'Admin data record fetch/edit',
+      ok: getRecord.ok && updateRecord.ok && textValue(updateRecord.data?.record?.body).includes('Updated'),
+      severity: 'critical',
+      detail: getRecord.ok && updateRecord.ok
+        ? 'adminData fetched and edited a representative NexusNotification record with an admin session.'
+        : `adminData record flow failed: ${textValue(updateRecord.data?.error || getRecord.data?.error) || updateRecord.status || getRecord.status}`,
+      meta: { area: 'admin_control_plane', entity: 'NexusNotification' },
+    });
+  } catch (error) {
+    checks.push({
+      id: 'admin_data_record_flow',
+      label: 'Admin data record fetch/edit',
+      ok: false,
+      severity: 'critical',
+      detail: `adminData record flow failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
+      meta: { area: 'admin_control_plane', entity: 'NexusNotification' },
+    });
+  }
+
+  for (const [id, label, action] of [
+    ['admin_ops_patch_refresh', 'Admin patch refresh', 'refresh_patch_digest'],
+    ['admin_ops_self_test', 'Admin patch intelligence self-test', 'run_patch_intelligence_self_test'],
+  ] as const) {
+    try {
+      const actionStartedAt = new Date().toISOString();
+      const response = await invokeLiveFunction(req, '/api/functions/adminOps', {
+        method: 'POST',
+        body: JSON.stringify({ action, reason: 'prod_readiness' }),
+      });
+
+      const recentLogs = await base44.asServiceRole.entities.AdminActionLog.list('-created_at', 12).catch(() => []);
+      toArray(recentLogs)
+        .filter((record) => {
+          const createdAt = textValue(record?.created_at);
+          return textValue(record?.record_id) === action
+            && createdAt
+            && createdAt >= actionStartedAt;
+        })
+        .forEach((record) => {
+          const logId = textValue(record?.id);
+          if (logId) {
+            cleanupTargets.push({ entity: 'AdminActionLog', id: logId });
+          }
+        });
+
+      const result = response.data?.result || {};
+      checks.push({
+        id,
+        label,
+        ok: response.ok && response.data?.ok === true,
+        severity: 'critical',
+        detail: response.ok && response.data?.ok === true
+          ? `${action} returned a structured adminOps success payload.`
+          : `${action} failed: ${textValue(response.data?.error) || response.status}`,
+        meta: { area: 'admin_control_plane', action, result },
+      });
+    } catch (error) {
+      checks.push({
+        id,
+        label,
+        ok: false,
+        severity: 'critical',
+        detail: `${action} failed: ${error instanceof Error ? error.message : 'unknown_error'}`,
+        meta: { area: 'admin_control_plane', action },
+      });
+    }
+  }
+
+  return { checks, cleanupTargets };
+}
+
 async function runIntegrationAudit(base44: any, req: Request, adminUserId: string): Promise<{ checks: ReadinessCheck[]; cleanupTargets: CleanupTarget[] }> {
   const checks: ReadinessCheck[] = [];
   const cleanupTargets: CleanupTarget[] = [];
@@ -413,6 +614,10 @@ async function runIntegrationAudit(base44: any, req: Request, adminUserId: strin
     failurePrefix: 'Rescue would fall back to local cache for the current admin session because these entities are unavailable:',
     mode: 'shared_entity',
   }));
+
+  const adminControlAudit = await runAdminControlPlaneAudit(base44, req);
+  checks.push(...adminControlAudit.checks);
+  cleanupTargets.push(...adminControlAudit.cleanupTargets);
 
   try {
     const authRoundtrip = await invokeLiveFunction(req, '/api/functions/auth/roundtrip', { method: 'POST' });
