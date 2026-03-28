@@ -2,8 +2,9 @@
  * MyDebtSummary — Member's personal debt overview with payment capability.
  * Props: { callsign, debts, onPayment }
  */
-import React from 'react';
-import { AlertTriangle, Check, Clock, DollarSign } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertTriangle, Check, Clock, DollarSign, Camera } from 'lucide-react';
+import DebtPaymentUpload from '@/components/debt/DebtPaymentUpload';
 
 function fmtAuec(n) {
   if (!n || isNaN(n)) return '0';
@@ -35,6 +36,7 @@ function StatCard({ label, value, color, icon: Icon }) {
 }
 
 export default function MyDebtSummary({ callsign, debts = [], onPayment }) {
+  const [screenshotDebt, setScreenshotDebt] = useState(null);
   const myDebts = debts.filter(d => d.debtor_callsign === callsign);
   const outstanding = myDebts.filter(d => d.status === 'OUTSTANDING' || d.status === 'PARTIAL');
   const totalOwed = outstanding.reduce((s, d) => s + ((d.amount_aUEC || 0) - (d.amount_paid || 0)), 0);
@@ -139,17 +141,45 @@ export default function MyDebtSummary({ callsign, debts = [], onPayment }) {
               </div>
             )}
 
-            {/* Pay button */}
-            <button
-              onClick={() => onPayment?.(debt)}
-              className="nexus-btn primary"
-              style={{ width: '100%', padding: '8px 0', fontSize: 11 }}
-            >
-              MAKE PAYMENT →
-            </button>
+            {/* Pay buttons */}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={() => onPayment?.(debt)}
+                className="nexus-btn primary"
+                style={{ flex: 1, padding: '8px 0', fontSize: 11 }}
+              >
+                MANUAL PAYMENT
+              </button>
+              <button
+                onClick={() => setScreenshotDebt(debt)}
+                style={{
+                  flex: 1, padding: '8px 0', fontSize: 11, borderRadius: 2,
+                  cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 600, letterSpacing: '0.08em',
+                  background: 'rgba(122,174,204,0.06)',
+                  border: '0.5px solid rgba(122,174,204,0.20)',
+                  color: '#7AAECC', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: 5,
+                  transition: 'all 150ms',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(122,174,204,0.12)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(122,174,204,0.06)'; }}
+              >
+                <Camera size={11} /> PAY VIA SCREENSHOT
+              </button>
+            </div>
           </div>
         );
       })}
+
+      {screenshotDebt && (
+        <DebtPaymentUpload
+          debt={screenshotDebt}
+          callsign={callsign}
+          onComplete={() => { setScreenshotDebt(null); onPayment?.(null); }}
+          onCancel={() => setScreenshotDebt(null)}
+        />
+      )}
     </div>
   );
 }
