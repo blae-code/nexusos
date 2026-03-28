@@ -2,7 +2,6 @@
  * FleetStatusRow — Single ship row in the Fleet Status table.
  */
 import React from 'react';
-import { Link } from 'react-router-dom';
 import PresenceDot from '@/components/PresenceDot';
 
 const STATUS_CFG = {

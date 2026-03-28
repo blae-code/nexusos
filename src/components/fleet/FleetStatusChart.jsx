@@ -17,7 +17,7 @@ const STATUS_LABELS = {
   ARCHIVED: 'Archived',
 };
 
-function CustomTooltip({ active, payload }) {
+function CustomTooltip({ active = false, payload = [] } = {}) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (

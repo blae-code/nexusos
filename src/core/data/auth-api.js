@@ -33,7 +33,7 @@ function authHeaders(extra = {}) {
   }
   // Also pull any headers the SDK client normally sends
   try {
-    const client = getBase44Client();
+    const client = /** @type {any} */ (getBase44Client());
     if (client && typeof client.getHeaders === 'function') {
       const sdkHeaders = client.getHeaders();
       if (sdkHeaders && typeof sdkHeaders === 'object') {

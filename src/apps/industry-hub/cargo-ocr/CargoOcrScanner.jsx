@@ -81,11 +81,14 @@ export default function CargoOcrScanner({ onResults, onCancel }) {
     for (const file of files) {
       try {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        const result = await base44.integrations.Core.InvokeLLM({
+        const rawResult = await base44.integrations.Core.InvokeLLM({
           prompt: TRADE_PROMPT,
           file_urls: [file_url],
           response_json_schema: TRADE_SCHEMA,
         });
+        const result = /** @type {{ station_name?: string, screen_type?: string, commodities?: any[] }} */ (
+          typeof rawResult === 'object' && rawResult ? rawResult : {}
+        );
 
         if (result?.station_name && !detectedStation) {
           detectedStation = result.station_name;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Save, Shield, Award, Eye, Zap } from 'lucide-react';
+import { X, Save, Shield } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import PresenceDot from '@/components/PresenceDot';
 import NexusToken from '@/core/design/NexusToken';

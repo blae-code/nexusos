@@ -12,7 +12,7 @@ import LootEfficiencyChart from '@/apps/ops-board/analytics/LootEfficiencyChart'
 import TypeBreakdown from '@/apps/ops-board/analytics/TypeBreakdown';
 import CompletedOpsTable from '@/apps/ops-board/analytics/CompletedOpsTable';
 
-function Panel({ title, children, style }) {
+function Panel({ title, children, style = {} }) {
   return (
     <div style={{
       background: '#0F0F0D',

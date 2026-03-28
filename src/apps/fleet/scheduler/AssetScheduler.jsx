@@ -18,7 +18,7 @@ const VIEW_TABS = [
 ];
 
 export default function AssetScheduler() {
-  const ctx = useOutletContext() || {};
+  const ctx = /** @type {any} */ (useOutletContext() || {});
   const callsign = ctx.callsign || 'UNKNOWN';
   const userId = ctx.sessionUserId || '';
   const rank = ctx.rank || 'VAGRANT';

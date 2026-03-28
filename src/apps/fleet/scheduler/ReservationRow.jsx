@@ -23,7 +23,7 @@ function timeLabel(iso) {
 
 function durationLabel(start, end) {
   if (!start || !end) return '';
-  const ms = new Date(end) - new Date(start);
+  const ms = new Date(end).getTime() - new Date(start).getTime();
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   return h > 0 ? `${h}h ${m}m` : `${m}m`;

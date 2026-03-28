@@ -10,7 +10,7 @@ function fmtAuec(v) {
   return String(v);
 }
 
-function KpiCard({ icon: Icon, label, value, sub, color }) {
+function KpiCard({ icon: Icon, label, value, sub = '', color }) {
   return (
     <div style={{
       padding: '16px 18px', background: '#0F0F0D',

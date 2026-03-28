@@ -15,6 +15,7 @@ const STATUSES = ['ACTIVE', 'STORED', 'DEPLOYED', 'MAINTENANCE', 'DAMAGED', 'DES
 const CONDITIONS = ['PRISTINE', 'GOOD', 'FAIR', 'DAMAGED', 'WRECKED'];
 const SOURCES = ['PURCHASED', 'CRAFTED', 'LOOTED', 'DONATED', 'OP_REWARD', 'SALVAGED', 'OTHER'];
 
+/** @type {import('react').CSSProperties} */
 const inputStyle = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px',
   background: '#141410', border: '0.5px solid rgba(200,170,100,0.12)',
@@ -22,6 +23,7 @@ const inputStyle = {
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
   letterSpacing: '0.06em', outline: 'none',
 };
+/** @type {import('react').CSSProperties} */
 const labelStyle = {
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
   color: '#5A5850', letterSpacing: '0.18em', textTransform: 'uppercase',

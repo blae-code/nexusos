@@ -4,7 +4,7 @@
 import React, { useMemo } from 'react';
 import { Ship, Package, Users, Wrench, AlertTriangle, TrendingUp } from 'lucide-react';
 
-function Kpi({ icon: Icon, label, value, sub, color }) {
+function Kpi({ icon: Icon, label, value, sub = '', color }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 10,

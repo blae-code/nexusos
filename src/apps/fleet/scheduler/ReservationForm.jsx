@@ -112,7 +112,9 @@ export default function ReservationForm({ ships, assets, ops, reservations, call
     setSaving(false);
   };
 
+  /** @type {import('react').CSSProperties} */
   const LABEL = { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, color: '#5A5850', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'block', marginBottom: 4 };
+  /** @type {import('react').CSSProperties} */
   const INPUT = { width: '100%', boxSizing: 'border-box' };
 
   return (

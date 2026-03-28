@@ -11,7 +11,7 @@ export function isOnline(lastSeenAt) {
   return Date.now() - new Date(lastSeenAt).getTime() < ONLINE_THRESHOLD_MS;
 }
 
-export default function PresenceDot({ lastSeenAt, size = 6, style }) {
+export default function PresenceDot({ lastSeenAt, size = 6, style = {} }) {
   const online = isOnline(lastSeenAt);
 
   return (

@@ -4,7 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Search, RefreshCw, Ship, Filter } from 'lucide-react';
+import { Search, RefreshCw, Ship } from 'lucide-react';
 import FleetStatusKpis from './FleetStatusKpis';
 import FleetStatusRow from './FleetStatusRow';
 import FleetReadinessBar from './FleetReadinessBar';

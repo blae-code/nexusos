@@ -91,7 +91,10 @@ export default function useOpsAnalytics() {
         netProfit: revenue - expenses,
         phases: Array.isArray(op.phases) ? op.phases.length : 0,
       };
-    }).sort((a, b) => new Date(b.scheduledAt || b.endedAt || 0) - new Date(a.scheduledAt || a.endedAt || 0));
+    }).sort((a, b) => (
+      new Date(b.scheduledAt || b.endedAt || 0).getTime() -
+      new Date(a.scheduledAt || a.endedAt || 0).getTime()
+    ));
 
     // Aggregate KPIs
     const totalOps = opAnalytics.length;

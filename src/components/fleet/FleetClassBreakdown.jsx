@@ -25,7 +25,7 @@ const CLASS_LABELS = {
   OTHER: 'Other',
 };
 
-function CustomTooltip({ active, payload }) {
+function CustomTooltip({ active = false, payload = [] } = {}) {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (

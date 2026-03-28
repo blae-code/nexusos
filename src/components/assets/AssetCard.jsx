@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { MapPin, User, Ship, MoreVertical, Edit2, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { MapPin, User, Ship, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 
 const STATUS_COLORS = {
   ACTIVE: '#4A8C5C', STORED: '#9A9488', DEPLOYED: '#3498DB',

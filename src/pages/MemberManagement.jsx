@@ -11,7 +11,7 @@ import BlueprintContributionsSummary from '@/components/member-mgmt/BlueprintCon
 const RANK_ORDER = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 
 export default function MemberManagement() {
-  const outletContext = useOutletContext() || {};
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
   const isAdmin = outletContext.isAdmin;
 
   const [members, setMembers] = useState([]);

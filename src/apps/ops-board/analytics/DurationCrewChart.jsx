@@ -4,7 +4,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
-const CustomTooltip = ({ active, payload }) => {
+const CustomTooltip = ({ active = false, payload = [] } = {}) => {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (

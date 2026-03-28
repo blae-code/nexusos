@@ -17,7 +17,7 @@ const ACCENT = 'var(--acc)';
 const DANGER = 'var(--danger)';
 const LIVE   = 'var(--live)';
 
-function Svg({ size = 80, opacity = 0.2, viewBox = '0 0 80 80', children, style }) {
+function Svg({ size = 80, opacity = 0.2, viewBox = '0 0 80 80', children, style = {} }) {
   return (
     <svg
       aria-hidden="true"
@@ -35,7 +35,7 @@ function Svg({ size = 80, opacity = 0.2, viewBox = '0 0 80 80', children, style 
 }
 
 /* ─── 1. TacticalReticle — Op Board ───────────────────────────────────────── */
-export function TacticalReticle({ size = 80, opacity = 0.2, style }) {
+export function TacticalReticle({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* outer ring with gaps at cardinals */}
@@ -74,7 +74,7 @@ export function TacticalReticle({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 2. OrbitalChart — Scout Intel ──────────────────────────────────────── */
-export function OrbitalChart({ size = 80, opacity = 0.2, style }) {
+export function OrbitalChart({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* outer orbit ellipse tilted */}
@@ -115,7 +115,7 @@ export function OrbitalChart({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 3. RefineryFlow — Industry Hub ─────────────────────────────────────── */
-export function RefineryFlow({ size = 80, opacity = 0.2, style }) {
+export function RefineryFlow({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* process chamber — hexagon */}
@@ -151,7 +151,7 @@ export function RefineryFlow({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 4. TradeLedger — Commerce ──────────────────────────────────────────── */
-export function TradeLedger({ size = 80, opacity = 0.2, style }) {
+export function TradeLedger({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* outer frame */}
@@ -186,7 +186,7 @@ export function TradeLedger({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 5. CargoRoute — Logistics ──────────────────────────────────────────── */
-export function CargoRoute({ size = 80, opacity = 0.2, style }) {
+export function CargoRoute({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* cargo container outline */}
@@ -217,7 +217,7 @@ export function CargoRoute({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 6. VaultWheel — Armory ─────────────────────────────────────────────── */
-export function VaultWheel({ size = 80, opacity = 0.2, style }) {
+export function VaultWheel({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* outer vault ring */}
@@ -255,7 +255,7 @@ export function VaultWheel({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 7. ArchiveTimeline — Epic Archive ──────────────────────────────────── */
-export function ArchiveTimeline({ size = 80, opacity = 0.2, style }) {
+export function ArchiveTimeline({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* trophy cup */}
@@ -287,7 +287,7 @@ export function ArchiveTimeline({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 8. ConstellationRoster — Org Roster ────────────────────────────────── */
-export function ConstellationRoster({ size = 80, opacity = 0.2, style }) {
+export function ConstellationRoster({ size = 80, opacity = 0.2, style = {} }) {
   // nodes: [x, y, size, color]
   const nodes = [
     [40, 10, 2.8, ACCENT],  // Pioneer (top)
@@ -319,14 +319,14 @@ export function ConstellationRoster({ size = 80, opacity = 0.2, style }) {
               stroke={STROKE} strokeWidth="0.45" strokeDasharray="1.5 2"/>
       ))}
       {nodes.map(([x,y,r,c],i) => (
-        <circle key={i} cx={x} cy={y} r={r} stroke={c} strokeWidth="0.65"/>
+        <circle key={i} cx={x} cy={y} r={r} stroke={String(c)} strokeWidth="0.65"/>
       ))}
     </Svg>
   );
 }
 
 /* ─── 9. HandbookGlyph — Redscar Handbook ────────────────────────────────── */
-export function HandbookGlyph({ size = 80, opacity = 0.2, style }) {
+export function HandbookGlyph({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* book outline */}
@@ -354,7 +354,7 @@ export function HandbookGlyph({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 10. TrainingConsole — Training Hub ─────────────────────────────────── */
-export function TrainingConsole({ size = 80, opacity = 0.2, style }) {
+export function TrainingConsole({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* screen / terminal frame */}
@@ -384,7 +384,7 @@ export function TrainingConsole({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 11. FleetDock — Fleet Hub ──────────────────────────────────────────── */
-export function FleetDock({ size = 80, opacity = 0.2, style }) {
+export function FleetDock({ size = 80, opacity = 0.2, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 80 80" style={style}>
       {/* dock bay structure */}
@@ -414,7 +414,7 @@ export function FleetDock({ size = 80, opacity = 0.2, style }) {
 }
 
 /* ─── 12. ScanPattern — empty state generic ─────────────────────────────── */
-export function ScanPattern({ size = 120, opacity = 0.12, style }) {
+export function ScanPattern({ size = 120, opacity = 0.12, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 120 120" style={style}>
       <circle cx="60" cy="60" r="52" stroke={STROKE} strokeWidth="0.6" strokeDasharray="5 4"/>
@@ -431,7 +431,7 @@ export function ScanPattern({ size = 120, opacity = 0.12, style }) {
 }
 
 /* ─── 13. MiningRig — Scout deposit empty state ──────────────────────────── */
-export function MiningRig({ size = 120, opacity = 0.12, style }) {
+export function MiningRig({ size = 120, opacity = 0.12, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 120 120" style={style}>
       {/* asteroid outline */}
@@ -456,7 +456,7 @@ export function MiningRig({ size = 120, opacity = 0.12, style }) {
 }
 
 /* ─── 14. EmptyVault — Armory empty state ────────────────────────────────── */
-export function EmptyVault({ size = 120, opacity = 0.12, style }) {
+export function EmptyVault({ size = 120, opacity = 0.12, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 120 120" style={style}>
       {/* vault door frame */}
@@ -489,7 +489,7 @@ export function EmptyVault({ size = 120, opacity = 0.12, style }) {
 }
 
 /* ─── 15. EmptyLedger — Commerce empty state ─────────────────────────────── */
-export function EmptyLedger({ size = 120, opacity = 0.12, style }) {
+export function EmptyLedger({ size = 120, opacity = 0.12, style = {} }) {
   return (
     <Svg size={size} opacity={opacity} viewBox="0 0 120 120" style={style}>
       <rect x="16" y="10" width="88" height="100" rx="1" stroke={STROKE} strokeWidth="0.8"/>

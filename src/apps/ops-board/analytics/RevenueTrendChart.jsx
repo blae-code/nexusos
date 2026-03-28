@@ -10,7 +10,7 @@ function fmtAuec(v) {
   return String(v);
 }
 
-const CustomTooltip = ({ active, payload }) => {
+const CustomTooltip = ({ active = false, payload = [] } = {}) => {
   if (!active || !payload?.[0]) return null;
   const d = payload[0].payload;
   return (
