@@ -31,6 +31,7 @@ import DismantleTracker from '@/apps/industry-hub/DismantleTracker';
 import BlueprintWishlistPanel from '@/apps/industry-hub/BlueprintWishlistPanel';
 import CraftingCostCalc from '@/apps/industry-hub/CraftingCostCalc';
 import CargoSCUPlanner from '@/apps/industry-hub/CargoSCUPlanner';
+import MarketplaceTab from '@/apps/industry-hub/marketplace/MarketplaceTab';
 import IndustryTabBar from '@/components/IndustryTabBar';
 
 const TABS = [
@@ -60,6 +61,7 @@ const TABS = [
   { id: 'wishlist', label: 'WISHLIST' },
   { id: 'costcalc', label: 'COST CALC' },
   { id: 'cargoplanner', label: 'SCU PLAN' },
+  { id: 'marketplace', label: 'MARKETPLACE' },
 ];
 
 const METHOD_STYLE = {
@@ -308,6 +310,7 @@ export default function IndustryHub() {
         {tab === 'wishlist' ? <BlueprintWishlistPanel blueprints={blueprints} callsign={callsign} rank={rank} /> : null}
         {tab === 'costcalc' ? <CraftingCostCalc blueprints={blueprints} materials={materials} priceSnapshots={priceSnapshots} /> : null}
         {tab === 'cargoplanner' ? <CargoSCUPlanner blueprints={blueprints} ships={orgShips} /> : null}
+        {tab === 'marketplace' ? <MarketplaceTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} /> : null}
       </div>
     </div>
   );

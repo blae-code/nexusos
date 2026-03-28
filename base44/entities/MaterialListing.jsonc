@@ -1,0 +1,106 @@
+{
+  "name": "MaterialListing",
+  "type": "object",
+  "properties": {
+    "listing_type": {
+      "type": "string",
+      "enum": [
+        "SELL",
+        "BUY"
+      ],
+      "description": "Whether the poster is selling or buying"
+    },
+    "material_name": {
+      "type": "string",
+      "description": "Material or item name, e.g. Quantanium, CMR, Bexalite"
+    },
+    "material_type": {
+      "type": "string",
+      "enum": [
+        "CMR",
+        "CMP",
+        "CMS",
+        "CM_REFINED",
+        "ORE",
+        "DISMANTLED_SCRAP",
+        "CRAFTED_ITEM",
+        "COMPONENT",
+        "OTHER"
+      ],
+      "description": "Category of the material"
+    },
+    "quantity_scu": {
+      "type": "number",
+      "description": "Quantity in SCU (or count for crafted items)"
+    },
+    "quality_score": {
+      "type": "integer",
+      "description": "Quality on 1-1000 scale (0 if not applicable)"
+    },
+    "price_per_scu": {
+      "type": "integer",
+      "description": "Asking/offering price per SCU in aUEC"
+    },
+    "total_price_aUEC": {
+      "type": "integer",
+      "description": "Total price for the lot in aUEC"
+    },
+    "location": {
+      "type": "string",
+      "description": "Where the material is stored / pickup location"
+    },
+    "system": {
+      "type": "string",
+      "description": "Star system: STANTON, PYRO, NYX"
+    },
+    "poster_callsign": {
+      "type": "string"
+    },
+    "poster_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "RESERVED",
+        "COMPLETED",
+        "CANCELLED",
+        "EXPIRED"
+      ],
+      "default": "OPEN"
+    },
+    "accepted_by_callsign": {
+      "type": "string"
+    },
+    "accepted_by_id": {
+      "type": "string"
+    },
+    "blueprint_id": {
+      "type": "string",
+      "description": "FK to Blueprint if this is a crafted item listing"
+    },
+    "craft_queue_id": {
+      "type": "string",
+      "description": "FK to CraftQueue if listing was created from a craft demand"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "listing_type",
+    "material_name",
+    "material_type",
+    "poster_callsign",
+    "status"
+  ]
+}
