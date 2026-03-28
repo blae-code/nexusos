@@ -4,7 +4,7 @@
  *   • Refinery health   • Production throughput   • Coffer status
  *   • Active orders with animated progress bars   • Quick-action buttons
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RefineryHealthCard from './RefineryHealthCard';
 import ProductionThroughputCard from './ProductionThroughputCard';
@@ -13,6 +13,7 @@ import ActiveOrdersCard from './ActiveOrdersCard';
 import QuickActionsCard from './QuickActionsCard';
 import StockpileSummaryCard from './StockpileSummaryCard';
 import BlueprintCoverageCard from './BlueprintCoverageCard';
+import BlueprintBrowser from './BlueprintBrowser';
 import { InsightStrip } from '@/apps/industry-hub/IndustryOverviewWidgets';
 
 export default function IndustryDashboard({
@@ -24,8 +25,11 @@ export default function IndustryDashboard({
   scoutDeposits,
   orgShips,
   onTabChange,
+  callsign,
+  onRefresh,
 }) {
   const navigate = useNavigate();
+  const [browserOpen, setBrowserOpen] = useState(false);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 16px', animation: 'pageEntrance 200ms ease-out' }}>
@@ -54,9 +58,18 @@ export default function IndustryDashboard({
         gap: 12,
       }}>
         <StockpileSummaryCard materials={materials} onNavigate={() => onTabChange('materials')} />
-        <BlueprintCoverageCard blueprints={blueprints} onNavigate={() => onTabChange('blueprints')} />
+        <BlueprintCoverageCard blueprints={blueprints} onNavigate={() => setBrowserOpen(o => !o)} />
         <QuickActionsCard onTabChange={onTabChange} navigate={navigate} />
       </div>
+
+      {/* Blueprint Browser */}
+      {browserOpen && (
+        <BlueprintBrowser
+          blueprints={blueprints}
+          callsign={callsign}
+          onBlueprintUpdated={onRefresh}
+        />
+      )}
     </div>
   );
 }

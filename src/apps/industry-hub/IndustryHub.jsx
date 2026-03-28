@@ -273,6 +273,8 @@ export default function IndustryHub() {
               scoutDeposits={scoutDeposits}
               orgShips={orgShips}
               onTabChange={setTab}
+              callsign={callsign}
+              onRefresh={load}
             />
           </div>
         ) : null}
