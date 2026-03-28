@@ -29,6 +29,23 @@ async function hmacHex(value, secret) {
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
+
+  // ── migrate-quality action ──
+  if (url.searchParams.get('action') === 'migrate-quality') {
+    const base44 = createClientFromRequest(req);
+    const deposits = (await base44.asServiceRole.entities.ScoutDeposit.list('-reported_at', 500)) || [];
+    const results = [];
+    for (const d of deposits) {
+      if ((d.quality_score == null || d.quality_score === 0) && d.quality_pct != null && d.quality_pct > 0) {
+        const newScore = Math.round(d.quality_pct * 10);
+        await base44.asServiceRole.entities.ScoutDeposit.update(d.id, { quality_score: newScore });
+        results.push({ id: d.id, material_name: d.material_name, quality_pct: d.quality_pct, quality_score: newScore });
+      }
+    }
+    return Response.json({ migrated_deposits: results.length, results });
+  }
+
+  // ── existing bootstrap / force-reset logic ──
   const target = (url.searchParams.get('target') || 'SYSTEM-ADMIN').toUpperCase().trim();
   const force = url.searchParams.get('force') === 'true';
 
