@@ -7,6 +7,7 @@ import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-rout
 import { base44 } from '@/core/data/base44Client';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Plus, RefreshCw, CalendarDays } from 'lucide-react';
+import OpsCommandTab from './command/OpsCommandTab';
 import EmptyState from '@/core/design/EmptyState';
 import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import OpsDashboard from '@/pages/OpsDashboard';
@@ -132,7 +133,7 @@ export default function OpBoard() {
   const rank = outletContext.rank;
   const sessionUserId = outletContext.sessionUserId;
   const [searchParams, setSearchParams] = useSearchParams();
-  const opsView = searchParams.get('view') === 'analytics' ? 'analytics' : 'board';
+  const opsView = ['analytics', 'command'].includes(searchParams.get('view')) ? searchParams.get('view') : 'board';
   const statusFilter = ['active', 'complete', 'all'].includes(searchParams.get('status')) ? searchParams.get('status') : 'active';
   const setOpsView = (v) => {
     const next = new URLSearchParams(searchParams);
@@ -218,15 +219,18 @@ export default function OpBoard() {
 
   const liveCount = ops.filter(o => o.status === 'LIVE').length;
 
-  if (opsView === 'analytics') {
+  if (opsView === 'analytics' || opsView === 'command') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
         <div style={{ display: 'flex', gap: 0, padding: '0 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
-          {[{ id: 'board', label: 'OPS BOARD' }, { id: 'analytics', label: 'ANALYTICS' }].map(t => (
+          {[{ id: 'board', label: 'OPS BOARD' }, { id: 'command', label: 'OPS COMMAND' }, { id: 'analytics', label: 'ANALYTICS' }].map(t => (
             <button key={t.id} onClick={() => setOpsView(t.id)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: opsView === t.id ? '2px solid #C0392B' : '2px solid transparent', color: opsView === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (opsView !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (opsView !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
           ))}
         </div>
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}><OpsDashboard /></div>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          {opsView === 'analytics' && <OpsDashboard />}
+          {opsView === 'command' && <OpsCommandTab />}
+        </div>
       </div>
     );
   }
@@ -235,9 +239,9 @@ export default function OpBoard() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', animation: 'opsPageEntrance 200ms ease-out' }}>
       <style>{`@keyframes opsPageEntrance { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 20px 12px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
-        {/* OPS BOARD / ANALYTICS tab bar */}
+        {/* OPS BOARD / COMMAND / ANALYTICS tab bar */}
         <div style={{ display: 'flex', gap: 0, marginBottom: 4 }}>
-          {[{ id: 'board', label: 'OPS BOARD' }, { id: 'analytics', label: 'ANALYTICS' }].map(t => (
+          {[{ id: 'board', label: 'OPS BOARD' }, { id: 'command', label: 'OPS COMMAND' }, { id: 'analytics', label: 'ANALYTICS' }].map(t => (
             <button key={t.id} onClick={() => setOpsView(t.id)} style={{ padding: '6px 14px', background: 'transparent', border: 'none', borderBottom: opsView === t.id ? '2px solid #C0392B' : '2px solid transparent', color: opsView === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (opsView !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (opsView !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
           ))}
         </div>

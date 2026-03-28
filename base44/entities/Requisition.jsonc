@@ -50,6 +50,11 @@
       ],
       "default": "NORMAL"
     },
+    "command_priority": {
+      "type": "integer",
+      "default": 0,
+      "description": "Ops Command override priority (higher = more urgent). 0 = not set."
+    },
     "op_id": {
       "type": "string"
     },
@@ -72,6 +77,22 @@
     "target_user_id": {
       "type": "string",
       "description": "NexusUser ID of targeted fulfiller"
+    },
+    "assigned_ship_id": {
+      "type": "string",
+      "description": "OrgShip ID tagged by Ops Command"
+    },
+    "assigned_ship_name": {
+      "type": "string",
+      "description": "Denormalized ship name for display"
+    },
+    "assigned_op_id": {
+      "type": "string",
+      "description": "Op ID tagged by Ops Command"
+    },
+    "assigned_op_name": {
+      "type": "string",
+      "description": "Denormalized Op name for display"
     },
     "status": {
       "type": "string",
