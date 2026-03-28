@@ -1,0 +1,70 @@
+{
+  "name": "OpEvent",
+  "type": "object",
+  "properties": {
+    "op_id": {
+      "type": "string",
+      "description": "FK to Op"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "STATUS",
+        "LOOT",
+        "KEY_EVENT",
+        "THREAT",
+        "PHASE_ADVANCE",
+        "COMMS",
+        "NOTE"
+      ],
+      "description": "Category of event"
+    },
+    "callsign": {
+      "type": "string",
+      "description": "Who logged this event"
+    },
+    "message": {
+      "type": "string",
+      "description": "Event message text"
+    },
+    "material_name": {
+      "type": "string",
+      "description": "For LOOT events: material name"
+    },
+    "quantity_scu": {
+      "type": "number",
+      "description": "For LOOT events: SCU amount"
+    },
+    "quality_score": {
+      "type": "integer",
+      "description": "For LOOT events: quality 1-1000"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "INFO",
+        "WARN",
+        "CRITICAL"
+      ],
+      "default": "INFO"
+    },
+    "phase_index": {
+      "type": "integer",
+      "description": "Phase index when event was logged"
+    },
+    "pinned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pinned events stay visible at top"
+    },
+    "logged_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "op_id",
+    "event_type",
+    "callsign"
+  ]
+}

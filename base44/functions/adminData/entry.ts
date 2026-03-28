@@ -44,6 +44,7 @@ const REGISTRY = [
   { id: 'ScoutDeposit', label: 'Scout Deposits', cat: 'Scout', sum: ['material_name','system_name','location_detail','quality_pct'], search: ['material_name','system_name','location_detail','reported_by_callsign'], sort: '-reported_at', deact: { is_stale: true }, rest: { is_stale: false } },
   { id: 'Op', label: 'Operations', cat: 'Ops', sum: ['name','status','location','type'], search: ['name','location','type','status'], sort: '-scheduled_at', deact: { status: 'ARCHIVED' } },
   { id: 'OpRsvp', label: 'Op RSVPs', cat: 'Ops', sum: ['callsign','status','role','op_id'], search: ['callsign','status','role','op_id'], sort: '-updated_date', del: true },
+  { id: 'OpEvent', label: 'Op Events', cat: 'Ops', sum: ['event_type','callsign','message','op_id'], search: ['event_type','callsign','message','op_id','material_name'], sort: '-logged_at', del: true },
   { id: 'OrgShip', label: 'Org Ships', cat: 'Fleet', sum: ['name','model','status','assigned_to_callsign'], search: ['name','model','manufacturer','assigned_to_callsign','status'], sort: '-updated_date', deact: { status: 'ARCHIVED' }, rest: { status: 'AVAILABLE' } },
   { id: 'ArmoryItem', label: 'Armory Items', cat: 'Fleet', sum: ['item_name','category','quantity'], search: ['item_name','category','location'], sort: '-updated_date', del: true },
   { id: 'CofferLog', label: 'Coffer Ledger', cat: 'Commerce', sum: ['entry_type','amount_aUEC','logged_by_callsign','description'], search: ['entry_type','logged_by_callsign','description'], sort: '-logged_at', prot: true },

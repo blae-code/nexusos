@@ -10,6 +10,7 @@ import OpRsvpSection from './OpRsvpSection';
 import PhaseTracker from './PhaseTracker';
 import ReadinessGate from './ReadinessGate';
 import SessionLog from './SessionLog';
+import LiveEventLog from './live-log/LiveEventLog';
 import SplitCalc from './SplitCalc';
 import ThreatPanel from './ThreatPanel';
 import LiveOpTopbar from './LiveOpTopbar';
@@ -261,6 +262,7 @@ export default function LiveOp() {
   const crewGridProps = { rsvps, op, layoutMode };
   const opRsvpProps = { op, rsvps, callsign, sessionUserId, rank };
   const sessionLogProps = { op, callsign, rank, onUpdate: handleLogUpdate };
+  const liveEventLogProps = { op, callsign, rank, currentPhase, onSessionLogSync: handleLogUpdate };
   const threatPanelProps = { op, callsign, onUpdate: handleLogUpdate };
   const lootTallyProps = { op, callsign, rank, currentPhase, onUpdate: handleLogUpdate };
   const splitCalcProps = { op, rsvps };
@@ -424,11 +426,11 @@ export default function LiveOp() {
             </Panel>
           </div>
 
-          {/* Right column: Session log */}
+          {/* Right column: Live Event Log */}
           <div style={{ minHeight: 0, overflow: 'auto' }}>
-            <Panel title="SESSION LOG" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Panel title="LIVE EVENT LOG" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ flex: 1, minHeight: 0 }}>
-                <SessionLog {...sessionLogProps} />
+                <LiveEventLog {...liveEventLogProps} />
               </div>
             </Panel>
           </div>
@@ -450,11 +452,11 @@ export default function LiveOp() {
             </Panel>
           </div>
 
-          {/* Column 2: Session log */}
+          {/* Column 2: Live Event Log */}
           <div style={{ minHeight: 0, overflow: 'auto' }}>
-            <Panel title="SESSION LOG" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Panel title="LIVE EVENT LOG" style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ flex: 1, minHeight: 0 }}>
-                <SessionLog {...sessionLogProps} />
+                <LiveEventLog {...liveEventLogProps} />
               </div>
             </Panel>
           </div>
