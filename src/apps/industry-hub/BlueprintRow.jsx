@@ -3,7 +3,8 @@
  * No closed-over variables — props only.
  */
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { computeCraftAnalysis, fmtAuec } from '@/core/data/usePriceLookup';
 import {
   BlueprintHolderChip,
   BlueprintPriorityTag,
@@ -15,11 +16,14 @@ import RecipePanel from './RecipePanel';
 
 // ─── Single blueprint row ─────────────────────────────────────────────────────
 
-export default function BlueprintRow({ blueprint, focused = false, isPioneer, materials, callsign, onTogglePriority, onCraftQueued }) {
+export default function BlueprintRow({ blueprint, focused = false, isPioneer, materials, callsign, onTogglePriority, onCraftQueued, prices }) {
   const [expanded, setExpanded] = useState(false);
 
   const owned      = !!(blueprint.owned_by_user_id || blueprint.owned_by || blueprint.owned_by_callsign);
   const isPriority = !!blueprint.is_priority;
+
+  // Dynamic pricing analysis
+  const analysis = prices ? computeCraftAnalysis(blueprint, prices) : null;
 
   useEffect(() => {
     if (focused) {
@@ -81,6 +85,33 @@ export default function BlueprintRow({ blueprint, focused = false, isPioneer, ma
 
         {isPriority ? <BlueprintPriorityTag /> : null}
 
+        {/* Market value + craft signal */}
+        {analysis && analysis.marketValue > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <span style={{
+              fontSize: 9, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+              color: 'var(--t1)', fontFamily: "'Barlow Condensed', sans-serif",
+            }}>{fmtAuec(analysis.marketValue)}</span>
+            {analysis.cheaperToBuy ? (
+              <span style={{
+                fontSize: 8, padding: '1px 5px', borderRadius: 2,
+                background: 'rgba(192,57,43,0.12)', border: '0.5px solid rgba(192,57,43,0.3)',
+                color: '#C0392B', fontWeight: 600, letterSpacing: '0.06em',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                display: 'flex', alignItems: 'center', gap: 2,
+              }}><TrendingDown size={8} />BUY</span>
+            ) : analysis.allPriced ? (
+              <span style={{
+                fontSize: 8, padding: '1px 5px', borderRadius: 2,
+                background: 'rgba(74,140,92,0.12)', border: '0.5px solid rgba(74,140,92,0.3)',
+                color: '#4A8C5C', fontWeight: 600, letterSpacing: '0.06em',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                display: 'flex', alignItems: 'center', gap: 2,
+              }}><TrendingUp size={8} />CRAFT</span>
+            ) : null}
+          </div>
+        )}
+
         {/* Priority toggle — Pioneer+ only */}
         {isPioneer && (
           <button
@@ -116,6 +147,7 @@ export default function BlueprintRow({ blueprint, focused = false, isPioneer, ma
           materials={materials}
           callsign={callsign}
           onCraftQueued={onCraftQueued}
+          prices={prices}
         />
       )}
     </>

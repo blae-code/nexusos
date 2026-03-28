@@ -5,7 +5,8 @@
 import React, { useState } from 'react';
 import { useSession } from '@/core/data/SessionContext';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
-import { Wrench } from 'lucide-react';
+import { Wrench, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { computeCraftAnalysis, fmtAuec } from '@/core/data/usePriceLookup';
 import { SectionHeader } from './BlueprintFilterChips';
 import { qualityPercentFromRecord } from '@/core/data/quality';
 
@@ -28,13 +29,16 @@ export function ingredientStatus(ingredient, materials) {
 
 // ─── Recipe panel (lazy — renders only when expanded) ─────────────────────────
 
-export default function RecipePanel({ blueprint, materials, callsign, onCraftQueued }) {
+export default function RecipePanel({ blueprint, materials, callsign, onCraftQueued, prices }) {
   const { user } = useSession();
   const [crafting, setCrafting] = useState(false);
   const [craftDone, setCraftDone] = useState(false);
 
   const recipe = blueprint.recipe_materials || [];
   const owned  = !!(blueprint.owned_by_user_id || blueprint.owned_by || blueprint.owned_by_callsign);
+
+  // Dynamic pricing
+  const analysis = prices ? computeCraftAnalysis(blueprint, prices) : null;
 
   // Stock cross-reference fires here, on expand, not on page load
   const statusColor = { OK: 'var(--live)', LOW: 'var(--warn)', NONE: 'var(--danger)' };
@@ -80,6 +84,18 @@ export default function RecipePanel({ blueprint, materials, callsign, onCraftQue
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', borderBottom: '0.5px solid var(--b0)' }}
               >
                 <span style={{ flex: 1, color: 'var(--t0)', fontSize: 11 }}>{ing.material_name}</span>
+                {/* Live price per SCU */}
+                {(() => {
+                  const bd = analysis?.breakdown?.find(b => (b.name || '').toLowerCase() === (ing.material_name || '').toLowerCase());
+                  if (!bd) return null;
+                  return bd.hasPrice ? (
+                    <span style={{ fontSize: 9, color: 'var(--t2)', fontVariantNumeric: 'tabular-nums', minWidth: 55, textAlign: 'right', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                      {fmtAuec(bd.pricePerScu)}/SCU
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 8, color: 'var(--t3)', fontStyle: 'italic' }}>no price</span>
+                  );
+                })()}
                 {/* Min quality badge — green/amber/red based on org stock */}
                 <span style={{
                   fontSize: 9, fontWeight: 600, padding: '1px 6px', borderRadius: 4,
@@ -95,6 +111,30 @@ export default function RecipePanel({ blueprint, materials, callsign, onCraftQue
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Craft-vs-Buy verdict */}
+      {analysis && analysis.marketValue > 0 && (
+        <div style={{
+          marginTop: 10, padding: '8px 12px', borderRadius: 2,
+          borderLeft: `2px solid ${analysis.cheaperToBuy ? '#C0392B' : '#4A8C5C'}`,
+          background: analysis.cheaperToBuy ? 'rgba(192,57,43,0.05)' : 'rgba(74,140,92,0.05)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          {analysis.cheaperToBuy
+            ? <TrendingDown size={14} style={{ color: '#C0392B', flexShrink: 0 }} />
+            : <TrendingUp size={14} style={{ color: '#4A8C5C', flexShrink: 0 }} />
+          }
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: analysis.cheaperToBuy ? '#C0392B' : '#4A8C5C', fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.06em' }}>
+              {analysis.cheaperToBuy ? 'CHEAPER TO BUY' : 'PROFITABLE TO CRAFT'}
+            </div>
+            <div style={{ fontSize: 9, color: 'var(--t2)', marginTop: 1 }}>
+              Craft: {fmtAuec(analysis.totalCraftCost)} · Market: {fmtAuec(analysis.marketValue)} · {analysis.margin}% margin
+              {analysis.marketValueSource === 'LIVE' ? ' · Live price' : analysis.marketValueSource === 'ESTIMATE' ? ' · Est. price' : ''}
+            </div>
+          </div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { Plus, Search } from 'lucide-react';
+import { usePriceLookup } from '@/core/data/usePriceLookup';
 import NexusToken from '@/core/design/NexusToken';
 import { T } from '@/core/data/tokenMap';
 import { Chip } from './BlueprintFilterChips';
@@ -38,6 +39,7 @@ const OWNERSHIP_FILTERS = [
 // ─── Main Blueprints component ────────────────────────────────────────────────
 
 export default function Blueprints({ blueprints, materials, rank, callsign, onRefresh }) {
+  const { prices } = usePriceLookup();
   const [searchParams] = useSearchParams();
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [ownershipFilter, setOwnershipFilter] = useState('ALL');
@@ -172,6 +174,7 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
                 callsign={callsign}
                 onTogglePriority={handleTogglePriority}
                 onCraftQueued={onRefresh}
+                prices={prices}
               />
             ))}
 

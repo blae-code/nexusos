@@ -309,7 +309,7 @@ export default function IndustryHub() {
         {tab === 'missions' ? <MissionFarmPlanner blueprints={blueprints} /> : null}
         {tab === 'dismantle' ? <DismantleTracker callsign={callsign} /> : null}
         {tab === 'wishlist' ? <BlueprintWishlistPanel blueprints={blueprints} callsign={callsign} rank={rank} /> : null}
-        {tab === 'costcalc' ? <CraftingCostCalc blueprints={blueprints} materials={materials} priceSnapshots={priceSnapshots} /> : null}
+        {tab === 'costcalc' ? <CraftingCostCalc blueprints={blueprints} materials={materials} /> : null}
         {tab === 'cargoplanner' ? <CargoSCUPlanner blueprints={blueprints} ships={orgShips} /> : null}
         {tab === 'marketplace' ? <MarketplaceTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} /> : null}
       </div>
