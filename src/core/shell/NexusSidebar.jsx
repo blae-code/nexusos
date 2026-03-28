@@ -21,7 +21,7 @@ const NAV = [
           { label: 'CREATE OP', path: '/app/ops/new' },
         ],
       },
-      { icon: LifeBuoy, label: 'RESCUE BOARD', path: '/app/ops/rescue' },
+
     ],
   },
   {

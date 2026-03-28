@@ -71,7 +71,7 @@ function App() {
               <Route path="ops/timeline" element={withRouteBoundary(<OpsTimeline />, true)} />
               <Route path="ops/new" element={withRouteBoundary(<OpCreator />, true)} />
               <Route path="ops/:id" element={withRouteBoundary(<LiveOp />, true)} />
-              <Route path="ops/rescue" element={withRouteBoundary(<RescueBoard />, true)} />
+              {/* Rescue Board hidden — future feature */}
               <Route path="ops/archive" element={withRouteBoundary(<EpicArchive />, true)} />
               {/* Redirect old command route */}
               <Route path="command" element={<Navigate to="/app/ops?view=analytics" replace />} />
