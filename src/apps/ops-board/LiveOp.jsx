@@ -18,6 +18,7 @@ import MissionControlPanel from './MissionControlPanel';
 import RoleReassignPanel from './RoleReassignPanel';
 import OpWrapUpPanel from './OpWrapUpPanel';
 import ResourceReportPanel from './ResourceReportPanel';
+import OpDebriefPanel from './debrief/OpDebriefPanel';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
@@ -273,7 +274,10 @@ export default function LiveOp() {
   const roleReassignProps = { op, rsvps, rank, onUpdate: fetchOp };
   const wrapUpProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
   const resourceReportProps = { op, rsvps, callsign, rank };
+  const debriefProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
   const isComplete = op.status === 'COMPLETE';
+  const isArchived = op.status === 'ARCHIVED';
+  const showDebrief = isComplete || isArchived;
 
   const hero = (
     <div
@@ -383,9 +387,13 @@ export default function LiveOp() {
         onLayoutChange={handleLayoutChange}
       />
 
-      {/* Financial wrap-up panel for completed ops */}
-      {isComplete && (
+      {/* Financial wrap-up + debrief panel for completed/archived ops */}
+      {showDebrief && (
         <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          <Panel title="MISSION DEBRIEF">
+            <OpDebriefPanel {...debriefProps} />
+          </Panel>
+          <div style={{ height: 16 }} />
           <Panel title="RESOURCE INTELLIGENCE">
             <ResourceReportPanel {...resourceReportProps} />
           </Panel>
@@ -396,7 +404,7 @@ export default function LiveOp() {
         </div>
       )}
 
-      {!isComplete && (layoutMode === 'ALT-TAB' ? (
+      {!showDebrief && (layoutMode === 'ALT-TAB' ? (
         // Standard 2-column layout
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '60% 40%', gap: 16, padding: 24, overflow: 'hidden', minHeight: 0 }}>
           {/* Left column: Phase tracker + Mission Control + Crew grid */}

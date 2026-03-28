@@ -1,0 +1,157 @@
+{
+  "name": "OpDebrief",
+  "type": "object",
+  "properties": {
+    "op_id": {
+      "type": "string",
+      "description": "FK to Op"
+    },
+    "op_name": {
+      "type": "string"
+    },
+    "op_type": {
+      "type": "string"
+    },
+    "debrief_by_callsign": {
+      "type": "string",
+      "description": "Lead crew member who filed the debrief"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "PARTIAL",
+        "FAILURE",
+        "ABORTED"
+      ],
+      "default": "SUCCESS"
+    },
+    "outcome_notes": {
+      "type": "string",
+      "description": "Summary of what happened and why"
+    },
+    "crew_count": {
+      "type": "integer"
+    },
+    "duration_minutes": {
+      "type": "integer"
+    },
+    "system": {
+      "type": "string"
+    },
+    "total_revenue_aUEC": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_expenses_aUEC": {
+      "type": "integer",
+      "default": 0
+    },
+    "net_profit_aUEC": {
+      "type": "integer",
+      "default": 0
+    },
+    "resource_haul": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "material_name": {
+            "type": "string"
+          },
+          "quantity_scu": {
+            "type": "number"
+          },
+          "quality_score": {
+            "type": "integer"
+          },
+          "value_aUEC": {
+            "type": "integer"
+          }
+        }
+      },
+      "description": "Materials/commodities hauled during op"
+    },
+    "total_haul_scu": {
+      "type": "number",
+      "default": 0
+    },
+    "total_haul_value_aUEC": {
+      "type": "integer",
+      "default": 0
+    },
+    "encounters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "threat_level": {
+            "type": "string"
+          },
+          "casualties": {
+            "type": "integer"
+          },
+          "ships_lost": {
+            "type": "integer"
+          }
+        }
+      },
+      "description": "Combat/PvP/PvE encounters during op"
+    },
+    "ships_deployed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ship names deployed during op"
+    },
+    "ships_lost": {
+      "type": "integer",
+      "default": 0
+    },
+    "crew_casualties": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of crew deaths/incapacitations"
+    },
+    "lessons_learned": {
+      "type": "string",
+      "description": "What to do differently next time"
+    },
+    "commendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "callsign": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Outstanding crew performance callouts"
+    },
+    "performance_rating": {
+      "type": "integer",
+      "description": "1-5 star rating of overall op execution"
+    },
+    "filed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "op_id",
+    "op_name",
+    "outcome",
+    "debrief_by_callsign"
+  ]
+}
