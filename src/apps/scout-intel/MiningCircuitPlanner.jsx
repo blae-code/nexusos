@@ -6,17 +6,9 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Route, Fuel, Clock, Package, Shield, Ship, AlertTriangle, ChevronDown, RefreshCw } from 'lucide-react';
 import CircuitResultsPanel from './CircuitResultsPanel';
+import { SHIP_OPTIONS } from './shipData';
 
-const SHIP_OPTIONS = [
-  { key: 'PROSPECTOR', label: 'Prospector', class: 'MINER', scu: 32, crew: 1 },
-  { key: 'MOLE', label: 'ARGO MOLE', class: 'MINER', scu: 96, crew: 4 },
-  { key: 'ORION', label: 'RSI Orion', class: 'MINER', scu: 384, crew: 7 },
-  { key: 'CUTLASS_BLACK', label: 'Cutlass Black', class: 'HAULER', scu: 46, crew: 2 },
-  { key: 'FREELANCER', label: 'Freelancer', class: 'HAULER', scu: 66, crew: 2 },
-  { key: 'CATERPILLAR', label: 'Caterpillar', class: 'HAULER', scu: 576, crew: 5 },
-  { key: 'C2_HERCULES', label: 'C2 Hercules', class: 'HAULER', scu: 696, crew: 3 },
-  { key: 'VULTURE', label: 'Vulture', class: 'SALVAGER', scu: 12, crew: 1 },
-];
+// Ship data imported from shipData.js
 
 const ORIGIN_STATIONS = [
   'CRU-L1', 'ARC-L1', 'HUR-L1', 'HUR-L2', 'MIC-L1',

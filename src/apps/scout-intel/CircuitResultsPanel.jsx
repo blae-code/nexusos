@@ -2,8 +2,9 @@
  * CircuitResultsPanel — Displays the planned mining circuit with
  * per-leg travel/fuel breakdown, fuel gauge, and operational summary.
  */
-import React from 'react';
-import { Route, Fuel, Clock, Package, Shield, AlertTriangle, ChevronLeft, RefreshCw, Pickaxe, Navigation } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Route, Fuel, Clock, Package, Shield, AlertTriangle, ChevronLeft, RefreshCw, Pickaxe, Navigation, ChevronDown } from 'lucide-react';
+import { SHIP_OPTIONS, SHIP_LOADOUTS, recalcCircuit } from './shipData';
 
 function fmtAuec(n) { return Math.round(n || 0).toLocaleString(); }
 
@@ -129,10 +130,77 @@ function LegRow({ leg, index }) {
   return null;
 }
 
+function ShipSelectorBar({ currentKey, onChange }) {
+  const [open, setOpen] = useState(false);
+  const current = SHIP_LOADOUTS[currentKey];
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(!open)} style={{
+        width: '100%', padding: '8px 12px', borderRadius: 2, cursor: 'pointer',
+        background: '#0C0C0A', border: '0.5px solid rgba(200,170,100,0.10)',
+        borderLeft: '2px solid #C8A84B',
+        fontFamily: "'Barlow Condensed', sans-serif",
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        textAlign: 'left',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 9, color: '#5A5850', letterSpacing: '0.12em' }}>REFERENCE SHIP</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#E8E4DC' }}>{current?.label || currentKey}</span>
+          <span style={{ fontSize: 9, color: '#5A5850' }}>{current?.scu} SCU · {current?.crew} crew</span>
+        </div>
+        <ChevronDown size={11} style={{ color: '#5A5850', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
+          marginTop: 4, borderRadius: 2, overflow: 'hidden',
+          background: '#0F0F0D', border: '0.5px solid rgba(200,170,100,0.15)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          animation: 'nexus-fade-in 100ms ease-out both',
+        }}>
+          {SHIP_OPTIONS.map(s => {
+            const active = s.key === currentKey;
+            return (
+              <button key={s.key} onClick={() => { onChange(s.key); setOpen(false); }} style={{
+                width: '100%', padding: '8px 12px', cursor: 'pointer',
+                background: active ? 'rgba(192,57,43,0.08)' : 'transparent',
+                border: 'none', borderBottom: '0.5px solid rgba(200,170,100,0.04)',
+                borderLeft: active ? '2px solid #C0392B' : '2px solid transparent',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8,
+                transition: 'background 120ms',
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(200,170,100,0.04)'; }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+              >
+                <span style={{ fontSize: 11, fontWeight: active ? 600 : 400, color: active ? '#E8E4DC' : '#9A9488', flex: 1 }}>{s.label}</span>
+                <span style={{ fontSize: 8, color: '#5A5850' }}>{s.class}</span>
+                <span style={{ fontSize: 9, color: '#5A5850', minWidth: 50, textAlign: 'right' }}>{s.scu} SCU</span>
+                <span style={{ fontSize: 9, color: '#5A5850', minWidth: 40, textAlign: 'right' }}>{s.crew} crew</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CircuitResultsPanel({ result, onBack, onReplan }) {
   if (!result) return null;
-  const { circuit_name, ship, summary, legs, materials_targeted, risk_assessment, origin } = result;
-  const s = summary;
+  const { circuit_name, ship, legs: originalLegs, materials_targeted, risk_assessment, origin, deposit_count } = result;
+  const originalShipKey = ship?.loadout_key || 'PROSPECTOR';
+  const [refShipKey, setRefShipKey] = useState(originalShipKey);
+
+  const isOriginal = refShipKey === originalShipKey;
+  const { legs, summary: s } = useMemo(() => {
+    if (isOriginal) return { legs: originalLegs, summary: result.summary };
+    const refShip = SHIP_LOADOUTS[refShipKey];
+    if (!refShip) return { legs: originalLegs, summary: result.summary };
+    return recalcCircuit(originalLegs, refShip, deposit_count || 0);
+  }, [refShipKey, isOriginal, originalLegs, result.summary, deposit_count]);
+
+  const refShipData = SHIP_LOADOUTS[refShipKey] || ship;
   const highestRiskColor = { LOW: '#4A8C5C', MEDIUM: '#C8A84B', HIGH: '#C0392B', EXTREME: '#C0392B' };
   let miningIdx = 0;
 
@@ -165,9 +233,13 @@ export default function CircuitResultsPanel({ result, onBack, onReplan }) {
           {circuit_name || 'Mining Circuit'}
         </div>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, color: '#5A5850', marginTop: 2 }}>
-          {ship?.label} · {origin} · {result.deposit_count} deposits
+          {origin} · {result.deposit_count} deposits
+          {!isOriginal && <span style={{ color: '#C8A84B', marginLeft: 6 }}>· Viewing as {refShipData.label}</span>}
         </div>
       </div>
+
+      {/* Ship reference selector */}
+      <ShipSelectorBar currentKey={refShipKey} onChange={setRefShipKey} />
 
       {/* Primary stats */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
