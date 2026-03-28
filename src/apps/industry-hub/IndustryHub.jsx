@@ -8,7 +8,7 @@ import MaterialsModule from '@/apps/industry-hub/Materials';
 import CraftQueueTab from '@/apps/industry-hub/CraftQueueTab';
 import RefineryManagement from '@/apps/industry-hub/RefineryManagement';
 import PatchDigestHeader from '@/apps/industry-hub/PatchDigestHeader';
-import IndustryOverview from '@/apps/industry-hub/IndustryOverview';
+import IndustryDashboard from '@/apps/industry-hub/dashboard/IndustryDashboard';
 import PriceTracker from '@/apps/industry-hub/PriceTracker';
 import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 import ProductionTab from '@/apps/industry-hub/ProductionTab';
@@ -262,15 +262,17 @@ export default function IndustryHub() {
 
       <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {tab === 'overview' ? (
-          <div style={{ padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <PatchDigestHeader />
-            <IndustryOverview
+          <div>
+            <div style={{ padding: '16px 16px 0' }}><PatchDigestHeader /></div>
+            <IndustryDashboard
               materials={materials}
               blueprints={blueprints}
               craftQueue={craftQueue}
               refineryOrders={refineryOrders}
+              cofferLogs={cofferLogs}
               scoutDeposits={scoutDeposits}
               orgShips={orgShips}
+              onTabChange={setTab}
             />
           </div>
         ) : null}
