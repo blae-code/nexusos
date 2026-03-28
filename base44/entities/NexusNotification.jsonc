@@ -1,0 +1,55 @@
+{
+  "name": "NexusNotification",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Notification category e.g. ARBITRAGE_ALERT, ORG_BRIEFING, SCOUT_T2_DEPOSIT"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "INFO",
+        "WARN",
+        "CRITICAL"
+      ],
+      "default": "INFO"
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "Specific user ID, or null for broadcast"
+    },
+    "target_callsign": {
+      "type": "string",
+      "description": "Callsign of the target user for display"
+    },
+    "source_module": {
+      "type": "string",
+      "description": "Module that generated this notification"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Reference ID from the source"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "body",
+    "severity"
+  ]
+}
