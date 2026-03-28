@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Edit2, Trash2, ChevronDown, ChevronUp, Package, Users, Gauge, User } from 'lucide-react';
+import { Edit2, Trash2, ChevronDown, ChevronUp, Package, Users, Gauge, User, Crosshair, Shield } from 'lucide-react';
 
 const STATUS_CONFIG = {
   AVAILABLE:   { color: 'var(--live)',   bg: 'var(--live-bg)',   border: 'var(--live-b)',   desc: 'Ready for deployment' },
@@ -171,6 +171,37 @@ export default function ShipCard({ ship, onEdit = null, onRefresh = null }) {
       {/* Expanded panel */}
       {expanded && (
         <div style={{ padding: '12px 14px', borderTop: '0.5px solid var(--b0)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Loadout summary */}
+          {(ship.equipment_loadout || []).length > 0 && (
+            <div style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 'var(--r-md)', border: '0.5px solid var(--b0)' }}>
+              <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.1em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Crosshair size={8} /> LOADOUT · {ship.equipment_loadout.filter(s => s.equipped_name).length}/{ship.equipment_loadout.length} EQUIPPED
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {ship.equipment_loadout.filter(s => s.equipped_name).slice(0, 6).map((s, i) => {
+                  const cat = (s.category || s.slot_name || '').toLowerCase();
+                  const isWeapon = cat.includes('weapon') || cat.includes('turret') || cat.includes('gun') || cat.includes('missile');
+                  return (
+                    <span key={i} style={{
+                      padding: '2px 6px', borderRadius: 2, fontSize: 8, fontWeight: 500,
+                      background: isWeapon ? 'rgba(192,57,43,0.08)' : 'rgba(93,156,236,0.08)',
+                      border: `0.5px solid ${isWeapon ? 'rgba(192,57,43,0.2)' : 'rgba(93,156,236,0.2)'}`,
+                      color: isWeapon ? '#C0392B' : '#5D9CEC',
+                    }}>
+                      {isWeapon ? <Crosshair size={7} style={{ marginRight: 2, display: 'inline' }} /> : <Shield size={7} style={{ marginRight: 2, display: 'inline' }} />}
+                      S{s.slot_size || s.equipped_size || '?'} {s.equipped_name}
+                    </span>
+                  );
+                })}
+                {ship.equipment_loadout.filter(s => s.equipped_name).length > 6 && (
+                  <span style={{ fontSize: 8, color: 'var(--t3)', padding: '2px 4px' }}>+{ship.equipment_loadout.filter(s => s.equipped_name).length - 6} more</span>
+                )}
+              </div>
+              {ship.loadout_synced_at && (
+                <div style={{ color: 'var(--t3)', fontSize: 7, marginTop: 4 }}>Last synced {new Date(ship.loadout_synced_at).toLocaleDateString()}</div>
+              )}
+            </div>
+          )}
           {ship.notes && (
             <div style={{ padding: '8px 10px', background: 'var(--bg2)', borderRadius: 'var(--r-md)', border: '0.5px solid var(--b0)' }}>
               <div style={{ color: 'var(--t3)', fontSize: 8, letterSpacing: '0.1em', marginBottom: 4 }}>NOTES</div>

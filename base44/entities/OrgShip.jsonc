@@ -1,0 +1,125 @@
+{
+  "name": "OrgShip",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Ship name/callsign"
+    },
+    "model": {
+      "type": "string",
+      "description": "Ship model (e.g. Cutlass Black, Prospector)"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Ship manufacturer (e.g. Drake, MISC)"
+    },
+    "class": {
+      "type": "string",
+      "enum": [
+        "FIGHTER",
+        "HEAVY_FIGHTER",
+        "MINER",
+        "HAULER",
+        "SALVAGER",
+        "MEDICAL",
+        "EXPLORER",
+        "GROUND_VEHICLE",
+        "OTHER"
+      ],
+      "description": "Ship class for logistics"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "AVAILABLE",
+        "ASSIGNED",
+        "MAINTENANCE",
+        "DESTROYED",
+        "ARCHIVED"
+      ],
+      "default": "AVAILABLE",
+      "description": "Current ship status"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "discord_id of assigned pilot (null if unassigned)"
+    },
+    "assigned_to_callsign": {
+      "type": "string",
+      "description": "Callsign of assigned pilot for quick reference"
+    },
+    "cargo_scu": {
+      "type": "integer",
+      "description": "Cargo capacity in SCU"
+    },
+    "crew_size": {
+      "type": "integer",
+      "description": "Crew complement"
+    },
+    "estimated_value_aUEC": {
+      "type": "integer",
+      "description": "Estimated aUEC value of this ship asset"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time synced from FleetYards"
+    },
+    "fleetyards_id": {
+      "type": "string",
+      "description": "FleetYards ship ID for reference"
+    },
+    "equipment_loadout": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slot_name": {
+            "type": "string"
+          },
+          "slot_size": {
+            "type": "integer"
+          },
+          "category": {
+            "type": "string"
+          },
+          "equipped_name": {
+            "type": "string"
+          },
+          "equipped_manufacturer": {
+            "type": "string"
+          },
+          "equipped_size": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Equipment loadout: weapons, shields, power plants, coolers, quantum drives, etc."
+    },
+    "loadout_synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When equipment loadout was last synced from FleetYards"
+    },
+    "mission_readiness": {
+      "type": "object",
+      "description": "Computed mission readiness scores: { combat, mining, hauling, salvage, exploration, medical }. Values 0-100."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about the ship"
+    }
+  },
+  "required": [
+    "name",
+    "model",
+    "class"
+  ]
+}
