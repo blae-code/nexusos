@@ -1,5 +1,5 @@
 // NexusOS v1.0 — Production build
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import NexusSidebar from './NexusSidebar';
@@ -245,12 +245,19 @@ export default function NexusShell() {
     sessionUserId: user?.id || null,
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const toggleSidebar = useCallback(() => setSidebarOpen(p => !p), []);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => { closeSidebar(); }, [location.pathname, closeSidebar]);
+
   return (
     <div style={{ height: '100vh', background: '#08080A', position: 'relative' }}>
       <AmbientBackground />
-      <NexusSidebar />
-      <div style={{ marginLeft: 220, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
-        <NexusTopbar />
+      <NexusSidebar mobileOpen={sidebarOpen} onClose={closeSidebar} />
+      <div className="nexus-main-area" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+        <NexusTopbar onMenuToggle={toggleSidebar} />
         <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto', zIndex: 1 }}>
           <AppErrorBoundary compact key={`${location.pathname}${location.search}`}>
             <Outlet context={outletContext} />

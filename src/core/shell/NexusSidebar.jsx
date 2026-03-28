@@ -188,19 +188,34 @@ function SubItem({ label, path, active }) {
   );
 }
 
-export default function NexusSidebar() {
+export default function NexusSidebar({ mobileOpen, onClose }) {
   const { pathname } = useLocation();
   const { isAdmin, logout } = useSession();
 
   return (
-    <nav style={S.root}>
-      <div style={S.rail} />
-      <div style={S.wordmark}>
-        <span style={S.wordmarkText}>
-          <span style={{ color: '#E8E4DC' }}>NEXUS</span>
-          <span style={{ color: '#C0392B' }}>OS</span>
-        </span>
-      </div>
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          onClick={onClose}
+          className="nexus-sidebar-backdrop"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            zIndex: 99, display: 'none',
+          }}
+        />
+      )}
+      <nav
+        className={`nexus-sidebar ${mobileOpen ? 'nexus-sidebar-open' : ''}`}
+        style={S.root}
+      >
+        <div style={S.rail} />
+        <div style={S.wordmark}>
+          <span style={S.wordmarkText}>
+            <span style={{ color: '#E8E4DC' }}>NEXUS</span>
+            <span style={{ color: '#C0392B' }}>OS</span>
+          </span>
+        </div>
 
       <div style={S.scrollArea}>
         {NAV.map((group) => {
@@ -260,6 +275,7 @@ export default function NexusSidebar() {
           SIGN OUT
         </button>
       </div>
-    </nav>
+      </nav>
+    </>
   );
 }

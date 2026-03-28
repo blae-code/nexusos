@@ -393,3 +393,50 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
 
 [data-anim="entering"] { animation: listEnter 200ms ease-out forwards; }
 [data-anim="leaving"]  { animation: listLeave 150ms ease-in forwards; }
+
+/* ── Mobile responsive shell ─────────────────────── */
+
+/* Desktop: sidebar always visible, main area offset */
+.nexus-main-area {
+  margin-left: 220px;
+}
+
+/* Mobile: sidebar hidden by default, overlays when open */
+@media (max-width: 768px) {
+  .nexus-main-area {
+    margin-left: 0 !important;
+  }
+
+  .nexus-sidebar {
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+  }
+
+  .nexus-sidebar-open {
+    transform: translateX(0) !important;
+  }
+
+  .nexus-sidebar-backdrop {
+    display: block !important;
+  }
+
+  .nexus-mobile-menu-btn {
+    display: flex !important;
+  }
+
+  /* Hide lower-priority topbar chips on mobile */
+  .nexus-topbar-chips {
+    display: none !important;
+  }
+
+  /* Tighter topbar padding */
+  .nexus-topbar-header {
+    padding: 0 12px !important;
+    gap: 10px !important;
+  }
+
+  /* Stack page body tighter */
+  .nexus-page-body {
+    padding: 0 12px;
+  }
+}

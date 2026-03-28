@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import NexusToken from '@/core/design/NexusToken';
@@ -146,7 +146,7 @@ function Chip({ dot, dotPulse, label, value, valueColor, bg, borderColor, onClic
 
 /* ═══ Topbar ════════════════════════════════════════════════════════════════ */
 
-export default function NexusTopbar() {
+export default function NexusTopbar({ onMenuToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, patchUser } = useSession();
@@ -309,7 +309,7 @@ export default function NexusTopbar() {
   const callsignShort = (user?.callsign || 'UNKN').slice(0, 4).toUpperCase();
 
   return (
-    <header style={{
+    <header className="nexus-topbar-header" style={{
       height: 48, background: '#0A0908',
       borderBottom: '0.5px solid rgba(200,170,100,0.10)',
       display: 'flex', alignItems: 'center',
@@ -317,6 +317,20 @@ export default function NexusTopbar() {
       flexShrink: 0, zIndex: 50, boxSizing: 'border-box',
     }}>
       <style>{`@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }`}</style>
+
+      {/* ── Mobile hamburger ── */}
+      <button
+        type="button"
+        onClick={onMenuToggle}
+        className="nexus-mobile-menu-btn"
+        style={{
+          display: 'none', alignItems: 'center', justifyContent: 'center',
+          width: 32, height: 32, background: 'none', border: 'none',
+          color: '#E8E4DC', cursor: 'pointer', flexShrink: 0, padding: 0,
+        }}
+      >
+        <Menu size={18} />
+      </button>
 
       {/* ── Wordmark ── */}
       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0 }}>
@@ -341,7 +355,7 @@ export default function NexusTopbar() {
       </div>
 
       {/* ── Live status chips ── */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, marginLeft: 16, overflow: 'hidden', maskImage: 'linear-gradient(to right, black 90%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 90%, transparent 100%)' }}>
+      <div className="nexus-topbar-chips" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, marginLeft: 16, overflow: 'hidden', maskImage: 'linear-gradient(to right, black 90%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 90%, transparent 100%)' }}>
         {/* Org coffer */}
         <Chip
           dot="#4A8C5C"
