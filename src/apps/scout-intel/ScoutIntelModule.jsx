@@ -4,6 +4,7 @@ import RoutePlannerPanel from '@/apps/scout-intel/RoutePlannerPanel';
 import RouteOverlay from '@/apps/scout-intel/RouteOverlay';
 import ScoutMap from '@/apps/scout-intel/ScoutMap';
 import { Compass } from 'lucide-react';
+import { OrbitalChart } from '@/core/design/Illustrations';
 
 export default function ScoutIntelModule() {
   const [deposits, setDeposits] = useState([]);
@@ -74,6 +75,7 @@ export default function ScoutIntelModule() {
         >
           {showPlanner ? '✕ CLOSE' : '→ PLAN ROUTE'}
         </button>
+        <OrbitalChart size={44} opacity={0.13} />
       </div>
 
       {/* Content */}

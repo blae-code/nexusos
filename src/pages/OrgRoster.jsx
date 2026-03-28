@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Search } from 'lucide-react';
 import MemberPerformanceTab from '@/components/MemberPerformanceTab';
+import { ConstellationRoster } from '@/core/design/Illustrations';
 
 const RANK_ORDER = ['PIONEER','FOUNDER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];
 
@@ -63,7 +64,8 @@ export default function OrgRoster() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 20, gap: 16, animation: 'pageEntrance 200ms ease-out' }}>
-      <div>
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        <ConstellationRoster size={72} opacity={0.1} style={{ position: 'absolute', right: 0, top: -8, pointerEvents: 'none' }} />
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>ORG ROSTER</div>
         <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 4 }}>REDSCAR NOMADS · ACTIVE MEMBERS</div>
       </div>

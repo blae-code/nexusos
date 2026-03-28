@@ -4,6 +4,7 @@ import { base44 } from '@/core/data/base44Client';
 import ArmoryCheckoutForm from '@/components/armory/ArmoryCheckoutForm';
 import { RotateCcw } from 'lucide-react';
 import { CategorySection } from './ArmoryWidgets';
+import { VaultWheel, EmptyVault } from '@/core/design/Illustrations';
 
 export default function Armory() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
@@ -60,7 +61,8 @@ export default function Armory() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pageEntrance 200ms ease-out' }}>
       {/* Header */}
-      <div style={{ padding: '16px 20px 0', background: '#0A0908', flexShrink: 0 }}>
+      <div style={{ padding: '16px 20px 0', background: '#0A0908', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+        <VaultWheel size={80} opacity={0.09} style={{ position: 'absolute', right: 16, top: -8, pointerEvents: 'none' }} />
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>ARMORY</div>
       </div>
 
@@ -89,13 +91,8 @@ export default function Armory() {
             <CategorySection title="SHIP COMPONENTS" items={shipItems} onReturn={load} />
             <CategorySection title="CONSUMABLES" items={consumableItems} onReturn={load} />
             {items.length === 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', gap: 12 }}>
-                <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style={{ opacity: 0.10 }}>
-                  <circle cx="22" cy="22" r="20" stroke="#E8E4DC" strokeWidth="0.6" />
-                  <circle cx="22" cy="22" r="14" stroke="#C0392B" strokeWidth="0.6" />
-                  <circle cx="22" cy="22" r="7" fill="#C0392B" opacity="0.6" />
-                  <circle cx="22" cy="22" r="3" fill="#E8E4DC" />
-                </svg>
+              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px', gap: 12 }}>
+                <EmptyVault size={160} opacity={0.09} />
                 <span style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 11, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.22em' }}>NO ITEMS IN ARMORY</span>
               </div>
             )}

@@ -3,6 +3,7 @@ import { base44 } from '@/core/data/base44Client';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Zap, Wrench } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
+import { RefineryFlow } from '@/core/design/Illustrations';
 import RefineryEfficiencyCalculator from '@/apps/industry-hub/RefineryEfficiencyCalculator';
 import { OptimisedRow, DefaultRow } from './CraftQueueRows';
 
@@ -194,6 +195,7 @@ export default function CraftQueueTab({ craftQueue, materials = [], blueprints =
                     icon={Wrench}
                     title="Queue is clear"
                     detail="No craft jobs are currently open."
+                    illustration={<RefineryFlow size={140} opacity={0.09} />}
                   />
                 </td>
               </tr>

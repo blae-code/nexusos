@@ -33,6 +33,7 @@ import CraftingCostCalc from '@/apps/industry-hub/CraftingCostCalc';
 import CargoSCUPlanner from '@/apps/industry-hub/CargoSCUPlanner';
 import MarketplaceTab from '@/apps/industry-hub/marketplace/MarketplaceTab';
 import IndustryTabBar from '@/components/IndustryTabBar';
+import { RefineryFlow } from '@/core/design/Illustrations';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -253,8 +254,9 @@ export default function IndustryHub() {
         padding: '0 0 0 0',
         borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         background: '#0A0908', flexShrink: 0,
-        position: 'relative',
+        position: 'relative', overflow: 'hidden',
       }}>
+        <RefineryFlow size={52} opacity={0.08} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         <IndustryTabBar tabs={TABS} activeTab={tab} onTabChange={setTab} />
       </div>
 

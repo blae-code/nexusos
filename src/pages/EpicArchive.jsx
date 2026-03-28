@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Search, Trophy, Clock, Users, TrendingUp, BookOpen } from 'lucide-react';
 import AARTimelineCard from '@/apps/ops-board/AARTimelineCard';
+import { ArchiveTimeline } from '@/core/design/Illustrations';
 
 const TABS = ['OPS', 'AAR TIMELINE', 'LEADERBOARDS', 'PATCH HISTORY'];
 
@@ -151,6 +152,8 @@ export default function EpicArchive() {
             {t}
           </button>
         ))}
+        <div style={{ flex: 1 }} />
+        <ArchiveTimeline size={40} opacity={0.12} />
       </div>
 
       <div className="flex-1 overflow-auto nexus-fade-in">

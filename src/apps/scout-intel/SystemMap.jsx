@@ -19,6 +19,7 @@ import NexusToken from '@/core/design/NexusToken';
 import { depositToken } from '@/core/data/tokenMap';
 import { qualityPercentFromRecord } from '@/core/data/quality';
 import EmptyState from '@/core/design/EmptyState';
+import { MiningRig } from '@/core/design/Illustrations';
 import { Chip, IconBtn } from './SystemMapControls';
 
 // ─── System layout data ────────────────────────────────────────────────────────
@@ -356,6 +357,7 @@ export default function SystemMap({
             icon={MapPin}
             title="No deposits logged"
             detail="Log a scout deposit to begin tracking resource locations."
+            illustration={<MiningRig size={180} opacity={0.1} />}
           />
         </div>
       ) : (

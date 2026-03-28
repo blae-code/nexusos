@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronUp, Star, FileText } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
+import { ScanPattern } from '@/core/design/Illustrations';
 
 const CATEGORY_COLOURS = {
   WEAPON:         '#ff6b35',
@@ -217,6 +218,7 @@ export default function BlueprintsTab({ blueprints, materials, onRefresh }) {
                     icon={FileText}
                     title="No blueprints registered"
                     detail="Add blueprints to track org crafting coverage."
+                    illustration={<ScanPattern size={140} opacity={0.09} />}
                   />
                 </td>
               </tr>

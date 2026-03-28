@@ -7,6 +7,7 @@ import EmptyState from '@/core/design/EmptyState';
 import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import TradeRouteMap from '@/apps/commerce/components/TradeRouteMap';
 import ExchangeBoard from '@/apps/commerce/components/ExchangeBoard';
+import { EmptyLedger, ScanPattern, TradeLedger } from '@/core/design/Illustrations';
 import {
   calculateManifestValue,
   formatAuec,
@@ -429,6 +430,8 @@ export default function Commerce() {
             {tab.label}
           </button>
         ))}
+        <div style={{ flex: 1 }} />
+        <TradeLedger size={36} opacity={0.12} />
       </div>
 
       {activeTab === 'wallet' ? (
@@ -498,6 +501,7 @@ export default function Commerce() {
                 action={capabilities.walletWrite}
                 actionLabel="Create Entry"
                 actionOnClick={() => setShowTransactionForm(true)}
+                illustration={<EmptyLedger size={160} opacity={0.09} />}
               />
             ) : (
               walletTransactions.map((entry) => (
@@ -630,6 +634,7 @@ export default function Commerce() {
                 action={capabilities.contractsWrite}
                 actionLabel="Issue Contract"
                 actionOnClick={() => setShowContractForm(true)}
+                illustration={<ScanPattern size={140} opacity={0.08} />}
               />
             ) : (
               contracts

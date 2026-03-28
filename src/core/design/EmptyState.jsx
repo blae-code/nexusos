@@ -1,6 +1,7 @@
 /**
  * EmptyState — reusable empty state component for list/table views.
- * Props: { icon: LucideIcon, title, detail, action, actionLabel, actionOnClick }
+ * Props: { icon: LucideIcon, title, detail, action, actionLabel, actionOnClick, illustration }
+ * illustration: a React element (e.g. <ScanPattern />) rendered as a background behind the content.
  */
 import React from 'react';
 
@@ -11,18 +12,30 @@ export default function EmptyState({
   action = false,
   actionLabel = 'Create',
   actionOnClick = null,
+  illustration = null,
 }) {
   return (
     <div
       style={{
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '32px 24px',
         minHeight: 180,
         justifyContent: 'center',
+        overflow: 'hidden',
       }}
     >
+      {illustration && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          pointerEvents: 'none',
+        }}>
+          {illustration}
+        </div>
+      )}
       {Icon && (
         <div style={{ marginBottom: 16 }}>
           <Icon size={40} style={{ color: 'var(--t3)' }} />

@@ -23,6 +23,7 @@ import {
   Route,
   Truck,
 } from 'lucide-react';
+import { CargoRoute } from '@/core/design/Illustrations';
 
 const TABS = [
   { id: 'cargo', label: 'Cargo Board' },
@@ -352,6 +353,8 @@ export default function Logistics() {
           </button>
         ))}
         <button type="button" className="nexus-btn" onClick={() => navigate('/app/armory/org-fleet')}>Open Org Fleet</button>
+        <div style={{ flex: 1 }} />
+        <CargoRoute size={36} opacity={0.12} />
       </div>
 
       {activeTab === 'cargo' ? (

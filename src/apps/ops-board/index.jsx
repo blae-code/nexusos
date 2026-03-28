@@ -12,6 +12,7 @@ import RSVPDialog from './RSVPDialog';
 import LiveOpCard from './LiveOpCard';
 import UpcomingCard from './UpcomingCard';
 import ArchiveTable from './ArchiveTable';
+import { TacticalReticle } from '@/core/design/Illustrations';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -143,6 +144,7 @@ export default function OpBoardModule({ rank, userId: userIdProp }) {
             <Plus size={11} /> CREATE OP
           </button>
         )}
+        <TacticalReticle size={44} opacity={0.1} />
       </div>
 
       {/* ── Content ──────────────────────────────────── */}
