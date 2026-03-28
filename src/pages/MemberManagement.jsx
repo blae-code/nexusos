@@ -8,7 +8,7 @@ import MemberRow from '@/components/member-mgmt/MemberRow';
 import MemberDetailPanel from '@/components/member-mgmt/MemberDetailPanel';
 import BlueprintContributionsSummary from '@/components/member-mgmt/BlueprintContributionsSummary';
 
-const RANK_ORDER = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
+const RANK_ORDER = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 
 export default function MemberManagement() {
   const outletContext = useOutletContext() || {};

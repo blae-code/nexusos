@@ -209,12 +209,13 @@ export function roleToken(role) {
  */
 export function rankToken(rank) {
   const map = {
-    PIONEER:   T('penta-cyan'),      // highest — cyan matches org identity
-    FOUNDER:   T('penta-violet'),    // founding member — rare violet
-    VOYAGER:   T('penta-blue'),      // full member
-    SCOUT:     T('penta-green'),     // active operator
-    VAGRANT:   T('penta-grey'),      // new / probationary
-    AFFILIATE: T('penta-orange'),    // external / allied
+    PIONEER:       T('penta-cyan'),      // highest — cyan matches org identity
+    FOUNDER:       T('penta-violet'),    // founding member — rare violet
+    QUARTERMASTER: T('penta-orange'),    // logistics officer — resource custodian
+    VOYAGER:       T('penta-blue'),      // full member
+    SCOUT:         T('penta-green'),     // active operator
+    VAGRANT:       T('penta-grey'),      // new / probationary
+    AFFILIATE:     T('penta-orange'),    // external / allied
   }
   return map[rank] || T('penta-grey')
 }

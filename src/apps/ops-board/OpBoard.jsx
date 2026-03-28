@@ -22,7 +22,7 @@ const STATUS_CONFIG = {
   ARCHIVED:  { label: 'ARCHIVED',  color: '#5A5850', bg: 'rgba(90,88,80,0.12)',  border: '#5A5850', stripe: '#5A5850' },
 };
 
-const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
+const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER'];
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';

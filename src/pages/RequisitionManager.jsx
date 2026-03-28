@@ -9,7 +9,7 @@ import { Plus, Check, X, Package, CreditCard, FileText, Ship } from 'lucide-reac
 import EmptyState from '@/core/design/EmptyState';
 import { showToast } from '@/components/NexusToast';
 
-const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
+const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER'];
 
 const TYPE_CONFIG = {
   ITEM:       { icon: Package, color: '#7AAECC', label: 'ITEM' },

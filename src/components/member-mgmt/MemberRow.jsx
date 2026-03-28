@@ -5,7 +5,7 @@ import { rankToken } from '@/core/data/tokenMap';
 import { ChevronRight } from 'lucide-react';
 
 const RANK_COLORS = {
-  PIONEER: '#C8A84B', FOUNDER: '#E8A020', VOYAGER: '#3498DB',
+  PIONEER: '#C8A84B', FOUNDER: '#E8A020', QUARTERMASTER: '#8E44AD', VOYAGER: '#3498DB',
   SCOUT: '#4A8C5C', VAGRANT: '#E8E4DC', AFFILIATE: '#9A9488',
 };
 

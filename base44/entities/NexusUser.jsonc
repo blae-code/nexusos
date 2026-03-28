@@ -49,6 +49,7 @@
       "enum": [
         "PIONEER",
         "FOUNDER",
+        "QUARTERMASTER",
         "VOYAGER",
         "SCOUT",
         "VAGRANT",

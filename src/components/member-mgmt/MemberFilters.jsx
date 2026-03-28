@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 
-const RANKS = ['ALL', 'PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
+const RANKS = ['ALL', 'PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 const SPECS = ['ALL', 'MINING', 'SALVAGE', 'COMBAT', 'CRAFTING', 'HAULING', 'MEDICAL', 'EXPLORATION', 'RACING', 'LEADERSHIP', 'UNASSIGNED'];
 const ACCESS_LEVELS = ['ALL', 'FULL', 'STANDARD', 'RESTRICTED', 'NONE'];
 

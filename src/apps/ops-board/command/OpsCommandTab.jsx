@@ -10,7 +10,7 @@ import { Shield, Package, Filter } from 'lucide-react';
 import { showToast } from '@/components/NexusToast';
 import RequisitionCommandRow from './RequisitionCommandRow';
 
-const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
+const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER'];
 const STATUS_FILTERS = [
   { id: 'pending', label: 'PENDING', statuses: ['OPEN', 'UNDER_REVIEW'] },
   { id: 'approved', label: 'APPROVED', statuses: ['APPROVED'] },
