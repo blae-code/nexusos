@@ -1,6 +1,151 @@
 /**
  * GET /auth/session — Validate session cookie, return user data.
+ * Self-contained: no local imports (each function deploys independently).
  */
-import { handleIssuedKeySession } from '../_shared/issuedKey/entry.ts';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-Deno.serve(handleIssuedKeySession);
+const enc = new TextEncoder();
+const SESSION_COOKIE_NAME = 'nexus_member_session';
+
+function toBase64Url(bytes) {
+  return btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function fromBase64Url(value) {
+  const padded = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+  return Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+}
+
+function parseCookies(req) {
+  const raw = req.headers.get('cookie') || '';
+  return raw.split(';').reduce((acc, part) => {
+    const trimmed = part.trim();
+    if (!trimmed) return acc;
+    const idx = trimmed.indexOf('=');
+    if (idx === -1) return acc;
+    acc[trimmed.slice(0, idx)] = decodeURIComponent(trimmed.slice(idx + 1));
+    return acc;
+  }, {});
+}
+
+async function signValue(value, secret) {
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(value));
+  return toBase64Url(new Uint8Array(sig));
+}
+
+async function decodeSessionToken(token, secret) {
+  if (!token) return null;
+  const [body, signature] = token.split('.');
+  if (!body || !signature) return null;
+  const expected = await signValue(body, secret);
+  if (signature !== expected) return null;
+  try {
+    const decoded = JSON.parse(new TextDecoder().decode(fromBase64Url(body)));
+    if (!decoded.exp || decoded.exp < Date.now()) return null;
+    return decoded;
+  } catch { return null; }
+}
+
+function normalizeLoginName(v) { return String(v || '').trim().toLowerCase().replace(/[_\s]+/g, '-'); }
+function normalizeCallsign(v) { return String(v || '').trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '').slice(0, 40); }
+
+function resolveUserLoginName(u) { return normalizeLoginName(String(u.login_name || u.username || u.callsign || '')); }
+function resolvePersistedLoginName(u) { return normalizeLoginName(String(u.login_name || u.username || '')); }
+function resolveUserCallsign(u) { return normalizeCallsign(String(u.callsign || u.login_name || u.username || 'NOMAD')); }
+function isAdminUser(u) { return String(u.nexus_rank || '').toUpperCase() === 'PIONEER' || u.is_admin === true; }
+function isOnboardingComplete(u) { return u.onboarding_complete === true || u.consent_given === true || Boolean(u.consent_timestamp); }
+
+const NO_STORE = { 'Cache-Control': 'no-store' };
+
+Deno.serve(async (req) => {
+  if (req.method !== 'GET') {
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: NO_STORE });
+  }
+
+  try {
+    const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+    if (!secret) {
+      return Response.json({ authenticated: false, error: 'session_secret_missing' }, { status: 500, headers: NO_STORE });
+    }
+
+    const cookies = parseCookies(req);
+    const payload = await decodeSessionToken(cookies[SESSION_COOKIE_NAME], secret);
+
+    if (!payload?.user_id) {
+      return Response.json({ authenticated: false }, { status: 401, headers: NO_STORE });
+    }
+
+    const base44 = createClientFromRequest(req);
+
+    // Look up user by ID, then fallback to login_name
+    let user = null;
+    try {
+      const byId = await base44.asServiceRole.entities.NexusUser.filter({ id: payload.user_id });
+      user = (byId || [])[0] || null;
+    } catch (e) {
+      console.error('findUserById failed:', e.message);
+    }
+
+    if (!user && payload.login_name) {
+      try {
+        const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
+        user = (allUsers || []).find(u => resolveUserLoginName(u) === normalizeLoginName(payload.login_name)) || null;
+      } catch (e) {
+        console.error('findUserByLoginName failed:', e.message);
+      }
+    }
+
+    if (!user) {
+      return Response.json({ authenticated: false, error: 'user_not_found' }, { status: 401, headers: NO_STORE });
+    }
+
+    if (user.key_revoked) {
+      return Response.json({ authenticated: false, error: 'key_revoked' }, { status: 401, headers: NO_STORE });
+    }
+
+    // Check required auth fields
+    if (!resolvePersistedLoginName(user) || !String(user.auth_key_hash || '').trim()) {
+      return Response.json({ authenticated: false, error: 'missing_auth_fields' }, { status: 401, headers: NO_STORE });
+    }
+
+    // Auto-fix onboarding flag
+    if (user.onboarding_complete !== true && isOnboardingComplete(user)) {
+      try {
+        await base44.asServiceRole.entities.NexusUser.update(user.id, { onboarding_complete: true });
+        user.onboarding_complete = true;
+      } catch { /* non-critical */ }
+    }
+
+    // Check session invalidation
+    const invalidatedAt = user.session_invalidated_at ? new Date(user.session_invalidated_at).getTime() : 0;
+    if (invalidatedAt && invalidatedAt > payload.iat) {
+      return Response.json({ authenticated: false }, { status: 401, headers: NO_STORE });
+    }
+
+    // Build response
+    const admin = isAdminUser(user);
+    const loginName = resolvePersistedLoginName(user) || resolveUserLoginName(user);
+
+    return Response.json({
+      authenticated: true,
+      source: 'member',
+      is_admin: admin,
+      user: {
+        id: user.id,
+        login_name: loginName,
+        username: loginName,
+        callsign: resolveUserCallsign(user),
+        rank: String(user.nexus_rank || 'AFFILIATE').toUpperCase(),
+        joinedAt: user.joined_at || null,
+        onboarding_complete: isOnboardingComplete(user),
+        notifications_seen_at: user.notifications_seen_at || null,
+        is_admin: admin,
+      },
+    }, { status: 200, headers: NO_STORE });
+  } catch (error) {
+    console.error('[session]', error);
+    return Response.json({ authenticated: false, error: 'session_unavailable' }, { status: 500, headers: NO_STORE });
+  }
+});

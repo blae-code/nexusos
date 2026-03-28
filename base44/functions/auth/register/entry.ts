@@ -1,6 +1,114 @@
 /**
  * POST /auth/register — Legacy alias for first-use issued-key login.
+ * Forwards to the same login handler logic, self-contained.
  */
-import { handleIssuedKeySignIn } from '../_shared/issuedKey/entry.ts';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-Deno.serve(handleIssuedKeySignIn);
+const enc = new TextEncoder();
+const SESSION_COOKIE_NAME = 'nexus_member_session';
+const BROWSER_SESSION_TTL_SECONDS = 60 * 60 * 24;
+const REMEMBER_ME_TTL_SECONDS = 60 * 60 * 24 * 30;
+const NO_STORE = { 'Cache-Control': 'no-store' };
+
+function toBase64Url(bytes) {
+  return btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+function normalizeLoginName(v) { return String(v || '').trim().toLowerCase().replace(/[_\s]+/g, '-'); }
+function normalizeCallsign(v) { return String(v || '').trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '').slice(0, 40); }
+function resolveUserLoginName(u) { return normalizeLoginName(String(u.login_name || u.username || u.callsign || '')); }
+function resolvePersistedLoginName(u) { return normalizeLoginName(String(u.login_name || u.username || '')); }
+function resolveUserCallsign(u) { return normalizeCallsign(String(u.callsign || u.login_name || u.username || 'NOMAD')); }
+function isAdminUser(u) { return String(u.nexus_rank || '').toUpperCase() === 'PIONEER' || u.is_admin === true; }
+function isOnboardingComplete(u) { return u.onboarding_complete === true || u.consent_given === true || Boolean(u.consent_timestamp); }
+
+async function signValue(value, secret) {
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(value));
+  return toBase64Url(new Uint8Array(sig));
+}
+async function hashAuthKey(authKey, secret) {
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(authKey));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function isSecure(req) {
+  const appUrl = Deno.env.get('APP_URL') || '';
+  return appUrl.startsWith('https://') || new URL(req.url).protocol === 'https:' || (req.headers.get('x-forwarded-proto') || '').includes('https');
+}
+function getCookieDomain(req) {
+  const appUrl = Deno.env.get('APP_URL') || '';
+  if (!appUrl) return null;
+  try {
+    const configured = new URL(appUrl).hostname.replace(/^www\./, '').toLowerCase();
+    const fwd = (req.headers.get('x-forwarded-host') || '').split(',')[0]?.trim();
+    const host = (req.headers.get('host') || '').split(',')[0]?.trim();
+    const requestHost = (fwd || host || new URL(req.url).hostname || '').split(':')[0].replace(/^www\./, '').toLowerCase();
+    if (requestHost === configured || requestHost.endsWith(`.${configured}`)) return configured;
+    return null;
+  } catch { return null; }
+}
+function appendSessionCookie(headers, token, req, rememberMe) {
+  const parts = [`${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}`, 'Path=/', 'SameSite=Lax', 'HttpOnly'];
+  const domain = getCookieDomain(req);
+  if (domain) parts.push(`Domain=.${domain}`);
+  if (isSecure(req)) parts.push('Secure');
+  if (rememberMe) parts.push(`Max-Age=${REMEMBER_ME_TTL_SECONDS}`);
+  headers.append('Set-Cookie', parts.join('; '));
+}
+
+Deno.serve(async (req) => {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'method_not_allowed' }, { status: 405, headers: NO_STORE });
+  }
+  let body;
+  try { body = await req.json(); } catch {
+    return Response.json({ error: 'invalid_body' }, { status: 400, headers: NO_STORE });
+  }
+  const username = normalizeLoginName(String(body?.username || body?.login_name || body?.callsign || ''));
+  const authKey = String(body?.key || '').trim();
+  const rememberMe = body?.remember_me === true;
+  if (!username || !authKey) {
+    return Response.json({ error: 'invalid_credentials' }, { status: 400, headers: NO_STORE });
+  }
+  try {
+    const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+    if (!secret) return Response.json({ error: 'session_secret_missing' }, { status: 500, headers: NO_STORE });
+    const base44 = createClientFromRequest(req);
+    const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
+    const user = (allUsers || []).find(u => resolveUserLoginName(u) === username);
+    if (!user) return Response.json({ error: 'user_not_found' }, { status: 401, headers: NO_STORE });
+    if (user.key_revoked) return Response.json({ error: 'key_revoked' }, { status: 403, headers: NO_STORE });
+    if (!resolvePersistedLoginName(user) || !String(user.auth_key_hash || '').trim()) {
+      return Response.json({ error: 'missing_auth_fields' }, { status: 401, headers: NO_STORE });
+    }
+    const presentedHash = await hashAuthKey(authKey, secret);
+    if (presentedHash !== user.auth_key_hash) return Response.json({ error: 'hash_mismatch' }, { status: 401, headers: NO_STORE });
+    const now = new Date().toISOString();
+    const isNew = !user.joined_at;
+    const loginName = resolvePersistedLoginName(user) || username;
+    const callsign = resolveUserCallsign(user);
+    const onboardingComplete = isOnboardingComplete(user);
+    const admin = isAdminUser(user);
+    await base44.asServiceRole.entities.NexusUser.update(user.id, {
+      login_name: loginName, username: loginName, callsign,
+      joined_at: user.joined_at || now, last_seen_at: now,
+      is_admin: admin, key_revoked: false,
+      ...(onboardingComplete ? { onboarding_complete: true } : {}),
+    });
+    const ttl = rememberMe ? REMEMBER_ME_TTL_SECONDS : BROWSER_SESSION_TTL_SECONDS;
+    const tokenPayload = { user_id: user.id, login_name: loginName, is_admin: admin, iat: Date.now(), exp: Date.now() + ttl * 1000 };
+    const tokenBody = toBase64Url(enc.encode(JSON.stringify(tokenPayload)));
+    const tokenSig = await signValue(tokenBody, secret);
+    const headers = new Headers(NO_STORE);
+    appendSessionCookie(headers, `${tokenBody}.${tokenSig}`, req, rememberMe);
+    return Response.json({
+      success: true, isNew, onboarding_complete: onboardingComplete,
+      nexus_rank: user.nexus_rank || 'AFFILIATE', is_admin: admin,
+      login_name: loginName, username: loginName, callsign,
+    }, { headers });
+  } catch (error) {
+    console.error('[register]', error);
+    return Response.json({ error: 'login_failed' }, { status: 500, headers: NO_STORE });
+  }
+});

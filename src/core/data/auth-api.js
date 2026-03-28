@@ -1,4 +1,5 @@
 import { getAppParams } from '@/core/data/app-params';
+import { getBase44Client } from '@/core/data/base44Client';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
@@ -23,9 +24,28 @@ async function parseApiResponse(response) {
  */
 function authHeaders(extra = {}) {
   const headers = { ...extra };
-  const { token } = getAppParams();
+  const { appId, token } = getAppParams();
+  if (appId) {
+    headers['X-Base44-App-Id'] = appId;
+  }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+  // Also pull any headers the SDK client normally sends
+  try {
+    const client = getBase44Client();
+    if (client && typeof client.getHeaders === 'function') {
+      const sdkHeaders = client.getHeaders();
+      if (sdkHeaders && typeof sdkHeaders === 'object') {
+        Object.entries(sdkHeaders).forEach(([key, value]) => {
+          if (value && !headers[key]) {
+            headers[key] = value;
+          }
+        });
+      }
+    }
+  } catch {
+    // SDK client not yet initialized
   }
   return headers;
 }
