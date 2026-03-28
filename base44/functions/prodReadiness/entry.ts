@@ -3,6 +3,7 @@
  * All shared dependencies inlined for deployment stability.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { fetchFleetYardsFleetVehicles, resolveFleetYardsFleet } from '../_shared/fleetyards/entry.ts';
 
 const enc = new TextEncoder();
 const NO_STORE = { 'Cache-Control': 'no-store' };
@@ -48,8 +49,47 @@ async function runIntegrationAudit() {
   else { try { const r = await fetch('https://uexcorp.space/api/2.0/commodities', { signal: AbortSignal.timeout(10000) }); checks.push({ id: 'uex_api', label: 'UEX', ok: r.ok, severity: 'critical', detail: r.ok ? 'UEX OK.' : `UEX ${r.status}.` }); } catch (e) { checks.push({ id: 'uex_api', label: 'UEX', ok: false, severity: 'critical', detail: e.message }); } }
 
   const ftHandle = tv(Deno.env.get('FLEETYARDS_HANDLE'));
-  if (!ftHandle) checks.push({ id: 'fleetyards', label: 'FleetYards', ok: false, severity: 'critical', detail: 'FLEETYARDS_HANDLE not configured.' });
-  else { try { const r = await fetch(`https://api.fleetyards.net/v1/orgs/${encodeURIComponent(ftHandle)}`, { signal: AbortSignal.timeout(10000) }); checks.push({ id: 'fleetyards', label: 'FleetYards', ok: r.ok, severity: 'critical', detail: r.ok ? `FleetYards ${ftHandle} reachable.` : `FleetYards ${r.status}.` }); } catch (e) { checks.push({ id: 'fleetyards', label: 'FleetYards', ok: false, severity: 'critical', detail: e.message }); } }
+  if (!ftHandle) {
+    checks.push({ id: 'fleetyards', label: 'FleetYards', ok: false, severity: 'critical', detail: 'FLEETYARDS_HANDLE not configured.' });
+    checks.push({ id: 'fleetyards_roster', label: 'FleetYards Roster', ok: false, severity: 'critical', detail: 'FLEETYARDS_HANDLE not configured.' });
+  }
+  else {
+    try {
+      const resolved = await resolveFleetYardsFleet(ftHandle, 10000);
+      const fleetName = tv(resolved?.fleet?.name);
+      const fleetSlug = tv(resolved?.slug);
+      checks.push({
+        id: 'fleetyards',
+        label: 'FleetYards',
+        ok: true,
+        severity: 'critical',
+        detail: fleetName
+          ? `FleetYards fleet "${fleetName}" reachable via ${fleetSlug || ftHandle}.`
+          : `FleetYards ${fleetSlug || ftHandle} reachable.`,
+      });
+    } catch (e) {
+      checks.push({ id: 'fleetyards', label: 'FleetYards', ok: false, severity: 'critical', detail: e.message });
+    }
+
+    try {
+      const resolved = await fetchFleetYardsFleetVehicles(ftHandle, 10000);
+      checks.push({
+        id: 'fleetyards_roster',
+        label: 'FleetYards Roster',
+        ok: true,
+        severity: 'critical',
+        detail: `${resolved.vehicles.length} FleetYards vehicle records readable for ${resolved.slug}.`,
+      });
+    } catch (e) {
+      checks.push({
+        id: 'fleetyards_roster',
+        label: 'FleetYards Roster',
+        ok: false,
+        severity: 'critical',
+        detail: e.message,
+      });
+    }
+  }
 
   return checks;
 }

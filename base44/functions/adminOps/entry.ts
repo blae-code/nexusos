@@ -34,7 +34,7 @@ async function writeActionLog(b44, actor, input) {
 
 async function runAdminOperation(b44, action) {
   if (action === 'sync_uex_prices') { const r = await b44.asServiceRole.functions.invoke('commodityPriceSync', {}); return r?.data || r; }
-  if (action === 'sync_fleetyards_roster') { if (!tv(Deno.env.get('FLEETYARDS_HANDLE'))) throw new Error('FLEETYARDS_HANDLE not configured'); const r = await b44.asServiceRole.functions.invoke('fleetyardsRosterSync', {}); return r?.data || r; }
+  if (action === 'sync_fleetyards_roster') { if (!tv(Deno.env.get('FLEETYARDS_HANDLE'))) throw new Error('FLEETYARDS_HANDLE not configured'); if (!tv(Deno.env.get('FLEETYARDS_AUTH_COOKIE') || Deno.env.get('FLEETYARDS_COOKIE'))) throw new Error('FLEETYARDS_AUTH_COOKIE not configured'); const r = await b44.asServiceRole.functions.invoke('fleetyardsRosterSync', {}); return r?.data || r; }
   if (action === 'sync_game_data') { const r = await b44.asServiceRole.functions.invoke('gameDataSync', {}); return r?.data || r; }
   if (action === 'refresh_patch_digest') { const r = await b44.asServiceRole.functions.invoke('rssCheck', {}); return r?.data || r; }
   if (action === 'run_patch_intelligence_self_test') { const r = await b44.asServiceRole.functions.invoke('patchIntelligenceAgent', { mode: 'self_test' }); return r?.data || r; }

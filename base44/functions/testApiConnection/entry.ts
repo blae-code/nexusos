@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { resolveFleetYardsFleet } from '../_shared/fleetyards/entry.ts';
 
 const NO_STORE = { 'Cache-Control': 'no-store' };
 const enc = new TextEncoder();
@@ -75,6 +76,22 @@ const API_TESTS = {
     });
     return res.ok;
   },
+  FLEETYARDS_AUTH_COOKIE: async (cookie) => {
+    const handle = String(Deno.env.get('FLEETYARDS_HANDLE') || '').trim();
+    if (!handle) {
+      throw new Error('FLEETYARDS_HANDLE not configured');
+    }
+
+    const fleet = await resolveFleetYardsFleet(handle, 10000);
+    const slug = String(fleet?.slug || handle).trim();
+    const res = await fetch(`https://api.fleetyards.net/v1/fleets/${encodeURIComponent(slug)}/vehicles`, {
+      headers: {
+        Accept: 'application/json',
+        Cookie: cookie,
+      },
+    });
+    return res.ok;
+  },
 };
 
 Deno.serve(async (req) => {
@@ -93,7 +110,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'invalid_secret_id' }, { status: 400, headers: NO_STORE });
     }
 
-    const value = Deno.env.get(secretId);
+    const value = secretId === 'FLEETYARDS_AUTH_COOKIE'
+      ? (Deno.env.get('FLEETYARDS_AUTH_COOKIE') || Deno.env.get('FLEETYARDS_COOKIE'))
+      : Deno.env.get(secretId);
     if (!value) {
       return Response.json({
         success: false,

@@ -1,22 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { fetchFleetYardsFleetVehicles, resolveFleetYardsFleet } from '../_shared/fleetyards/entry.ts';
 
 const FLEETYARDS_API_BASE = 'https://api.fleetyards.net/v1';
-
-async function fetchFleetYardsOrg(handle) {
-  const response = await fetch(`${FLEETYARDS_API_BASE}/orgs/${handle}`);
-  if (!response.ok) {
-    throw new Error(`FleetYards API error: ${response.statusText}`);
-  }
-  return response.json();
-}
-
-async function fetchFleetYardsShips(handle) {
-  const response = await fetch(`${FLEETYARDS_API_BASE}/orgs/${handle}/ships`);
-  if (!response.ok) {
-    throw new Error(`FleetYards API error: ${response.statusText}`);
-  }
-  return response.json();
-}
 
 async function fetchFleetYardsModels(query) {
   const params = new URLSearchParams({ search: query, per_page: '5' });
@@ -47,12 +32,12 @@ Deno.serve(async (req) => {
     const action = body.action || new URL(req.url).searchParams.get('action');
 
     if (action === 'org') {
-      const org = await fetchFleetYardsOrg(handle);
+      const { fleet: org } = await resolveFleetYardsFleet(handle);
       return Response.json({ org });
     }
 
     if (action === 'ships') {
-      const ships = await fetchFleetYardsShips(handle);
+      const { vehicles: ships } = await fetchFleetYardsFleetVehicles(handle);
       return Response.json({ ships });
     }
 

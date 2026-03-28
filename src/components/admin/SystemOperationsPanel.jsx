@@ -5,7 +5,7 @@ import { adminApi } from '@/core/data/admin-api';
 import { showToast } from '@/components/NexusToast';
 
 const OPS = [
-  { action: 'sync_fleetyards_roster', label: 'FleetYards Roster', icon: Ship, detail: 'Refresh OrgShip records from the configured FleetYards org handle.' },
+  { action: 'sync_fleetyards_roster', label: 'FleetYards Roster', icon: Ship, detail: 'Refresh OrgShip records from the configured FleetYards fleet handle using the authenticated FleetYards cookie.' },
   { action: 'sync_uex_prices', label: 'UEX Prices', icon: Database, detail: 'Refresh GameCacheCommodity market data from UEX.' },
   { action: 'sync_game_data', label: 'Game Data Cache', icon: Database, detail: 'Refresh GameCacheVehicle and GameCacheItem caches.' },
   { action: 'refresh_patch_digest', label: 'Patch Feed Refresh', icon: Radar, detail: 'Poll the live patch feed and ingest a new digest if one exists.' },

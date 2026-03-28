@@ -53,3 +53,7 @@ Admin Settings exposes these manual operations through `adminOps`:
 - `run_patch_intelligence_self_test`
 
 These operations are audited through `AdminActionLog`.
+
+FleetYards roster sync additionally requires:
+- `FLEETYARDS_HANDLE` set to the FleetYards fleet slug or RSI SID
+- `FLEETYARDS_AUTH_COOKIE` set to an authenticated FleetYards Cookie header that can read the fleet vehicle roster

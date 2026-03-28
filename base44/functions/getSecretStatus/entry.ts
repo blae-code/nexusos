@@ -75,8 +75,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'forbidden' }, { status: 403, headers: NO_STORE });
     }
 
-    const secretIds = ['UEX_API_KEY', 'SC_API_KEY', 'SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL', 'FLEETYARDS_HANDLE'];
-    const protectedSecrets = ['SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL'];
+    const secretIds = ['UEX_API_KEY', 'SC_API_KEY', 'SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL', 'FLEETYARDS_HANDLE', 'FLEETYARDS_AUTH_COOKIE'];
+    const protectedSecrets = ['SESSION_SIGNING_SECRET', 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', 'APP_URL', 'FLEETYARDS_AUTH_COOKIE'];
 
     const secrets = {};
     for (const id of secretIds) {
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
       environment: {
         app_url: String(Deno.env.get('APP_URL') || '').trim() || null,
         fleetyards_handle: String(Deno.env.get('FLEETYARDS_HANDLE') || '').trim() || null,
+        fleetyards_roster_auth_configured: Boolean(String(Deno.env.get('FLEETYARDS_AUTH_COOKIE') || Deno.env.get('FLEETYARDS_COOKIE') || '').trim()),
       },
     }, { headers: NO_STORE });
   } catch (error) {

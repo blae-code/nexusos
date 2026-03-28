@@ -14,7 +14,8 @@ const REQUIRED_SECRETS = [
   { id: 'SESSION_SIGNING_SECRET', label: 'Session Signing Secret', help: 'CRITICAL — Used to sign all auth session cookies. Must be a strong random string. Without this, authentication will not work.', critical: true },
   { id: 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', label: 'System Admin Bootstrap Secret', help: 'Emergency recovery secret for the system admin account. Set during initial deployment.', critical: true },
   { id: 'APP_URL', label: 'App URL', help: 'The public URL of your NexusOS deployment. Used for cookie domains and invite links. Format: https://your-nexusos.app', critical: true },
-  { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', help: 'Required for fleet sync and readiness proofs that depend on live FleetYards roster data.', critical: true },
+  { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', help: 'Required for fleet sync and readiness proofs. Use the FleetYards fleet slug or RSI SID for the target fleet.', critical: true },
+  { id: 'FLEETYARDS_AUTH_COOKIE', label: 'FleetYards Auth Cookie', help: 'CRITICAL for live FleetYards roster sync. Paste the authenticated Cookie header from a FleetYards session that can read the target fleet vehicles endpoint.', critical: true },
 ];
 
 function StatusChip({ ok, label }) {
@@ -32,7 +33,7 @@ function StatusChip({ ok, label }) {
 export default function AdminSettings() {
   const { isAdmin } = useSession();
   const [secrets, setSecrets] = useState({});
-  const [environment, setEnvironment] = useState(/** @type {{ app_url?: string | null, fleetyards_handle?: string | null }} */ ({}));
+  const [environment, setEnvironment] = useState(/** @type {{ app_url?: string | null, fleetyards_handle?: string | null, fleetyards_roster_auth_configured?: boolean | null }} */ ({}));
   const [loading, setLoading] = useState(true);
   const [testResults, setTestResults] = useState({});
   const [testingSecretId, setTestingSecretId] = useState('');
@@ -113,12 +114,14 @@ export default function AdminSettings() {
 
   const appUrl = environment?.app_url || null;
   const fleetYardsHandle = environment?.fleetyards_handle || null;
+  const fleetYardsRosterAuthConfigured = environment?.fleetyards_roster_auth_configured === true;
   const publicConfig = useMemo(() => ([
     { id: 'AUTH_MODE', label: 'Auth Mode', value: 'Issued Key' },
     { id: 'INVITE_FLOW', label: 'Invite Flow', value: 'Pioneer Issued' },
     { id: 'APP_URL', label: 'App URL', value: appUrl || 'UNSET' },
     { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', value: fleetYardsHandle || 'UNSET' },
-  ]), [appUrl, fleetYardsHandle]);
+    { id: 'FLEETYARDS_ROSTER_AUTH', label: 'FleetYards Roster Auth', value: fleetYardsRosterAuthConfigured ? 'CONFIGURED' : 'UNSET' },
+  ]), [appUrl, fleetYardsHandle, fleetYardsRosterAuthConfigured]);
 
   const launchReady = Boolean(
     authHealth?.ok
@@ -185,7 +188,7 @@ export default function AdminSettings() {
         {REQUIRED_SECRETS.map((secret) => {
           const status = secrets[secret.id] || { configured: false, protected: false };
           const testResult = testResults[secret.id];
-          const isTestable = secret.id === 'UEX_API_KEY' || secret.id === 'SC_API_KEY';
+          const isTestable = secret.id === 'UEX_API_KEY' || secret.id === 'SC_API_KEY' || secret.id === 'FLEETYARDS_AUTH_COOKIE';
 
           return (
             <div key={secret.id} style={{

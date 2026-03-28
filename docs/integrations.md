@@ -27,7 +27,7 @@ Priority: HIGH
 ## Fleetyards API
 Purpose: Member ship ownership, fleet availability, vehicle loadouts.
 Used by: ARMORY
-Method: REST API, member authorises via OAuth2 on first ARMORY visit
+Method: REST API. Public fleet metadata reads use the FleetYards fleet slug/RSI SID. Live vehicle roster reads require an authenticated FleetYards session cookie configured as `FLEETYARDS_AUTH_COOKIE`.
 Priority: HIGH
 
 ## UEX (Universal Commodity Exchange)
