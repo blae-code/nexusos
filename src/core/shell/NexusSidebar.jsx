@@ -7,7 +7,7 @@ import {
   Activity, Factory, BookOpen, GraduationCap, Radar, BarChart3,
   Shield, Wrench, Package, Ship, Users, Tags, TrendingUp,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
-  Database,
+  Database, AlertTriangle,
 } from 'lucide-react';
 
 const NAV = [
@@ -22,6 +22,7 @@ const NAV = [
           { label: 'CREATE OP', path: '/app/ops/new' },
         ],
       },
+      { icon: AlertTriangle, label: 'RESCUE BOARD', path: '/app/ops/rescue' },
 
     ],
   },

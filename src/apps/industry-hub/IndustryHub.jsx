@@ -12,14 +12,13 @@ import IndustryDashboard from '@/apps/industry-hub/dashboard/IndustryDashboard';
 import PriceTracker from '@/apps/industry-hub/PriceTracker';
 import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 import ProductionTab from '@/apps/industry-hub/ProductionTab';
-import PredictiveAnalytics from '@/apps/industry-hub/analytics/PredictiveAnalytics';
 import IndustryAnalyticsTab from '@/apps/industry-hub/analytics/IndustryAnalyticsTab';
 import ComponentsTab from '@/apps/industry-hub/ComponentsTab';
 import Commerce from '@/pages/Commerce';
 import CofferLedger from '@/pages/CofferLedger';
 import Logistics from '@/pages/Logistics';
 import CargoTracker from '@/pages/CargoTracker';
-import ProfitCalc from '@/pages/ProfitCalc';
+
 import MaterialLifecycleTracker from '@/apps/industry-hub/MaterialLifecycleTracker';
 import BlueprintOwnershipPanel from '@/apps/industry-hub/BlueprintOwnershipPanel';
 import OrgTreasuryDashboard from '@/apps/industry-hub/OrgTreasuryDashboard';
@@ -307,7 +306,7 @@ export default function IndustryHub() {
               materials={materials}
               refineryOrders={refineryOrders}
               craftQueue={craftQueue}
-              cofferLogs={[]}
+              cofferLogs={cofferLogs}
               scoutDeposits={scoutDeposits}
             />
           </div>

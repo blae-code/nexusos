@@ -35,13 +35,26 @@ export default function InventoryManager() {
     setLoading(true);
     setError('');
     try {
-      // Load armory items
-      const armoryItems = await base44.entities.ArmoryItem.list('-last_restocked_at', 200);
-      
-      // Load fleet vessels
-      const fleetRes = await base44.functions.invoke('fleetyardsSync', { action: 'ships' });
-      const shipList = (Array.isArray(fleetRes?.data?.ships) ? fleetRes.data.ships : []).map(s => s.name || s.label);
-      
+      // Load armory items and fleet ships in parallel
+      const [armoryItems, orgShips] = await Promise.all([
+        base44.entities.ArmoryItem.list('-last_restocked_at', 200),
+        base44.entities.OrgShip.list('name', 200).catch(() => []),
+      ]);
+
+      // Try backend fleet sync for additional vessels, but degrade gracefully
+      let fleetNames = [];
+      try {
+        const fleetRes = await base44.functions.invoke('fleetyardsSync', { action: 'ships' });
+        fleetNames = (Array.isArray(fleetRes?.data?.ships) ? fleetRes.data.ships : []).map(s => s.name || s.label);
+      } catch {
+        // Fleetyards sync unavailable — use OrgShip entity data instead
+      }
+
+      // Merge vessel names: prefer fleetyards, fallback to OrgShip entity
+      const shipList = fleetNames.length > 0
+        ? fleetNames
+        : (orgShips || []).map(s => s.name).filter(Boolean);
+
       setItems(armoryItems || []);
       setVessels(shipList);
     } catch (err) {

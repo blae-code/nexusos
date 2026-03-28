@@ -83,7 +83,7 @@ const TRAINING_MODULES = [
     color: '#C0392B',
     duration: '6 min',
     lessons: 3,
-    href: '/app/armory/schedule',
+    href: '/app/armory/fleet?tab=crew',
     whenToUse: 'Use crew scheduling when an op, fleet assignment, or training need requires named people in defined roles.',
     dependsOn: 'Org roster data, ops scheduling context, and the fleet/crew surfaces inside Armory.',
     nextStep: 'Launch the scheduling surface, confirm who is available, then return to the live op or fleet view with assignments set.',
