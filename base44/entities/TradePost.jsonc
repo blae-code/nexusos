@@ -1,0 +1,107 @@
+{
+  "name": "TradePost",
+  "type": "object",
+  "properties": {
+    "poster_id": {
+      "type": "string",
+      "description": "NexusUser ID of the poster"
+    },
+    "poster_callsign": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "PENDING",
+        "COMPLETE",
+        "CANCELLED"
+      ],
+      "default": "OPEN"
+    },
+    "offer_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "quality_score": {
+            "type": "integer"
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Items the poster is offering"
+    },
+    "offer_aUEC": {
+      "type": "number",
+      "description": "aUEC the poster is offering"
+    },
+    "request_description": {
+      "type": "string",
+      "description": "Free-text description of what the poster wants"
+    },
+    "request_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "quality_score": {
+            "type": "integer"
+          },
+          "category": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Items the poster is requesting"
+    },
+    "request_aUEC": {
+      "type": "number",
+      "description": "aUEC the poster is requesting"
+    },
+    "offer_est_value": {
+      "type": "number",
+      "description": "Estimated total value of the offer side"
+    },
+    "request_est_value": {
+      "type": "number",
+      "description": "Estimated total value of the request side"
+    },
+    "accepted_by_id": {
+      "type": "string",
+      "description": "NexusUser ID of the member who accepted"
+    },
+    "accepted_by_callsign": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "poster_callsign",
+    "status"
+  ]
+}

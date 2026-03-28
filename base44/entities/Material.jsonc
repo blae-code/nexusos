@@ -1,0 +1,102 @@
+{
+  "name": "Material",
+  "type": "object",
+  "properties": {
+    "material_name": {
+      "type": "string"
+    },
+    "wiki_commodity_id": {
+      "type": "string"
+    },
+    "material_type": {
+      "type": "string",
+      "enum": [
+        "CMR",
+        "CMP",
+        "CMS",
+        "CM_REFINED",
+        "ORE",
+        "DISMANTLED_SCRAP",
+        "OTHER"
+      ]
+    },
+    "quantity_scu": {
+      "type": "number"
+    },
+    "quality_score": {
+      "type": "integer",
+      "description": "Quality on 1-1000 granular scale (4.7 system)"
+    },
+    "t2_eligible": {
+      "type": "boolean",
+      "default": false
+    },
+    "source_vessel_class": {
+      "type": "string",
+      "enum": [
+        "LIGHT",
+        "MEDIUM",
+        "HEAVY",
+        "UNKNOWN"
+      ],
+      "default": "UNKNOWN",
+      "description": "Vessel class used for salvage extraction"
+    },
+    "density_gcm3": {
+      "type": "number",
+      "description": "Material density in g/cm\u00b3 (CMR=3.2, CMP=2.9, CMS=2.7)"
+    },
+    "location": {
+      "type": "string"
+    },
+    "container": {
+      "type": "string"
+    },
+    "custodian_callsign": {
+      "type": "string",
+      "description": "Callsign of the member currently holding this material"
+    },
+    "held_in": {
+      "type": "string",
+      "description": "Where the material is physically held (e.g. ship name, station storage)"
+    },
+    "logged_by": {
+      "type": "string",
+      "description": "discord_id"
+    },
+    "logged_by_callsign": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "MANUAL",
+        "OCR_DISCORD",
+        "OCR_UPLOAD",
+        "OCR_MOBILE"
+      ]
+    },
+    "screenshot_ref": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "logged_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "FK ops.id (nullable)"
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "material_name",
+    "material_type"
+  ]
+}

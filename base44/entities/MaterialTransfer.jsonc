@@ -1,0 +1,87 @@
+{
+  "name": "MaterialTransfer",
+  "type": "object",
+  "properties": {
+    "from_callsign": {
+      "type": "string",
+      "description": "Callsign of the sender"
+    },
+    "to_callsign": {
+      "type": "string",
+      "description": "Callsign of the recipient"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OFFERED",
+        "ACCEPTED",
+        "IN_TRANSIT",
+        "DELIVERED",
+        "CONFIRMED",
+        "CANCELLED",
+        "DISPUTED"
+      ],
+      "default": "OFFERED",
+      "description": "Current transfer status"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "material_name": {
+            "type": "string"
+          },
+          "material_type": {
+            "type": "string"
+          },
+          "quantity_scu": {
+            "type": "number"
+          },
+          "quality_score": {
+            "type": "integer"
+          }
+        }
+      },
+      "description": "Materials being transferred"
+    },
+    "aUEC": {
+      "type": "number",
+      "description": "aUEC payment included in the transfer (0 if pure material swap)"
+    },
+    "pickup_location": {
+      "type": "string",
+      "description": "Where the sender will hand off materials"
+    },
+    "delivery_location": {
+      "type": "string",
+      "description": "Where the recipient expects delivery"
+    },
+    "op_id": {
+      "type": "string",
+      "description": "FK to Op if transfer is tied to an operation"
+    },
+    "trade_post_id": {
+      "type": "string",
+      "description": "FK to TradePost if transfer originated from a trade listing"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "offered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the transfer was proposed"
+    },
+    "confirmed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the recipient confirmed receipt"
+    }
+  },
+  "required": [
+    "from_callsign",
+    "to_callsign",
+    "status"
+  ]
+}
