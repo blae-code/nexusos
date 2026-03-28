@@ -18,7 +18,7 @@ import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom
 import { base44 } from '@/core/data/base44Client';
 import { Plus, Route } from 'lucide-react';
 import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
-import RoutePlanner from '@/pages/RoutePlanner';
+import MiningCircuitPlanner from './MiningCircuitPlanner';
 
 import SystemMap    from './SystemMap';
 import DepositPanel from './DepositPanel';
@@ -147,7 +147,7 @@ export default function ScoutIntel() {
               { label: liveOp ? 'Open Live Op' : 'Open Ops Board', onClick: () => navigate(liveOp ? `/app/ops/${liveOp.id}` : '/app/ops'), tone: 'live' },
             ]}
           />
-          <RoutePlanner />
+          <MiningCircuitPlanner />
         </div>
       </div>
     );
