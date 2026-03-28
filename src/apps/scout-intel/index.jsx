@@ -25,6 +25,7 @@ import DepositPanel from './DepositPanel';
 import DepositRouteOptimizer from './DepositRouteOptimizer';
 import DepositRouteResults from './DepositRouteResults';
 import DepositRiskOverlay from './DepositRiskOverlay';
+import LiveSystemMap from './live-map/LiveSystemMap';
 
 // ─── Initial filter state ─────────────────────────────────────────────────────
 
@@ -57,7 +58,8 @@ export default function ScoutIntel() {
   const [optimizedRoute,   setOptimizedRoute]   = useState(null);
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const scoutTab = searchParams.get('tab') === 'routes' ? 'routes' : 'deposits';
+  const validTabs = ['deposits', 'routes', 'livemap'];
+  const scoutTab = validTabs.includes(searchParams.get('tab')) ? searchParams.get('tab') : 'deposits';
   const setScoutTab = useCallback((id) => {
     const next = new URLSearchParams(searchParams);
     if (id === 'deposits') next.delete('tab'); else next.set('tab', id);
@@ -123,11 +125,26 @@ export default function ScoutIntel() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  if (scoutTab === 'livemap') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: 0, padding: '0 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
+          {[{ id: 'deposits', label: 'DEPOSITS' }, { id: 'livemap', label: 'LIVE MAP' }, { id: 'routes', label: 'ROUTES' }].map(t => (
+            <button key={t.id} onClick={() => setScoutTab(t.id)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: scoutTab === t.id ? '2px solid #C0392B' : '2px solid transparent', color: scoutTab === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
+          ))}
+        </div>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <LiveSystemMap />
+        </div>
+      </div>
+    );
+  }
+
   if (scoutTab === 'routes') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
         <div style={{ display: 'flex', gap: 0, padding: '0 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
-          {[{ id: 'deposits', label: 'DEPOSITS' }, { id: 'routes', label: 'ROUTES' }].map(t => (
+          {[{ id: 'deposits', label: 'DEPOSITS' }, { id: 'livemap', label: 'LIVE MAP' }, { id: 'routes', label: 'ROUTES' }].map(t => (
             <button key={t.id} onClick={() => setScoutTab(t.id)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: scoutTab === t.id ? '2px solid #C0392B' : '2px solid transparent', color: scoutTab === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
           ))}
         </div>
@@ -159,7 +176,7 @@ export default function ScoutIntel() {
         {/* Tab bar + header */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: 0, padding: '0 16px' }}>
-            {[{ id: 'deposits', label: 'DEPOSITS' }, { id: 'routes', label: 'ROUTES' }].map(t => (
+            {[{ id: 'deposits', label: 'DEPOSITS' }, { id: 'livemap', label: 'LIVE MAP' }, { id: 'routes', label: 'ROUTES' }].map(t => (
               <button key={t.id} onClick={() => setScoutTab(t.id)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: scoutTab === t.id ? '2px solid #C0392B' : '2px solid transparent', color: scoutTab === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
             ))}
           </div>
