@@ -13,6 +13,7 @@ import PriceTracker from '@/apps/industry-hub/PriceTracker';
 import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 import ProductionTab from '@/apps/industry-hub/ProductionTab';
 import PredictiveAnalytics from '@/apps/industry-hub/analytics/PredictiveAnalytics';
+import IndustryAnalyticsTab from '@/apps/industry-hub/analytics/IndustryAnalyticsTab';
 import ComponentsTab from '@/apps/industry-hub/ComponentsTab';
 import Commerce from '@/pages/Commerce';
 import CofferLedger from '@/pages/CofferLedger';
@@ -290,7 +291,16 @@ export default function IndustryHub() {
         {tab === 'cargo' ? <CargoTracker /> : null}
         {tab === 'production' ? <ProductionTab blueprints={blueprints} materials={materials} callsign={callsign} onRefresh={load} /> : null}
         {tab === 'prices' ? <PriceTracker /> : null}
-        {tab === 'analytics' ? <PredictiveAnalytics /> : null}
+        {tab === 'analytics' ? (
+          <IndustryAnalyticsTab
+            materials={materials}
+            refineryOrders={refineryOrders}
+            cofferLogs={cofferLogs}
+            priceSnapshots={priceSnapshots}
+            craftQueue={craftQueue}
+            blueprints={blueprints}
+          />
+        ) : null}
         {tab === 'lifecycle' ? (
           <div style={{ padding: '14px 16px' }}>
             <MaterialLifecycleTracker
