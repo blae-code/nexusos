@@ -280,16 +280,18 @@ export default function ProfitCalc() {
         </div>
 
         {/* Recommendation strip */}
-        <div style={{ background: 'var(--live-bg)', border: '0.5px solid var(--live-b)', borderRadius: 3, padding: '12px 16px' }}>
+        <div style={{ background: !hasPriceData ? 'var(--warn-bg)' : 'var(--live-bg)', border: `0.5px solid ${!hasPriceData ? 'var(--warn-b)' : 'var(--live-b)'}`, borderRadius: 3, padding: '12px 16px' }}>
           <div className="flex items-center gap-2">
-            <TrendingUp size={13} style={{ color: 'var(--live)' }} />
-            <span style={{ color: 'var(--live)', fontSize: 10, letterSpacing: '0.1em' }}>RECOMMENDED STRATEGY</span>
+            {!hasPriceData ? <AlertTriangle size={13} style={{ color: 'var(--warn)' }} /> : <TrendingUp size={13} style={{ color: 'var(--live)' }} />}
+            <span style={{ color: !hasPriceData ? 'var(--warn)' : 'var(--live)', fontSize: 10, letterSpacing: '0.1em' }}>RECOMMENDED STRATEGY</span>
           </div>
           <div style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 700, marginTop: 4 }}>{recommendation}</div>
           <div style={{ color: 'var(--t1)', fontSize: 11, marginTop: 2 }}>
-            {quality >= 80
-              ? `${material} at ${quality}% quality is T2-eligible — ${recommendation === 'CRAFT & SELL' ? 'crafting maximises margin' : recommendation === 'REFINE & SELL' ? 'refining is optimal without blueprint access' : 'selling raw is fastest for this batch'}.`
-              : `Quality below T2 threshold — ${recommendation === 'SELL RAW' ? 'sell raw to avoid refinery cost overhead' : 'refining still profitable at this quality'}.`}
+            {!hasPriceData
+              ? 'No live price data available for this material. Run a UEX price sync to populate PriceSnapshot records.'
+              : quality >= 80
+                ? `${resolvedMaterial} at ${quality}% quality is T2-eligible — ${recommendation === 'CRAFT & SELL' ? 'crafting maximises margin' : recommendation === 'REFINE & SELL' ? 'refining is optimal without blueprint access' : 'selling raw is fastest for this batch'}.`
+                : `Quality below T2 threshold — ${recommendation === 'SELL RAW' ? 'sell raw to avoid refinery cost overhead' : 'refining still profitable at this quality'}.`}
           </div>
         </div>
       </div>
