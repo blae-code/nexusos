@@ -135,29 +135,33 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
   const submit = async (publish) => {
     if (publish) {
       const errors = getValidationErrors();
+      if (!form.name.trim()) errors.name = 'OP NAME IS REQUIRED';
       if (Object.keys(errors).length > 0) { setValidationErrors(errors); return; }
-      if (!form.name.trim()) { setValidationErrors(e => ({ ...e, name: 'OP NAME IS REQUIRED' })); return; }
     }
 
     setSaving(true);
     setError('');
 
     try {
+      // Build role_slots as an object keyed by role name (entity schema expects object, not array)
+      const roleSlotsObj = {};
+      (roleSlots || []).forEach(r => {
+        if (r.name?.trim()) roleSlotsObj[r.name.trim()] = { capacity: r.capacity || 1 };
+      });
+
       const payload = {
-        name: form.name.trim(), type: form.type, system_name: form.system_name,
+        name: form.name.trim() || 'Untitled Op',
+        type: form.type,
+        system: form.system_name,           // entity field is "system", not "system_name"
         location: form.location.trim() || null,
         access_type: form.access_type,
         buy_in_cost: form.access_type === 'EXCLUSIVE' ? (form.buy_in_cost || 0) : 0,
-        scheduled_at: form.scheduled_at, rank_gate: form.rank_gate,
-        role_slots: roleSlots, phases, phase_current: 0,
+        scheduled_at: form.scheduled_at || null,
+        min_rank: form.rank_gate || 'AFFILIATE',
+        role_slots: roleSlotsObj,
+        phases: phases.map(p => (typeof p === 'string' ? { name: p } : p)),
+        phase_current: 0,
         status: publish ? 'PUBLISHED' : 'DRAFT',
-        created_by_user_id: sessionUserId || null,
-        created_by_callsign: callsign || 'UNKNOWN',
-        require_discord_rsvp: false, post_to_ops_board: false,
-        allow_late_joins: settings.allowLateJoins,
-        hide_from_non_members: settings.hideFromNonMembers,
-        log_loot_tally: settings.logLootTally,
-        calc_split_on_close: settings.calcSplitOnClose,
         session_log: [],
       };
 
