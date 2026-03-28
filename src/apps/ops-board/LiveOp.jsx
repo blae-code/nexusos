@@ -274,7 +274,7 @@ export default function LiveOp() {
   const roleReassignProps = { op, rsvps, rank, onUpdate: fetchOp };
   const wrapUpProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
   const resourceReportProps = { op, rsvps, callsign, rank };
-  const debriefProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
+  const debriefProps = { op, rsvps, callsign, rank };
   const isComplete = op.status === 'COMPLETE';
   const isArchived = op.status === 'ARCHIVED';
   const showDebrief = isComplete || isArchived;
@@ -387,19 +387,19 @@ export default function LiveOp() {
         onLayoutChange={handleLayoutChange}
       />
 
-      {/* Financial wrap-up + debrief panel for completed/archived ops */}
+      {/* Financial wrap-up + debrief for completed/archived ops */}
       {showDebrief && (
         <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
-          <Panel title="MISSION DEBRIEF">
-            <OpDebriefPanel {...debriefProps} />
-          </Panel>
-          <div style={{ height: 16 }} />
           <Panel title="RESOURCE INTELLIGENCE">
             <ResourceReportPanel {...resourceReportProps} />
           </Panel>
           <div style={{ height: 16 }} />
           <Panel title="FINANCIAL WRAP-UP">
             <OpWrapUpPanel {...wrapUpProps} />
+          </Panel>
+          <div style={{ height: 16 }} />
+          <Panel title="OP DEBRIEF — MISSION ANALYSIS">
+            <OpDebriefPanel {...debriefProps} />
           </Panel>
         </div>
       )}
