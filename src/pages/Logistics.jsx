@@ -24,6 +24,8 @@ import {
   Truck,
 } from 'lucide-react';
 import { CargoRoute } from '@/core/design/Illustrations';
+import NexusToken from '@/core/design/NexusToken';
+import { cargoJobTypeToken, cargoRiskToken } from '@/core/data/tokenMap';
 
 const TABS = [
   { id: 'cargo', label: 'Cargo Board' },
@@ -448,9 +450,10 @@ export default function Logistics() {
                 <div key={job.id} data-anim={state} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.9fr) auto', gap: 12, padding: '12px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'start' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <NexusToken src={cargoJobTypeToken(job.job_type)} size={18} alt={job.job_type} title={job.job_type} />
+                      {job.risk_tier && <NexusToken src={cargoRiskToken(job.risk_tier)} size={16} alt={job.risk_tier} title={`Risk: ${job.risk_tier}`} />}
                       <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{job.title || 'Untitled cargo job'}</div>
                       <StatusPill status={job.status} />
-                      <StatusPill status={job.risk_tier} />
                     </div>
                     <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>{summarizeManifest(job.manifestItems)}</div>
                     <div style={{ color: 'var(--t2)', fontSize: 10 }}>{job.pickup_location} → {job.delivery_location}</div>
@@ -489,6 +492,7 @@ export default function Logistics() {
                   <div key={job.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.9fr) auto', gap: 12, padding: '12px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'start' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <NexusToken src={cargoJobTypeToken(job.job_type)} size={18} alt={job.job_type} title={job.job_type} />
                         <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{job.title || 'Untitled cargo job'}</div>
                         <StatusPill status={job.status} />
                         {job.confirmed_at ? <StatusPill status="COMPLETE" /> : null}

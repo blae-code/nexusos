@@ -8,6 +8,8 @@ import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import TradeRouteMap from '@/apps/commerce/components/TradeRouteMap';
 import ExchangeBoard from '@/apps/commerce/components/ExchangeBoard';
 import { EmptyLedger, ScanPattern, TradeLedger } from '@/core/design/Illustrations';
+import NexusToken from '@/core/design/NexusToken';
+import { contractTypeToken } from '@/core/data/tokenMap';
 import {
   calculateManifestValue,
   formatAuec,
@@ -648,6 +650,7 @@ export default function Commerce() {
                     <div key={contract.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 0.8fr) minmax(0, 0.9fr) auto', gap: 12, padding: '12px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <NexusToken src={contractTypeToken(contract.contract_type)} size={18} alt={contract.contract_type} title={contract.contract_type} />
                           <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{contract.title}</div>
                           <StatusPill status={contract.status} />
                           <span style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.08em' }}>{contract.contract_type}</span>

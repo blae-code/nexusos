@@ -1,6 +1,8 @@
 import React from 'react';
 import { Clock, ChevronRight, Users } from 'lucide-react';
 import { normalizeRoleSlots, TypeTag, ElapsedTimer } from './opBoardHelpers';
+import NexusToken from '@/core/design/NexusToken';
+import { opTypeToken } from '@/core/data/tokenMap';
 
 export default function LiveOpCard({ op, rsvps, onEnter }) {
   const slots     = normalizeRoleSlots(op.role_slots);
@@ -18,6 +20,7 @@ export default function LiveOpCard({ op, rsvps, onEnter }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
         <div className="pulse-live" style={{ flexShrink: 0 }} />
+        <NexusToken src={opTypeToken(op.type)} size={20} alt={op.type} title={op.type} />
         <span style={{ color: 'var(--t0)', fontSize: 14, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {op.name}
         </span>

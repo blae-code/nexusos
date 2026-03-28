@@ -5,6 +5,8 @@ import ArmoryCheckoutForm from '@/components/armory/ArmoryCheckoutForm';
 import { RotateCcw } from 'lucide-react';
 import { CategorySection } from './ArmoryWidgets';
 import { VaultWheel, EmptyVault } from '@/core/design/Illustrations';
+import NexusToken from '@/core/design/NexusToken';
+import { armoryItemToken } from '@/core/data/tokenMap';
 
 export default function Armory() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
@@ -106,8 +108,11 @@ export default function Armory() {
               <section style={{ marginTop: 20 }}>
                 <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: 10, paddingBottom: 6, borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>ITEMS IN CIRCULATION</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {activeCheckouts.map(checkout => (
+                  {activeCheckouts.map(checkout => {
+                    const itemCategory = items.find(i => i.id === checkout.item_id)?.category;
+                    return (
                     <div key={checkout.id} style={{ background: '#0F0F0D', borderLeft: '2px solid #C0392B', borderTop: '0.5px solid rgba(200,170,100,0.10)', borderRight: '0.5px solid rgba(200,170,100,0.10)', borderBottom: '0.5px solid rgba(200,170,100,0.10)', borderRadius: 2, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {itemCategory && <NexusToken src={armoryItemToken(itemCategory)} size={20} alt={itemCategory} title={itemCategory} />}
                       <div>
                         <div style={{ color: '#E8E4DC', fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600 }}>{checkout.item_name}</div>
                         <div style={{ color: '#5A5850', fontSize: 9, marginTop: 2 }}>{checkout.checked_out_by_callsign} · {checkout.quantity} checked out</div>
@@ -122,7 +127,8 @@ export default function Armory() {
                         <RotateCcw size={9} /> RETURN
                       </button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             )}

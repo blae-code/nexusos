@@ -3,6 +3,8 @@ import { base44 } from '@/core/data/base44Client';
 import { Search, Trophy, Clock, Users, TrendingUp, BookOpen } from 'lucide-react';
 import AARTimelineCard from '@/apps/ops-board/AARTimelineCard';
 import { ArchiveTimeline } from '@/core/design/Illustrations';
+import NexusToken from '@/core/design/NexusToken';
+import { priorityToken, opTypeToken } from '@/core/data/tokenMap';
 
 const TABS = ['OPS', 'AAR TIMELINE', 'LEADERBOARDS', 'PATCH HISTORY'];
 
@@ -20,7 +22,10 @@ function OpArchiveCard({ op }) {
             {new Date(op.scheduled_at || op.created_date).toLocaleDateString()} · {op.system}{op.location ? ` · ${op.location}` : ''}
           </div>
         </div>
-        <span className="nexus-tag" style={{ color: 'var(--acc2)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>{op.type?.replace(/_/g, ' ')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <NexusToken src={opTypeToken(op.type)} size={18} alt={op.type} title={op.type} />
+          <span className="nexus-tag" style={{ color: 'var(--acc2)', borderColor: 'var(--b2)', background: 'var(--bg3)' }}>{op.type?.replace(/_/g, ' ')}</span>
+        </div>
       </div>
 
       <div className="flex items-center gap-4" style={{ color: 'var(--t1)', fontSize: 11, marginBottom: 10 }}>
@@ -58,10 +63,13 @@ function OpArchiveCard({ op }) {
 }
 
 function LeaderboardRow({ rank, callsign, value, label, color }) {
+  const level = rank === 1 ? 'critical' : rank <= 3 ? 'high' : 'normal';
   return (
     <div className="flex items-center gap-3" style={{ padding: '8px 12px', borderBottom: '0.5px solid var(--b0)' }}>
-      <div style={{ width: 24, textAlign: 'center', color: rank <= 3 ? 'var(--warn)' : 'var(--t2)', fontSize: rank <= 3 ? 13 : 11, fontWeight: 700 }}>
-        {rank <= 3 ? ['🥇','🥈','🥉'][rank - 1] : rank}
+      <div style={{ width: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {rank <= 13
+          ? <NexusToken src={priorityToken(rank, level)} size={22} alt={`Rank ${rank}`} />
+          : <span style={{ color: 'var(--t2)', fontSize: 11, fontWeight: 700 }}>{rank}</span>}
       </div>
       <span style={{ flex: 1, color: 'var(--t0)', fontSize: 12 }}>{callsign}</span>
       <span style={{ color: color || 'var(--live)', fontSize: 12, fontWeight: 600 }}>{value}</span>

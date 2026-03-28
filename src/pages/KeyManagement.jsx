@@ -5,6 +5,8 @@ import { useSession } from '@/core/data/SessionContext';
 import InviteMessageBuilder from '@/components/InviteMessageBuilder';
 import { showToast } from '@/components/NexusToast';
 import { base44 } from '@/core/data/base44Client';
+import NexusToken from '@/core/design/NexusToken';
+import { keyStatusToken, rankToken } from '@/core/data/tokenMap';
 
 const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 const SYSTEM_ADMIN_LOGIN = 'system-admin';
@@ -796,29 +798,32 @@ export default function KeyManagement() {
                     {managedUser.callsign}
                   </td>
                   <td style={{ padding: '10px 16px' }}>
-                    <select
-                      value={rankDrafts[managedUser.id] || managedUser.nexus_rank}
-                      onChange={(event) => setRankDrafts((current) => ({
-                        ...current,
-                        [managedUser.id]: event.target.value,
-                      }))}
-                      disabled={submitting}
-                      style={{
-                        width: '100%',
-                        padding: '6px 8px',
-                        background: '#141410',
-                        border: '0.5px solid rgba(200,170,100,0.10)',
-                        borderRadius: 2,
-                        color: '#E8E4DC',
-                        fontSize: 10,
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        letterSpacing: '0.08em',
-                        outline: 'none',
-                        cursor: submitting ? 'wait' : 'pointer',
-                      }}
-                    >
-                      {RANK_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
-                    </select>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <NexusToken src={rankToken(rankDrafts[managedUser.id] || managedUser.nexus_rank)} size={14} alt={rankDrafts[managedUser.id] || managedUser.nexus_rank} />
+                      <select
+                        value={rankDrafts[managedUser.id] || managedUser.nexus_rank}
+                        onChange={(event) => setRankDrafts((current) => ({
+                          ...current,
+                          [managedUser.id]: event.target.value,
+                        }))}
+                        disabled={submitting}
+                        style={{
+                          flex: 1,
+                          padding: '6px 8px',
+                          background: '#141410',
+                          border: '0.5px solid rgba(200,170,100,0.10)',
+                          borderRadius: 2,
+                          color: '#E8E4DC',
+                          fontSize: 10,
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          letterSpacing: '0.08em',
+                          outline: 'none',
+                          cursor: submitting ? 'wait' : 'pointer',
+                        }}
+                      >
+                        {RANK_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+                      </select>
+                    </div>
                   </td>
                   <td style={{ padding: '10px 16px', color: '#9A9488', fontSize: 10, fontFamily: 'monospace' }}>
                     {managedUser.key_prefix || '—'}
@@ -830,18 +835,17 @@ export default function KeyManagement() {
                     {relativeTime(managedUser.last_seen_at)}
                   </td>
                   <td style={{ padding: '10px 16px' }}>
-                    <span style={{
-                      padding: '2px 8px',
-                      borderRadius: 2,
-                      fontSize: 9,
-                      fontWeight: 700,
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      letterSpacing: '0.06em',
-                      color: STATUS_COLOR[status],
-                      background: `${STATUS_COLOR[status]}18`,
-                    }}>
-                      {status}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <NexusToken src={keyStatusToken(status)} size={16} alt={status} title={status} />
+                      <span style={{
+                        fontSize: 9,
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        letterSpacing: '0.06em',
+                        color: STATUS_COLOR[status],
+                      }}>
+                        {status}
+                      </span>
+                    </div>
                   </td>
                   <td style={{ padding: '10px 16px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>

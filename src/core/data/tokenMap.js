@@ -327,6 +327,110 @@ export function opTypeToken(type) {
 
 
 // ---------------------------------------------------------------------------
+// Commerce — contract type markers
+// ---------------------------------------------------------------------------
+
+/**
+ * contractTypeToken
+ * Returns a token for a contract type indicator in the contracts list.
+ * Shape communicates the delivery/exchange/auction distinction.
+ *
+ * @param {'COURIER'|'EXCHANGE'|'AUCTION'} type
+ * @returns {string} token path
+ */
+export function contractTypeToken(type) {
+  const map = {
+    COURIER:  T('fuel-blue'),        // fuel/route = physical delivery
+    EXCHANGE: T('mechanics-orange'), // mechanics = barter/trade work
+    AUCTION:  T('triangle-yellow'),  // triangle = competitive upward bid
+  }
+  return map[type] || T('objective-grey')
+}
+
+
+// ---------------------------------------------------------------------------
+// Logistics — cargo job type markers
+// ---------------------------------------------------------------------------
+
+/**
+ * cargoJobTypeToken
+ * Returns a token for a cargo job type indicator in the cargo board.
+ *
+ * @param {'HAUL'|'COLLECT'|'DELIVER'} type
+ * @returns {string} token path
+ */
+export function cargoJobTypeToken(type) {
+  const map = {
+    HAUL:    T('fuel-cyan'),     // standard route haul
+    COLLECT: T('hex-orange'),    // collection = resource extraction feel
+    DELIVER: T('triangle-green'), // deliver = completed / destination
+  }
+  return map[type] || T('objective-grey')
+}
+
+/**
+ * cargoRiskToken
+ * Returns a token for cargo job risk tier indicators.
+ *
+ * @param {'GREEN'|'AMBER'|'RED'} tier
+ * @returns {string} token path
+ */
+export function cargoRiskToken(tier) {
+  const map = {
+    GREEN: T('shelter-green'),
+    AMBER: T('target-alt-orange'),
+    RED:   T('target-alt-red'),
+  }
+  return map[tier] || T('shelter-grey')
+}
+
+
+// ---------------------------------------------------------------------------
+// Armory — item category markers
+// ---------------------------------------------------------------------------
+
+/**
+ * armoryItemToken
+ * Returns a token for armory item category identification.
+ * Used in checkout lists and inventory rows.
+ *
+ * @param {'FPS'|'SHIP'|'CONSUMABLE'} category
+ * @returns {string} token path
+ */
+export function armoryItemToken(category) {
+  const map = {
+    FPS:        T('ammunition-orange'), // FPS weapons & gear
+    SHIP:       T('mechanics-blue'),    // ship components
+    CONSUMABLE: T('hospital-cyan'),     // medpens, food, etc.
+  }
+  return map[category] || T('square-grey')
+}
+
+
+// ---------------------------------------------------------------------------
+// Key Management — member auth key status markers
+// ---------------------------------------------------------------------------
+
+/**
+ * keyStatusToken
+ * Returns a penta token for the auth key status column in Key Management.
+ * Reuses the penta shape (same as rank) to visually link key to member tier.
+ *
+ * @param {'REGISTERED'|'INVITED'|'NO KEY'|'REVOKED'} status
+ * @returns {string} token path
+ */
+export function keyStatusToken(status) {
+  const map = {
+    REGISTERED: T('square-green'),  // active — key used + joined
+    INVITED:    T('square-cyan'),   // key issued, not yet logged in
+    'NO KEY':   T('square-yellow'), // member record exists, no key
+    REVOKED:    T('square-red'),    // access revoked
+  }
+  return map[status] || T('square-grey')
+}
+
+
+// ---------------------------------------------------------------------------
 // Herald Bot — embed thumbnails
 // Used server-side in heraldBot.ts to set embed thumbnail URLs.
 // Tokens must be accessible as public URLs at your deployment domain.

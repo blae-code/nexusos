@@ -3,6 +3,8 @@
  * for CraftQueueTab.
  */
 import React from 'react';
+import NexusToken from '@/core/design/NexusToken';
+import { priorityToken, T } from '@/core/data/tokenMap';
 
 const STATUS_COLORS = {
   OPEN:        'var(--info)',
@@ -36,29 +38,19 @@ export function OptimisedRow({ item, rank, original, onClaim, callsign }) {
       onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
-      {/* Rank */}
+      {/* Rank — numbered cube token; color encodes priority level */}
       <td style={{ padding: '8px 12px', width: 36 }}>
-        <div style={{
-          width: 22,
-          height: 22,
-          borderRadius: '50%',
-          background: rank <= 3 ? 'var(--bg4)' : 'var(--bg2)',
-          border: `0.5px solid ${rank === 1 ? 'var(--warn)' : 'var(--b2)'}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: rank === 1 ? 'var(--warn)' : 'var(--t2)',
-          fontSize: 9,
-          fontWeight: 500,
-        }}>
-          {rank}
-        </div>
+        {(() => {
+          const levelMap = { CRITICAL: 'critical', HIGH: 'high', NORMAL: 'normal', LOW: 'low' };
+          const level = levelMap[item.priority] || (rank <= 1 ? 'critical' : rank <= 3 ? 'high' : 'normal');
+          return <NexusToken src={priorityToken(Math.min(rank, 13), level)} size={24} alt={`Rank ${rank}`} title={`Rank ${rank} · ${item.priority || ''}`} />;
+        })()}
       </td>
 
-      {/* Priority dot */}
+      {/* Priority flag — triangle marker for flagged items */}
       <td style={{ padding: '8px 4px', width: 8 }}>
         {original?.priority_flag && (
-          <div style={{ width: 4, height: 16, background: 'var(--warn)', borderRadius: 2 }} />
+          <NexusToken src={T('triangle-orange')} size={14} alt="priority" title="Priority flagged" />
         )}
       </td>
 
@@ -150,7 +142,7 @@ export function DefaultRow({ item, onClaim }) {
       <td style={{ padding: '8px 12px', width: 36 }} />
       <td style={{ padding: '8px 4px', width: 8 }}>
         {item.priority_flag && (
-          <div style={{ width: 4, height: 16, background: 'var(--warn)', borderRadius: 2 }} />
+          <NexusToken src={T('triangle-orange')} size={14} alt="priority" title="Priority flagged" />
         )}
       </td>
       <td style={{ padding: '8px 14px', color: 'var(--t0)', fontSize: 12 }}>{item.blueprint_name}</td>
