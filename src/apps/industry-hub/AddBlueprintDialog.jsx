@@ -2,11 +2,12 @@
  * Add Blueprint dialog — Pioneer+ only.
  * No closed-over variables — props only.
  */
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Plus, X } from 'lucide-react';
 import { Overlay, DialogCard, DialogHeader } from './BlueprintDialogPrimitives';
 import AutocompleteInput from './BlueprintAutocompleteInput';
+import { useGameCache } from '@/core/data/useGameCache';
 
 // ─── Shared style objects ─────────────────────────────────────────────────────
 
@@ -15,6 +16,7 @@ const LABEL = { color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', displa
 // ─── Add Blueprint dialog (Pioneer+ only) ─────────────────────────────────────
 
 export default function AddBlueprintDialog({ onClose, onCreated }) {
+  const { itemNames, commodityNames, allNames } = useGameCache();
   const [form, setForm] = useState({
     item_name: '', wiki_item_id: '', category: 'WEAPON',
     tier: 'T1', owned_by_callsign: '', owned_by_user_id: null,
@@ -28,19 +30,17 @@ export default function AddBlueprintDialog({ onClose, onCreated }) {
   // Debounce ref for autocomplete
   const debounceRef = useRef(null);
 
-  // Wiki item autocomplete — queries game_cache_items (not external API)
-  const loadItemSuggestions = useCallback(async (query) => {
-    if (query.length < 3) { setItemSuggestions([]); return; }
-    try {
-      const results = await base44.entities.game_cache_items.list('-item_name', 100);
-      setItemSuggestions(
-        (results || [])
-          .filter(r => (r.item_name || r.name || '').toLowerCase().includes(query.toLowerCase()))
-          .slice(0, 10)
-          .map(r => ({ label: r.item_name || r.name, id: r.id, item_name: r.item_name || r.name }))
-      );
-    } catch { setItemSuggestions([]); }
-  }, []);
+  // Wiki item autocomplete — from GameCacheItem
+  const loadItemSuggestions = useCallback((query) => {
+    if (query.length < 2) { setItemSuggestions([]); return; }
+    const q = query.toLowerCase();
+    setItemSuggestions(
+      itemNames
+        .filter(n => n.toLowerCase().includes(q))
+        .slice(0, 12)
+        .map(n => ({ label: n, id: n, item_name: n }))
+    );
+  }, [itemNames]);
 
   // Callsign autocomplete — queries NexusUser
   const loadCallsignSuggestions = useCallback(async (query) => {
@@ -188,13 +188,19 @@ export default function AddBlueprintDialog({ onClose, onCreated }) {
               </div>
               {recipe.map((row, i) => (
                 <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <input
-                    className="nexus-input"
-                    style={{ flex: 2 }}
-                    placeholder="Laranite"
-                    value={row.material_name}
-                    onChange={e => updateIngredient(i, 'material_name', e.target.value)}
-                  />
+                  <div style={{ flex: 2, position: 'relative' }}>
+                    <input
+                      className="nexus-input"
+                      style={{ width: '100%', boxSizing: 'border-box' }}
+                      placeholder="Laranite"
+                      list={`mat-ac-${i}`}
+                      value={row.material_name}
+                      onChange={e => updateIngredient(i, 'material_name', e.target.value)}
+                    />
+                    <datalist id={`mat-ac-${i}`}>
+                      {allNames.filter(n => n.toLowerCase().includes((row.material_name || '').toLowerCase())).slice(0, 12).map(n => <option key={n} value={n} />)}
+                    </datalist>
+                  </div>
                   <input
                     className="nexus-input"
                     style={{ width: 80 }}

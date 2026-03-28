@@ -2,6 +2,7 @@
  * NewListingForm — Create a new material listing (buy or sell).
  */
 import React, { useState, useMemo } from 'react';
+import { useGameCache } from '@/core/data/useGameCache';
 
 const MAT_TYPES = ['CMR', 'CMP', 'CMS', 'CM_REFINED', 'ORE', 'CRAFTED_ITEM', 'COMPONENT', 'DISMANTLED_SCRAP', 'OTHER'];
 const SYSTEMS = ['STANTON', 'PYRO', 'NYX'];
@@ -13,6 +14,7 @@ const LABEL = {
 };
 
 export default function NewListingForm({ materials, blueprints, demandMaterials, onSubmit, onCancel }) {
+  const { allNames: gameCacheNames } = useGameCache();
   const [form, setForm] = useState({
     listing_type: 'SELL',
     material_name: '',
@@ -48,13 +50,14 @@ export default function NewListingForm({ materials, blueprints, demandMaterials,
     }
   };
 
-  // Known material names from inventory
+  // Known material names from inventory + GameCache
   const knownMaterials = useMemo(() => {
     const names = new Set();
     (materials || []).forEach(m => m.material_name && names.add(m.material_name));
     (blueprints || []).forEach(b => b.item_name && names.add(b.item_name));
+    gameCacheNames.forEach(n => names.add(n));
     return [...names].sort();
-  }, [materials, blueprints]);
+  }, [materials, blueprints, gameCacheNames]);
 
   const handleSubmit = async () => {
     if (!form.material_name.trim()) return;

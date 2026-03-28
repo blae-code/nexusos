@@ -1,25 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, AlertTriangle } from 'lucide-react';
+import { usePriceLookup, fmtAuec } from '@/core/data/usePriceLookup';
 
-const MATERIALS = ['TARANITE', 'BEXALITE', 'BORASE', 'QUANTANIUM', 'LARANITE', 'GOLD', 'AGRICIUM'];
 const REFINERY_METHODS = ['Dinyx Solventation', 'Ferron Exchange', 'Pyrometric Chromalysis'];
 const REFINERY_CONFIG = {
   'Dinyx Solventation': { yieldMult: 1.08, costMult: 1.12, note: 'Best yield, highest refinery fee.' },
   'Ferron Exchange': { yieldMult: 1.03, costMult: 1.04, note: 'Balanced method — moderate cost and yield.' },
   'Pyrometric Chromalysis': { yieldMult: 1.1, costMult: 1.18, note: 'Highest margin when quality supports it.' },
-};
-
-// Placeholder prices removed — populate from PriceSnapshot or UEX API data.
-// When no live price exists the calc shows 0 so the user knows to check market data.
-const BASE_PRICES = {
-  TARANITE: { raw: 0, refined: 0, crafted: 0 },
-  BEXALITE: { raw: 0, refined: 0, crafted: 0 },
-  BORASE: { raw: 0, refined: 0, crafted: 0 },
-  QUANTANIUM: { raw: 0, refined: 0, crafted: 0 },
-  LARANITE: { raw: 0, refined: 0, crafted: 0 },
-  GOLD: { raw: 0, refined: 0, crafted: 0 },
-  AGRICIUM: { raw: 0, refined: 0, crafted: 0 },
 };
 
 const PRESETS = [
@@ -54,7 +42,20 @@ function CustomTooltip({ active = false, payload = [], label = '' }) {
 }
 
 export default function ProfitCalc() {
-  const [material, setMaterial] = useState('TARANITE');
+  const { prices, loading: pricesLoading } = usePriceLookup();
+
+  // Build materials list from live PriceSnapshot data
+  const MATERIALS = useMemo(() => {
+    const names = [];
+    prices.forEach((v, key) => {
+      if (v.buyAvg > 0 || v.sellAvg > 0 || v.bestBuy > 0 || v.bestSell > 0) {
+        names.push(key);
+      }
+    });
+    return names.sort();
+  }, [prices]);
+
+  const [material, setMaterial] = useState('');
   const [quality, setQuality] = useState(75);
   const [scu, setScu] = useState(32);
   const [crew, setCrew] = useState(1);
@@ -63,16 +64,25 @@ export default function ProfitCalc() {
   const [refMethod, setRefMethod] = useState(REFINERY_METHODS[0]);
   const [risk, setRisk] = useState(0);
 
-  const prices = BASE_PRICES[material] || { raw: 500, refined: 700, crafted: 0 };
+  // Auto-select first material once prices load
+  const resolvedMaterial = material || (MATERIALS.length > 0 ? MATERIALS[0] : '');
+
+  // Pull live price data for the selected material
+  const priceData = prices.get(resolvedMaterial.toLowerCase()) || null;
+  const rawPrice = priceData ? (priceData.bestSell || priceData.sellAvg || 0) : 0;
+  const refinedPrice = Math.round(rawPrice * 1.35); // refined typically 30-40% premium
+  const craftedPrice = 0; // crafted items are separate blueprints, not raw mats
+  const hasPriceData = rawPrice > 0;
+
   const methodConfig = REFINERY_CONFIG[refMethod] || REFINERY_CONFIG[REFINERY_METHODS[0]];
   const qualityMult = 0.7 + (quality / 100) * 0.6;
   const refineYield = 0.78 * methodConfig.yieldMult;
   const refineMethodCost = Math.round(scu * 180 * methodConfig.costMult);
   const riskPenalty = 1 - risk / 200;
 
-  const grossRaw = Math.round(scu * prices.raw * qualityMult * riskPenalty);
-  const grossRefined = prices.refined ? Math.round(scu * refineYield * prices.refined * qualityMult * riskPenalty - refineMethodCost) : 0;
-  const grossCrafted = prices.crafted ? Math.round(scu * 0.6 * prices.crafted * qualityMult * riskPenalty - refineMethodCost * 1.3) : 0;
+  const grossRaw = Math.round(scu * rawPrice * qualityMult * riskPenalty);
+  const grossRefined = refinedPrice ? Math.round(scu * refineYield * refinedPrice * qualityMult * riskPenalty - refineMethodCost) : 0;
+  const grossCrafted = craftedPrice ? Math.round(scu * 0.6 * craftedPrice * qualityMult * riskPenalty - refineMethodCost * 1.3) : 0;
 
   const netRaw = Math.max(0, grossRaw - fuelCost);
   const netRefined = Math.max(0, grossRefined - fuelCost);
@@ -87,14 +97,15 @@ export default function ProfitCalc() {
   const perHourCrafted = hours > 0 ? Math.round(netCrafted / hours) : 0;
 
   const best = Math.max(netRaw, netRefined, netCrafted);
-  const recommendation = best === netCrafted && netCrafted > 0 ? 'CRAFT & SELL'
+  const recommendation = !hasPriceData ? 'NO PRICE DATA'
+    : best === netCrafted && netCrafted > 0 ? 'CRAFT & SELL'
     : best === netRefined && netRefined > 0 ? 'REFINE & SELL'
     : 'SELL RAW';
 
   const chartData = [
     { name: 'SELL RAW', gross: grossRaw, net: netRaw, perCrew: perCrewRaw },
     { name: 'REFINE & SELL', gross: grossRefined, net: netRefined, perCrew: perCrewRefined },
-    ...(prices.crafted ? [{ name: 'CRAFT & SELL', gross: grossCrafted, net: netCrafted, perCrew: perCrewCrafted }] : []),
+    ...(craftedPrice ? [{ name: 'CRAFT & SELL', gross: grossCrafted, net: netCrafted, perCrew: perCrewCrafted }] : []),
   ];
 
   const loadPreset = (p) => {
@@ -128,9 +139,24 @@ export default function ProfitCalc() {
         {/* Material */}
         <div>
           <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>MATERIAL</label>
-          <select className="nexus-input" value={material} onChange={e => setMaterial(e.target.value)} style={{ cursor: 'pointer' }}>
-            {MATERIALS.map(m => <option key={m}>{m}</option>)}
-          </select>
+          {pricesLoading ? (
+            <div className="nexus-loading-dots" style={{ color: 'var(--t2)', padding: '6px 0' }}><span /><span /><span /></div>
+          ) : MATERIALS.length === 0 ? (
+            <div style={{ color: 'var(--warn)', fontSize: 10, padding: '6px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <AlertTriangle size={11} /> No price data — run UEX sync first
+            </div>
+          ) : (
+            <select className="nexus-input" value={resolvedMaterial} onChange={e => setMaterial(e.target.value)} style={{ cursor: 'pointer' }}>
+              {MATERIALS.map(m => <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>)}
+            </select>
+          )}
+          {hasPriceData && priceData && (
+            <div style={{ fontSize: 9, color: 'var(--t2)', marginTop: 4, display: 'flex', gap: 8 }}>
+              <span>Buy: <span style={{ color: 'var(--t1)' }}>{fmtAuec(priceData.bestBuy || priceData.buyAvg)}</span></span>
+              <span>Sell: <span style={{ color: 'var(--t1)' }}>{fmtAuec(priceData.bestSell || priceData.sellAvg)}</span></span>
+              {priceData.bestSellStation && <span style={{ color: 'var(--t3)' }}>@ {priceData.bestSellStation}</span>}
+            </div>
+          )}
         </div>
 
         {/* Quality */}
@@ -200,7 +226,7 @@ export default function ProfitCalc() {
           {[
             { label: 'SELL RAW', net: netRaw, perCrew: perCrewRaw, perHour: perHourRaw },
             { label: 'REFINE & SELL', net: netRefined, perCrew: perCrewRefined, perHour: perHourRefined },
-            { label: 'CRAFT & SELL', net: netCrafted, perCrew: perCrewCrafted, perHour: perHourCrafted, disabled: !prices.crafted },
+            { label: 'CRAFT & SELL', net: netCrafted, perCrew: perCrewCrafted, perHour: perHourCrafted, disabled: !craftedPrice },
           ].map(s => (
             <div
               key={s.label}

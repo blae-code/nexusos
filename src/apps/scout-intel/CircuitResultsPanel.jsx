@@ -4,7 +4,7 @@
  */
 import React, { useState, useMemo } from 'react';
 import { Route, Fuel, Clock, Package, Shield, AlertTriangle, ChevronLeft, RefreshCw, Pickaxe, Navigation, ChevronDown } from 'lucide-react';
-import { SHIP_OPTIONS, SHIP_LOADOUTS, recalcCircuit } from './shipData';
+import { SHIP_OPTIONS, SHIP_LOADOUTS, recalcCircuit, useShipLoadouts } from './shipData';
 
 function fmtAuec(n) { return Math.round(n || 0).toLocaleString(); }
 
@@ -130,9 +130,9 @@ function LegRow({ leg, index }) {
   return null;
 }
 
-function ShipSelectorBar({ currentKey, onChange }) {
+function ShipSelectorBar({ currentKey, onChange, loadouts, options }) {
   const [open, setOpen] = useState(false);
-  const current = SHIP_LOADOUTS[currentKey];
+  const current = loadouts[currentKey] || SHIP_LOADOUTS[currentKey];
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(!open)} style={{
@@ -158,7 +158,7 @@ function ShipSelectorBar({ currentKey, onChange }) {
           boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
           animation: 'nexus-fade-in 100ms ease-out both',
         }}>
-          {SHIP_OPTIONS.map(s => {
+          {options.map(s => {
             const active = s.key === currentKey;
             return (
               <button key={s.key} onClick={() => { onChange(s.key); setOpen(false); }} style={{
@@ -187,6 +187,7 @@ function ShipSelectorBar({ currentKey, onChange }) {
 }
 
 export default function CircuitResultsPanel({ result, onBack, onReplan }) {
+  const { loadouts: liveLoadouts, options: liveOptions } = useShipLoadouts();
   if (!result) return null;
   const { circuit_name, ship, legs: originalLegs, materials_targeted, risk_assessment, origin, deposit_count } = result;
   const originalShipKey = ship?.loadout_key || 'PROSPECTOR';
@@ -195,12 +196,12 @@ export default function CircuitResultsPanel({ result, onBack, onReplan }) {
   const isOriginal = refShipKey === originalShipKey;
   const { legs, summary: s } = useMemo(() => {
     if (isOriginal) return { legs: originalLegs, summary: result.summary };
-    const refShip = SHIP_LOADOUTS[refShipKey];
+    const refShip = liveLoadouts[refShipKey] || SHIP_LOADOUTS[refShipKey];
     if (!refShip) return { legs: originalLegs, summary: result.summary };
     return recalcCircuit(originalLegs, refShip, deposit_count || 0);
-  }, [refShipKey, isOriginal, originalLegs, result.summary, deposit_count]);
+  }, [refShipKey, isOriginal, originalLegs, result.summary, deposit_count, liveLoadouts]);
 
-  const refShipData = SHIP_LOADOUTS[refShipKey] || ship;
+  const refShipData = liveLoadouts[refShipKey] || SHIP_LOADOUTS[refShipKey] || ship;
   const highestRiskColor = { LOW: '#4A8C5C', MEDIUM: '#C8A84B', HIGH: '#C0392B', EXTREME: '#C0392B' };
   let miningIdx = 0;
 
@@ -239,7 +240,7 @@ export default function CircuitResultsPanel({ result, onBack, onReplan }) {
       </div>
 
       {/* Ship reference selector */}
-      <ShipSelectorBar currentKey={refShipKey} onChange={setRefShipKey} />
+      <ShipSelectorBar currentKey={refShipKey} onChange={setRefShipKey} loadouts={liveLoadouts} options={liveOptions} />
 
       {/* Primary stats */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

@@ -6,7 +6,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Route, Fuel, Clock, Package, Shield, Ship, AlertTriangle, ChevronDown, RefreshCw } from 'lucide-react';
 import CircuitResultsPanel from './CircuitResultsPanel';
-import { SHIP_OPTIONS } from './shipData';
+import { SHIP_OPTIONS, useShipLoadouts } from './shipData';
 
 // Ship data imported from shipData.js
 
@@ -46,9 +46,12 @@ function ShipCard({ ship, selected, onClick }) {
     onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = '#0C0C0A'; e.currentTarget.style.borderColor = 'rgba(200,170,100,0.06)'; } }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? '#E8E4DC' : '#9A9488' }}>
-          {ship.label}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? '#E8E4DC' : '#9A9488' }}>
+            {ship.label}
+          </span>
+          {ship.fleetyards && <span style={{ fontSize: 7, padding: '1px 4px', borderRadius: 2, background: 'rgba(122,174,204,0.10)', border: '0.5px solid rgba(122,174,204,0.25)', color: '#7AAECC', fontWeight: 600, letterSpacing: '0.04em' }}>FY</span>}
+        </div>
         <span style={{ fontSize: 8, color: '#5A5850', letterSpacing: '0.08em' }}>{ship.class}</span>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 9, color: '#5A5850' }}>
@@ -60,6 +63,7 @@ function ShipCard({ ship, selected, onClick }) {
 }
 
 export default function MiningCircuitPlanner() {
+  const { options: shipOptions, loadouts: shipLoadouts, loading: shipsLoading } = useShipLoadouts();
   const [deposits, setDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -103,7 +107,7 @@ export default function MiningCircuitPlanner() {
     }).length;
   }, [deposits, minQuality, maxRisk, systemFilter, targetMaterials]);
 
-  const selectedShip = SHIP_OPTIONS.find(s => s.key === shipLoadout);
+  const selectedShip = shipOptions.find(s => s.key === shipLoadout) || SHIP_OPTIONS.find(s => s.key === shipLoadout);
 
   const toggleMaterial = (mat) => {
     setTargetMaterials(prev =>
@@ -194,10 +198,14 @@ export default function MiningCircuitPlanner() {
               <ChevronDown size={12} style={{ color: '#5A5850', transform: showShipPicker ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} />
             </button>
             {showShipPicker && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6, animation: 'nexus-fade-in 100ms ease-out both' }}>
-                {SHIP_OPTIONS.map(s => (
-                  <ShipCard key={s.key} ship={s} selected={shipLoadout} onClick={(k) => { setShipLoadout(k); setShowShipPicker(false); }} />
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6, maxHeight: 300, overflowY: 'auto', animation: 'nexus-fade-in 100ms ease-out both' }}>
+                {shipsLoading ? (
+                  <div className="nexus-loading-dots" style={{ color: '#9A9488', padding: 12, textAlign: 'center' }}><span /><span /><span /></div>
+                ) : (
+                  shipOptions.map(s => (
+                    <ShipCard key={s.key} ship={s} selected={shipLoadout} onClick={(k) => { setShipLoadout(k); setShowShipPicker(false); }} />
+                  ))
+                )}
               </div>
             )}
           </div>

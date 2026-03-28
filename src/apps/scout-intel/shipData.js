@@ -1,7 +1,11 @@
 /**
  * Shared ship loadout data for the mining circuit planner.
  * Used by both the planner config and the results panel.
+ * Hardcoded fallbacks are merged with live GameCacheVehicle data
+ * via useShipLoadouts() hook.
  */
+import { useState, useEffect, useMemo } from 'react';
+import { base44 } from '@/core/data/base44Client';
 
 export const SHIP_LOADOUTS = {
   PROSPECTOR:    { key: 'PROSPECTOR',    label: 'Prospector',      class: 'MINER',    scu: 32,  crew: 1, fuel_capacity: 1750,  fuel_rate: 0.42, qt_speed: 75.6  },
@@ -15,6 +19,86 @@ export const SHIP_LOADOUTS = {
 };
 
 export const SHIP_OPTIONS = Object.values(SHIP_LOADOUTS);
+
+/** Classify a vehicle by name/role into a broad class */
+function classifyShip(vehicle) {
+  const name = (vehicle.name || '').toLowerCase();
+  const role = (vehicle.stats_json?.role || '').toLowerCase();
+  const focus = (vehicle.stats_json?.focus || '').toLowerCase();
+  if (role.includes('min') || focus.includes('min') || name.includes('prospector') || name.includes('mole') || name.includes('orion')) return 'MINER';
+  if (role.includes('salvag') || focus.includes('salvag') || name.includes('vulture') || name.includes('reclaimer')) return 'SALVAGER';
+  if (role.includes('haul') || role.includes('freight') || role.includes('transport') || focus.includes('freight')) return 'HAULER';
+  if (role.includes('combat') || role.includes('fight') || focus.includes('fight') || focus.includes('combat')) return 'FIGHTER';
+  if (role.includes('med') || focus.includes('med')) return 'MEDICAL';
+  if (role.includes('explor') || focus.includes('explor')) return 'EXPLORER';
+  return 'OTHER';
+}
+
+/** Estimate fuel specs from mass when not available in hardcoded data */
+function estimateFuel(vehicle) {
+  const mass = vehicle.stats_json?.mass || 0;
+  if (mass > 5_000_000) return { fuel_capacity: 10000, fuel_rate: 1.1, qt_speed: 55.2 };
+  if (mass > 1_000_000) return { fuel_capacity: 5000, fuel_rate: 0.7, qt_speed: 55.2 };
+  if (mass > 200_000) return { fuel_capacity: 3000, fuel_rate: 0.45, qt_speed: 75.6 };
+  return { fuel_capacity: 1800, fuel_rate: 0.35, qt_speed: 75.6 };
+}
+
+/**
+ * useShipLoadouts — merges hardcoded fallback specs with live GameCacheVehicle data.
+ * Returns { loadouts: Record<string, ShipSpec>, options: ShipSpec[], loading }
+ */
+export function useShipLoadouts() {
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    base44.entities.GameCacheVehicle.list('name', 500)
+      .then(v => setVehicles(v || []))
+      .catch(() => setVehicles([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const { loadouts, options } = useMemo(() => {
+    // Start with hardcoded
+    const merged = { ...SHIP_LOADOUTS };
+
+    // For each vehicle from FleetYards, update SCU if we have a match, or add new
+    vehicles.forEach(v => {
+      if (!v.name || (v.cargo_scu || 0) <= 0) return; // skip zero-cargo vehicles
+      const key = v.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+      const existing = Object.values(merged).find(
+        s => s.label.toLowerCase() === v.name.toLowerCase()
+          || s.key === key
+      );
+      if (existing) {
+        // Update cargo from FleetYards (more authoritative)
+        existing.scu = v.cargo_scu;
+        const stats = v.stats_json || {};
+        if (stats.crew_max > 0) existing.crew = stats.crew_max;
+        existing.fleetyards = true;
+      } else {
+        // Add new ship from FleetYards
+        const fuel = estimateFuel(v);
+        const stats = v.stats_json || {};
+        merged[key] = {
+          key,
+          label: v.name,
+          class: classifyShip(v),
+          scu: v.cargo_scu,
+          crew: stats.crew_max || stats.crew_min || 1,
+          fuel_capacity: fuel.fuel_capacity,
+          fuel_rate: fuel.fuel_rate,
+          qt_speed: fuel.qt_speed,
+          fleetyards: true,
+        };
+      }
+    });
+
+    return { loadouts: merged, options: Object.values(merged) };
+  }, [vehicles]);
+
+  return { loadouts, options, loading };
+}
 
 /** Recalculate circuit stats for a different ship using existing leg distances */
 export function recalcCircuit(legs, ship, depositCount) {
