@@ -1,101 +1,93 @@
 /**
- * Op Creator — full-page panel, not a dialog.
- * Props: { rank, callsign, sessionUserId }
- *
- * Sections: BASICS | ACCESS | ROLE SLOTS | SETTINGS | PHASES
- * Publish: validates name+type+scheduled_at, creates Op, routes to /app/ops/[id] on success.
+ * OpCreator — Multi-step wizard "Mission Briefing Terminal"
+ * Steps: TYPE → BRIEFING → CREW → TIMELINE → REVIEW → PUBLISH
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
-import { ChevronLeft } from 'lucide-react';
-import {
-  OP_TYPES, SYSTEMS, RANK_GATES, getDefaults,
-  SectionHeader, FormField, SegmentedControl, Toggle,
-  RoleSlotEditor, PhaseEditor,
-} from './opCreatorHelpers';
-import FleetAssignSection from './FleetAssignSection';
-import { opTypeToken } from '@/core/data/tokenMap';
+import WizardStepIndicator from './creator/WizardStepIndicator';
+import OpTypeSelector from './creator/OpTypeSelector';
+import OpBriefingStep from './creator/OpBriefingStep';
+import OpCrewStep from './creator/OpCrewStep';
+import OpTimelineStep from './creator/OpTimelineStep';
+import OpReviewStep from './creator/OpReviewStep';
+import OpPublishOverlay from './creator/OpPublishOverlay';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+const TOTAL_STEPS = 5;
 
-const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
-const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+const OP_TYPE_DEFAULTS = {
+  ROCKBREAKER: {
+    roles: [{ name: 'Mining', capacity: 3 }, { name: 'Escort', capacity: 2 }, { name: 'Hauler', capacity: 2 }, { name: 'Refinery Coord', capacity: 1 }],
+    phases: ['Staging', 'Breach & Clear', 'Power Up', 'Craft Lenses', 'Fire Laser', 'Harvest & Extract'],
+  },
+  MINING: {
+    roles: [{ name: 'Mining', capacity: 3 }, { name: 'Escort', capacity: 2 }, { name: 'Fabricator', capacity: 1 }, { name: 'Scout', capacity: 1 }],
+    phases: ['Staging', 'Transit', 'Mining', 'Extraction', 'Refinery Run'],
+  },
+  PATROL: {
+    roles: [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
+    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+  },
+  COMBAT: {
+    roles: [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
+    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+  },
+  ESCORT: {
+    roles: [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
+    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+  },
+  S17: {
+    roles: [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
+    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+  },
+  SALVAGE: {
+    roles: [{ name: 'Salvage', capacity: 3 }, { name: 'Escort', capacity: 2 }],
+    phases: ['Staging', 'Main Op', 'Extraction'],
+  },
+  RESCUE: {
+    roles: [{ name: 'Rescue', capacity: 3 }, { name: 'Medical', capacity: 1 }],
+    phases: ['Staging', 'Main Op', 'Extraction'],
+  },
+  CARGO: {
+    roles: [{ name: 'Hauler', capacity: 3 }, { name: 'Escort', capacity: 2 }],
+    phases: ['Staging', 'Loading', 'Transit', 'Delivery'],
+  },
+  RECON: {
+    roles: [{ name: 'Scout', capacity: 3 }, { name: 'Escort', capacity: 1 }],
+    phases: ['Staging', 'Recon', 'Report', 'Extraction'],
+  },
+};
 
-// ─── Settings Toggle Component ────────────────────────────────────────────────
-
-function SettingsToggle({ label, checked, onChange }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <button
-        type="button"
-        onClick={() => onChange(!checked)}
-        style={{
-          width: 32, height: 18, borderRadius: 9, cursor: 'pointer',
-          background: checked ? 'var(--acc)' : 'var(--bg3)',
-          border: `0.5px solid ${checked ? 'var(--acc)' : 'var(--b2)'}`,
-          position: 'relative', transition: 'all 200ms', flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            top: 1, left: checked ? 16 : 1,
-            width: 16, height: 16, borderRadius: '50%',
-            background: 'var(--bg0)',
-            transition: 'left 200ms',
-          }}
-        />
-      </button>
-      <span style={{ color: 'var(--t1)', fontSize: 10, fontFamily: 'inherit' }}>{label}</span>
-    </div>
-  );
-}
-
-// ─── OpCreator ────────────────────────────────────────────────────────────────
+const DEFAULT_DEFAULTS = { roles: [{ name: '', capacity: 1 }], phases: ['Staging', 'Main Op', 'Extraction'] };
+function getDefaults(type) { return OP_TYPE_DEFAULTS[type] || DEFAULT_DEFAULTS; }
 
 export default function OpCreator({ rank, callsign, sessionUserId }) {
-  const navigate  = useNavigate();
-  const isPioneer = PIONEER_RANKS.includes(rank);
-
-  // ── Form state ─────────────────────────────────────
+  const navigate = useNavigate();
+  const [step, setStep] = useState(0);
+  const contentRef = useRef(null);
 
   const [form, setForm] = useState({
-    name:         '',
-    type:         'ROCKBREAKER',
-    system_name:  'Stanton',
-    location:     '',
-    access_type:  'EXCLUSIVE',
-    buy_in_cost:  0,
-    scheduled_at: '',
-    rank_gate:    'AFFILIATE',
+    name: '', type: 'ROCKBREAKER', system_name: 'STANTON',
+    location: '', access_type: 'EXCLUSIVE', buy_in_cost: 0,
+    scheduled_at: '', rank_gate: 'AFFILIATE',
   });
 
-  const defaults   = getDefaults(form.type);
+  const defaults = getDefaults(form.type);
   const [roleSlots, setRoleSlots] = useState(defaults.roles);
-  const [phases, setPhases]       = useState(defaults.phases);
-
+  const [phases, setPhases] = useState(defaults.phases);
   const [fleetAssignments, setFleetAssignments] = useState({});
-
   const [settings, setSettings] = useState({
-    allowLateJoins:      false,
-    hideFromNonMembers:  false,
-    logLootTally:        true,
-    calcSplitOnClose:    true,
+    allowLateJoins: false, hideFromNonMembers: false,
+    logLootTally: true, calcSplitOnClose: true,
   });
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
-  const [publishedOpId, setPublishedOpId] = useState(null);
+  const [showOverlay, setShowOverlay] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({
-    type: null,
-    system: null,
-    roleSlots: null,
-    schedule: null,
-  });
+  const [validationErrors, setValidationErrors] = useState({ type: null, system: null, roleSlots: null, schedule: null });
 
   // Re-seed roles + phases when op type changes
   const prevType = useRef(form.type);
@@ -108,42 +100,43 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
     }
   }, [form.type]);
 
-  const set        = (k, v) => {
+  const set = (k, v) => {
     setForm(f => ({ ...f, [k]: v }));
-    // Clear validation errors for this field as user corrects it
     if (k === 'type') setValidationErrors(e => ({ ...e, type: null }));
     if (k === 'system_name') setValidationErrors(e => ({ ...e, system: null }));
     if (k === 'scheduled_at') setValidationErrors(e => ({ ...e, schedule: null }));
   };
-  const setSetting = (k, v) => setSettings(s => ({ ...s, [k]: v }));
 
-  // Validation check
+  // Validation
   const getValidationErrors = () => {
     const errors = {};
     if (!form.type) errors.type = 'Select an op type.';
     if (!form.system_name) errors.system = 'Select a star system.';
     if (!roleSlots || roleSlots.length === 0) errors.roleSlots = 'Add at least one role slot.';
-    if (roleSlots && roleSlots.some(r => !r.name?.trim())) errors.roleSlots = 'Enter a name for this role.';
-    if (!form.scheduled_at) errors.schedule = 'Set a date and time for the op.';
+    if (roleSlots && roleSlots.some(r => !r.name?.trim())) errors.roleSlots = 'Enter a name for every role.';
+    if (!form.scheduled_at) errors.schedule = 'Set a date and time.';
     return errors;
   };
 
-  const currentValidationErrors = getValidationErrors();
-  const isValid = Object.keys(currentValidationErrors).length === 0;
-  const hasValidationAttempted = Object.values(validationErrors).some(e => e !== null);
+  // Step navigation
+  const scrollToTop = () => contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 
-  // ── Publish / draft ────────────────────────────────
+  const goNext = () => {
+    if (step < TOTAL_STEPS - 1) { setStep(step + 1); scrollToTop(); }
+  };
+  const goPrev = () => {
+    if (step > 0) { setStep(step - 1); scrollToTop(); }
+  };
+  const goToStep = (i) => {
+    if (i <= step + 1 && i >= 0) { setStep(i); scrollToTop(); }
+  };
 
+  // Submit
   const submit = async (publish) => {
-    const errors = getValidationErrors();
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
-    if (!form.name.trim()) {
-      setValidationErrors(e => ({ ...e, name: 'OP NAME IS REQUIRED' }));
-      return;
+    if (publish) {
+      const errors = getValidationErrors();
+      if (Object.keys(errors).length > 0) { setValidationErrors(errors); return; }
+      if (!form.name.trim()) { setValidationErrors(e => ({ ...e, name: 'OP NAME IS REQUIRED' })); return; }
     }
 
     setSaving(true);
@@ -151,53 +144,36 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
 
     try {
       const payload = {
-        name:               form.name.trim(),
-        type:               form.type,
-        system_name:        form.system_name,
-        location:           form.location.trim() || null,
-        access_type:        form.access_type,
-        buy_in_cost:        form.access_type === 'EXCLUSIVE' ? (form.buy_in_cost || 0) : 0,
-        scheduled_at:       form.scheduled_at,
-        rank_gate:          form.rank_gate,
-        role_slots:         roleSlots,
-        phases,
-        phase_current:      0,
-        status:             publish ? 'PUBLISHED' : 'DRAFT',
+        name: form.name.trim(), type: form.type, system_name: form.system_name,
+        location: form.location.trim() || null,
+        access_type: form.access_type,
+        buy_in_cost: form.access_type === 'EXCLUSIVE' ? (form.buy_in_cost || 0) : 0,
+        scheduled_at: form.scheduled_at, rank_gate: form.rank_gate,
+        role_slots: roleSlots, phases, phase_current: 0,
+        status: publish ? 'PUBLISHED' : 'DRAFT',
         created_by_user_id: sessionUserId || null,
         created_by_callsign: callsign || 'UNKNOWN',
-        require_discord_rsvp: false,
-        post_to_ops_board:    false,
-        allow_late_joins:     settings.allowLateJoins,
+        require_discord_rsvp: false, post_to_ops_board: false,
+        allow_late_joins: settings.allowLateJoins,
         hide_from_non_members: settings.hideFromNonMembers,
-        log_loot_tally:       settings.logLootTally,
-        calc_split_on_close:  settings.calcSplitOnClose,
-        session_log:        [],
+        log_loot_tally: settings.logLootTally,
+        calc_split_on_close: settings.calcSplitOnClose,
+        session_log: [],
       };
 
       const op = await base44.entities.Op.create(payload);
 
       if (publish) {
         await sendNexusNotification({
-          type: 'OP_PUBLISHED',
-          title: 'Operation Published',
+          type: 'OP_PUBLISHED', title: 'Operation Published',
           body: `${payload.name} is published${payload.system_name ? ` · ${payload.system_name}` : ''}.`,
-          severity: 'INFO',
-          target_user_id: null,
-          source_module: 'OPS',
-          source_id: op.id,
+          severity: 'INFO', target_user_id: null, source_module: 'OPS', source_id: op.id,
         });
-      }
-
-      // Show success overlay on publish, then route to op detail with readiness gate
-      if (publish) {
-        setPublishedOpId(op.id);
-        setShowSuccessOverlay(true);
-        // Route after overlay completes (1200ms total)
+        setShowOverlay(true);
         setTimeout(() => {
           navigate(`/app/ops/${op.id}?scrollTo=readinessGate&expandReadiness=true`);
-        }, 1200);
+        }, 1800);
       } else {
-        // Draft save - show inline confirmation
         setDraftSaved(true);
         setTimeout(() => setDraftSaved(false), 2000);
       }
@@ -208,466 +184,230 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
     }
   };
 
-  // ── Guard — Scout+ only ───────────────────────────
-
+  // Guard
   if (!SCOUT_RANKS.includes(rank)) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--t2)', fontSize: 13 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#5A5850', fontSize: 13 }}>
         Scout rank or above required to create ops
       </div>
     );
   }
 
-  // ── Render ─────────────────────────────────────────
+  // Step titles
+  const STEP_TITLES = ['Select Operation Type', 'Mission Briefing', 'Crew Configuration', 'Operation Phases', 'Review & Authorize'];
+  const stepTitle = STEP_TITLES[step];
+
+  // Can advance?
+  const canAdvance = () => {
+    if (step === 0) return Boolean(form.type);
+    if (step === 1) return Boolean(form.name.trim() && form.system_name && form.scheduled_at);
+    if (step === 2) return roleSlots.length > 0 && roleSlots.every(r => r.name?.trim());
+    if (step === 3) return phases.length > 0;
+    return true;
+  };
 
   return (
-    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-
-      {/* Success Overlay */}
-      {showSuccessOverlay && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          background: `rgba(var(--bg0-rgb), 0.92)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          animation: 'nexus-success-fade-in 150ms ease-out both',
-        }}>
-          <style>{`
-            @keyframes nexus-success-fade-in {
-              from { opacity: 0; }
-              to { opacity: 1; }
-            }
-            @keyframes nexus-success-fade-out {
-              from { opacity: 1; }
-              to { opacity: 0; }
-            }
-            @keyframes checkmark-draw {
-              from { stroke-dashoffset: 48; }
-              to { stroke-dashoffset: 0; }
-            }
-            .success-overlay-fade-out {
-              animation: nexus-success-fade-out 200ms ease-out forwards !important;
-            }
-          `}</style>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <svg width="40" height="40" viewBox="0 0 40 40" style={{ overflow: 'visible' }}>
-              <polyline
-                points="10 20 17 27 30 14"
-                fill="none"
-                stroke="var(--live)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray="48"
-                style={{
-                  animation: 'checkmark-draw 400ms ease-out forwards',
-                }}
-              />
-            </svg>
-            <div style={{
-              color: 'var(--live)',
-              fontSize: 12,
-              fontFamily: 'var(--font)',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-            }}>
-              OP PUBLISHED
-            </div>
-            <div style={{
-              color: 'var(--t0)',
-              fontSize: 16,
-              fontFamily: 'var(--font)',
-              fontWeight: 500,
-              textAlign: 'center',
-              maxWidth: 320,
-            }}>
-              {form.name}
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', position: 'relative' }}>
+      <OpPublishOverlay opName={form.name} visible={showOverlay} />
 
       {/* Header */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
-        padding: '12px 20px', borderBottom: '0.5px solid var(--b1)',
-        background: 'linear-gradient(180deg, #0F0E0C 0%, #0A0908 100%)',
-        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        flexShrink: 0, padding: '0 24px',
+        background: 'linear-gradient(180deg, #0C0B09 0%, #0A0908 100%)',
+        borderBottom: '1px solid rgba(200,170,100,0.06)',
       }}>
-        <span style={{ color: 'var(--t3)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'inherit' }}>
-          Create Operation
-        </span>
-        <button
-          onClick={() => navigate('/app/ops')}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--t2)',
-            fontSize: 9,
-            fontFamily: 'inherit',
-            transition: 'color 150ms ease',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--t2)'; }}
-        >
-          Discard
-        </button>
+        {/* Top bar */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 0',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 6, height: 6, borderRadius: '50%', background: '#C0392B',
+              animation: 'pulse-dot 2s ease-in-out infinite',
+            }} />
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+              fontSize: 12, color: '#C0392B',
+              letterSpacing: '0.2em', textTransform: 'uppercase',
+            }}>MISSION COMMAND</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/app/ops')}
+            style={{
+              background: 'none', border: '0.5px solid rgba(200,170,100,0.08)',
+              borderRadius: 2, padding: '5px 12px', cursor: 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
+              color: '#5A5850', letterSpacing: '0.12em', textTransform: 'uppercase',
+              transition: 'all 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(192,57,43,0.3)'; e.currentTarget.style.color = '#C0392B'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(200,170,100,0.08)'; e.currentTarget.style.color = '#5A5850'; }}
+          >ABORT</button>
+        </div>
+
+        {/* Step indicator */}
+        <WizardStepIndicator currentStep={step} onStepClick={goToStep} />
       </div>
 
-      {/* Scrollable form body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', animation: 'nexus-page-enter 200ms ease-out both', maxWidth: '100%', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 640 }}>
+      {/* Step title */}
+      <div style={{
+        padding: '20px 28px 8px',
+        flexShrink: 0,
+        background: 'linear-gradient(180deg, #0A0908 0%, transparent 100%)',
+      }}>
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+          fontSize: 20, color: '#E8E4DC',
+          letterSpacing: '0.04em', textTransform: 'uppercase',
+        }}>{stepTitle}</div>
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
+          color: '#3A3830', letterSpacing: '0.12em', textTransform: 'uppercase',
+          marginTop: 4,
+        }}>STEP {step + 1} OF {TOTAL_STEPS}</div>
+      </div>
 
-        {error && (
-          <div style={{
-            background: 'rgba(var(--danger-rgb), 0.08)', border: '0.5px solid rgba(var(--danger-rgb), 0.3)',
-            borderRadius: 3, padding: '8px 12px', color: 'var(--danger)',
-            fontSize: 12, marginBottom: 20, letterSpacing: '0.04em',
-          }}>
-            {error}
-          </div>
-        )}
+      {/* Scrollable body */}
+      <div ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 28px 120px' }}>
+        <div style={{ maxWidth: 680, margin: '0 auto' }}>
+          {error && (
+            <div style={{
+              background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.25)',
+              borderRadius: 3, padding: '10px 14px', color: '#C0392B',
+              fontSize: 11, marginBottom: 20, letterSpacing: '0.04em',
+            }}>{error}</div>
+          )}
 
-        {/* BASICS */}
-        <div style={{ marginBottom: 28 }}>
-          <SectionHeader label="BASICS" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <FormField label="OP NAME *">
-              <input
-                className="nexus-input"
-                value={form.name}
-                onChange={e => set('name', e.target.value)}
-                placeholder="Redscar Industrial — Nyx Push"
-                style={{ fontSize: 13 }}
+          {/* Steps */}
+          <div style={{ animation: 'nexus-fade-in 200ms ease-out both' }} key={step}>
+            {step === 0 && <OpTypeSelector value={form.type} onChange={v => set('type', v)} />}
+            {step === 1 && <OpBriefingStep form={form} set={set} validationErrors={validationErrors} />}
+            {step === 2 && (
+              <OpCrewStep
+                roleSlots={roleSlots} onRoleSlotsChange={setRoleSlots}
+                fleetAssignments={fleetAssignments} onFleetChange={setFleetAssignments}
+                validationErrors={validationErrors}
               />
-            </FormField>
-            {/* Op Type Selector */}
-            <div>
-              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>Op Type *</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {['ROCKBREAKER', 'ESCORT', 'SALVAGE', 'CARGO', 'RECON', 'OTHER'].map((type, i) => (
-                  <button
-                    key={type}
-                    onClick={() => set('type', type)}
-                    style={{
-                      padding: '6px 14px',
-                      fontSize: 10,
-                      fontFamily: 'var(--font)',
-                      background: form.type === type ? 'var(--bg3)' : 'var(--bg2)',
-                      border: `0.5px solid ${validationErrors.type ? 'var(--warn)' : form.type === type ? 'var(--acc)' : 'var(--b1)'}`,
-                      borderRadius: 3,
-                      cursor: 'pointer',
-                      color: form.type === type ? 'var(--t0)' : 'var(--t2)',
-                      borderLeft: form.type === type && type === 'ROCKBREAKER' ? '3px solid var(--live)' : undefined,
-                      transition: 'background 120ms, border-color 120ms',
-                      opacity: 0,
-                      animation: `nexus-fade-in 200ms ease-out both ${i * 60}ms`,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!e.currentTarget.style.background || e.currentTarget.style.background === 'var(--bg2)') {
-                        e.currentTarget.style.background = 'rgba(var(--bg3-rgb, 23,28,52), 0.8)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = form.type === type ? 'var(--bg3)' : 'var(--bg2)';
-                    }}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-              {validationErrors.type && (
-                <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
-                  {validationErrors.type}
-                </div>
-              )}
-            </div>
-
-            {/* System Selector */}
-            <div>
-              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>System</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {['STANTON', 'PYRO', 'NYX'].map((sys, i) => {
-                  const systemBorder = validationErrors.system ? 'var(--warn)' : { STANTON: 'var(--info)', PYRO: 'var(--danger)', NYX: 'var(--acc2)' }[sys];
-                  return (
-                    <button
-                      key={sys}
-                      onClick={() => set('system_name', sys)}
-                      style={{
-                        padding: '6px 14px',
-                        fontSize: 10,
-                        fontFamily: 'var(--font)',
-                        background: form.system_name === sys ? 'var(--bg3)' : 'var(--bg2)',
-                        border: `0.5px solid ${validationErrors.system && form.system_name !== sys ? 'var(--warn)' : form.system_name === sys ? systemBorder : 'var(--b1)'}`,
-                        borderRadius: 3,
-                        cursor: 'pointer',
-                        color: form.system_name === sys ? systemBorder : 'var(--t2)',
-                        transition: 'background 120ms, border-color 120ms',
-                        opacity: 0,
-                        animation: `nexus-fade-in 200ms ease-out both ${(i + 6) * 60}ms`,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!e.currentTarget.style.background || e.currentTarget.style.background === 'var(--bg2)') {
-                          e.currentTarget.style.background = 'rgba(var(--bg3-rgb, 23,28,52), 0.8)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = form.system_name === sys ? 'var(--bg3)' : 'var(--bg2)';
-                      }}
-                    >
-                      {sys}
-                    </button>
-                  );
-                })}
-              </div>
-              {validationErrors.system && (
-                <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
-                  {validationErrors.system}
-                </div>
-              )}
-            </div>
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Location</div>
-              <input
-                className="nexus-input"
-                value={form.location}
-                onChange={e => set('location', e.target.value)}
-                placeholder="e.g. Aaron Halo, Yela Belt"
-              />
-            </div>
-
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Scheduled Time (UTC) *</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  className="nexus-input"
-                  type="date"
-                  value={form.scheduled_at.split('T')[0] || ''}
-                  onChange={e => {
-                    const date = e.target.value;
-                    const time = form.scheduled_at.split('T')[1] || '00:00';
-                    set('scheduled_at', date && time ? `${date}T${time}` : form.scheduled_at);
-                  }}
-                  style={{ flex: 1, colorScheme: 'dark', borderColor: validationErrors.schedule ? 'var(--warn)' : undefined }}
-                />
-                <input
-                  className="nexus-input"
-                  type="time"
-                  value={form.scheduled_at.split('T')[1] || ''}
-                  onChange={e => {
-                    const time = e.target.value;
-                    const date = form.scheduled_at.split('T')[0] || new Date().toISOString().split('T')[0];
-                    set('scheduled_at', date && time ? `${date}T${time}` : form.scheduled_at);
-                  }}
-                  style={{ flex: 0.8, colorScheme: 'dark', borderColor: validationErrors.schedule ? 'var(--warn)' : undefined }}
-                />
-              </div>
-              {validationErrors.schedule && (
-                <div style={{ fontSize: 9, color: 'var(--warn)', marginTop: 6, opacity: 0, animation: 'nexus-fade-in 150ms ease-out forwards', fontFamily: 'inherit' }}>
-                  {validationErrors.schedule}
-                </div>
-              )}
-              <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 6, fontFamily: 'inherit' }}>All times are displayed in UTC across the org.</div>
-            </div>
+            )}
+            {step === 3 && <OpTimelineStep phases={phases} onChange={setPhases} />}
+            {step === 4 && <OpReviewStep form={form} roleSlots={roleSlots} phases={phases} settings={settings} />}
           </div>
-        </div>
 
-        {/* ACCESS */}
-        <div style={{ marginBottom: 28 }}>
-          <SectionHeader label="ACCESS" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Access Type Pills */}
-            <div>
-              <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Access Type</div>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                {['OPEN', 'EXCLUSIVE'].map(type => {
-                  const activeBorder = type === 'OPEN' ? 'var(--live)' : 'var(--warn)';
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => set('access_type', type)}
-                      style={{
-                        padding: '6px 14px',
-                        fontSize: 10,
-                        fontFamily: 'var(--font)',
-                        background: form.access_type === type ? 'var(--bg3)' : 'var(--bg2)',
-                        border: `0.5px solid ${form.access_type === type ? activeBorder : 'var(--b1)'}`,
-                        borderRadius: 3,
-                        cursor: 'pointer',
-                        color: form.access_type === type ? activeBorder : 'var(--t2)',
-                        transition: 'background 120ms, border-color 120ms, color 120ms',
-                      }}
-                      onMouseEnter={e => { if (form.access_type !== type) e.currentTarget.style.background = 'rgba(var(--bg3-rgb, 23,28,52), 0.8)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = form.access_type === type ? 'var(--bg3)' : 'var(--bg2)'; }}
-                    >
-                      {type}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'inherit' }}>
-                {form.access_type === 'OPEN'
-                  ? 'All org members may join and share the payout.'
-                  : 'Buy-in required. Payout split covers buy-in deduction.'}
-              </div>
-            </div>
-
-            {/* Buy-In Field */}
-            {form.access_type === 'EXCLUSIVE' && (
+          {/* Settings toggles (only on review step) */}
+          {step === 4 && (
+            <div style={{
+              marginTop: 20, padding: '16px',
+              background: '#0C0C0A', border: '0.5px solid rgba(200,170,100,0.06)',
+              borderRadius: 3,
+            }}>
               <div style={{
-                opacity: 0,
-                animation: 'nexus-fade-in 150ms ease-out forwards',
-              }}>
-                <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6, fontFamily: 'inherit' }}>Buy-In Amount</div>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    className="nexus-input"
-                    type="number"
-                    min={0}
-                    step={1000}
-                    value={form.buy_in_cost}
-                    onChange={e => set('buy_in_cost', parseInt(e.target.value) || 0)}
-                    placeholder="0"
-                    style={{ paddingRight: 48 }}
-                  />
-                  <div style={{
-                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                    fontSize: 9, color: 'var(--t3)', pointerEvents: 'none', fontFamily: 'inherit',
-                  }}>
-                    aUEC
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, fontWeight: 600,
+                color: '#5A5850', letterSpacing: '0.18em', textTransform: 'uppercase',
+                marginBottom: 12,
+              }}>ADJUST SETTINGS</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[
+                  { key: 'allowLateJoins', label: 'Allow late joins' },
+                  { key: 'hideFromNonMembers', label: 'Hide from non-members' },
+                  { key: 'logLootTally', label: 'Log loot tally' },
+                  { key: 'calcSplitOnClose', label: 'Calculate split on close' },
+                ].map(s => (
+                  <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button type="button" onClick={() => setSettings(prev => ({ ...prev, [s.key]: !prev[s.key] }))} style={{
+                      width: 32, height: 18, borderRadius: 9, cursor: 'pointer',
+                      background: settings[s.key] ? '#4A8C5C' : '#1A1A18',
+                      border: `0.5px solid ${settings[s.key] ? '#4A8C5C' : '#2A2A28'}`,
+                      position: 'relative', transition: 'all 200ms', flexShrink: 0,
+                    }}>
+                      <div style={{
+                        position: 'absolute', top: 1, left: settings[s.key] ? 16 : 1,
+                        width: 16, height: 16, borderRadius: '50%', background: '#0A0908',
+                        transition: 'left 200ms',
+                      }} />
+                    </button>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, color: '#9A9488' }}>{s.label}</span>
                   </div>
-                </div>
-              </div>
-            )}
-
-            <FormField label="MINIMUM RANK TO RSVP">
-              <select
-                className="nexus-input"
-                value={form.rank_gate}
-                onChange={e => set('rank_gate', e.target.value)}
-                style={{ maxWidth: 200, cursor: 'pointer' }}
-              >
-                {RANK_GATES.map(r => (
-                  <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
-              </select>
-            </FormField>
-          </div>
-        </div>
-
-        {/* ROLE SLOTS */}
-        <div style={{ marginBottom: 28 }}>
-          <SectionHeader label="ROLE SLOTS" />
-          <RoleSlotEditor slots={roleSlots} onChange={setRoleSlots} error={validationErrors.roleSlots} />
-        </div>
-
-        {/* SETTINGS */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12, fontFamily: 'inherit' }}>Settings</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <SettingsToggle label="Allow late joins" checked={settings.allowLateJoins} onChange={v => setSetting('allowLateJoins', v)} />
-            <SettingsToggle label="Hide from non-members" checked={settings.hideFromNonMembers} onChange={v => setSetting('hideFromNonMembers', v)} />
-            <SettingsToggle label="Log loot tally" checked={settings.logLootTally} onChange={v => setSetting('logLootTally', v)} />
-            <SettingsToggle label="Calculate split on close" checked={settings.calcSplitOnClose} onChange={v => setSetting('calcSplitOnClose', v)} />
-          </div>
-        </div>
-
-        {/* FLEET ASSIGNMENT */}
-        <div style={{ marginBottom: 28 }}>
-          <SectionHeader label="FLEET ASSIGNMENT" />
-          <FleetAssignSection roleSlots={roleSlots} assignments={fleetAssignments} onChange={setFleetAssignments} />
-        </div>
-
-        {/* PHASES */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 9, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, fontFamily: 'inherit' }}>Phases</div>
-          <PhaseEditor phases={phases} onChange={setPhases} />
-        </div>
-
-        {/* Spacer to account for sticky footer */}
-        <div style={{ height: 100 }} />
-          </div>
-          </div>
-
-          {/* Sticky Footer */}
-          <div style={{
-            position: 'sticky', bottom: 0, left: 0, right: 0,
-            background: 'var(--bg0)', borderTop: '0.5px solid var(--b1)',
-            padding: '16px 28px', display: 'flex', flexDirection: 'column', gap: 12,
-            maxWidth: '100%',
-          }}>
-            <style>{`
-              @keyframes success-flash {
-                0% { background: rgba(var(--live-rgb), 0.15); border-color: var(--live); }
-                50% { background: rgba(var(--live-rgb), 0.15); border-color: var(--live); }
-                100% { background: var(--bg3); border-color: var(--b2); }
-              }
-              .publish-btn-success { animation: success-flash 800ms ease-out forwards; }
-            `}</style>
-            {hasValidationAttempted && !isValid && (
-              <div style={{
-                border: '0.5px solid var(--warn)',
-                background: 'rgba(var(--warn-rgb), 0.06)',
-                borderRadius: 3,
-                padding: '10px 14px',
-                color: 'var(--warn)',
-                fontSize: 10,
-                fontFamily: 'inherit',
-                opacity: 0,
-                animation: 'nexus-fade-in 150ms ease-out forwards',
-              }}>
-                Some required fields are incomplete. Check the highlighted fields above.
               </div>
-            )}
-            <button
-              type="button"
-              onClick={() => submit(true)}
-              disabled={!isValid || saving}
-              className="nexus-btn primary"
-              style={{
-                width: '100%', padding: '12px 0', fontSize: 12,
-                fontWeight: 600, letterSpacing: '0.1em',
-                pointerEvents: !isValid || saving ? 'none' : 'auto',
-                opacity: !isValid || saving ? 0.4 : 1,
-                cursor: !isValid || saving ? 'not-allowed' : 'pointer',
-                transition: 'opacity 300ms',
-              }}
-              onMouseEnter={e => {
-                const arrow = e.currentTarget.querySelector('.publish-arrow');
-                if (arrow && isValid && !saving) arrow.style.transform = 'translateX(3px)';
-              }}
-              onMouseLeave={e => {
-                const arrow = e.currentTarget.querySelector('.publish-arrow');
-                if (arrow) arrow.style.transform = 'translateX(0)';
-              }}
-            >
-              {saving ? <div className="nexus-loading-dots"><span /><span /><span /></div> : (
-                <>
-                  PUBLISH OP{' '}
-                  <span style={{ display: 'inline-block', transition: 'transform 150ms ease' }} className="publish-arrow">
-                    →
-                  </span>
-                </>
-              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky footer */}
+      <div style={{
+        position: 'sticky', bottom: 0, left: 0, right: 0,
+        background: 'linear-gradient(180deg, rgba(10,9,8,0.8) 0%, #0A0908 30%)',
+        backdropFilter: 'blur(8px)',
+        borderTop: '1px solid rgba(200,170,100,0.06)',
+        padding: '16px 28px', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+      }}>
+        {/* Left: Back */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+          {step > 0 && (
+            <button type="button" onClick={goPrev} style={{
+              background: 'none', border: '1px solid rgba(200,170,100,0.10)',
+              borderRadius: 3, padding: '10px 20px', cursor: 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+              fontSize: 11, color: '#9A9488', letterSpacing: '0.12em',
+              textTransform: 'uppercase', transition: 'all 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,170,100,0.25)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(200,170,100,0.10)'; }}
+            >← BACK</button>
+          )}
+        </div>
+
+        {/* Center: Draft save (review step only) */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {step === TOTAL_STEPS - 1 && (
+            <button type="button" onClick={() => submit(false)} disabled={saving} style={{
+              background: 'none', border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
+              color: draftSaved ? '#4A8C5C' : '#5A5850',
+              letterSpacing: '0.08em', transition: 'color 150ms',
+            }}
+            onMouseEnter={e => { if (!saving && !draftSaved) e.currentTarget.style.color = '#9A9488'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = draftSaved ? '#4A8C5C' : '#5A5850'; }}
+            >{draftSaved ? 'DRAFT SAVED ✓' : 'SAVE AS DRAFT'}</button>
+          )}
+        </div>
+
+        {/* Right: Next / Publish */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+          {step < TOTAL_STEPS - 1 ? (
+            <button type="button" onClick={goNext} disabled={!canAdvance()} style={{
+              background: canAdvance() ? 'linear-gradient(135deg, #C0392B 0%, #A03220 100%)' : '#1A1A18',
+              border: canAdvance() ? '1px solid rgba(192,57,43,0.6)' : '1px solid #2A2A28',
+              borderRadius: 3, padding: '10px 24px', cursor: canAdvance() ? 'pointer' : 'not-allowed',
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+              fontSize: 12, color: canAdvance() ? '#F0EDE5' : '#5A5850',
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+              boxShadow: canAdvance() ? '0 4px 16px rgba(192,57,43,0.3)' : 'none',
+              transition: 'all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              opacity: canAdvance() ? 1 : 0.5,
+            }}>CONTINUE →</button>
+          ) : (
+            <button type="button" onClick={() => submit(true)} disabled={saving} style={{
+              background: saving ? '#7B2218' : 'linear-gradient(135deg, #C0392B 0%, #8E2A1E 100%)',
+              border: '1px solid rgba(192,57,43,0.7)',
+              borderRadius: 3, padding: '12px 28px', cursor: saving ? 'not-allowed' : 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+              fontSize: 13, color: '#F0EDE5',
+              letterSpacing: '0.18em', textTransform: 'uppercase',
+              boxShadow: saving ? 'none' : '0 6px 24px rgba(192,57,43,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+              transition: 'all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            }}>
+              {saving ? (
+                <span className="nexus-loading-dots" style={{ color: '#F0EDE5' }}><span /><span /><span /></span>
+              ) : 'AUTHORIZE OP →'}
             </button>
-            <button
-              type="button"
-              onClick={() => submit(false)}
-              disabled={saving}
-              style={{
-                background: 'none', border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
-                color: draftSaved ? 'var(--live)' : 'var(--t2)', fontSize: 9, fontFamily: 'inherit',
-                letterSpacing: '0.06em', textDecoration: 'none',
-                opacity: saving ? 0.6 : 1,
-                transition: 'color 150ms, text-decoration 150ms',
-              }}
-              onMouseEnter={e => { if (!saving && !draftSaved) { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.textDecoration = 'underline'; } }}
-              onMouseLeave={e => { e.currentTarget.style.color = draftSaved ? 'var(--live)' : 'var(--t2)'; e.currentTarget.style.textDecoration = 'none'; }}
-            >
-              {draftSaved ? 'Draft saved ✓' : 'Save as draft'}
-            </button>
-          </div>
-          </div>
-          );
-          }
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
