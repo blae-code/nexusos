@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { Play, Square, Upload } from 'lucide-react';
+import { Play, Square } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { safeLocalStorage } from '@/core/data/safe-storage';
@@ -8,11 +8,8 @@ import CrewGrid from './CrewGrid';
 import LootTally from './LootTally';
 import OpRsvpSection from './OpRsvpSection';
 import PhaseTracker from './PhaseTracker';
-import ReadinessGate from './ReadinessGate';
-import SessionLog from './SessionLog';
 import LiveEventLog from './live-log/LiveEventLog';
 import SplitCalc from './SplitCalc';
-import ThreatPanel from './ThreatPanel';
 import LiveOpTopbar from './LiveOpTopbar';
 import MissionControlPanel from './MissionControlPanel';
 import RoleReassignPanel from './RoleReassignPanel';
@@ -32,31 +29,6 @@ function normalizeRoleSlots(slots) {
     name,
     capacity: typeof value === 'number' ? value : (value?.capacity || 1),
   }));
-}
-
-function ElapsedTimer({ startedAt }) {
-  const [seconds, setSeconds] = useState(0);
-
-  useEffect(() => {
-    if (!startedAt) return;
-    const tick = () => setSeconds(Math.max(0, Math.floor((Date.now() - new Date(startedAt)) / 1000)));
-    tick();
-    const intervalId = window.setInterval(tick, 1000);
-    return () => window.clearInterval(intervalId);
-  }, [startedAt]);
-
-  if (!startedAt) {
-    return <span style={{ color: 'var(--t3)', fontVariantNumeric: 'tabular-nums' }}>—</span>;
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  const value = hours > 0
-    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-    : `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-  return <span className="nexus-timer">{value}</span>;
 }
 
 function Panel({ title, children, style }) {
@@ -251,18 +223,12 @@ export default function LiveOp() {
   const canPublish = isDraft && (
     (canManage && String(op.created_by_user_id || '') === String(sessionUserId || '')) || isPioneer
   );
-  const confirmedCrew = rsvps.filter((item) => item.status === 'CONFIRMED').length;
-  const crewCapacity = normalizeRoleSlots(op.role_slots).reduce((sum, item) => sum + (item.capacity || 0), 0);
-  const phaseLabel = phases[currentPhase] || 'Awaiting phase';
-  const isSecondMonitor = layoutMode === '2ND MONITOR';
+
 
   const phaseTrackerProps = { phases, currentPhase, opId: op.id, opName: op.name, rank, onAdvance: handlePhaseAdvance };
-  const readinessGateProps = { op, rank, onUpdate: handleGateUpdate };
   const crewGridProps = { rsvps, op, layoutMode, members };
   const opRsvpProps = { op, rsvps, callsign, sessionUserId, rank };
-  const sessionLogProps = { op, callsign, rank, onUpdate: handleLogUpdate };
   const liveEventLogProps = { op, callsign, rank, currentPhase, onSessionLogSync: handleLogUpdate };
-  const threatPanelProps = { op, callsign, onUpdate: handleLogUpdate };
   const lootTallyProps = { op, callsign, rank, currentPhase, onUpdate: handleLogUpdate };
   const splitCalcProps = { op, rsvps };
   const missionControlProps = { op, rsvps, callsign, rank };

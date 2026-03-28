@@ -128,7 +128,7 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
             }}
             onMouseEnter={e => {
               if (layoutMode !== 'ALT-TAB') {
-                e.currentTarget.style.background = 'rgba(var(--bg3-rgb), 0.5)';
+                e.currentTarget.style.background = 'rgba(200,170,100,0.06)';
               }
             }}
             onMouseLeave={e => {
@@ -155,7 +155,7 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
             }}
             onMouseEnter={e => {
               if (layoutMode !== '2ND MONITOR') {
-                e.currentTarget.style.background = 'rgba(var(--bg3-rgb), 0.5)';
+                e.currentTarget.style.background = 'rgba(200,170,100,0.06)';
               }
             }}
             onMouseLeave={e => {

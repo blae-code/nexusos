@@ -7,7 +7,7 @@ import { ConstellationRoster } from '@/core/design/Illustrations';
 import NexusToken from '@/core/design/NexusToken';
 import { rankToken } from '@/core/data/tokenMap';
 
-const RANK_ORDER = ['PIONEER','FOUNDER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];
+const RANK_ORDER = ['PIONEER','FOUNDER','QUARTERMASTER','VOYAGER','SCOUT','VAGRANT','AFFILIATE'];
 
 function timeAgo(iso) {
   if (!iso) return '—';

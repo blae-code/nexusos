@@ -116,8 +116,10 @@ body {
   background: rgba(200,170,100,0.28);
 }
 
-scrollbar-width: thin;
-scrollbar-color: var(--b2) var(--bg1);
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--b2) var(--bg1);
+}
 
 /* ── Utility classes ─────────────────────────────── */
 .nexus-card {

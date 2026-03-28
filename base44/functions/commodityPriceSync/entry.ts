@@ -7,8 +7,7 @@
  *
  * No user auth — service role background job.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
-import { fetchUexData } from '../_shared/uexRetry/entry.ts';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 const UEX_API_BASE   = 'https://uexcorp.space/api/2.0';
 const FETCH_TIMEOUT  = 15_000;
@@ -19,9 +18,15 @@ export async function syncCommodityPrices(base44) {
   // ── 1. Fetch commodity list from UEX ─────────────────────────────────────
   let commodities = [];
   try {
-    commodities = await fetchUexData(`${UEX_API_BASE}/commodities`, {
-      timeoutMs: FETCH_TIMEOUT,
+    const apiKey = Deno.env.get('UEX_API_KEY') || '';
+    const headers = apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {};
+    const res = await fetch(`${UEX_API_BASE}/commodities`, {
+      headers,
+      signal: AbortSignal.timeout(FETCH_TIMEOUT),
     });
+    if (!res.ok) throw new Error(`UEX returned ${res.status}`);
+    const json = await res.json();
+    commodities = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
   } catch (e) {
     console.warn('[commodityPriceSync] UEX commodity fetch failed:', e.message);
     throw new Error(e.message);
@@ -35,9 +40,16 @@ export async function syncCommodityPrices(base44) {
   // ── 2. Fetch best prices from UEX price endpoint ──────────────────────────
   let prices = [];
   try {
-    prices = await fetchUexData(`${UEX_API_BASE}/commodities_prices_all`, {
-      timeoutMs: FETCH_TIMEOUT,
+    const apiKey = Deno.env.get('UEX_API_KEY') || '';
+    const headers = apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {};
+    const res = await fetch(`${UEX_API_BASE}/commodities_prices_all`, {
+      headers,
+      signal: AbortSignal.timeout(FETCH_TIMEOUT),
     });
+    if (res.ok) {
+      const json = await res.json();
+      prices = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+    }
   } catch (e) {
     console.warn('[commodityPriceSync] UEX price fetch failed (non-fatal):', e.message);
     // Continue — we can still upsert commodity metadata without prices
@@ -65,8 +77,8 @@ export async function syncCommodityPrices(base44) {
   let upserted = 0;
   let skipped  = 0;
 
-  // Batch in chunks of 20 to avoid overwhelming the DB
-  const CHUNK = 20;
+  // Batch in chunks of 5 to stay under rate limits
+  const CHUNK = 5;
   for (let i = 0; i < commodities.length; i += CHUNK) {
     const chunk = commodities.slice(i, i + CHUNK);
     await Promise.allSettled(chunk.map(async (c) => {
