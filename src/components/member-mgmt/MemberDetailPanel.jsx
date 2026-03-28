@@ -145,8 +145,18 @@ export default function MemberDetailPanel({ member, memberBlueprints, isAdmin, o
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <Field label="RANK">
                   <select value={rank} onChange={e => setRank(e.target.value)} style={selectStyle}>
-                    {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
+                    {RANKS.map(r => {
+                      // QUARTERMASTER can only be assigned to VOYAGER+ members
+                      const QM_ELIGIBLE = ['PIONEER', 'FOUNDER', 'VOYAGER', 'QUARTERMASTER'];
+                      if (r === 'QUARTERMASTER' && !QM_ELIGIBLE.includes(member.nexus_rank || 'AFFILIATE')) return null;
+                      return <option key={r} value={r}>{r}</option>;
+                    })}
                   </select>
+                  {rank === 'QUARTERMASTER' && (
+                    <div style={{ marginTop: 4, fontSize: 9, color: '#8E44AD', fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.06em' }}>
+                      LOGISTICS OFFICER — Official custodian of org property & resources
+                    </div>
+                  )}
                 </Field>
                 <Field label="SPECIALIZATION">
                   <select value={spec} onChange={e => setSpec(e.target.value)} style={selectStyle}>
