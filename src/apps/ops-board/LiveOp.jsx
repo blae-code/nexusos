@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { ChevronLeft, Play, Square, Upload } from 'lucide-react';
+import { Play, Square, Upload } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { safeLocalStorage } from '@/core/data/safe-storage';
@@ -79,14 +79,7 @@ function Panel({ title, children, style }) {
   );
 }
 
-function HeroStat({ label, value }) {
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ color: 'var(--t0)', fontSize: 18, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-      <div style={{ color: 'var(--t3)', fontSize: 8, marginTop: 2 }}>{label}</div>
-    </div>
-  );
-}
+
 
 export default function LiveOp() {
   const { id } = useParams();
@@ -282,102 +275,6 @@ export default function LiveOp() {
   const isComplete = op.status === 'COMPLETE';
   const isArchived = op.status === 'ARCHIVED';
   const showDebrief = isComplete || isArchived;
-
-  const hero = (
-    <div
-      style={{
-        background: 'var(--bg1)',
-        borderBottom: '0.5px solid var(--b0)',
-        padding: '16px 18px',
-        display: 'flex',
-        gap: 16,
-        alignItems: 'flex-start',
-      }}
-    >
-      <button
-        onClick={() => navigate('/app/ops')}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5A5850', display: 'flex', alignItems: 'center', gap: 4, padding: 4, marginTop: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 500, fontSize: 11, transition: 'color 150ms' }}
-        onMouseEnter={e => { e.currentTarget.style.color = '#C8A84B'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#5A5850'; }}
-      >
-        <ChevronLeft size={13} /> OPS BOARD
-      </button>
-
-      <div style={{ position: 'relative', width: 48, height: 48, flexShrink: 0 }}>
-        {isLive ? (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: '50%',
-              border: '0.5px solid var(--live)',
-              animation: 'ring 2.2s ease-out infinite',
-            }}
-          />
-        ) : null}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 5,
-            borderRadius: '50%',
-            background: 'var(--bg2)',
-            border: '0.5px solid var(--b2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: isLive ? 'var(--live)' : 'var(--warn)' }} />
-        </div>
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 20, color: '#E8E4DC', letterSpacing: '0.05em', marginBottom: 4 }}>
-          {op.name}
-        </div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', color: 'var(--t2)', fontSize: 10 }}>
-          <span>{[op.type, op.system_name || op.system, op.location].filter(Boolean).join(' · ')}</span>
-          <span>{phaseLabel}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
-          <span className={isLive ? 'nexus-pill nexus-pill-live' : 'nexus-pill nexus-pill-warn'}>{op.status}</span>
-          {op.access_type ? <span className="nexus-pill nexus-pill-neu">{op.access_type}</span> : null}
-          {op.min_rank ? <span className="nexus-pill nexus-pill-neu">{op.min_rank}</span> : null}
-          {op.buy_in_cost ? <span className="nexus-pill nexus-pill-warn">{op.buy_in_cost.toLocaleString()} aUEC</span> : null}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: 14, alignItems: 'stretch' }}>
-          <HeroStat label="CREW" value={`${confirmedCrew}/${crewCapacity || 0}`} />
-          <div style={{ width: '0.5px', background: 'var(--b1)' }} />
-          <HeroStat label="PHASE" value={`${Math.min(phases.length, currentPhase + 1)}/${Math.max(1, phases.length)}`} />
-          <div style={{ width: '0.5px', background: 'var(--b1)' }} />
-          <HeroStat label="STATUS" value={isLive ? 'LIVE' : op.status} />
-        </div>
-        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-          {canPublish ? (
-            <button onClick={handlePublish} disabled={publishing} className="nexus-btn" style={{ padding: '5px 12px', fontSize: 10 }}>
-              <Upload size={10} />
-              {publishing ? 'PUBLISHING' : 'PUBLISH'}
-            </button>
-          ) : null}
-          {isPublished && canManage ? (
-            <button onClick={handleActivate} disabled={activating} className="nexus-btn nexus-btn-go" style={{ padding: '5px 12px', fontSize: 10 }}>
-              <Play size={10} />
-              {activating ? 'ACTIVATING' : 'ACTIVATE'}
-            </button>
-          ) : null}
-          {isLive && canManage ? (
-            <button onClick={handleEndOp} disabled={ending} className="nexus-btn nexus-btn-danger" style={{ padding: '5px 12px', fontSize: 10 }}>
-              <Square size={10} />
-              {ending ? 'ENDING' : 'END OP'}
-            </button>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>

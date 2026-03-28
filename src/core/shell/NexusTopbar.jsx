@@ -72,6 +72,7 @@ function getBreadcrumb(pathname, search) {
     if (seg === 'new') return { module: 'Operations', page: 'New Op' };
     if (seg === 'rescue') return { module: 'Operations', page: 'Rescue Board' };
     if (seg === 'timeline') return { module: 'Operations', page: 'Timeline' };
+    if (seg === 'planner') return { module: 'Operations', page: 'Mission Planner' };
     if (seg === 'archive') return { module: 'Operations', page: 'Archive' };
     if (seg) return { module: 'Operations', page: 'Live Op' };
     if (p.get('view') === 'analytics') return { module: 'Operations', page: 'Analytics' };
@@ -82,9 +83,11 @@ function getBreadcrumb(pathname, search) {
   }
   if (pathname.startsWith('/app/armory')) {
     const seg = pathname.split('/')[3];
-    const labels = { fleet:'Fleet', inventory:'Inventory' };
+    const labels = { fleet:'Fleet', inventory:'Inventory', assets:'Assets' };
     return { module: 'Armory', page: labels[seg] || null };
   }
+  if (pathname === '/app/roster/manage') return { module: 'Roster', page: 'Member Mgmt' };
+  if (pathname === '/app/roster/debts') return { module: 'Roster', page: 'Debt Tracker' };
   if (pathname === '/app/roster') return { module: 'Roster', page: null };
   if (pathname === '/app/settings' || pathname === '/app/profile') return { module: 'Settings', page: null };
   if (pathname === '/app/handbook') return { module: 'Handbook', page: null };

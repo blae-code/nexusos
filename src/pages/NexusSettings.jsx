@@ -10,6 +10,7 @@ import { showToast } from '@/components/NexusToast';
 const RANK_COLORS = {
   PIONEER: 'var(--warn)',
   FOUNDER: 'var(--acc2)',
+  QUARTERMASTER: '#8E44AD',
   VOYAGER: 'var(--info)',
   SCOUT: 'var(--live)',
   VAGRANT: 'var(--t1)',
@@ -213,7 +214,7 @@ export default function NexusSettings() {
     setDraftCallsign(user?.callsign || '');
   }, [user?.callsign]);
 
-  const rankColor = RANK_COLORS[user?.rank || 'AFFILIATE'];
+  const rankColor = RANK_COLORS[user?.nexus_rank || user?.rank || 'AFFILIATE'];
   const canEditCallsign = Boolean(user?.id);
 
   const toggleNotif = (key) => setPreference(key, (current) => !current);
