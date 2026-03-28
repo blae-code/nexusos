@@ -16,11 +16,11 @@ import ThreatPanel from './ThreatPanel';
 import LiveOpTopbar from './LiveOpTopbar';
 import MissionControlPanel from './MissionControlPanel';
 import RoleReassignPanel from './RoleReassignPanel';
-import ShipRoleAssigner from './crew/ShipRoleAssigner';
-import ShipRoleDisplay from './crew/ShipRoleDisplay';
 import OpWrapUpPanel from './OpWrapUpPanel';
 import ResourceReportPanel from './ResourceReportPanel';
 import OpDebriefPanel from './debrief/OpDebriefPanel';
+import ShipRoleAssigner from './ship-roles/ShipRoleAssigner';
+import ShipRoleDisplay from './ship-roles/ShipRoleDisplay';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
@@ -274,10 +274,11 @@ export default function LiveOp() {
   const splitCalcProps = { op, rsvps };
   const missionControlProps = { op, rsvps, callsign, rank };
   const roleReassignProps = { op, rsvps, rank, onUpdate: fetchOp };
-  const shipRoleProps = { op, rsvps, members, rank, callsign, onUpdate: fetchOp };
   const wrapUpProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
   const resourceReportProps = { op, rsvps, callsign, rank };
   const debriefProps = { op, rsvps, callsign, rank };
+  const shipRoleAssignerProps = { op, rsvps, members, rank, onUpdate: fetchOp };
+  const shipRoleDisplayProps = { rsvps, members };
   const isComplete = op.status === 'COMPLETE';
   const isArchived = op.status === 'ARCHIVED';
   const showDebrief = isComplete || isArchived;
@@ -407,7 +408,7 @@ export default function LiveOp() {
         </div>
       )}
 
-      {!showDebrief && (layoutMode === 'ALT-TAB' ? (
+      {!showDebrief && layoutMode === 'ALT-TAB' && (
         // Standard 2-column layout
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '60% 40%', gap: 16, padding: 24, overflow: 'hidden', minHeight: 0 }}>
           {/* Left column: Phase tracker + Mission Control + Crew grid */}
@@ -434,14 +435,12 @@ export default function LiveOp() {
                     <RoleReassignPanel {...roleReassignProps} />
                   </>
                 )}
-                {isLive && canManage && (
-                  <>
-                    <div style={{ height: '0.5px', background: 'var(--b0)' }} />
-                    <ShipRoleAssigner {...shipRoleProps} />
-                  </>
-                )}
                 <div style={{ height: '0.5px', background: 'var(--b0)' }} />
-                <ShipRoleDisplay rsvps={rsvps} />
+                {canManage ? (
+                  <ShipRoleAssigner {...shipRoleAssignerProps} />
+                ) : (
+                  <ShipRoleDisplay {...shipRoleDisplayProps} />
+                )}
                 <div style={{ height: '0.5px', background: 'var(--b0)' }} />
                 <CrewGrid {...crewGridProps} />
               </div>
@@ -457,7 +456,9 @@ export default function LiveOp() {
             </Panel>
           </div>
         </div>
-      ) : (
+      )}
+
+      {!showDebrief && layoutMode !== 'ALT-TAB' && (
         // 2nd monitor 3-column layout
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, padding: 12, overflow: 'hidden', height: `calc(100vh - 88px)`, minHeight: 0 }}>
           {/* Column 1: Phase tracker + Crew */}
@@ -468,14 +469,6 @@ export default function LiveOp() {
             <Panel title="CREW & RSVP">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <OpRsvpSection {...opRsvpProps} />
-                {isLive && canManage && (
-                  <>
-                    <div style={{ height: '0.5px', background: 'var(--b0)' }} />
-                    <ShipRoleAssigner {...shipRoleProps} />
-                  </>
-                )}
-                <div style={{ height: '0.5px', background: 'var(--b0)' }} />
-                <ShipRoleDisplay rsvps={rsvps} />
                 <div style={{ height: '0.5px', background: 'var(--b0)' }} />
                 <CrewGrid {...crewGridProps} />
               </div>
@@ -511,7 +504,7 @@ export default function LiveOp() {
             </Panel>
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }
