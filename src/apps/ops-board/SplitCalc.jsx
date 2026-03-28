@@ -4,6 +4,7 @@
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCountUp } from '@/core/hooks/useCountUp';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 
@@ -13,6 +14,11 @@ function formatAUEC(n) {
 }
 
 
+
+function PayoutValue({ amount, visible }) {
+  const animated = useCountUp(visible ? amount : 0);
+  return visible ? `${formatAUEC(animated)} aUEC` : '—';
+}
 
 export default function SplitCalc({ op, rsvps = [] }) {
   const confirmed = rsvps.filter(r => r.status === 'CONFIRMED');
@@ -176,7 +182,7 @@ export default function SplitCalc({ op, rsvps = [] }) {
                 />
               ) : (
                 <span style={{ fontSize: 13, color: 'var(--t0)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', minWidth: 100, textAlign: 'right' }}>
-                  {totalRaw > 0 ? `${formatAUEC(member.amount)} aUEC` : '—'}
+                  <PayoutValue amount={member.amount} visible={totalRaw > 0} />
                 </span>
               )}
             </div>

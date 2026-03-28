@@ -1,0 +1,72 @@
+/**
+ * NexusOS — Spatial Depth System
+ * Three z-index layers: background (ambient), surface (content), foreground (panels/modals).
+ * Depth is communicated through opacity, scale, and z-position only — no decorative shadows.
+ */
+
+/* ── Z-index layer tokens ──────────────────────────────────────────────── */
+:root {
+  --z-ambient:    -1;    /* AmbientBackground canvas */
+  --z-surface:     1;    /* Primary content, sidebar, topbar */
+  --z-raised:     10;    /* Drawers, side panels opening over list views */
+  --z-overlay:   100;    /* Modals, dialogs, command palette */
+  --z-toast:     200;    /* Toast notifications — always on top */
+}
+
+/* ── Panel open/close transitions ─────────────────────────────────────── */
+/* Apply .nexus-panel-open to any surface that opens over a list view.     */
+/* The content behind dims automatically via .nexus-panel-bg-dim.          */
+
+.nexus-panel-enter {
+  animation: panelEnter 180ms ease-out forwards;
+}
+
+.nexus-panel-exit {
+  animation: panelExit 140ms ease-in forwards;
+}
+
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.995) translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes panelExit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.995);
+  }
+}
+
+/* ── Background dim when a foreground panel is active ─────────────────── */
+/* Wrap background content in .nexus-bg-dimable.                           */
+/* Toggle .nexus-bg-dimmed on the wrapper when a panel opens.              */
+
+.nexus-bg-dimable {
+  transition: opacity 200ms ease;
+}
+
+.nexus-bg-dimmed {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ── Raised panels ────────────────────────────────────────────────────── */
+/* Panels that open over a list view get a subtle scale shift (1.00→1.01)  */
+/* and 1px upward translate to suggest physical proximity.                  */
+
+.nexus-raised {
+  position: relative;
+  z-index: var(--z-raised);
+  transform: scale(1.005) translateY(-1px);
+  transition: transform 180ms ease-out, opacity 180ms ease-out;
+}

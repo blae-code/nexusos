@@ -381,3 +381,15 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   0%, 100% { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 3px var(--b2); }
   50%       { box-shadow: 0 0 0 2px var(--bg0), 0 0 0 4px var(--acc); }
 }
+@keyframes listEnter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes listLeave {
+  from { opacity: 1; max-height: 200px; }
+  to   { opacity: 0; max-height: 0; overflow: hidden; }
+}
+
+[data-anim="entering"] { animation: listEnter 200ms ease-out forwards; }
+[data-anim="leaving"]  { animation: listLeave 150ms ease-in forwards; }
