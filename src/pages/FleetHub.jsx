@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
+import FleetDashboard from '@/components/fleet/FleetDashboard';
 import FleetRoster from '@/pages/fleet/FleetRoster';
 import FleetBuilds from '@/pages/fleet/FleetBuilds';
 import FleetReadinessView from '@/pages/fleet/FleetReadinessView';
@@ -7,6 +8,7 @@ import CrewScheduler from '@/pages/CrewScheduler';
 import ShipLoadoutsTab from '@/pages/fleet/ShipLoadoutsTab';
 
 const TABS = [
+  { id: 'dashboard', label: 'DASHBOARD' },
   { id: 'roster', label: 'ROSTER' },
   { id: 'loadouts', label: 'LOADOUTS' },
   { id: 'builds', label: 'BUILDS' },
@@ -16,11 +18,11 @@ const TABS = [
 
 export default function FleetHub() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = TABS.some(t => t.id === searchParams.get('tab')) ? searchParams.get('tab') : 'roster';
+  const tab = TABS.some(t => t.id === searchParams.get('tab')) ? searchParams.get('tab') : 'dashboard';
 
   const setTab = (id) => {
     const next = new URLSearchParams(searchParams);
-    if (id === 'roster') next.delete('tab'); else next.set('tab', id);
+    if (id === 'dashboard') next.delete('tab'); else next.set('tab', id);
     setSearchParams(next, { replace: true });
   };
 
@@ -47,6 +49,7 @@ export default function FleetHub() {
         ))}
       </div>
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        {tab === 'dashboard' && <FleetDashboard />}
         {tab === 'roster' && <FleetRoster />}
         {tab === 'loadouts' && <ShipLoadoutsTab />}
         {tab === 'builds' && <FleetBuilds />}
