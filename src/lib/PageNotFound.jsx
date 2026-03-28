@@ -1,71 +1,138 @@
-import { useLocation } from 'react-router-dom';
-import { authApi } from '@/core/data/auth-api';
-import { useQuery } from '@tanstack/react-query';
+import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+export default function PageNotFound() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pageName = location.pathname.substring(1);
 
-export default function PageNotFound({}) {
-    const location = useLocation();
-    const pageName = location.pathname.substring(1);
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      background: '#08080A',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Ambient glow */}
+      <div style={{
+        position: 'absolute', top: '30%', left: '50%',
+        width: 400, height: 400,
+        transform: 'translate(-50%, -50%)',
+        background: 'radial-gradient(circle, rgba(192,57,43,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
 
-    const { data: authData, isFetched } = useQuery({
-        queryKey: ['user'],
-        queryFn: async () => {
-            const session = await authApi.getSession();
-            return { user: session?.user || null, isAuthenticated: Boolean(session?.authenticated), isAdmin: Boolean(session?.is_admin || session?.user?.is_admin) };
-        }
-    });
-    
-    return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-            <div className="max-w-md w-full">
-                <div className="text-center space-y-6">
-                    {/* 404 Error Code */}
-                    <div className="space-y-2">
-                        <h1 className="text-7xl font-light text-slate-300">404</h1>
-                        <div className="h-0.5 w-16 bg-slate-200 mx-auto"></div>
-                    </div>
-                    
-                    {/* Main Message */}
-                    <div className="space-y-3">
-                        <h2 className="text-2xl font-medium text-slate-800">
-                            Page Not Found
-                        </h2>
-                        <p className="text-slate-600 leading-relaxed">
-                            The page <span className="font-medium text-slate-700">"{pageName}"</span> could not be found in this application.
-                        </p>
-                    </div>
-                    
-                    {/* Admin Note */}
-                    {isFetched && authData.isAuthenticated && authData.isAdmin && (
-                        <div className="mt-8 p-4 bg-slate-100 rounded-lg border border-slate-200">
-                            <div className="flex items-start space-x-3">
-                                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mt-0.5">
-                                    <div className="w-2 h-2 rounded-full bg-orange-400"></div>
-                                </div>
-                                <div className="text-left space-y-1">
-                                    <p className="text-sm font-medium text-slate-700">Admin Note</p>
-                                    <p className="text-sm text-slate-600 leading-relaxed">
-                                        This could mean that the AI hasn't implemented this page yet. Ask it to implement it in the chat.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* Action Button */}
-                    <div className="pt-6">
-                        <button 
-                            onClick={() => window.location.href = '/'} 
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            Go Home
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <div style={{
+        maxWidth: 440, width: '100%', textAlign: 'center',
+        position: 'relative', zIndex: 1,
+        animation: 'nexus-fade-in 0.3s ease-out both',
+      }}>
+        {/* Emblem */}
+        <div style={{ marginBottom: 24 }}>
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style={{ margin: '0 auto', opacity: 0.5 }}>
+            <circle cx="28" cy="28" r="26" stroke="#E8E4DC" strokeWidth="0.5" opacity="0.3" />
+            <circle cx="28" cy="28" r="18" stroke="#C0392B" strokeWidth="0.5" opacity="0.4" />
+            <circle cx="28" cy="28" r="9" fill="#C0392B" opacity="0.6" />
+            <circle cx="28" cy="28" r="4" fill="#E8E4DC" opacity="0.8" />
+            <line x1="8" y1="8" x2="48" y2="48" stroke="#C0392B" strokeWidth="0.8" opacity="0.3" />
+            <line x1="48" y1="8" x2="8" y2="48" stroke="#C0392B" strokeWidth="0.8" opacity="0.3" />
+          </svg>
         </div>
-    )
+
+        {/* Error code */}
+        <div style={{
+          fontFamily: "'Beyond Mars','Barlow Condensed',sans-serif",
+          fontSize: 64, fontWeight: 700,
+          color: '#E8E4DC', letterSpacing: '0.08em',
+          lineHeight: 1, marginBottom: 8, opacity: 0.15,
+        }}>404</div>
+
+        {/* Red rule */}
+        <div style={{
+          height: 1, width: 60, margin: '0 auto 16px',
+          background: '#C0392B', opacity: 0.6,
+        }} />
+
+        {/* Title */}
+        <div style={{
+          fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
+          fontSize: 12, color: '#C8A84B',
+          letterSpacing: '0.28em', textTransform: 'uppercase',
+          marginBottom: 12,
+        }}>SIGNAL LOST</div>
+
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 14, fontWeight: 500, color: '#E8E4DC',
+          letterSpacing: '0.06em', marginBottom: 8,
+        }}>
+          Route Not Found
+        </div>
+
+        {/* Path display */}
+        {pageName && (
+          <div style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 11, color: '#5A5850',
+            letterSpacing: '0.08em', marginBottom: 20,
+            wordBreak: 'break-all',
+          }}>
+            /{pageName}
+          </div>
+        )}
+
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 11, color: '#7A7470',
+          lineHeight: 1.6, marginBottom: 28,
+          maxWidth: 320, margin: '0 auto 28px',
+        }}>
+          The requested route does not exist or has been decommissioned. Check your heading and try again.
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => navigate(-1)}
+            className="nexus-btn"
+            style={{
+              padding: '10px 20px', fontSize: 11,
+              letterSpacing: '0.12em', fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}
+          >
+            ← GO BACK
+          </button>
+          <button
+            onClick={() => navigate('/app/industry')}
+            className="nexus-btn"
+            style={{
+              padding: '10px 20px', fontSize: 11,
+              letterSpacing: '0.12em', fontWeight: 600,
+              background: 'rgba(192,57,43,0.15)',
+              borderColor: 'rgba(192,57,43,0.4)',
+              color: '#E8E4DC',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}
+          >
+            RETURN TO BASE →
+          </button>
+        </div>
+
+        {/* Coordinates */}
+        <div style={{
+          marginTop: 40,
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 9, color: '#4A4640',
+          letterSpacing: '0.2em', textTransform: 'uppercase',
+        }}>
+          NEXUSOS · REDSCAR NOMADS · SIGNAL LOST
+        </div>
+      </div>
+    </div>
+  );
 }

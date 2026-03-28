@@ -166,21 +166,24 @@ export default function AccessGate() {
         background: 'radial-gradient(ellipse 60% 50% at 80% 10%, rgba(192,57,43,0.07), transparent)',
       }} />
 
-      {/* PANEL — left anchored at 10vw */}
+      {/* PANEL — responsive */}
       <div style={{
         position: 'absolute',
-        left: '10vw', top: '50%',
+        left: 'clamp(16px, 10vw, 10vw)',
+        top: '50%',
         transform: 'translateY(-50%)',
-        width: '400px',
+        width: 'min(400px, calc(100vw - 32px))',
         background: '#0F0F0D',
         borderLeft: '2px solid #C0392B',
         borderTop: '0.5px solid rgba(200,170,100,0.10)',
         borderRight: '0.5px solid rgba(200,170,100,0.10)',
         borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         borderRadius: '2px',
-        padding: '52px 40px 44px',
+        padding: 'clamp(28px, 5vw, 52px) clamp(20px, 4vw, 40px) clamp(28px, 5vw, 44px)',
         boxSizing: 'border-box',
         zIndex: 10,
+        maxHeight: 'calc(100vh - 64px)',
+        overflowY: 'auto',
       }}>
 
         {/* EMBLEM */}
@@ -212,7 +215,7 @@ export default function AccessGate() {
         {/* MAIN TITLE */}
         <div style={{
           fontFamily: "'Beyond Mars','Barlow Condensed',sans-serif",
-          fontSize: '58px', fontWeight: 700,
+          fontSize: 'clamp(36px, 8vw, 58px)', fontWeight: 700,
           color: '#E8E4DC', letterSpacing: '0.05em',
           textTransform: 'uppercase', lineHeight: 1, marginBottom: '6px',
         }}>NEXUSOS</div>
@@ -418,7 +421,7 @@ export default function AccessGate() {
         borderTop: '0.5px solid rgba(200,170,100,0.08)',
         display: 'flex', alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px', zIndex: 20,
+        padding: '0 clamp(12px, 3vw, 24px)', zIndex: 20,
       }}>
         <div style={{
           fontFamily: "'Barlow Condensed', sans-serif",
