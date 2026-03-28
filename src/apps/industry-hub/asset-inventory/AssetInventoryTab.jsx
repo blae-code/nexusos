@@ -6,11 +6,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import { showToast } from '@/components/NexusToast';
-import { Package, Ship, Boxes, Zap, RefreshCw, Plus, Search } from 'lucide-react';
+import { Package, Ship, Boxes, Zap, RefreshCw, Plus, Search, Camera } from 'lucide-react';
 import AssetList from './AssetList';
 import ShipList from './ShipList';
 import GapAnalysis from './GapAnalysis';
 import AddAssetForm from './AddAssetForm';
+import OcrScanner from './OcrScanner';
+import OcrResultsReview from './OcrResultsReview';
 
 const SUB_TABS = [
   { id: 'materials', label: 'MATERIALS', icon: Boxes },
@@ -26,6 +28,9 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
   const [loading, setLoading] = useState(true);
   const [subTab, setSubTab] = useState('materials');
   const [showAdd, setShowAdd] = useState(false);
+  const [showOcr, setShowOcr] = useState(false);
+  const [ocrResults, setOcrResults] = useState(null);
+  const [ocrMode, setOcrMode] = useState(null);
   const [search, setSearch] = useState('');
 
   const load = useCallback(async () => {
@@ -138,7 +143,18 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
               color: '#5A5850', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
             }}><RefreshCw size={10} /> REFRESH</button>
-            <button onClick={() => setShowAdd(s => !s)} style={{
+            <button onClick={() => { setShowOcr(s => !s); if (!showOcr) { setShowAdd(false); setOcrResults(null); } }} style={{
+              padding: '6px 12px', borderRadius: 2,
+              background: showOcr ? 'rgba(142,68,173,0.12)' : '#141410',
+              border: `0.5px solid ${showOcr ? 'rgba(142,68,173,0.4)' : 'rgba(200,170,100,0.12)'}`,
+              color: showOcr ? '#8E44AD' : '#9A9488',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+              letterSpacing: '0.08em',
+            }}>
+              <Camera size={10} /> {showOcr ? 'CLOSE OCR' : 'SCAN'}
+            </button>
+            <button onClick={() => { setShowAdd(s => !s); if (!showAdd) { setShowOcr(false); setOcrResults(null); } }} style={{
               padding: '6px 12px', borderRadius: 2,
               background: showAdd ? 'rgba(192,57,43,0.12)' : '#C0392B',
               border: showAdd ? '0.5px solid rgba(192,57,43,0.3)' : 'none',
@@ -198,6 +214,29 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
           </div>
         </div>
       </div>
+
+      {/* OCR scanner */}
+      {showOcr && !ocrResults && (
+        <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>
+          <OcrScanner
+            onResults={(items, mode) => { setOcrResults(items); setOcrMode(mode); }}
+            onCancel={() => { setShowOcr(false); setOcrResults(null); }}
+          />
+        </div>
+      )}
+
+      {/* OCR results review */}
+      {ocrResults && (
+        <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>
+          <OcrResultsReview
+            items={ocrResults}
+            mode={ocrMode}
+            callsign={callsign}
+            onSaved={() => { setOcrResults(null); setShowOcr(false); load(); }}
+            onCancel={() => { setOcrResults(null); }}
+          />
+        </div>
+      )}
 
       {/* Add asset form */}
       {showAdd && (

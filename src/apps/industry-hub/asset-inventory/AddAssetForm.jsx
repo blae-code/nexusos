@@ -4,7 +4,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { showToast } from '@/components/NexusToast';
-import { Save } from 'lucide-react';
+import { Save, Camera } from 'lucide-react';
+import OcrScanner from './OcrScanner';
 
 const CATEGORIES = ['MATERIAL', 'FPS_WEAPON', 'FPS_ARMOR', 'SHIP_COMPONENT', 'CONSUMABLE', 'CURRENCY', 'OTHER'];
 const CONDITIONS = ['PRISTINE', 'GOOD', 'DAMAGED'];
@@ -21,7 +22,22 @@ export default function AddAssetForm({ callsign, onCreated, onCancel }) {
     estimated_value_aUEC: '', location: '', notes: '',
   });
   const [saving, setSaving] = useState(false);
+  const [showOcr, setShowOcr] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleOcrResults = (items) => {
+    if (items.length > 0) {
+      const first = items[0];
+      set('item_name', first.item_name || '');
+      set('category', first.category || 'MATERIAL');
+      set('quantity', String(first.quantity || 1));
+      if (first.quality_score) set('quality_score', String(first.quality_score));
+      if (first.condition) set('condition', first.condition);
+      if (first.location) set('location', first.location);
+      setShowOcr(false);
+      showToast('Form populated from screenshot', 'success');
+    }
+  };
 
   const handleSubmit = async () => {
     if (!form.item_name.trim()) return;
@@ -104,7 +120,24 @@ export default function AddAssetForm({ callsign, onCreated, onCancel }) {
               placeholder="e.g. Lorville" style={{ width: '100%', boxSizing: 'border-box' }} />
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        {/* OCR mini-scanner */}
+      {showOcr && (
+        <OcrScanner
+          compact
+          onResults={(items) => handleOcrResults(items)}
+          onCancel={() => setShowOcr(false)}
+        />
+      )}
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => setShowOcr(s => !s)} style={{
+            padding: '7px 14px', background: showOcr ? 'rgba(142,68,173,0.12)' : '#141410',
+            border: `0.5px solid ${showOcr ? 'rgba(142,68,173,0.4)' : 'rgba(200,170,100,0.10)'}`,
+            borderRadius: 2,
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
+            color: showOcr ? '#8E44AD' : '#9A9488', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}><Camera size={10} /> {showOcr ? 'HIDE OCR' : 'SCAN'}</button>
           <button onClick={onCancel} style={{
             padding: '7px 14px', background: 'none',
             border: '0.5px solid rgba(200,170,100,0.10)', borderRadius: 2,
