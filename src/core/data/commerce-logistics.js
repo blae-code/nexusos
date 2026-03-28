@@ -149,3 +149,13 @@ export function collateralMultiplierForTier(tier) {
   if (tier === 'AMBER') return 0.25;
   return 0.1;
 }
+
+export function estimateItemListValue(itemsText, priceLookup) {
+  const items = parseManifestText(itemsText || '');
+  if (items.length === 0) return { value: 0, itemsParsed: 0, unknownItems: [] };
+  const unknownItems = items
+    .filter((item) => !priceLookup?.get(item.name?.trim().toLowerCase()))
+    .map((item) => item.name);
+  const value = calculateManifestValue(items, priceLookup);
+  return { value, itemsParsed: items.length, unknownItems };
+}
