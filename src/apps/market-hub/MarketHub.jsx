@@ -43,7 +43,7 @@ export default function MarketHub() {
         background: '#0A0908', flexShrink: 0,
       }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
             <div>
               <div style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
@@ -57,7 +57,7 @@ export default function MarketHub() {
           </div>
 
           {/* Tab bar */}
-          <div style={{ display: 'flex', gap: 0 }}>
+          <div style={{ display: 'flex', gap: 0, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {TABS.map(t => (
               <button key={t.key} onClick={() => changeTab(t.key)} style={{
                 padding: '10px 18px', background: 'none', border: 'none', cursor: 'pointer',

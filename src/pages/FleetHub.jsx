@@ -34,6 +34,7 @@ export default function FleetHub() {
         display: 'flex', gap: 0, padding: '0 16px',
         borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         background: '#0A0908', flexShrink: 0,
+        overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none',
       }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{

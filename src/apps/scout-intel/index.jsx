@@ -154,7 +154,7 @@ export default function ScoutIntel() {
   }
 
   return (
-    <div className="nexus-page-enter" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <div className="nexus-page-enter nexus-scout-layout" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Tab bar + header */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderBottom: '0.5px solid rgba(200,170,100,0.10)', background: '#0A0908', flexShrink: 0 }}>
@@ -182,7 +182,7 @@ export default function ScoutIntel() {
             ]}
           />
           {/* Top action row — Log Deposit button sits top-right of map area */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
             <button
               onClick={() => {
                 if (panelMode === 'risk') {

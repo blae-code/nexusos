@@ -439,4 +439,14 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   .nexus-page-body {
     padding: 0 12px;
   }
+
+  /* Scout Intel: stack map+panel vertically on mobile */
+  .nexus-scout-layout {
+    flex-direction: column !important;
+  }
+
+  /* Asset grid: single column on mobile */
+  .nexus-asset-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

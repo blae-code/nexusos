@@ -241,9 +241,9 @@ export default function OpBoard() {
             <button key={t.id} onClick={() => setOpsView(t.id)} style={{ padding: '6px 14px', background: 'transparent', border: 'none', borderBottom: opsView === t.id ? '2px solid #C0392B' : '2px solid transparent', color: opsView === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (opsView !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (opsView !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 22, color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>OPS BOARD</div>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 'clamp(16px, 3vw, 22px)', color: '#E8E4DC', textTransform: 'uppercase', letterSpacing: '0.1em' }}>OPS BOARD</div>
             <div style={{ fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: 13, color: '#9A9488', marginTop: 2 }}>Manage and monitor field operations</div>
           </div>
           {canLead && (
@@ -257,7 +257,7 @@ export default function OpBoard() {
             </button>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         {liveCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 2, background: 'rgba(192,57,43,0.18)', border: '0.5px solid #C0392B' }}>
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#C0392B', animation: 'pulse-dot 2s ease-in-out infinite' }} />

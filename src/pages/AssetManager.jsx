@@ -79,18 +79,18 @@ export default function AssetManager() {
         background: '#0A0908', flexShrink: 0,
       }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
             <div>
               <div style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-                fontSize: 18, color: '#E8E4DC', letterSpacing: '0.08em', textTransform: 'uppercase',
+                fontSize: 'clamp(14px, 3vw, 18px)', color: '#E8E4DC', letterSpacing: '0.08em', textTransform: 'uppercase',
               }}>ASSET MANAGEMENT</div>
               <div style={{
                 fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
                 fontSize: 10, color: '#C8A84B', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 4,
               }}>TRACKING {assets.length} REGISTERED ASSETS</div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={loadData} style={{
                 padding: '8px 14px', background: '#141410',
                 border: '0.5px solid rgba(200,170,100,0.12)', borderRadius: 2,
