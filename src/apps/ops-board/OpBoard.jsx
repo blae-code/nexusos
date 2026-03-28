@@ -8,6 +8,7 @@ import { base44 } from '@/core/data/base44Client';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Plus, RefreshCw, CalendarDays } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
+import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import OpsDashboard from '@/pages/OpsDashboard';
 
 const STATUS_ORDER = ['LIVE', 'PUBLISHED', 'DRAFT', 'COMPLETE', 'ARCHIVED'];
@@ -132,9 +133,15 @@ export default function OpBoard() {
   const sessionUserId = outletContext.sessionUserId;
   const [searchParams, setSearchParams] = useSearchParams();
   const opsView = searchParams.get('view') === 'analytics' ? 'analytics' : 'board';
+  const statusFilter = ['active', 'complete', 'all'].includes(searchParams.get('status')) ? searchParams.get('status') : 'active';
   const setOpsView = (v) => {
     const next = new URLSearchParams(searchParams);
     if (v === 'board') next.delete('view'); else next.set('view', v);
+    setSearchParams(next, { replace: true });
+  };
+  const setStatusFilter = (value) => {
+    const next = new URLSearchParams(searchParams);
+    if (value === 'active') next.delete('status'); else next.set('status', value);
     setSearchParams(next, { replace: true });
   };
 
@@ -143,7 +150,6 @@ export default function OpBoard() {
   const [rsvpMap, setRsvpMap] = useState({});
   const [myRsvps, setMyRsvps] = useState({});
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('active');
 
   const canLead = LEADER_RANKS.includes(rank);
 
@@ -286,7 +292,22 @@ export default function OpBoard() {
         </div>
       </div>
 
-        <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <OperationalReferenceStrip
+          sectionLabel="OPS REFERENCE"
+          title="Plan, Publish, Go Live, Then Wrap"
+          description="Use the board to move operations from planning into live execution, keep the current phase and readiness state current while the op is running, and close out with a clean archive and debrief."
+          notes={[
+            { label: 'When To Use', value: 'Shared Ops Source', detail: 'Use this for scheduling, crew commitment, readiness checks, and live phase management rather than keeping side notes elsewhere.' },
+            { label: 'Data Depends On', value: 'Op + OpRsvp', detail: 'Board state comes from shared op records, RSVP commitments, readiness gate items, and the live session log.' },
+            { label: 'Next Step', value: canLead ? 'Create Or Publish' : 'RSVP Or Enter Live Op', detail: canLead ? 'Create a new op when the concept is clear, then only move it live once crew, route, and supply chain are actually ready.' : 'Review the board, commit to a role, then enter the live op view when the operation starts.' },
+          ]}
+          actions={[
+            ...(canLead ? [{ label: 'Create Op', onClick: () => navigate('/app/ops/new'), tone: 'live' }] : []),
+            { label: 'Open Timeline', onClick: () => navigate('/app/ops/timeline'), tone: 'info' },
+            { label: 'Open Rescue Board', onClick: () => navigate('/app/ops/rescue'), tone: 'warn' },
+          ]}
+        />
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
             <div className="nexus-loading-dots" style={{ color: '#9A9488' }}><span /><span /><span /></div>

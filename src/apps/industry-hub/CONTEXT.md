@@ -11,6 +11,7 @@
 NexusOS industrial operations dashboard for Redscar Nomads. Covers:
 - Org material stockpile management (INVENTORY, REFINERY, OCR ingestion)
 - Blueprint registry with gap analysis, recipe cross-reference, and craft queueing
+- Searchable crafting reference guide with blueprint prototyping against live stock or user-defined quality assumptions
 - Refinery batch tracking with live countdown timers
 - Craft queue management with AI-powered optimisation
 - Patch digest display (RSI Comm-Link → Claude API → structured changes)
@@ -91,6 +92,7 @@ This app **invokes** (Base44 functions):
 | `OCRReviewTable.jsx` | Review table for bulk OCR results before confirmation | **Complete** |
 | `DiscordPathCard.jsx` | OCR upload guidance card for the in-app materials flow | **Complete** |
 | `Blueprints.jsx` | Blueprint registry with category/ownership filters, gap sidebar, priority panel | **Complete** |
+| `CraftingReferenceGuide.jsx` | Searchable blueprint reference and prototype lab using live stock plus user-defined quality assumptions | **Complete** |
 | `BlueprintRow.jsx` | Collapsible blueprint row with lazy RecipePanel | **Complete** |
 | `BlueprintFilterChips.jsx` | Chip, TierBadge, CategoryTag UI atoms | **Complete** |
 | `BlueprintDialogPrimitives.jsx` | Overlay, DialogCard, DialogHeader atoms (for AddBlueprintDialog) | **Complete** |

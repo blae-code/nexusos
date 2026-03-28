@@ -34,7 +34,34 @@ function getBreadcrumb(pathname, search) {
 
   if (pathname.startsWith('/app/industry')) {
     const seg = pathname.split('/')[3];
-    const labels = { overview:'Overview', materials:'Materials', blueprints:'Blueprints', craft:'Craft Queue', refinery:'Refinery', coffer:'Coffer', commerce:'Commerce', logistics:'Logistics', cargo:'Cargo', production:'Production', prices:'Prices', analytics:'Analytics', components:'Components' };
+    const labels = {
+      overview: 'Overview',
+      guide: 'Guide',
+      materials: 'Materials',
+      blueprints: 'Blueprints',
+      craft: 'Craft Queue',
+      production: 'Production',
+      refinery: 'Refinery',
+      logistics: 'Logistics',
+      commerce: 'Commerce',
+      cargo: 'Cargo',
+      prices: 'Prices',
+      analytics: 'Analytics',
+      components: 'Components',
+      coffer: 'Coffer',
+      lifecycle: 'Lifecycle',
+      ownership: 'Ownership',
+      treasury: 'Treasury',
+      requisitions: 'Requisitions',
+      forecast: 'Forecast',
+      pipeline: 'Pipeline',
+      craftable: 'Craftable',
+      missions: 'Missions',
+      dismantle: 'Dismantle',
+      wishlist: 'Wishlist',
+      costcalc: 'Cost Calc',
+      cargoplanner: 'SCU Plan',
+    };
     return { module: 'Industry', page: labels[seg] || labels[tab] || 'Overview' };
   }
   if (pathname.startsWith('/app/scout')) return { module: 'Intel', page: tab === 'routes' ? 'Routes' : 'Deposits' };
@@ -45,7 +72,11 @@ function getBreadcrumb(pathname, search) {
     if (seg === 'timeline') return { module: 'Operations', page: 'Timeline' };
     if (seg === 'archive') return { module: 'Operations', page: 'Archive' };
     if (seg) return { module: 'Operations', page: 'Live Op' };
-    return { module: 'Operations', page: p.get('view') === 'analytics' ? 'Analytics' : null };
+    if (p.get('view') === 'analytics') return { module: 'Operations', page: 'Analytics' };
+    const status = p.get('status');
+    if (status === 'complete') return { module: 'Operations', page: 'Complete Ops' };
+    if (status === 'all') return { module: 'Operations', page: 'All Ops' };
+    return { module: 'Operations', page: 'Board' };
   }
   if (pathname.startsWith('/app/armory')) {
     const seg = pathname.split('/')[3];

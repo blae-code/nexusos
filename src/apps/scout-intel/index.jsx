@@ -14,9 +14,10 @@
  * rank/callsign/sessionUserId from useOutletContext (NexusShell).
  */
 import React, { useState, useEffect, useCallback } from 'react';
-import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { Plus, Route } from 'lucide-react';
+import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import RoutePlanner from '@/pages/RoutePlanner';
 
 import SystemMap    from './SystemMap';
@@ -42,6 +43,7 @@ export default function ScoutIntel() {
   const ctx = /** @type {any} */ (useOutletContext() || {});
   const rank     = ctx.rank     || 'VAGRANT';
   const callsign = ctx.callsign || 'UNKNOWN';
+  const navigate = useNavigate();
 
   const [deposits,   setDeposits]   = useState([]);
   const [materials,  setMaterials]  = useState([]);
@@ -129,7 +131,24 @@ export default function ScoutIntel() {
             <button key={t.id} onClick={() => setScoutTab(t.id)} style={{ padding: '10px 16px', background: 'transparent', border: 'none', borderBottom: scoutTab === t.id ? '2px solid #C0392B' : '2px solid transparent', color: scoutTab === t.id ? '#E8E4DC' : '#5A5850', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', transition: 'color 150ms' }} onMouseEnter={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#9A9488'; }} onMouseLeave={e => { if (scoutTab !== t.id) e.currentTarget.style.color = '#5A5850'; }}>{t.label}</button>
           ))}
         </div>
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}><RoutePlanner /></div>
+        <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <OperationalReferenceStrip
+            sectionLabel="SCOUT REFERENCE"
+            title="Route Planning And Deposit Validation"
+            description="Use Scout routes to plan efficient material runs from known deposits, then hand the result into Industry or a live operation once the route is worth committing crew and ships to."
+            notes={[
+              { label: 'When To Use', value: 'Route A Run', detail: 'Switch here after enough deposits are logged to compare quality, distance, and risk across a real route instead of a single ping.' },
+              { label: 'Data Depends On', value: 'Scout Deposit Intel', detail: 'Route quality depends on fresh deposit reports, risk levels, and consistent location detail across systems.' },
+              { label: 'Next Step', value: 'Feed Industry Or Ops', detail: 'Once a route looks viable, move into Industry to check crafting demand or into Ops Board to stage escorts, haulers, and timing.' },
+            ]}
+            actions={[
+              { label: 'Open Deposit Map', onClick: () => setScoutTab('deposits'), tone: 'info' },
+              { label: 'Open Industry Guide', onClick: () => navigate('/app/industry?tab=guide'), tone: 'warn' },
+              { label: liveOp ? 'Open Live Op' : 'Open Ops Board', onClick: () => navigate(liveOp ? `/app/ops/${liveOp.id}` : '/app/ops'), tone: 'live' },
+            ]}
+          />
+          <RoutePlanner />
+        </div>
       </div>
     );
   }
@@ -147,6 +166,21 @@ export default function ScoutIntel() {
         </div>
         {/* Map area with action button */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 12 }}>
+          <OperationalReferenceStrip
+            sectionLabel="SCOUT REFERENCE"
+            title="Log Deposits, Validate Them, Then Hand Them Off"
+            description="Scout Intel is the live deposit map, validation surface, and run-planning handoff for the rest of the org. Treat fresh deposit quality, risk, and location detail as shared operational data."
+            notes={[
+              { label: 'When To Use', value: 'Scout + Validate', detail: 'Use this view while prospecting, reviewing the best fresh deposits, or checking whether a material shortfall has a known field source.' },
+              { label: 'Data Depends On', value: 'Fresh Deposit Reports', detail: 'The map and gap panels are only as good as the reported location detail, quality readings, and stale/confirm votes attached to each deposit.' },
+              { label: 'Next Step', value: 'Route -> Industry -> Ops', detail: 'From a promising deposit you can plan a run, compare the material against Industry demand, then log the ping into a live op when the crew is ready.' },
+            ]}
+            actions={[
+              { label: 'Open Route Planner', onClick: () => setScoutTab('routes'), tone: 'info' },
+              { label: 'Open Industry Guide', onClick: () => navigate('/app/industry?tab=guide'), tone: 'warn' },
+              { label: liveOp ? 'Open Live Op' : 'Open Ops Board', onClick: () => navigate(liveOp ? `/app/ops/${liveOp.id}` : '/app/ops'), tone: 'live' },
+            ]}
+          />
           {/* Top action row — Log Deposit button sits top-right of map area */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
             <button

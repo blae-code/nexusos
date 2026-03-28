@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
+import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import {
   createRescueCall,
   getActiveRescueCount,
@@ -14,6 +15,7 @@ import {
 
 export default function RescueBoard() {
   const outletContext = /** @type {any} */ (useOutletContext() || {});
+  const navigate = useNavigate();
   const callsign = outletContext.callsign;
   const [calls, setCalls] = useState(() => loadRescueCalls());
   const [runtimeStatus, setRuntimeStatus] = useState(() => getRescueRuntimeStatus());
@@ -111,6 +113,25 @@ export default function RescueBoard() {
           : 'Rescue is in degraded local-cache mode. Calls and status changes only exist in this browser until the shared RescueCall entity is restored.'}
         {runtimeStatus.reason ? ` ${runtimeStatus.reason}` : ''}
       </div>
+
+      <OperationalReferenceStrip
+        sectionLabel="RESCUE REFERENCE"
+        title="Broadcast, Respond, Then Close The Call"
+        description="Use Rescue Board as the live distress surface for the org. A call is only operationally trustworthy when it is in shared-entity mode and visible to other issued-key members."
+        statusPills={[
+          { label: isSharedMode ? 'shared entity' : 'local cache', tone: isSharedMode ? 'live' : 'danger' },
+          { label: `${openCount} active calls`, tone: openCount > 0 ? 'warn' : 'neutral' },
+        ]}
+        notes={[
+          { label: 'When To Use', value: 'Distress Coordination', detail: 'Use this when a member needs fuel, evac, escort, or medical response and the org needs one visible source of truth for the incident.' },
+          { label: 'Data Depends On', value: isSharedMode ? 'Shared RescueCall Entity' : 'Local Browser Cache', detail: isSharedMode ? 'Calls and updates are persisted to the shared RescueCall entity and visible to other users.' : 'This browser is holding the calls locally, so other users will not see them until the shared entity is restored.' },
+          { label: 'Next Step', value: 'Respond -> Resolve', detail: 'Broadcast the distress call, claim it as a responder, then close it only when the rescue or extraction is actually complete.' },
+        ]}
+        actions={[
+          { label: 'Open Ops Board', onClick: () => navigate('/app/ops'), tone: 'info' },
+          { label: 'Open Tactical Comms', onClick: () => navigate('/app/handbook?section=tactical-comms'), tone: 'warn' },
+        ]}
+      />
 
       {showForm && (
         <div className="nexus-card" style={{ padding: 16, borderColor: 'rgba(var(--danger-rgb), 0.3)' }}>

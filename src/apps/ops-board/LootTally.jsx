@@ -4,6 +4,7 @@
  */
 import React, { useState, useRef, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCountUp } from '@/core/hooks/useCountUp';
 import { Plus } from 'lucide-react';
 
 function qColor(pct) {
@@ -222,6 +223,7 @@ export default function LootTally({ op, callsign, rank, currentPhase, onUpdate }
   const loot = log.filter(e => e.type === 'MATERIAL');
 
   const totalSCU = loot.reduce((s, e) => s + (e.quantity_scu || 0), 0);
+  const animatedSCU = useCountUp(totalSCU);
 
   const handleSubmit = async ({ material_name, quantity_scu, quality_pct }) => {
     const entry = {
@@ -363,7 +365,7 @@ export default function LootTally({ op, callsign, rank, currentPhase, onUpdate }
             Total Haul
           </span>
           <span style={{ fontSize: 11, color: 'var(--t0)', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', flex: 1, textAlign: 'right' }}>
-            {totalSCU.toFixed(1)} SCU
+            {animatedSCU.toFixed(1)} SCU
           </span>
         </div>
       )}

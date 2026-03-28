@@ -3,6 +3,7 @@
  * Shows active/complete jobs, allows starting new ones, completing, and cancelling.
  */
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { Plus, CheckCircle, XCircle, Clock, Package, BarChart3, MapPin } from 'lucide-react';
 import NewFabJobDialog from './NewFabJobDialog';
@@ -124,11 +125,21 @@ function JobRow({ job, onComplete, onCancel }) {
 }
 
 export default function ProductionTab({ blueprints, materials, callsign, onRefresh }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ACTIVE');
   const [view, setView] = useState('jobs'); // 'jobs' | 'margins' | 'capacity'
+  const linkedBlueprintId = searchParams.get('blueprint') || '';
+  const linkedQuantity = Math.max(1, Math.min(50, Number(searchParams.get('quantity')) || 1));
+
+  const clearLinkedFabricationParams = useCallback(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('blueprint');
+    nextParams.delete('quantity');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const loadJobs = useCallback(async () => {
     try {
@@ -139,6 +150,12 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
   }, []);
 
   useEffect(() => { loadJobs(); }, [loadJobs]);
+
+  useEffect(() => {
+    if (linkedBlueprintId && !showNewDialog) {
+      setShowNewDialog(true);
+    }
+  }, [linkedBlueprintId, showNewDialog]);
 
   // Auto-refresh every 30s to update countdown timers
   useEffect(() => {
@@ -165,6 +182,8 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
   const handleJobCreated = () => {
     loadJobs();
     onRefresh(); // refresh materials since they were consumed
+    clearLinkedFabricationParams();
+    setShowNewDialog(false);
   };
 
   const filtered = jobs.filter(j => {
@@ -286,7 +305,14 @@ export default function ProductionTab({ blueprints, materials, callsign, onRefre
         <NewFabJobDialog
           blueprints={blueprints}
           materials={materials}
-          onClose={() => setShowNewDialog(false)}
+          initialBlueprintId={linkedBlueprintId}
+          initialQuantity={linkedQuantity}
+          onClose={() => {
+            setShowNewDialog(false);
+            if (linkedBlueprintId) {
+              clearLinkedFabricationParams();
+            }
+          }}
           onCreated={handleJobCreated}
         />
       )}

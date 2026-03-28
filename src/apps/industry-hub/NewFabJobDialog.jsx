@@ -1,7 +1,7 @@
 /**
  * NewFabJobDialog — Select a blueprint, set quantity, preview material costs, and start a fabrication job.
  */
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { X, Search, AlertTriangle, Check } from 'lucide-react';
 import { qualityPercentFromRecord } from '@/core/data/quality';
@@ -34,14 +34,27 @@ function MaterialCheck({ req, materials, quantity }) {
   );
 }
 
-export default function NewFabJobDialog({ blueprints, materials, onClose, onCreated }) {
+export default function NewFabJobDialog({ blueprints, materials, initialBlueprintId = '', initialQuantity = 1, onClose, onCreated }) {
   const [search, setSearch] = useState('');
   const [selectedBp, setSelectedBp] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(Math.max(1, Math.min(50, Number(initialQuantity) || 1)));
   const [notes, setNotes] = useState('');
   const [location, setLocation] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setQuantity(Math.max(1, Math.min(50, Number(initialQuantity) || 1)));
+  }, [initialQuantity]);
+
+  useEffect(() => {
+    if (!initialBlueprintId) return;
+    const match = blueprints.find((blueprint) => blueprint.id === initialBlueprintId);
+    if (!match) return;
+    setSelectedBp(match);
+    setLocation(match.fabricator_location || '');
+    setSearch(match.item_name || '');
+  }, [blueprints, initialBlueprintId]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return blueprints;

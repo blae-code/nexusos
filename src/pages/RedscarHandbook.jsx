@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 
 const RANK_COLORS = {
   PIONEER: { color: 'var(--warn)', label: 'The Pioneer' },
@@ -57,13 +58,22 @@ function Section({ title, children, defaultOpen = false, forceOpen = false, sect
 }
 
 export default function RedscarHandbook() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tacticalRef = useRef(null);
+  const codeRef = useRef(null);
+  const rockbreakerRef = useRef(null);
   const highlightedSection = searchParams.get('section');
 
   useEffect(() => {
-    if (highlightedSection === 'tactical-comms' && tacticalRef.current) {
-      tacticalRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const refs = {
+      'tactical-comms': tacticalRef,
+      'redscar-code': codeRef,
+      'rockbreaker-flow': rockbreakerRef,
+    };
+    const targetRef = refs[highlightedSection];
+    if (targetRef?.current) {
+      targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [highlightedSection]);
 
@@ -74,6 +84,25 @@ export default function RedscarHandbook() {
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, color: '#E8E4DC', borderBottom: '0.5px solid rgba(200,170,100,0.10)', paddingBottom: 8, marginBottom: 16 }}>REDSCAR NOMADS</div>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 14, color: '#C8A84B', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Organization Reference & Handbook</div>
         <div style={{ fontFamily: "'Barlow', sans-serif", fontWeight: 400, fontSize: 14, color: '#9A9488', lineHeight: 1.7, marginTop: 8 }}>The official handbook for all Redscar Nomads members. Contains rank structure, codes of conduct, operational procedures, and organizational policy.</div>
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        <OperationalReferenceStrip
+          sectionLabel="HANDBOOK REFERENCE"
+          title="Policy, Procedures, And Live Workflow Entry Points"
+          description="Use the handbook to understand org standards, then jump directly into the live NexusOS surfaces that enforce or depend on those procedures."
+          notes={[
+            { label: 'When To Use', value: 'Policy + Procedure', detail: 'Use the handbook when you need rank guidance, conduct policy, tactical comms standards, or the official Rockbreaker operation flow.' },
+            { label: 'Data Depends On', value: 'Policy + Live Modules', detail: 'The policy text stays here, but execution should happen in the live Industry, Scout, Ops, Rescue, and Training routes linked below.' },
+            { label: 'Next Step', value: 'Read Then Launch', detail: 'Review the relevant procedure, then jump into the corresponding live workspace rather than treating the handbook as the operational source of truth.' },
+          ]}
+          actions={[
+            { label: 'Open Crafting Guide', onClick: () => navigate('/app/industry?tab=guide'), tone: 'warn' },
+            { label: 'Open Ops Board', onClick: () => navigate('/app/ops'), tone: 'info' },
+            { label: 'Open Rescue Board', onClick: () => navigate('/app/ops/rescue'), tone: 'live' },
+            { label: 'Open Training', onClick: () => navigate('/app/training'), tone: 'neutral' },
+          ]}
+        />
       </div>
 
       {/* Rank Hierarchy */}
@@ -139,7 +168,7 @@ export default function RedscarHandbook() {
       </Section>
 
       {/* Code of Conduct */}
-      <Section title="Redscar Code">
+      <Section title="Redscar Code" sectionId="redscar-code" sectionRef={codeRef} forceOpen={highlightedSection === 'redscar-code'}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             'Help First. Combat Second. Always try to help wanderers.',
@@ -198,7 +227,7 @@ export default function RedscarHandbook() {
         </div>
       </Section>
 
-      <Section title="Rockbreaker Operation Flow">
+      <Section title="Rockbreaker Operation Flow" sectionId="rockbreaker-flow" sectionRef={rockbreakerRef} forceOpen={highlightedSection === 'rockbreaker-flow'}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             {

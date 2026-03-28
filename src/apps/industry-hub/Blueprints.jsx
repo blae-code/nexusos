@@ -4,6 +4,7 @@
  * Props: { blueprints, materials, rank, callsign, onRefresh }
  */
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { Plus, Search } from 'lucide-react';
 import NexusToken from '@/core/design/NexusToken';
@@ -37,10 +38,12 @@ const OWNERSHIP_FILTERS = [
 // ─── Main Blueprints component ────────────────────────────────────────────────
 
 export default function Blueprints({ blueprints, materials, rank, callsign, onRefresh }) {
+  const [searchParams] = useSearchParams();
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [ownershipFilter, setOwnershipFilter] = useState('ALL');
   const [search, setSearch]                 = useState('');
   const [showAddDialog, setShowAddDialog]   = useState(false);
+  const focusedBlueprintId = searchParams.get('blueprint') || '';
 
   const isPioneer = PIONEER_RANKS.includes(rank);
 
@@ -50,12 +53,15 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
   const ownershipMatch = OWNERSHIP_FILTERS.find(f => f.id === ownershipFilter) || OWNERSHIP_FILTERS[0];
 
   const filtered = blueprints
-    .filter(b => categoryMatch.matches(b))
-    .filter(b => ownershipMatch.matches(b))
-    .filter(b => !search.trim() || (b.item_name || '').toLowerCase().includes(search.trim().toLowerCase()));
+    .filter(b => b.id === focusedBlueprintId || categoryMatch.matches(b))
+    .filter(b => b.id === focusedBlueprintId || ownershipMatch.matches(b))
+    .filter(b => b.id === focusedBlueprintId || !search.trim() || (b.item_name || '').toLowerCase().includes(search.trim().toLowerCase()));
 
   // Sort: T2 first, then alphabetical within tier
   const sorted = [...filtered].sort((a, b) => {
+    if (a.id === focusedBlueprintId || b.id === focusedBlueprintId) {
+      return a.id === focusedBlueprintId ? -1 : 1;
+    }
     if (a.tier !== b.tier) return a.tier === 'T2' ? -1 : 1;
     return (a.item_name || '').localeCompare(b.item_name || '');
   });
@@ -160,6 +166,7 @@ export default function Blueprints({ blueprints, materials, rank, callsign, onRe
               <BlueprintRow
                 key={bp.id}
                 blueprint={bp}
+                focused={bp.id === focusedBlueprintId}
                 isPioneer={isPioneer}
                 materials={materials}
                 callsign={callsign}

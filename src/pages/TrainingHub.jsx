@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, BookOpen, Zap, Users, Compass, Package, Briefcase, Archive, X } from 'lucide-react';
+import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 
 const TRAINING_MODULES = [
   {
@@ -13,6 +14,9 @@ const TRAINING_MODULES = [
     duration: '8 min',
     lessons: 4,
     href: '/app/ops',
+    whenToUse: 'Use this before an op is published, while roles are filling, and again once the operation goes live.',
+    dependsOn: 'Shared Op records, RSVP commitments, readiness gates, and the live session log.',
+    nextStep: 'Launch the board, review active ops, then create or join the one you need instead of tracking it externally.',
   },
   {
     id: 'industry-101',
@@ -24,6 +28,23 @@ const TRAINING_MODULES = [
     duration: '10 min',
     lessons: 5,
     href: '/app/industry',
+    whenToUse: 'Use Industry when a job depends on material readiness, refinery throughput, blueprint ownership, or fabrication status.',
+    dependsOn: 'Material logs, blueprints, craft queue items, fabrication jobs, and refinery orders.',
+    nextStep: 'Launch Industry, then move into the Guide, Blueprints, or Production surface that matches the task at hand.',
+  },
+  {
+    id: 'craft-guide',
+    title: 'Crafting Guide',
+    icon: BookOpen,
+    subtitle: 'Blueprint reference & prototyping',
+    description: 'Search blueprints, inspect recipe thresholds, and prototype material plans with custom SCU and quality assumptions.',
+    color: '#C8A84B',
+    duration: '6 min',
+    lessons: 3,
+    href: '/app/industry?tab=guide',
+    whenToUse: 'Use the guide before committing stock, creating a fabrication job, or asking logistics to move missing materials.',
+    dependsOn: 'Blueprint recipe quality thresholds and current org Material records.',
+    nextStep: 'Prototype the batch, then jump into Blueprints or Production with the exact blueprint and quantity still in context.',
   },
   {
     id: 'scout-101',
@@ -35,6 +56,9 @@ const TRAINING_MODULES = [
     duration: '7 min',
     lessons: 3,
     href: '/app/scout',
+    whenToUse: 'Use Scout while prospecting, validating a deposit, or checking whether a crafting shortfall has a known field source.',
+    dependsOn: 'Fresh ScoutDeposit records, confirm/stale votes, quality measurements, and route-planning inputs.',
+    nextStep: 'Log or validate the deposit, then hand the route or ping into Industry or Ops when it is worth acting on.',
   },
   {
     id: 'commerce-101',
@@ -46,6 +70,9 @@ const TRAINING_MODULES = [
     duration: '9 min',
     lessons: 4,
     href: '/app/industry/commerce',
+    whenToUse: 'Use Commerce for wallet entries, route profitability review, contract issuance, and treasury visibility.',
+    dependsOn: 'Wallet, transaction, contract, cargo-log, and coffer entities being available in the deployment.',
+    nextStep: 'Issue or review the work here, then hand the movement task into Logistics for dispatch and delivery.',
   },
   {
     id: 'crew-101',
@@ -57,6 +84,9 @@ const TRAINING_MODULES = [
     duration: '6 min',
     lessons: 3,
     href: '/app/armory/schedule',
+    whenToUse: 'Use crew scheduling when an op, fleet assignment, or training need requires named people in defined roles.',
+    dependsOn: 'Org roster data, ops scheduling context, and the fleet/crew surfaces inside Armory.',
+    nextStep: 'Launch the scheduling surface, confirm who is available, then return to the live op or fleet view with assignments set.',
   },
   {
     id: 'armory-101',
@@ -68,6 +98,9 @@ const TRAINING_MODULES = [
     duration: '6 min',
     lessons: 3,
     href: '/app/armory',
+    whenToUse: 'Use Armory to understand what ships, components, weapons, and consumables the org can actually field right now.',
+    dependsOn: 'Shared org fleet records, inventory, component data, and readiness state.',
+    nextStep: 'Open the fleet or inventory views, then return to Ops or Logistics once the equipment plan is ready.',
   },
 ];
 
@@ -162,11 +195,10 @@ function TrainingModal({ module, onClose, onLaunch }) {
   if (!module) return null;
 
   const Icon = module.icon;
-  const lessons = [
-    { title: 'Getting Started', duration: '2 min' },
-    { title: 'Core Concepts', duration: '2 min' },
-    { title: 'Hands-On Practice', duration: '3 min' },
-    { title: 'Pro Tips', duration: '1 min' },
+  const guidance = [
+    { label: 'When To Use', value: 'Operational Trigger', detail: module.whenToUse },
+    { label: 'Data Depends On', value: 'Shared Inputs', detail: module.dependsOn },
+    { label: 'Next Step', value: 'Launch Live Tool', detail: module.nextStep },
   ];
 
   return (
@@ -252,70 +284,28 @@ function TrainingModal({ module, onClose, onLaunch }) {
             </div>
           </div>
 
-          {/* Lessons List */}
+          {/* Operational guidance */}
           <div>
             <div style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', marginBottom: 12, fontWeight: 600 }}>
-              CURRICULUM
+              LIVE WORKFLOW GUIDE
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {lessons.map((lesson, idx) => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
+              {guidance.map((item) => (
                 <div
-                  key={idx}
+                  key={item.label}
                   style={{
                     padding: '12px 14px',
                     background: 'var(--bg2)',
                     border: '0.5px solid var(--b1)',
                     borderRadius: 3,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
+                    flexDirection: 'column',
+                    gap: 6,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        background: `${module.color}20`,
-                        border: `0.5px solid ${module.color}40`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: module.color,
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {idx + 1}
-                    </div>
-                    <div>
-                      <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 500 }}>
-                        {lesson.title}
-                      </div>
-                      <div style={{ color: 'var(--t2)', fontSize: 9, marginTop: 2 }}>
-                        {lesson.duration}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onLaunch(module.href)}
-                    style={{
-                      padding: '6px 12px',
-                      background: `${module.color}20`,
-                      border: `0.5px solid ${module.color}40`,
-                      borderRadius: 3,
-                      color: module.color,
-                      fontSize: 9,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontWeight: 600,
-                      letterSpacing: '0.05em',
-                    }}
-                  >
-                    START
-                  </button>
+                  <div style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.label}</div>
+                  <div style={{ color: module.color, fontSize: 11, fontWeight: 600 }}>{item.value}</div>
+                  <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>{item.detail}</div>
                 </div>
               ))}
             </div>
@@ -341,7 +331,7 @@ function TrainingModal({ module, onClose, onLaunch }) {
               textTransform: 'uppercase',
             }}
           >
-            Launch Training Module
+            Launch Live Workspace
           </button>
         </div>
       </div>
@@ -480,6 +470,24 @@ export default function TrainingHub() {
             </div>
           </div>
 
+          <div style={{ marginBottom: 24 }}>
+            <OperationalReferenceStrip
+              sectionLabel="TRAINING REFERENCE"
+              title="Learn The Workflow, Then Enter The Live Tool"
+              description="Training is the guided front door for the same live surfaces members use day to day. Each module points into the real workspace rather than a separate demo."
+              notes={[
+                { label: 'When To Use', value: 'Learn Or Reorient', detail: 'Use Training when a member needs fast orientation, a refresher on a workflow, or a safe path into an existing live module.' },
+                { label: 'Data Depends On', value: 'Same Live Routes', detail: 'Training launches the real app routes and assumes the same shared entities, permissions, and runtime availability as the production workspace.' },
+                { label: 'Next Step', value: 'Launch A Module', detail: 'Choose the module that matches the task, review the operational guidance, then launch the live workspace directly from the modal.' },
+              ]}
+              actions={[
+                { label: 'Open Crafting Guide', onClick: () => handleLaunch('/app/industry?tab=guide'), tone: 'warn' },
+                { label: 'Open Ops Board', onClick: () => handleLaunch('/app/ops'), tone: 'info' },
+                { label: 'Open Scout Intel', onClick: () => handleLaunch('/app/scout'), tone: 'live' },
+              ]}
+            />
+          </div>
+
           {/* Modules Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
             {TRAINING_MODULES.map((module) => (
@@ -499,8 +507,8 @@ export default function TrainingHub() {
             }}
           >
             <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.6 }}>
-              Complete all training modules to unlock advanced operational insights and org-wide analytics. Progress is
-              saved automatically.
+              Training is a live reference layer, not a separate simulation. Launch a module from here whenever you need
+              a fast refresher before using the real shared workspace.
             </div>
           </div>
         </div>

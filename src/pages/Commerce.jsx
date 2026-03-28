@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCountUp } from '@/core/hooks/useCountUp';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import EmptyState from '@/core/design/EmptyState';
+import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import TradeRouteMap from '@/apps/commerce/components/TradeRouteMap';
 import {
   calculateManifestValue,
@@ -46,11 +48,13 @@ const SURFACE_MODE_STYLES = {
   blocked: { color: 'var(--danger)', bg: 'rgba(192,57,43,0.14)' },
 };
 
-function MetricCard({ label, value, detail, color = 'var(--t0)' }) {
+function MetricCard({ label, value, rawValue, formatter, detail, color = 'var(--t0)' }) {
+  const animated = useCountUp(typeof rawValue === 'number' ? rawValue : 0);
+  const displayValue = typeof rawValue === 'number' && formatter ? formatter(animated) : value;
   return (
     <div className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 6, minHeight: 104 }}>
       <div style={{ color: 'var(--t3)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{label}</div>
-      <div style={{ color, fontSize: 22, fontWeight: 700 }}>{value}</div>
+      <div style={{ color, fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{displayValue}</div>
       <div style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.5 }}>{detail}</div>
     </div>
   );
@@ -310,23 +314,30 @@ export default function Commerce() {
 
   return (
     <div className="flex flex-col h-full overflow-auto p-4 gap-4">
-      <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div className="nexus-section-header">COMMERCE</div>
-        <div style={{ color: 'var(--t0)', fontSize: 15, fontWeight: 600 }}>Financial Operations Surface</div>
-        <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7, maxWidth: 820 }}>
-          Commerce now runs directly against the live entity layer. Wallet activity stays tied to the active member profile, trade planning
-          surfaces logged profitability plus the route map, and contract issuance feeds directly into logistics execution.
-        </div>
-      </div>
+      <OperationalReferenceStrip
+        sectionLabel="COMMERCE"
+        title="Financial Operations Surface"
+        description="Commerce ties personal wallet activity, route profitability, contract issuance, and org treasury visibility into one shared finance workspace."
+        statusPills={[
+          { label: capabilities.walletWrite ? 'wallet live' : 'wallet read-only', tone: capabilities.walletWrite ? 'live' : 'danger' },
+          { label: capabilities.contractsWrite ? 'contracts live' : 'contracts blocked', tone: capabilities.contractsWrite ? 'live' : 'danger' },
+          { label: capabilities.tradeLive ? 'trade live' : 'trade limited', tone: capabilities.tradeLive ? 'live' : 'warn' },
+          { label: capabilities.cofferLive ? 'coffer live' : 'coffer limited', tone: capabilities.cofferLive ? 'live' : 'warn' },
+        ]}
+        notes={[
+          { label: 'When To Use', value: 'Finance + Contracts', detail: 'Use Commerce to log member wallet activity, review route profitability, and issue work that Logistics can actually fulfil.' },
+          { label: 'Data Depends On', value: 'Wallet + Contract + Cargo', detail: 'Shared finance state depends on wallet, transaction, contract, coffer, and cargo-log entities being available in this deployment.' },
+          { label: 'Next Step', value: 'Issue Then Fulfil', detail: 'Create or review a contract here, then hand it into Logistics for manifest progression, ship assignment, and delivery confirmation.' },
+        ]}
+        actions={[
+          { label: 'Open Logistics', onClick: () => navigate('/app/industry?tab=logistics'), tone: 'info' },
+          { label: 'Open Coffer', onClick: () => navigate('/app/industry?tab=coffer'), tone: 'warn' },
+          { label: 'Open Trade Desk', onClick: () => setActiveTab('trade'), tone: 'neutral' },
+        ]}
+      />
 
       {warning ? <div className="nexus-card-2" style={{ color: 'var(--warn)', fontSize: 11, lineHeight: 1.6 }}>{warning}</div> : null}
       {error ? <div className="nexus-card-2" style={{ color: 'var(--danger)', fontSize: 11, lineHeight: 1.6 }}>{error}</div> : null}
-      <div className="nexus-card-2" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <SurfaceModePill label={capabilities.walletWrite ? 'wallet live' : 'wallet read-only'} tone={capabilities.walletWrite ? 'live' : 'blocked'} />
-        <SurfaceModePill label={capabilities.contractsWrite ? 'contracts live' : 'contracts blocked'} tone={capabilities.contractsWrite ? 'live' : 'blocked'} />
-        <SurfaceModePill label={capabilities.tradeLive ? 'trade live' : 'trade limited'} tone={capabilities.tradeLive ? 'live' : 'degraded'} />
-        <SurfaceModePill label={capabilities.cofferLive ? 'coffer live' : 'coffer limited'} tone={capabilities.cofferLive ? 'live' : 'degraded'} />
-      </div>
       <div className="nexus-card-2" style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
         {surfaceSummary.join(' ')}
       </div>

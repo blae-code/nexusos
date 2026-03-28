@@ -2,7 +2,7 @@
  * Single blueprint row with lazy-loaded recipe panel.
  * No closed-over variables — props only.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   BlueprintHolderChip,
@@ -15,11 +15,17 @@ import RecipePanel from './RecipePanel';
 
 // ─── Single blueprint row ─────────────────────────────────────────────────────
 
-export default function BlueprintRow({ blueprint, isPioneer, materials, callsign, onTogglePriority, onCraftQueued }) {
+export default function BlueprintRow({ blueprint, focused = false, isPioneer, materials, callsign, onTogglePriority, onCraftQueued }) {
   const [expanded, setExpanded] = useState(false);
 
   const owned      = !!(blueprint.owned_by_user_id || blueprint.owned_by || blueprint.owned_by_callsign);
   const isPriority = !!blueprint.is_priority;
+
+  useEffect(() => {
+    if (focused) {
+      setExpanded(true);
+    }
+  }, [focused]);
 
   // Dot colour: warn=priority, acc2=owned (not priority), t3=unowned
   return (
@@ -31,11 +37,13 @@ export default function BlueprintRow({ blueprint, isPioneer, materials, callsign
           height: 40,
           borderBottom: '0.5px solid var(--b0)',
           borderRadius: 5,
+          borderLeft: focused ? '2px solid var(--acc)' : '2px solid transparent',
+          background: focused ? 'rgba(200,168,75,0.08)' : 'transparent',
           transition: 'background 0.12s',
           cursor: 'pointer',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        onMouseEnter={e => e.currentTarget.style.background = focused ? 'rgba(200,168,75,0.10)' : 'rgba(255,255,255,0.04)'}
+        onMouseLeave={e => e.currentTarget.style.background = focused ? 'rgba(200,168,75,0.08)' : 'transparent'}
       >
         <NexusToken src={blueprintToken(owned, isPriority)} size={18} alt="blueprint status" />
 

@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAnimatedList } from '@/core/hooks/useAnimatedList';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import EmptyState from '@/core/design/EmptyState';
+import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import {
   buildPriceLookup,
   calculateManifestValue,
@@ -42,12 +44,6 @@ const STATUS_STYLES = {
   RETURNED: { color: 'var(--t2)', bg: 'rgba(157,161,205,0.12)' },
 };
 
-const SURFACE_MODE_STYLES = {
-  live: { color: 'var(--live)', bg: 'rgba(74,232,48,0.14)' },
-  degraded: { color: 'var(--warn)', bg: 'rgba(243,156,18,0.16)' },
-  blocked: { color: 'var(--danger)', bg: 'rgba(192,57,43,0.14)' },
-};
-
 function MetricCard({ label, value, detail, color = 'var(--t0)' }) {
   return (
     <div className="nexus-card-2" style={{ display: 'flex', flexDirection: 'column', gap: 6, minHeight: 104 }}>
@@ -63,15 +59,6 @@ function StatusPill({ status }) {
   return (
     <span style={{ padding: '3px 8px', borderRadius: 999, background: style.bg, color: style.color, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
       {status}
-    </span>
-  );
-}
-
-function SurfaceModePill({ label, tone = 'live' }) {
-  const style = SURFACE_MODE_STYLES[tone] || SURFACE_MODE_STYLES.degraded;
-  return (
-    <span style={{ padding: '3px 8px', borderRadius: 999, background: style.bg, color: style.color, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-      {label}
     </span>
   );
 }
@@ -180,6 +167,8 @@ export default function Logistics() {
   }, [jobs, priceLookup]);
   const openJobs = jobsWithMetrics.filter((job) => job.status === 'OPEN');
   const activeJobs = jobsWithMetrics.filter((job) => ['CLAIMED', 'IN_TRANSIT', 'DELIVERED'].includes(job.status));
+  const animatedOpenJobs = useAnimatedList(openJobs, (j) => j.id);
+  const animatedActiveJobs = useAnimatedList(activeJobs, (j) => j.id);
   const availableShips = ships.filter((ship) => ship.status === 'AVAILABLE' && Number(ship.cargo_scu || 0) > 0);
   const activeManifestValue = activeJobs.reduce((sum, job) => sum + job.manifestValue, 0);
 
@@ -315,23 +304,30 @@ export default function Logistics() {
 
   return (
     <div className="flex flex-col h-full overflow-auto p-4 gap-4">
-      <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div className="nexus-section-header">LOGISTICS</div>
-        <div style={{ color: 'var(--t0)', fontSize: 15, fontWeight: 600 }}>Cargo Movement And Hauling Coordination</div>
-        <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.7, maxWidth: 820 }}>
-          Logistics is now a routed live-data workspace instead of a placeholder. Cargo jobs, manifests, consignments, and dispatch-ready
-          ships all render against the shared entity layer and can be updated end-to-end when the required entities are present.
-        </div>
-      </div>
+      <OperationalReferenceStrip
+        sectionLabel="LOGISTICS"
+        title="Cargo Movement And Hauling Coordination"
+        description="Logistics is the shared execution layer for cargo jobs, manifests, consignments, and ship assignment once Commerce or Scout work becomes a real movement task."
+        statusPills={[
+          { label: capabilities.cargoWrites ? 'cargo live' : 'cargo read-only', tone: capabilities.cargoWrites ? 'live' : 'danger' },
+          { label: capabilities.consignmentWrites ? 'consignment live' : 'consignment blocked', tone: capabilities.consignmentWrites ? 'live' : 'danger' },
+          { label: capabilities.dispatchWrites ? 'dispatch live' : 'dispatch limited', tone: capabilities.dispatchWrites ? 'live' : 'warn' },
+          { label: capabilities.pricingLive ? 'pricing live' : 'pricing limited', tone: capabilities.pricingLive ? 'live' : 'warn' },
+        ]}
+        notes={[
+          { label: 'When To Use', value: 'Move Goods', detail: 'Use Logistics to post hauling work, advance claimed manifests, handle consignments, and assign a real org ship to active cargo.' },
+          { label: 'Data Depends On', value: 'Cargo + Fleet + Pricing', detail: 'Full logistics execution needs CargoJob, Consignment, OrgShip, Material, and commodity cache records to be present and writable.' },
+          { label: 'Next Step', value: 'Dispatch And Confirm', detail: 'Once a cargo job is claimed, progress it through launch, delivery, confirmation, and ship assignment from the same workspace.' },
+        ]}
+        actions={[
+          { label: 'Open Commerce', onClick: () => navigate('/app/industry?tab=commerce'), tone: 'info' },
+          { label: 'Open Org Fleet', onClick: () => navigate('/app/armory/fleet'), tone: 'warn' },
+          { label: 'Open Dispatch', onClick: () => setActiveTab('dispatch'), tone: 'neutral' },
+        ]}
+      />
 
       {warning ? <div className="nexus-card-2" style={{ color: 'var(--warn)', fontSize: 11, lineHeight: 1.6 }}>{warning}</div> : null}
       {error ? <div className="nexus-card-2" style={{ color: 'var(--danger)', fontSize: 11, lineHeight: 1.6 }}>{error}</div> : null}
-      <div className="nexus-card-2" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <SurfaceModePill label={capabilities.cargoWrites ? 'cargo live' : 'cargo read-only'} tone={capabilities.cargoWrites ? 'live' : 'blocked'} />
-        <SurfaceModePill label={capabilities.consignmentWrites ? 'consignment live' : 'consignment blocked'} tone={capabilities.consignmentWrites ? 'live' : 'blocked'} />
-        <SurfaceModePill label={capabilities.dispatchWrites ? 'dispatch live' : 'dispatch limited'} tone={capabilities.dispatchWrites ? 'live' : 'degraded'} />
-        <SurfaceModePill label={capabilities.pricingLive ? 'pricing live' : 'pricing limited'} tone={capabilities.pricingLive ? 'live' : 'degraded'} />
-      </div>
       <div className="nexus-card-2" style={{ color: 'var(--t2)', fontSize: 10, lineHeight: 1.6 }}>
         {surfaceSummary.join(' ')}
       </div>
@@ -381,7 +377,7 @@ export default function Logistics() {
           </div>
 
           {showJobForm ? (
-            <form onSubmit={handleCreateJob} className="nexus-card-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+            <form onSubmit={handleCreateJob} className="nexus-card-2 nexus-raised" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>JOB TYPE</label>
                 <select className="nexus-input" value={jobForm.job_type} onChange={(event) => setJobForm((current) => ({ ...current, job_type: event.target.value }))} disabled={!capabilities.cargoWrites}>
@@ -434,7 +430,7 @@ export default function Logistics() {
             </form>
           ) : null}
 
-          <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className={`nexus-card nexus-bg-dimable${showJobForm ? ' nexus-bg-dimmed' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {openJobs.length === 0 ? (
               <EmptyState
                 icon={Truck}
@@ -445,8 +441,8 @@ export default function Logistics() {
                 actionOnClick={() => setShowJobForm(true)}
               />
             ) : (
-              openJobs.map((job) => (
-                <div key={job.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.9fr) auto', gap: 12, padding: '12px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'start' }}>
+              animatedOpenJobs.map(({ item: job, state }) => (
+                <div key={job.id} data-anim={state} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.9fr) auto', gap: 12, padding: '12px 0', borderTop: '0.5px solid var(--b0)', alignItems: 'start' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>{job.title || 'Untitled cargo job'}</div>

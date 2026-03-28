@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useAnimatedList } from '@/core/hooks/useAnimatedList';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import BlueprintsModule from '@/apps/industry-hub/Blueprints';
+import CraftingReferenceGuide from '@/apps/industry-hub/CraftingReferenceGuide';
 import MaterialsModule from '@/apps/industry-hub/Materials';
 import CraftQueueTab from '@/apps/industry-hub/CraftQueueTab';
 import RefineryManagement from '@/apps/industry-hub/RefineryManagement';
@@ -33,18 +35,19 @@ import IndustryTabBar from '@/components/IndustryTabBar';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
+  { id: 'guide', label: 'GUIDE' },
   { id: 'materials', label: 'MATERIALS' },
-  { id: 'refinery', label: 'REFINERY' },
   { id: 'blueprints', label: 'BLUEPRINTS' },
   { id: 'craft', label: 'CRAFT QUEUE' },
-  { id: 'components', label: 'COMPONENTS' },
-  { id: 'commerce', label: 'COMMERCE' },
-  { id: 'coffer', label: 'COFFER' },
-  { id: 'logistics', label: 'LOGISTICS' },
-  { id: 'cargo', label: 'CARGO' },
   { id: 'production', label: 'PRODUCTION' },
+  { id: 'refinery', label: 'REFINERY' },
+  { id: 'logistics', label: 'LOGISTICS' },
+  { id: 'commerce', label: 'COMMERCE' },
+  { id: 'cargo', label: 'CARGO' },
   { id: 'prices', label: 'PRICES' },
   { id: 'analytics', label: 'ANALYTICS' },
+  { id: 'components', label: 'COMPONENTS' },
+  { id: 'coffer', label: 'COFFER' },
   { id: 'lifecycle', label: 'LIFECYCLE' },
   { id: 'ownership', label: 'OWNERSHIP' },
   { id: 'treasury', label: 'TREASURY' },
@@ -73,6 +76,7 @@ const SUBTYPE_MAP = {
 
 function RefineryTab({ refineryOrders, materials, callsign }) {
   const [showInput, setShowInput] = React.useState(false);
+  const animatedOrders = useAnimatedList(refineryOrders, o => o.id);
 
   function timeLeft(isoStr) {
     if (!isoStr) return '—';
@@ -87,7 +91,7 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '12px 16px' }}>
       {/* Input Section */}
       {showInput ? (
-        <div>
+        <div className="nexus-raised">
           <RefineryManagement materials={materials} callsign={callsign} />
           <div style={{ padding: '0 16px 12px' }}>
             <button
@@ -112,7 +116,7 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
       )}
 
       {/* Orders List */}
-      <div style={{
+      <div className={`nexus-bg-dimable${showInput ? ' nexus-bg-dimmed' : ''}`} style={{
         background: '#0F0F0D',
         borderLeft: '2px solid #C0392B',
         borderTop: '0.5px solid rgba(200,170,100,0.10)',
@@ -131,7 +135,7 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
           ))}
         </div>
 
-        {refineryOrders.map(order => {
+        {animatedOrders.map(({ item: order, state }) => {
           const isReady = order.status === 'READY' || timeLeft(order.completes_at) === 'READY';
           const isActive = order.status === 'ACTIVE';
           const isCollected = order.status === 'COLLECTED';
@@ -139,7 +143,7 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
           const ss = SUBTYPE_MAP[order.input_subtype] || null;
 
           return (
-            <div key={order.id} style={{
+            <div key={order.id} data-anim={state} style={{
               display: 'grid', gridTemplateColumns: '1fr 56px 140px 72px 60px 120px 80px 80px',
               gap: 6, padding: '10px 12px', alignItems: 'center',
               borderBottom: '0.5px solid rgba(200,170,100,0.06)',
@@ -267,6 +271,7 @@ export default function IndustryHub() {
         ) : null}
         {tab === 'materials' ? <MaterialsModule materials={materials} onRefresh={load} /> : null}
         {tab === 'blueprints' ? <BlueprintsModule blueprints={blueprints} materials={materials} rank={rank} callsign={callsign} onRefresh={load} /> : null}
+        {tab === 'guide' ? <CraftingReferenceGuide blueprints={blueprints} materials={materials} /> : null}
         {tab === 'components' ? <ComponentsTab /> : null}
         {tab === 'craft' ? <CraftQueueTab craftQueue={craftQueue} callsign={callsign} materials={materials} blueprints={blueprints} /> : null}
         {tab === 'refinery' ? <RefineryTab refineryOrders={refineryOrders} materials={materials} callsign={callsign} /> : null}
