@@ -3,24 +3,23 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { TrendingUp } from 'lucide-react';
 
 const MATERIALS = ['TARANITE', 'BEXALITE', 'BORASE', 'QUANTANIUM', 'LARANITE', 'GOLD', 'AGRICIUM'];
-const REFINERY_METHODS = ['Dinyx Solventation', 'Cormack Method', 'Electrostarolysis', 'Gasification', 'Filtration', 'Pyrometric Chromalysis'];
+const REFINERY_METHODS = ['Dinyx Solventation', 'Ferron Exchange', 'Pyrometric Chromalysis'];
 const REFINERY_CONFIG = {
   'Dinyx Solventation': { yieldMult: 1.08, costMult: 1.12, note: 'Best yield, highest refinery fee.' },
-  'Cormack Method': { yieldMult: 1.03, costMult: 1.04, note: 'Balanced method with moderate cost.' },
-  Electrostarolysis: { yieldMult: 1.05, costMult: 1.08, note: 'Strong yield with slightly higher operating cost.' },
-  Gasification: { yieldMult: 0.94, costMult: 0.88, note: 'Cheaper and faster, but lower yield.' },
-  Filtration: { yieldMult: 0.97, costMult: 0.92, note: 'Lower cost option with steady returns.' },
+  'Ferron Exchange': { yieldMult: 1.03, costMult: 1.04, note: 'Balanced method — moderate cost and yield.' },
   'Pyrometric Chromalysis': { yieldMult: 1.1, costMult: 1.18, note: 'Highest margin when quality supports it.' },
 };
 
+// Placeholder prices removed — populate from PriceSnapshot or UEX API data.
+// When no live price exists the calc shows 0 so the user knows to check market data.
 const BASE_PRICES = {
-  TARANITE: { raw: 875, refined: 1120, crafted: 3200 },
-  BEXALITE:  { raw: 1050, refined: 1380, crafted: 4800 },
-  BORASE:    { raw: 460, refined: 680, crafted: 2100 },
-  QUANTANIUM: { raw: 2300, refined: 0, crafted: 0 },
-  LARANITE:  { raw: 720, refined: 950, crafted: 2900 },
-  GOLD:      { raw: 390, refined: 560, crafted: 0 },
-  AGRICIUM:  { raw: 540, refined: 780, crafted: 2600 },
+  TARANITE: { raw: 0, refined: 0, crafted: 0 },
+  BEXALITE: { raw: 0, refined: 0, crafted: 0 },
+  BORASE: { raw: 0, refined: 0, crafted: 0 },
+  QUANTANIUM: { raw: 0, refined: 0, crafted: 0 },
+  LARANITE: { raw: 0, refined: 0, crafted: 0 },
+  GOLD: { raw: 0, refined: 0, crafted: 0 },
+  AGRICIUM: { raw: 0, refined: 0, crafted: 0 },
 };
 
 const PRESETS = [
