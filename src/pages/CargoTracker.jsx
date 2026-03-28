@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, ScanLine } from 'lucide-react';
+import CargoOcrScanner from '@/apps/industry-hub/cargo-ocr/CargoOcrScanner';
+import CargoOcrReview from '@/apps/industry-hub/cargo-ocr/CargoOcrReview';
 
 const COMMON_COMMODITIES = [
   'Aluminum', 'Hadanite', 'Medical Supplies', 'Industrial Materials',
@@ -29,6 +31,8 @@ export default function CargoTracker() {
   const cargoLogEntity = /** @type {any} */ (base44.entities.CargoLog);
   const [activeTab, setActiveTab] = useState('log');
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [ocrResults, setOcrResults] = useState(null);
+  const [ocrStation, setOcrStation] = useState(null);
 
   const { data: logs = [] } = useQuery({
     queryKey: ['cargo-logs'],
@@ -125,12 +129,13 @@ export default function CargoTracker() {
         <div style={{ display: 'flex', gap: 0, borderBottom: '0.5px solid var(--b1)', marginBottom: 32, background: 'var(--bg1)' }}>
           {[
             { id: 'log', label: 'LOG CARGO' },
+            { id: 'scan', label: 'SCAN TERMINAL', icon: true },
             { id: 'analytics', label: 'ANALYTICS' },
             { id: 'history', label: 'HISTORY' },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => { setActiveTab(tab.id); if (tab.id !== 'scan') { setOcrResults(null); setOcrStation(null); } }}
               style={{
                 padding: '12px 18px',
                 background: 'none',
@@ -143,12 +148,41 @@ export default function CargoTracker() {
                 fontFamily: 'inherit',
                 fontWeight: 600,
                 transition: 'color 0.15s',
+                display: 'flex', alignItems: 'center', gap: 5,
               }}
             >
+              {tab.icon && <ScanLine size={10} />}
               {tab.label}
             </button>
           ))}
         </div>
+
+        {/* SCAN TERMINAL TAB */}
+        {activeTab === 'scan' && (
+          <div style={{ marginBottom: 40 }}>
+            {!ocrResults ? (
+              <CargoOcrScanner
+                onResults={(commodities, station) => {
+                  setOcrResults(commodities);
+                  setOcrStation(station);
+                }}
+                onCancel={() => setActiveTab('log')}
+              />
+            ) : (
+              <CargoOcrReview
+                commodities={ocrResults}
+                detectedStation={ocrStation}
+                onSaved={() => {
+                  setOcrResults(null);
+                  setOcrStation(null);
+                  queryClient.invalidateQueries({ queryKey: ['cargo-logs'] });
+                  setActiveTab('history');
+                }}
+                onCancel={() => { setOcrResults(null); setOcrStation(null); }}
+              />
+            )}
+          </div>
+        )}
 
         {/* LOG CARGO TAB */}
         {activeTab === 'log' && (
