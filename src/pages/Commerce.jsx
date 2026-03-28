@@ -6,6 +6,7 @@ import { useSession } from '@/core/data/SessionContext';
 import EmptyState from '@/core/design/EmptyState';
 import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import TradeRouteMap from '@/apps/commerce/components/TradeRouteMap';
+import ExchangeBoard from '@/apps/commerce/components/ExchangeBoard';
 import {
   calculateManifestValue,
   formatAuec,
@@ -29,6 +30,7 @@ const TABS = [
   { id: 'wallet', label: 'Wallet' },
   { id: 'trade', label: 'Trade Desk' },
   { id: 'contracts', label: 'Contracts' },
+  { id: 'exchange', label: 'Exchange' },
 ];
 
 const STATUS_STYLES = {
@@ -98,6 +100,8 @@ export default function Commerce() {
   const [contracts, setContracts] = useState([]);
   const [cofferEntries, setCofferEntries] = useState([]);
   const [cargoLogs, setCargoLogs] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [commodities, setCommodities] = useState([]);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showContractForm, setShowContractForm] = useState(false);
   const [transactionForm, setTransactionForm] = useState({ type: 'CREDIT', amount_aUEC: '', description: '' });
@@ -115,12 +119,14 @@ export default function Commerce() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [walletsResult, transactionsResult, contractsResult, cofferResult, cargoLogsResult] = await Promise.allSettled([
+    const [walletsResult, transactionsResult, contractsResult, cofferResult, cargoLogsResult, materialsResult, commoditiesResult] = await Promise.allSettled([
       base44.entities.Wallet.list('-last_updated', 100),
       base44.entities.Transaction.list('-created_at', 200),
       base44.entities.Contract.list('-created_at', 200),
       base44.entities.CofferLog.list('-logged_at', 100),
       base44.entities.CargoLog.list('-logged_at', 200),
+      base44.entities.Material.list('-logged_at', 200),
+      base44.entities.GameCacheCommodity.list('-baseline_price', 200),
     ]);
 
     const nextAvailability = {
@@ -136,6 +142,8 @@ export default function Commerce() {
     if (contractsResult.status === 'fulfilled') setContracts(toArray(contractsResult.value)); else { setContracts([]); unavailable.push('Contract'); }
     if (cofferResult.status === 'fulfilled') setCofferEntries(toArray(cofferResult.value)); else { setCofferEntries([]); unavailable.push('CofferLog'); }
     if (cargoLogsResult.status === 'fulfilled') setCargoLogs(toArray(cargoLogsResult.value)); else { setCargoLogs([]); unavailable.push('CargoLog'); }
+    if (materialsResult.status === 'fulfilled') setMaterials(toArray(materialsResult.value)); else setMaterials([]);
+    if (commoditiesResult.status === 'fulfilled') setCommodities(toArray(commoditiesResult.value)); else setCommodities([]);
     setEntityAvailability(nextAvailability);
     setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Commerce will degrade to read-only until those entities are available.` : '');
     setLoading(false);
@@ -679,6 +687,20 @@ export default function Commerce() {
                 })
             )}
           </div>
+        </div>
+      ) : null}
+
+      {activeTab === 'exchange' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div className="nexus-section-header">EXCHANGE</div>
+          </div>
+          <ExchangeBoard
+            materials={materials}
+            commodities={commodities}
+            viewerId={viewerId}
+            viewerCallsign={viewerCallsign}
+          />
         </div>
       ) : null}
     </div>
