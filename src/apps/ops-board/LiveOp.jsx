@@ -16,6 +16,7 @@ import LiveOpTopbar from './LiveOpTopbar';
 import MissionControlPanel from './MissionControlPanel';
 import RoleReassignPanel from './RoleReassignPanel';
 import OpWrapUpPanel from './OpWrapUpPanel';
+import ResourceReportPanel from './ResourceReportPanel';
 
 const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
 const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
@@ -266,6 +267,7 @@ export default function LiveOp() {
   const missionControlProps = { op, rsvps, callsign, rank };
   const roleReassignProps = { op, rsvps, rank, onUpdate: fetchOp };
   const wrapUpProps = { op, rsvps, callsign, rank, onUpdate: fetchOp };
+  const resourceReportProps = { op, rsvps, callsign, rank };
   const isComplete = op.status === 'COMPLETE';
 
   const hero = (
@@ -379,6 +381,10 @@ export default function LiveOp() {
       {/* Financial wrap-up panel for completed ops */}
       {isComplete && (
         <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          <Panel title="RESOURCE INTELLIGENCE">
+            <ResourceReportPanel {...resourceReportProps} />
+          </Panel>
+          <div style={{ height: 16 }} />
           <Panel title="FINANCIAL WRAP-UP">
             <OpWrapUpPanel {...wrapUpProps} />
           </Panel>
@@ -396,6 +402,11 @@ export default function LiveOp() {
             {isLive && (
               <Panel title="MISSION CONTROL">
                 <MissionControlPanel {...missionControlProps} />
+              </Panel>
+            )}
+            {isLive && (
+              <Panel title="RESOURCE INTELLIGENCE">
+                <ResourceReportPanel {...resourceReportProps} />
               </Panel>
             )}
             <Panel title="CREW & RSVP">
@@ -453,6 +464,11 @@ export default function LiveOp() {
             {isLive && (
               <Panel title="MISSION CONTROL">
                 <MissionControlPanel {...missionControlProps} />
+              </Panel>
+            )}
+            {isLive && (
+              <Panel title="RESOURCE INTELLIGENCE">
+                <ResourceReportPanel {...resourceReportProps} />
               </Panel>
             )}
             <Panel title="LOOT TALLY">
