@@ -3,7 +3,6 @@ import { AlertTriangle, Copy, RefreshCw, Shield } from 'lucide-react';
 import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
 import InviteMessageBuilder from '@/components/InviteMessageBuilder';
-import { showToast } from '@/components/NexusToast';
 
 const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 const SYSTEM_ADMIN_LOGIN = 'system-admin';

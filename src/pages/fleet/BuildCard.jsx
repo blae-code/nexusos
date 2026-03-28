@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Star, Trash2, Edit2, Lock, Tag } from 'lucide-react';
+import { ExternalLink, Star, Trash2, Edit2, Lock } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 
 const ROLE_COLORS = {
