@@ -2,7 +2,7 @@
  * generateKey — Legacy admin-only invite issuance endpoint.
  * Prefer auth/keys, but keep this path functional for older callers.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import {
   AUTH_ISSUE_REQUIRED_FIELDS,
   generateAuthKey,

@@ -1,16 +1,10 @@
+import { getAppParams } from '@/core/data/app-params';
+
 export const AUTH_REQUEST_TIMEOUT_MS = 6000;
 
-function buildFunctionUrl(functionPath, searchParams) {
+function buildFunctionUrl(functionPath) {
   const origin = typeof window === 'undefined' ? 'http://127.0.0.1' : window.location.origin;
-  const url = new URL(`/api/functions/${functionPath}`, origin);
-  if (searchParams) {
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value != null && value !== '') {
-        url.searchParams.set(key, value);
-      }
-    });
-  }
-  return url;
+  return new URL(`/api/functions/${functionPath}`, origin);
 }
 
 async function parseJson(response) {
@@ -20,6 +14,20 @@ async function parseJson(response) {
 async function parseApiResponse(response) {
   const data = await parseJson(response);
   return { ok: response.ok, status: response.status, ...(data || {}) };
+}
+
+/**
+ * Build auth headers that include the Base44 platform access token.
+ * This ensures createClientFromRequest(req) in backend functions can
+ * establish asServiceRole context even for unauthenticated browser requests.
+ */
+function authHeaders(extra = {}) {
+  const headers = { ...extra };
+  const { token } = getAppParams();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
 }
 
 async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
@@ -44,6 +52,7 @@ export const authApi = {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
+      headers: authHeaders(),
     }, timeoutMs);
 
     return parseApiResponse(response);
@@ -55,7 +64,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ username, key, remember_me: rememberMe }),
     }, timeoutMs);
 
@@ -68,7 +77,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ username, key, remember_me: rememberMe }),
     }, timeoutMs);
 
@@ -80,6 +89,7 @@ export const authApi = {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
+      headers: authHeaders(),
     }, timeoutMs);
 
     const data = await parseApiResponse(response);
@@ -94,6 +104,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
+      headers: authHeaders(),
     }, timeoutMs);
 
     return parseApiResponse(response);
@@ -104,6 +115,7 @@ export const authApi = {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
+      headers: authHeaders(),
     }, timeoutMs);
 
     return parseApiResponse(response);
@@ -114,7 +126,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         action: 'issue',
         username,
@@ -131,7 +143,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         action: 'revoke',
         user_id: userId,
@@ -146,7 +158,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         action: 'regenerate',
         user_id: userId,
@@ -161,7 +173,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         action: 'update_rank',
         user_id: userId,
@@ -177,7 +189,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         consent_given: consentGiven,
         ai_features_enabled: aiEnabled,
@@ -197,7 +209,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
     }, timeoutMs);
 
@@ -209,6 +221,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
+      headers: authHeaders(),
     }, timeoutMs);
 
     return parseApiResponse(response);
@@ -219,6 +232,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
+      headers: authHeaders(),
     }, timeoutMs);
 
     return parseApiResponse(response);
@@ -229,7 +243,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         action,
         ...payload,
@@ -244,7 +258,7 @@ export const authApi = {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         action: 'cleanup_records',
         records,
