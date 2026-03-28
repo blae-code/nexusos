@@ -268,6 +268,7 @@ export default function IndustryHub() {
               craftQueue={craftQueue}
               refineryOrders={refineryOrders}
               scoutDeposits={scoutDeposits}
+              orgShips={orgShips}
             />
           </div>
         ) : null}

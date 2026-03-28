@@ -1,4 +1,5 @@
 import React from 'react';
+import FleetHealthDashboard from './FleetHealthDashboard';
 import {
   StatCard,
   InsightStrip,
@@ -14,6 +15,7 @@ export default function IndustryOverview({
   craftQueue,
   refineryOrders,
   scoutDeposits,
+  orgShips = [],
 }) {
   const activeMats = materials.filter(m => !m.is_archived);
   const totalSCU = activeMats.reduce((s, m) => s + (m.quantity_scu || 0), 0);
@@ -95,6 +97,12 @@ export default function IndustryOverview({
           <BlueprintGroup label="WEAPONS" items={weaponBlueprints} />
           <BlueprintGroup label="ARMOR & COMPONENTS" items={supportBlueprints} />
         </div>
+      </section>
+
+      {/* Fleet Health */}
+      <section>
+        <SectionHeader>FLEET HEALTH</SectionHeader>
+        <FleetHealthDashboard orgShips={orgShips} />
       </section>
 
       {/* Scout Intel Feed */}
