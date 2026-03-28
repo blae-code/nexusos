@@ -107,6 +107,28 @@ Deno.serve(async (req) => {
   const resetRequested = readBodyFlag(body, 'reset', 'force_reset', 'hard_reset');
   const adminSession = await requireAdmin(req, base44);
 
+  // --- fix-user-rank action ---
+  const action = readBodyField(body, 'action');
+  if (action === 'fix-user-rank') {
+    if (!adminSession && !recoveryAuthorized) {
+      return Response.json({ error: 'forbidden' }, { status: 403, headers: NO_STORE });
+    }
+    const target = readBodyField(body, 'target');
+    if (target === 'BLAE') {
+      const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
+      const blae = (allUsers || []).find(u => String(u.callsign || '').toUpperCase() === 'BLAE');
+      if (!blae) {
+        return Response.json({ error: 'user_not_found', target }, { status: 404, headers: NO_STORE });
+      }
+      await base44.asServiceRole.entities.NexusUser.update(blae.id, {
+        is_admin: false,
+        nexus_rank: 'VOYAGER',
+      });
+      return Response.json({ success: true, callsign: 'BLAE', nexus_rank: 'VOYAGER', is_admin: false }, { headers: NO_STORE });
+    }
+    return Response.json({ error: 'unknown_target', target }, { status: 400, headers: NO_STORE });
+  }
+
   if (!adminSession && !recoveryAuthorized) {
     return Response.json({
       error: 'bootstrap_locked',
