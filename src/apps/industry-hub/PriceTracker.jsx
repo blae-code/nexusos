@@ -5,6 +5,7 @@ import { TrendingDown, TrendingUp, Plus, X } from 'lucide-react';
 import PriceWatchlist from './PriceWatchlist';
 import PriceChart from './PriceChart';
 import StationPrices from './StationPrices';
+import PriceAlertPanel from './PriceAlertPanel';
 
 export default function PriceTracker() {
   const [commodities, setCommodities] = useState([]);
@@ -245,6 +246,9 @@ export default function PriceTracker() {
               </div>
 
               {/* Chart */}
+              {/* Price alerts */}
+              <PriceAlertPanel commodityName={selectedCommodity.name} />
+
               {loadingPrices ? (
                 <div
                   className="flex items-center justify-center flex-1 rounded border border-[rgba(200,170,100,0.12)]"
