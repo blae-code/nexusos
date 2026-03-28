@@ -32,6 +32,7 @@ import DebtTracker from '@/pages/DebtTracker';
 import AssetManager from '@/pages/AssetManager';
 import MarketIntelligence from '@/apps/market-intel/MarketIntelligence';
 import MarketHub from '@/apps/market-hub/MarketHub';
+import MemberManagement from '@/pages/MemberManagement';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 import MissionPlannerPage from '@/apps/ops-board/mission-planner/MissionPlannerPage';
 
@@ -96,6 +97,7 @@ function App() {
 
               {/* Org */}
               <Route path="roster" element={withRouteBoundary(<OrgRoster />, true)} />
+              <Route path="roster/manage" element={withRouteBoundary(<MemberManagement />, true)} />
               <Route path="roster/debts" element={withRouteBoundary(<DebtTracker />, true)} />
               <Route path="handbook" element={withRouteBoundary(<RedscarHandbook />, true)} />
               <Route path="training" element={withRouteBoundary(<TrainingHub />, true)} />

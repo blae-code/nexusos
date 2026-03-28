@@ -56,6 +56,7 @@ const NAV = [
       {
         icon: Users, label: 'ORG ROSTER', path: '/app/roster',
         children: [
+          { label: 'MEMBER MGMT', path: '/app/roster/manage' },
           { label: 'DEBT TRACKER', path: '/app/roster/debts' },
         ],
       },

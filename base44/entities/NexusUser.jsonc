@@ -62,6 +62,34 @@
     "op_role": {
       "type": "string"
     },
+    "specialization": {
+      "type": "string",
+      "enum": [
+        "MINING",
+        "SALVAGE",
+        "COMBAT",
+        "CRAFTING",
+        "HAULING",
+        "MEDICAL",
+        "EXPLORATION",
+        "RACING",
+        "LEADERSHIP",
+        "UNASSIGNED"
+      ],
+      "default": "UNASSIGNED",
+      "description": "Primary gameplay specialization / expertise area"
+    },
+    "intel_access": {
+      "type": "string",
+      "enum": [
+        "FULL",
+        "STANDARD",
+        "RESTRICTED",
+        "NONE"
+      ],
+      "default": "STANDARD",
+      "description": "Access level to sensitive org intel (routes, prices, finances)"
+    },
     "aUEC_balance": {
       "type": "integer",
       "default": 0
