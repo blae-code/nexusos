@@ -431,10 +431,10 @@ export default function Commerce() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-            <MetricCard label="Available" value={formatCompactAuec(walletBalance)} detail="Current cleared balance for the active member." color="var(--live)" />
-            <MetricCard label="Pending" value={formatCompactAuec(pendingTotal)} detail="Pending wallet movements not yet settled into cleared balance." color="var(--warn)" />
-            <MetricCard label="Credits" value={formatCompactAuec(clearedIn)} detail="Total logged wallet credits for the active member." color="var(--info)" />
-            <MetricCard label="Debits" value={formatCompactAuec(clearedOut)} detail="Total logged wallet debits for the active member." color="var(--danger)" />
+            <MetricCard label="Available" rawValue={walletBalance} formatter={formatCompactAuec} detail="Current cleared balance for the active member." color="var(--live)" />
+            <MetricCard label="Pending" rawValue={pendingTotal} formatter={formatCompactAuec} detail="Pending wallet movements not yet settled into cleared balance." color="var(--warn)" />
+            <MetricCard label="Credits" rawValue={clearedIn} formatter={formatCompactAuec} detail="Total logged wallet credits for the active member." color="var(--info)" />
+            <MetricCard label="Debits" rawValue={clearedOut} formatter={formatCompactAuec} detail="Total logged wallet debits for the active member." color="var(--danger)" />
           </div>
 
           <div className="nexus-card-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -453,7 +453,7 @@ export default function Commerce() {
           </div>
 
           {showTransactionForm ? (
-            <form onSubmit={handleLogTransaction} className="nexus-card-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
+            <form onSubmit={handleLogTransaction} className="nexus-card-2 nexus-raised" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10 }}>
               <div>
                 <label style={{ color: 'var(--t2)', fontSize: 10, marginBottom: 6, display: 'block', letterSpacing: '0.08em' }}>TYPE</label>
                 <select className="nexus-input" value={transactionForm.type} onChange={(event) => setTransactionForm((current) => ({ ...current, type: event.target.value }))} disabled={!capabilities.walletWrite}>
@@ -477,7 +477,7 @@ export default function Commerce() {
             </form>
           ) : null}
 
-          <div className="nexus-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className={`nexus-card nexus-bg-dimable${showTransactionForm ? ' nexus-bg-dimmed' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <ScrollText size={14} style={{ color: 'var(--acc)' }} />
               <div style={{ color: 'var(--t0)', fontSize: 12, fontWeight: 600 }}>Transaction History</div>
@@ -519,9 +519,9 @@ export default function Commerce() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-            <MetricCard label="Logged Profit" value={formatCompactAuec(tradeProfit)} detail={`${cargoLogs.length} logged cargo runs currently in the ledger.`} color={tradeProfit >= 0 ? 'var(--live)' : 'var(--danger)'} />
+            <MetricCard label="Logged Profit" rawValue={tradeProfit} formatter={formatCompactAuec} detail={`${cargoLogs.length} logged cargo runs currently in the ledger.`} color={tradeProfit >= 0 ? 'var(--live)' : 'var(--danger)'} />
             <MetricCard label="Top Commodity" value={topTradeCommodity ? topTradeCommodity[0] : 'No Data'} detail={topTradeCommodity ? `${formatCompactAuec(topTradeCommodity[1])} logged profit contribution.` : 'Log cargo runs to identify the best trade lane.'} color="var(--acc)" />
-            <MetricCard label="Org Coffer" value={formatCompactAuec(cofferBalance)} detail="Shared treasury state visible alongside trade planning and payout readiness." color="var(--info)" />
+            <MetricCard label="Org Coffer" rawValue={cofferBalance} formatter={formatCompactAuec} detail="Shared treasury state visible alongside trade planning and payout readiness." color="var(--info)" />
             <MetricCard label="Open Contracts" value={String(openContracts.length)} detail={`${activeContracts.length} active or in-transit contracts are currently in flight.`} color="var(--warn)" />
           </div>
 
