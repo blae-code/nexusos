@@ -18,6 +18,7 @@ const NAV = [
         icon: Crosshair, label: 'OPS BOARD', path: '/app/ops',
         children: [
           { label: 'TIMELINE', path: '/app/ops/timeline' },
+          { label: 'MISSION PLANNER', path: '/app/ops/planner' },
           { label: 'CREATE OP', path: '/app/ops/new' },
         ],
       },

@@ -31,6 +31,7 @@ import BootScreen from '@/pages/BootScreen';
 import DebtTracker from '@/pages/DebtTracker';
 import MarketIntelligence from '@/apps/market-intel/MarketIntelligence';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
+import MissionPlannerPage from '@/apps/ops-board/mission-planner/MissionPlannerPage';
 
 function withRouteBoundary(element, compact = false) {
   return <RouteErrorBoundary compact={compact}>{element}</RouteErrorBoundary>;
@@ -70,6 +71,7 @@ function App() {
               <Route path="ops" element={withRouteBoundary(<OpBoard />, true)} />
               <Route path="ops/timeline" element={withRouteBoundary(<OpsTimeline />, true)} />
               <Route path="ops/new" element={withRouteBoundary(<OpCreator />, true)} />
+              <Route path="ops/planner" element={withRouteBoundary(<MissionPlannerPage />, true)} />
               <Route path="ops/:id" element={withRouteBoundary(<LiveOp />, true)} />
               {/* Rescue Board hidden — future feature */}
               <Route path="ops/archive" element={withRouteBoundary(<EpicArchive />, true)} />
