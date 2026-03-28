@@ -1,0 +1,47 @@
+{
+  "name": "PriceHistory",
+  "type": "object",
+  "properties": {
+    "commodity_name": {
+      "type": "string",
+      "description": "Normalised commodity name"
+    },
+    "buy_avg": {
+      "type": "number",
+      "description": "Average buy price at time of snapshot"
+    },
+    "sell_avg": {
+      "type": "number",
+      "description": "Average sell price at time of snapshot"
+    },
+    "best_buy_price": {
+      "type": "number"
+    },
+    "best_sell_price": {
+      "type": "number"
+    },
+    "best_buy_station": {
+      "type": "string"
+    },
+    "best_sell_station": {
+      "type": "string"
+    },
+    "margin_pct": {
+      "type": "number",
+      "description": "Best margin at time of snapshot"
+    },
+    "volume_estimate": {
+      "type": "number",
+      "description": "Trade volume estimate if available"
+    },
+    "snapped_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this snapshot was taken"
+    }
+  },
+  "required": [
+    "commodity_name",
+    "snapped_at"
+  ]
+}

@@ -4,7 +4,7 @@ import { useSession } from '@/core/data/SessionContext';
 import SidebarWidget from './SidebarWidget';
 import {
   Crosshair, LayoutGrid, Clock, PlusCircle, LifeBuoy, Archive,
-  Activity, Factory, BookOpen, GraduationCap, Radar,
+  Activity, Factory, BookOpen, GraduationCap, Radar, BarChart3,
   Shield, Wrench, Package, Ship, Users,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
 } from 'lucide-react';
@@ -27,6 +27,7 @@ const NAV = [
     label: 'INDUSTRY',
     items: [
       { icon: Factory, label: 'INDUSTRY HUB', path: '/app/industry' },
+      { icon: BarChart3, label: 'MARKET INTEL', path: '/app/market' },
     ],
   },
   {

@@ -28,6 +28,7 @@ import OrgRoster from '@/pages/OrgRoster';
 import EpicArchive from '@/pages/EpicArchive';
 import BootScreen from '@/pages/BootScreen';
 import DebtTracker from '@/pages/DebtTracker';
+import MarketIntelligence from '@/apps/market-intel/MarketIntelligence';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 
 function withRouteBoundary(element, compact = false) {
@@ -78,6 +79,9 @@ function App() {
               <Route path="armory" element={withRouteBoundary(<Armory />, true)} />
               <Route path="armory/fleet" element={withRouteBoundary(<FleetHub />, true)} />
               <Route path="armory/inventory" element={withRouteBoundary(<InventoryManager />, true)} />
+              {/* Market Intelligence */}
+              <Route path="market" element={withRouteBoundary(<MarketIntelligence />, true)} />
+
               {/* Redirects for old fleet sub-routes */}
               <Route path="armory/org-fleet" element={<Navigate to="/app/armory/fleet" replace />} />
               <Route path="armory/readiness" element={<Navigate to="/app/armory/fleet?tab=readiness" replace />} />
