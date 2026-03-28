@@ -1,0 +1,95 @@
+{
+  "name": "AssetReservation",
+  "type": "object",
+  "properties": {
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "SHIP",
+        "VEHICLE",
+        "EQUIPMENT",
+        "OTHER"
+      ],
+      "description": "Type of asset reserved"
+    },
+    "ship_id": {
+      "type": "string",
+      "description": "FK to OrgShip if ship reservation"
+    },
+    "ship_name": {
+      "type": "string",
+      "description": "Denormalized ship name"
+    },
+    "ship_model": {
+      "type": "string",
+      "description": "Denormalized ship model"
+    },
+    "asset_id": {
+      "type": "string",
+      "description": "FK to OrgAsset if non-ship reservation"
+    },
+    "asset_name": {
+      "type": "string",
+      "description": "Denormalized asset name"
+    },
+    "reserved_by_callsign": {
+      "type": "string"
+    },
+    "reserved_by_id": {
+      "type": "string",
+      "description": "NexusUser ID"
+    },
+    "purpose": {
+      "type": "string",
+      "description": "Reason / mission type for reservation"
+    },
+    "op_id": {
+      "type": "string",
+      "description": "FK to Op if tied to an operation"
+    },
+    "op_name": {
+      "type": "string",
+      "description": "Denormalized op name"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "CONFIRMED",
+        "ACTIVE",
+        "COMPLETED",
+        "CANCELLED"
+      ],
+      "default": "PENDING"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Callsign of approver"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "system_location": {
+      "type": "string",
+      "description": "System where asset will be used"
+    }
+  },
+  "required": [
+    "reserved_by_callsign",
+    "start_time",
+    "end_time",
+    "status"
+  ]
+}

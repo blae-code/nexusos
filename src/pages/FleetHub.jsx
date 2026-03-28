@@ -7,6 +7,7 @@ import FleetBuilds from '@/pages/fleet/FleetBuilds';
 import FleetReadinessView from '@/pages/fleet/FleetReadinessView';
 import CrewScheduler from '@/pages/CrewScheduler';
 import ShipLoadoutsTab from '@/pages/fleet/ShipLoadoutsTab';
+import AssetScheduler from '@/apps/fleet/scheduler/AssetScheduler';
 
 const TABS = [
   { id: 'status', label: 'FLEET STATUS' },
@@ -16,6 +17,7 @@ const TABS = [
   { id: 'builds', label: 'BUILDS' },
   { id: 'readiness', label: 'READINESS' },
   { id: 'crew', label: 'CREW' },
+  { id: 'scheduler', label: 'SCHEDULER' },
 ];
 
 export default function FleetHub() {
@@ -59,6 +61,7 @@ export default function FleetHub() {
         {tab === 'builds' && <FleetBuilds />}
         {tab === 'readiness' && <FleetReadinessView />}
         {tab === 'crew' && <CrewScheduler />}
+        {tab === 'scheduler' && <AssetScheduler />}
       </div>
     </div>
   );
