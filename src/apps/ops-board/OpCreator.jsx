@@ -283,7 +283,7 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
           {/* Steps */}
           <div style={{ animation: 'nexus-fade-in 200ms ease-out both' }} key={step}>
             {step === 0 && <OpTypeSelector value={form.type} onChange={v => set('type', v)} />}
-            {step === 1 && <OpBriefingStep form={form} set={set} validationErrors={validationErrors} />}
+            {step === 1 && <OpBriefingStep form={form} set={set} validationErrors={validationErrors} opType={form.type} />}
             {step === 2 && (
               <OpCrewStep
                 roleSlots={roleSlots} onRoleSlotsChange={setRoleSlots}
