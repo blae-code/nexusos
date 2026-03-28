@@ -202,20 +202,17 @@ export default function NexusShell() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          height: '100vh',
-          background: 'var(--bg0)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div className="nexus-loading-dots" style={{ color: 'var(--t1)' }}>
-          <span />
-          <span />
-          <span />
-        </div>
+      <div style={{ height: '100vh', background: '#08080A', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style={{ opacity: 0.3, animation: 'pulse 2s ease-in-out infinite' }}>
+          <circle cx="22" cy="22" r="20" stroke="#E8E4DC" strokeWidth="0.6" opacity="0.4"/>
+          <circle cx="22" cy="22" r="14" stroke="#C0392B" strokeWidth="0.6" opacity="0.55"/>
+          <circle cx="22" cy="22" r="7" fill="#C0392B" opacity="0.85"/>
+          <circle cx="22" cy="22" r="3" fill="#E8E4DC"/>
+          <line x1="22" y1="2" x2="22" y2="7.5" stroke="#E8E4DC" strokeWidth="1.2" strokeLinecap="round"/>
+          <polygon points="22,2 20.2,12 22,10.5 23.8,12" fill="#E8E4DC" opacity="0.9"/>
+        </svg>
+        <div style={{ fontFamily: "'Beyond Mars','Barlow Condensed',sans-serif", fontSize: 28, color: '#E8E4DC', letterSpacing: '0.08em' }}>NEXUSOS</div>
+        <div style={{ fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif", fontSize: 10, color: '#5A5850', letterSpacing: '0.25em', textTransform: 'uppercase' }}>INITIALISING...</div>
       </div>
     );
   }

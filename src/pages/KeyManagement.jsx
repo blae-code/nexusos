@@ -3,6 +3,7 @@ import { AlertTriangle, Copy, RefreshCw, Shield } from 'lucide-react';
 import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
 import InviteMessageBuilder from '@/components/InviteMessageBuilder';
+import { showToast } from '@/components/NexusToast';
 
 const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 const SYSTEM_ADMIN_LOGIN = 'system-admin';
@@ -158,12 +159,14 @@ export default function KeyManagement() {
           contextLabel: `Issue For ${username.trim().toUpperCase()} · ${rank}`,
         });
         setUsername('');
+        showToast('AUTH KEY ISSUED', 'success');
         await loadUsers();
       } else {
         setError('Issuance failed.');
       }
     } catch (err) {
       setError(err?.message || 'Issuance failed.');
+      showToast('KEY ISSUANCE FAILED', 'error');
     } finally {
       setSubmitting(false);
       setWorkingUserId('');

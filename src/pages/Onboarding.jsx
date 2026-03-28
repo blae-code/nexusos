@@ -556,7 +556,9 @@ export default function Onboarding() {
     return <Navigate to={postOnboardingDestination} replace />;
   }
 
-  const handleComplete = () => {
+
+  const handleComplete = async () => {
+    // Refresh session to pick up onboarding_complete flag, then redirect
     window.location.href = withAppBase(postOnboardingDestination);
   };
 

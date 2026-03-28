@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import { Plus, TrendingUp, TrendingDown, Coins, BookOpen } from 'lucide-react';
+import { showToast } from '@/components/NexusToast';
 import EmptyState from '@/core/design/EmptyState';
 
 const ENTRY_PILL = {
@@ -81,14 +82,19 @@ export default function CofferLedger() {
   const net = totalIn - totalOut;
 
   const handleLog = async (form) => {
-    await base44.entities.CofferLog.create({
-      ...form,
-      logged_by_user_id: sessionUserId,
-      logged_by_callsign: callsign || 'UNKNOWN',
-      logged_at: new Date().toISOString(),
-      source_type: 'MANUAL',
-    });
-    setShowForm(false);
+    try {
+      await base44.entities.CofferLog.create({
+        ...form,
+        logged_by_user_id: sessionUserId,
+        logged_by_callsign: callsign || 'UNKNOWN',
+        logged_at: new Date().toISOString(),
+        source_type: 'MANUAL',
+      });
+      setShowForm(false);
+      showToast('TRANSACTION LOGGED', 'success');
+    } catch (err) {
+      showToast(err?.message || 'Failed to log transaction', 'error');
+    }
   };
 
   return (

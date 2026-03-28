@@ -46,6 +46,57 @@ function normalizeCallsign(value) {
     .slice(0, 40);
 }
 
+function WalletBalanceEditor({ user, patchUser }) {
+  const [balance, setBalance] = useState(String(user?.aUEC_balance ?? ''));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setBalance(String(user?.aUEC_balance ?? ''));
+  }, [user?.aUEC_balance]);
+
+  const save = async () => {
+    const val = parseInt(balance) || 0;
+    if (!user?.id) return;
+    setSaving(true);
+    try {
+      await base44.entities.NexusUser.update(user.id, { aUEC_balance: val });
+      patchUser({ aUEC_balance: val });
+      showToast('WALLET UPDATED', 'success');
+    } catch {
+      showToast('Failed to update wallet', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ color: 'var(--t0)', fontSize: 12, marginBottom: 6 }}>Personal Wallet (aUEC)</div>
+      <div className="flex items-center gap-2">
+        <input
+          className="nexus-input"
+          type="number"
+          value={balance}
+          onChange={e => setBalance(e.target.value)}
+          placeholder="0"
+          style={{ maxWidth: 180 }}
+        />
+        <button
+          onClick={save}
+          disabled={saving}
+          className="nexus-btn primary"
+          style={{ padding: '6px 12px', fontSize: 10 }}
+        >
+          <Save size={11} /> {saving ? 'SAVING' : 'UPDATE'}
+        </button>
+      </div>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 11, color: '#5A5850', marginTop: 6 }}>
+        Update your in-game aUEC balance manually. This is displayed in the topbar.
+      </div>
+    </div>
+  );
+}
+
 export default function NexusSettings() {
   const { user, logout, patchUser } = useSession();
   const outletContext = /** @type {any} */ (useOutletContext() || {});
@@ -263,6 +314,7 @@ export default function NexusSettings() {
       </Section>
 
       <Section title="WALLET">
+        <WalletBalanceEditor user={user} patchUser={patchUser} />
         <PersonalWalletPanel />
       </Section>
 

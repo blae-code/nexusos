@@ -7,6 +7,7 @@ import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import { Plus, Check, X, Package, CreditCard, FileText, Ship } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
+import { showToast } from '@/components/NexusToast';
 
 const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'VOYAGER'];
 
@@ -295,8 +296,13 @@ export default function RequisitionManager() {
   }, [reqs, statusFilter]);
 
   const handleSubmit = async (form) => {
-    await base44.entities.Requisition.create(form);
-    setShowForm(false);
+    try {
+      await base44.entities.Requisition.create(form);
+      setShowForm(false);
+      showToast('REQUISITION SUBMITTED', 'success');
+    } catch (err) {
+      showToast(err?.message || 'Failed to submit requisition', 'error');
+    }
   };
 
   const handleAction = async (req, action) => {
@@ -314,7 +320,12 @@ export default function RequisitionManager() {
       updates.fulfilled_by = callsign;
       updates.fulfilled_at = new Date().toISOString();
     }
-    await base44.entities.Requisition.update(req.id, updates);
+    try {
+      await base44.entities.Requisition.update(req.id, updates);
+      showToast(`REQUEST ${action.toUpperCase()}D`, 'success');
+    } catch (err) {
+      showToast(err?.message || 'Action failed', 'error');
+    }
   };
 
   const openCount = reqs.filter(r => r.status === 'OPEN').length;

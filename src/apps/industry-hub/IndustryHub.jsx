@@ -29,6 +29,7 @@ import DismantleTracker from '@/apps/industry-hub/DismantleTracker';
 import BlueprintWishlistPanel from '@/apps/industry-hub/BlueprintWishlistPanel';
 import CraftingCostCalc from '@/apps/industry-hub/CraftingCostCalc';
 import CargoSCUPlanner from '@/apps/industry-hub/CargoSCUPlanner';
+import IndustryTabBar from '@/components/IndustryTabBar';
 
 const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
@@ -248,32 +249,7 @@ export default function IndustryHub() {
         background: '#0A0908', flexShrink: 0,
         position: 'relative',
       }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 0,
-          overflowX: 'auto', overflowY: 'hidden',
-          scrollbarWidth: 'none', msOverflowStyle: 'none',
-          padding: '0 16px',
-          maskImage: 'linear-gradient(to right, black 95%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, black 95%, transparent 100%)',
-        }}>
-          {TABS.map((item) => (
-            <button
-              key={item.id} type="button" onClick={() => setTab(item.id)}
-              style={{
-                padding: '11px 12px', background: 'transparent', border: 'none',
-                borderBottom: tab === item.id ? '2px solid #C0392B' : '2px solid transparent',
-                color: tab === item.id ? '#E8E4DC' : '#5A5850',
-                fontSize: 11, fontWeight: 600, letterSpacing: '0.10em',
-                cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif",
-                textTransform: 'uppercase', transition: 'color 120ms ease',
-                whiteSpace: 'nowrap', flexShrink: 0,
-              }}
-              onMouseEnter={e => { if (tab !== item.id) e.currentTarget.style.color = '#9A9488'; }}
-              onMouseLeave={e => { if (tab !== item.id) e.currentTarget.style.color = '#5A5850'; }}
-            >{item.label}</button>
-          ))}
-        </div>
-        <style>{`.nexus-industry-tabs::-webkit-scrollbar { display: none; }`}</style>
+        <IndustryTabBar tabs={TABS} activeTab={tab} onTabChange={setTab} />
       </div>
 
       <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
