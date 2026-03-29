@@ -5,6 +5,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useSession } from '@/core/data/SessionContext';
 import { Shield, Package, Filter } from 'lucide-react';
 import { showToast } from '@/components/NexusToast';
@@ -34,7 +35,7 @@ export default function OpsCommandTab() {
 
   const load = useCallback(async () => {
     const [r, s, o] = await Promise.all([
-      base44.entities.Requisition.list('-requested_at', 200),
+      base44.entities.Requisition.list('-requested_at', 200).catch(() => []),
       base44.entities.OrgShip.list('name', 200).catch(() => []),
       base44.entities.Op.list('-scheduled_at', 100).catch(() => []),
     ]);
@@ -43,12 +44,17 @@ export default function OpsCommandTab() {
     setOps((o || []).filter(op => ['DRAFT', 'PUBLISHED', 'LIVE'].includes(op.status)));
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.Requisition.subscribe(() => load());
-    return unsub;
-  }, [load]);
+    const unsubscribers = [
+      base44.entities.Requisition.subscribe(scheduleRefresh),
+      base44.entities.OrgShip.subscribe(scheduleRefresh),
+      base44.entities.Op.subscribe(scheduleRefresh),
+    ];
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe?.());
+  }, [scheduleRefresh]);
 
   const filtered = useMemo(() => {
     const sf = STATUS_FILTERS.find(f => f.id === statusFilter);
@@ -90,6 +96,7 @@ export default function OpsCommandTab() {
     }
 
     await base44.entities.Requisition.update(req.id, updates);
+    await refreshNow();
     showToast(`Request ${action === 'tag' ? 'tagged' : action.toUpperCase() + 'D'}`, 'success');
   };
 

@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Search, RefreshCw, Ship } from 'lucide-react';
 import FleetStatusKpis from './FleetStatusKpis';
 import FleetStatusRow from './FleetStatusRow';
@@ -35,12 +36,16 @@ export default function FleetStatusPanel() {
     setOpRsvps(rsvpData || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.OrgShip.subscribe(() => load());
-    return () => unsub();
-  }, [load]);
+    const unsubscribers = [
+      base44.entities.OrgShip.subscribe(scheduleRefresh),
+      base44.entities.OpRsvp.subscribe(scheduleRefresh),
+    ];
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe?.());
+  }, [scheduleRefresh]);
 
   // Build a member lookup by callsign for presence data
   const memberMap = useMemo(() => {
@@ -141,7 +146,7 @@ export default function FleetStatusPanel() {
 
         <div style={{ flex: 1 }} />
         <span style={{ color: '#5A5850', fontSize: 9, fontVariantNumeric: 'tabular-nums' }}>{filtered.length} ships</span>
-        <button onClick={load} style={{
+        <button onClick={refreshNow} style={{
           background: 'none', border: 'none', cursor: 'pointer', color: '#5A5850', padding: 2, display: 'flex',
         }}><RefreshCw size={12} /></button>
       </div>

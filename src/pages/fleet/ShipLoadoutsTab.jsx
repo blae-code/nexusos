@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Search, Crosshair, ChevronRight } from 'lucide-react';
 import ShipLoadoutPanel from '@/components/fleet/ShipLoadoutPanel';
 import ShipMissionReadiness from '@/components/fleet/ShipMissionReadiness';
@@ -26,16 +27,17 @@ export default function ShipLoadoutsTab() {
   const [selectedId, setSelectedId] = useState(null);
 
   const load = useCallback(async () => {
-    const data = await base44.entities.OrgShip.list('name', 500);
+    const data = await base44.entities.OrgShip.list('name', 500).catch(() => []);
     setShips(data || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.OrgShip.subscribe(() => load());
+    const unsub = base44.entities.OrgShip.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const filtered = ships.filter(s => {
     if (!search) return true;
@@ -142,7 +144,7 @@ export default function ShipLoadoutsTab() {
             </div>
 
             {/* Equipment loadout */}
-            <ShipLoadoutPanel ship={selected} onRefresh={load} />
+            <ShipLoadoutPanel ship={selected} onRefresh={refreshNow} />
           </div>
         )}
       </div>

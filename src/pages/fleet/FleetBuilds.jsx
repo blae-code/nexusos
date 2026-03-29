@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Plus, Search, Layers, Star, Tag } from 'lucide-react';
 import BuildCard from './BuildCard';
 import AddBuildDialog from './AddBuildDialog';
@@ -46,19 +47,20 @@ export default function FleetBuilds() {
   const load = useCallback(async () => {
     try {
       const [buildsData, shipsData] = await Promise.all([
-        base44.entities.FleetBuild.list('-created_date', 200),
-        base44.entities.OrgShip.list('name', 200),
+        base44.entities.FleetBuild.list('-created_date', 200).catch(() => []),
+        base44.entities.OrgShip.list('name', 200).catch(() => []),
       ]);
       setBuilds(buildsData || []);
       setShips(shipsData || []);
     } finally { setLoading(false); }
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.FleetBuild.subscribe(() => load());
+    const unsub = base44.entities.FleetBuild.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const filtered = useMemo(() => builds.filter(b => {
     if (level === 'ORG STANDARD' && !b.is_org_canonical) return false;
@@ -150,7 +152,7 @@ export default function FleetBuilds() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: 10 }}>
                 {shipBuilds.map(b => (
-                  <BuildCard key={b.id} build={b} onEdit={bld => setDialog(bld)} onRefresh={load} />
+                  <BuildCard key={b.id} build={b} onEdit={bld => setDialog(bld)} onRefresh={refreshNow} />
                 ))}
               </div>
             </div>
@@ -163,7 +165,7 @@ export default function FleetBuilds() {
           build={dialog === 'add' ? null : dialog}
           ships={ships}
           onClose={() => setDialog(null)}
-          onSaved={load}
+          onSaved={refreshNow}
         />
       )}
     </div>

@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Crosshair, Users, Plus, ChevronRight } from 'lucide-react';
 import MissionCreateForm from './MissionCreateForm';
 import PhaseObjectivesEditor from './PhaseObjectivesEditor';
@@ -26,8 +27,8 @@ export default function MissionPlannerPage() {
 
   const load = useCallback(async () => {
     const [opsData, rsvpData] = await Promise.all([
-      base44.entities.Op.list('-scheduled_at', 50),
-      base44.entities.OpRsvp.filter({ status: 'CONFIRMED' }),
+      base44.entities.Op.list('-scheduled_at', 50).catch(() => []),
+      base44.entities.OpRsvp.filter({ status: 'CONFIRMED' }).catch(() => []),
     ]);
     const active = (opsData || []).filter(o => ['DRAFT', 'PUBLISHED', 'LIVE'].includes(o.status));
     setOps(active);
@@ -35,13 +36,14 @@ export default function MissionPlannerPage() {
     if (!selectedOpId && active.length > 0) setSelectedOpId(active[0].id);
     setLoading(false);
   }, [selectedOpId]);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const u1 = base44.entities.Op.subscribe(() => load());
-    const u2 = base44.entities.OpRsvp.subscribe(() => load());
+    const u1 = base44.entities.Op.subscribe(scheduleRefresh);
+    const u2 = base44.entities.OpRsvp.subscribe(scheduleRefresh);
     return () => { u1(); u2(); };
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const selectedOp = ops.find(o => o.id === selectedOpId) || null;
   const opRsvps = rsvps.filter(r => r.op_id === selectedOpId);
@@ -188,7 +190,7 @@ export default function MissionPlannerPage() {
 
               {/* Two-column layout: phases + crew */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16 }}>
-                <PhaseObjectivesEditor op={selectedOp} onUpdate={load} canEdit={canLead} />
+                <PhaseObjectivesEditor op={selectedOp} onUpdate={refreshNow} canEdit={canLead} />
                 <CrewStatusPanel op={selectedOp} rsvps={opRsvps} />
               </div>
             </div>

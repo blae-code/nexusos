@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Anchor, RefreshCw, Ship, Package, Users, Wrench, AlertTriangle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import ShipCard from './ShipCard';
@@ -69,16 +70,17 @@ export default function FleetReadinessView() {
 
   const load = useCallback(async () => {
     try {
-      const data = await base44.entities.OrgShip.list('name', 200);
+      const data = await base44.entities.OrgShip.list('name', 200).catch(() => []);
       setShips(data || []);
     } finally { setLoading(false); }
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.OrgShip.subscribe(() => load());
+    const unsub = base44.entities.OrgShip.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const statusCounts = useMemo(() => {
     const counts = {};
@@ -145,7 +147,7 @@ export default function FleetReadinessView() {
               <AlertTriangle size={10} /> {maintenanceCount} IN MAINTENANCE
             </div>
           )}
-          <button onClick={load} className="nexus-btn nexus-tooltip" data-tooltip="Refresh fleet data" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <button onClick={refreshNow} className="nexus-btn nexus-tooltip" data-tooltip="Refresh fleet data" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <RefreshCw size={11} /> REFRESH
           </button>
         </div>
@@ -247,7 +249,7 @@ export default function FleetReadinessView() {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: 10 }}>
-            {filtered.map(ship => <ShipCard key={ship.id} ship={ship} onRefresh={load} />)}
+            {filtered.map(ship => <ShipCard key={ship.id} ship={ship} onRefresh={refreshNow} />)}
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Ship, Package, Users, Wrench, Crosshair } from 'lucide-react';
 import FleetStatusChart from './FleetStatusChart';
 import FleetClassBreakdown from './FleetClassBreakdown';
@@ -33,16 +34,17 @@ export default function FleetDashboard() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const data = await base44.entities.OrgShip.list('-created_date', 300);
+    const data = await base44.entities.OrgShip.list('-created_date', 300).catch(() => []);
     setShips((data || []).filter(s => s.status !== 'ARCHIVED'));
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.OrgShip.subscribe(() => load());
+    const unsub = base44.entities.OrgShip.subscribe(scheduleRefresh);
     return unsub;
-  }, [load]);
+  }, [scheduleRefresh]);
 
   if (loading) {
     return (
@@ -58,7 +60,6 @@ export default function FleetDashboard() {
   const assigned = ships.filter(s => s.status === 'ASSIGNED').length;
   const maintenance = ships.filter(s => s.status === 'MAINTENANCE').length;
   const totalCargo = ships.reduce((sum, s) => sum + (s.cargo_scu || 0), 0);
-  const activePilots = new Set(ships.filter(s => s.status === 'ASSIGNED').map(s => s.assigned_to_callsign).filter(Boolean)).size;
 
   return (
     <div className="nexus-page-enter" style={{ overflow: 'auto', height: '100%', padding: '16px' }}>

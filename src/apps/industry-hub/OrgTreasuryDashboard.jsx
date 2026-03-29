@@ -5,6 +5,7 @@
  */
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { TrendingUp, TrendingDown, Coins, BarChart3, PieChart, Calendar } from 'lucide-react';
 
 function formatAUEC(n) {
@@ -150,17 +151,18 @@ export default function OrgTreasuryDashboard() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const data = await base44.entities.CofferLog.list('-logged_at', 500);
+    const data = await base44.entities.CofferLog.list('-logged_at', 500).catch(() => []);
     setLogs(data || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
 
   useEffect(() => {
-    const unsub = base44.entities.CofferLog.subscribe(() => load());
+    const unsub = base44.entities.CofferLog.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const analytics = useMemo(() => {
     const positive = ['SALE', 'CRAFT_SALE', 'OP_SPLIT', 'DEPOSIT'];

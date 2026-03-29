@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useVisiblePolling } from '@/core/hooks/useVisiblePolling';
 import { AlertTriangle, Zap } from 'lucide-react';
 
 /**
@@ -133,7 +134,7 @@ export default function LivePatchIntel() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const [live, ptu] = await Promise.all([
         base44.functions.invoke('getPatchData', { branch: 'LIVE', limit: 3 }),
@@ -148,13 +149,9 @@ export default function LivePatchIntel() {
       console.warn('Patch data fetch failed:', message);
     }
     setLoading(false);
-  };
-
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 5 * 60000); // Refresh every 5 minutes
-    return () => clearInterval(interval);
   }, []);
+
+  useVisiblePolling(load, 5 * 60000);
 
   const allPatches = [...livePatches, ...ptuPatches];
   const hasNewPatches = allPatches.some(p => {

@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { listMemberDirectory } from '@/core/data/member-directory';
+import { useVisiblePolling } from '@/core/hooks/useVisiblePolling';
 import { Search } from 'lucide-react';
 import PresenceDot from '@/components/PresenceDot';
 import MemberPerformanceTab from '@/components/MemberPerformanceTab';
@@ -59,11 +60,7 @@ export default function OrgRoster() {
     setUsers(data || []);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-    const id = window.setInterval(load, 60000);
-    return () => window.clearInterval(id);
-  }, [load]);
+  useVisiblePolling(load, 60000);
 
   const filtered = users.filter(u => {
     if (rankFilter !== 'ALL' && (u.nexus_rank || 'AFFILIATE') !== rankFilter) return false;

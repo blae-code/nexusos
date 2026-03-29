@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useVisiblePolling } from '@/core/hooks/useVisiblePolling';
 
 function timeLeft(isoStr) {
   if (!isoStr) return '—';
@@ -108,7 +109,7 @@ export default function QuickAccessColumn() {
   const [craftQueue, setCraftQueue] = useState([]);
   const [coffer, setCoffer] = useState({ balance: 0, transaction: null });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const [ro, cq, cl] = await Promise.all([
         base44.entities.RefineryOrder.list('-completes_at', 20).catch(() => []),
@@ -123,13 +124,9 @@ export default function QuickAccessColumn() {
     } catch {
       // entity unavailable — widgets render empty
     }
-  };
-
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 30000); // Poll every 30s
-    return () => clearInterval(interval);
   }, []);
+
+  useVisiblePolling(load, 30000);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

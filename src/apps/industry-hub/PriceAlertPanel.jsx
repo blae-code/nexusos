@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useSession } from '@/core/data/SessionContext';
 import { showToast } from '@/components/NexusToast';
 import { Bell, BellOff, Plus, Trash2, TrendingUp, TrendingDown, ArrowUpDown } from 'lucide-react';
@@ -74,13 +75,14 @@ export default function PriceAlertPanel({ commodityName }) {
     setAlerts(all || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
 
   useEffect(() => {
-    const unsub = base44.entities.PriceAlert.subscribe(() => load());
+    const unsub = base44.entities.PriceAlert.subscribe(scheduleRefresh);
     return unsub;
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const filtered = useMemo(() =>
     alerts.filter(a => (a.commodity_name || '').toUpperCase() === (commodityName || '').toUpperCase()),
@@ -106,6 +108,7 @@ export default function PriceAlertPanel({ commodityName }) {
       setShowForm(false);
       setFormThreshold('');
       setFormNotes('');
+      await refreshNow();
     } catch (err) {
       showToast(err?.message || 'Failed to create alert', 'error');
     }
@@ -114,10 +117,12 @@ export default function PriceAlertPanel({ commodityName }) {
 
   const handleToggle = async (alert) => {
     await base44.entities.PriceAlert.update(alert.id, { is_active: !alert.is_active });
+    await refreshNow();
   };
 
   const handleDelete = async (alert) => {
     await base44.entities.PriceAlert.delete(alert.id);
+    await refreshNow();
     showToast('Alert deleted', 'info');
   };
 

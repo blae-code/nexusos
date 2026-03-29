@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useSession } from '@/core/data/SessionContext';
 import { Plus, X } from 'lucide-react';
 import MarketplaceFilters from './MarketplaceFilters';
@@ -28,17 +29,18 @@ export default function MarketplaceTab({ materials, blueprints, craftQueue }) {
   });
 
   const load = useCallback(async () => {
-    const data = await base44.entities.MaterialListing.list('-created_date', 200);
+    const data = await base44.entities.MaterialListing.list('-created_date', 200).catch(() => []);
     setListings(data || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
 
   useEffect(() => {
-    const unsub = base44.entities.MaterialListing.subscribe(() => load());
+    const unsub = base44.entities.MaterialListing.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const filtered = useMemo(() => {
     return listings.filter(l => {
@@ -83,6 +85,7 @@ export default function MarketplaceTab({ materials, blueprints, craftQueue }) {
       status: 'OPEN',
     });
     setShowForm(false);
+    await refreshNow();
   };
 
   const handleAccept = async (listing) => {
@@ -91,6 +94,7 @@ export default function MarketplaceTab({ materials, blueprints, craftQueue }) {
       accepted_by_callsign: callsign,
       accepted_by_id: userId,
     });
+    await refreshNow();
   };
 
   const handleComplete = async (listing) => {
@@ -98,12 +102,14 @@ export default function MarketplaceTab({ materials, blueprints, craftQueue }) {
       status: 'COMPLETED',
       completed_at: new Date().toISOString(),
     });
+    await refreshNow();
   };
 
   const handleCancel = async (listing) => {
     await base44.entities.MaterialListing.update(listing.id, {
       status: 'CANCELLED',
     });
+    await refreshNow();
   };
 
   if (loading) {

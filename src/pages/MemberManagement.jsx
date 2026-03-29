@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
+import { useVisiblePolling } from '@/core/hooks/useVisiblePolling';
 import { RefreshCw, Users } from 'lucide-react';
 import MemberKpiBar from '@/components/member-mgmt/MemberKpiBar';
 import MemberFilters from '@/components/member-mgmt/MemberFilters';
@@ -35,12 +36,7 @@ export default function MemberManagement() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
-
-  useEffect(() => {
-    const id = window.setInterval(load, 60000);
-    return () => window.clearInterval(id);
-  }, [load]);
+  useVisiblePolling(load, 60000);
 
   // Blueprint count per callsign
   const bpCountMap = useMemo(() => {

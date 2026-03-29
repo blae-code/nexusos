@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useOutletContext } from 'react-router-dom';
 import { CalendarDays, Plus, RefreshCw, Clock, Ship } from 'lucide-react';
 import ReservationForm from './ReservationForm';
@@ -47,12 +48,18 @@ export default function AssetScheduler() {
     setOps((op || []).filter(o => ['DRAFT', 'PUBLISHED', 'LIVE'].includes(o.status)));
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.AssetReservation.subscribe(() => load());
-    return unsub;
-  }, [load]);
+    const unsubscribers = [
+      base44.entities.AssetReservation.subscribe(scheduleRefresh),
+      base44.entities.OrgShip.subscribe(scheduleRefresh),
+      base44.entities.OrgAsset.subscribe(scheduleRefresh),
+      base44.entities.Op.subscribe(scheduleRefresh),
+    ];
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe?.());
+  }, [scheduleRefresh]);
 
   const filtered = useMemo(() => {
     let list = reservations;
@@ -67,7 +74,7 @@ export default function AssetScheduler() {
 
   const handleEdit = (r) => { setEditRes(r); setShowForm(true); };
   const handleNew = () => { setEditRes(null); setShowForm(true); };
-  const handleSaved = () => { setShowForm(false); setEditRes(null); load(); };
+  const handleSaved = () => { setShowForm(false); setEditRes(null); void refreshNow(); };
 
   if (loading) {
     return (
@@ -97,7 +104,7 @@ export default function AssetScheduler() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={load} style={{
+            <button onClick={refreshNow} style={{
               padding: '6px 12px', background: '#141410', border: '0.5px solid rgba(200,170,100,0.12)',
               borderRadius: 2, color: '#5A5850', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
@@ -190,7 +197,7 @@ export default function AssetScheduler() {
                 </div>
               ) : (
                 filtered.map(r => (
-                  <ReservationRow key={r.id} reservation={r} isLeader={isLeader} callsign={callsign} onEdit={handleEdit} onRefresh={load} />
+                  <ReservationRow key={r.id} reservation={r} isLeader={isLeader} callsign={callsign} onEdit={handleEdit} onRefresh={refreshNow} />
                 ))
               )}
               <div style={{

@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Plus } from 'lucide-react';
 import DebtIssuanceForm from '@/components/debt/DebtIssuanceForm';
 import DebtLedgerTable from '@/components/debt/DebtLedgerTable';
@@ -31,19 +32,20 @@ export default function DebtTracker() {
 
   const load = useCallback(async () => {
     const [d, m] = await Promise.all([
-      base44.entities.MemberDebt.list('-issued_at', 200),
-      listMemberDirectory({ sort: '-joined_at', limit: 200 }),
+      base44.entities.MemberDebt.list('-issued_at', 200).catch(() => []),
+      listMemberDirectory({ sort: '-joined_at', limit: 200 }).catch(() => []),
     ]);
     setDebts(d || []);
     setMembers(m || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.MemberDebt.subscribe(() => load());
+    const unsub = base44.entities.MemberDebt.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const handlePayment = async (debt, amount, source, note) => {
     const newPaid = (debt.amount_paid || 0) + amount;
@@ -57,12 +59,12 @@ export default function DebtTracker() {
       payments,
     });
     setPayingDebt(null);
-    load();
+    await refreshNow();
   };
 
   const handleForgive = async (debt) => {
     await base44.entities.MemberDebt.update(debt.id, { status: 'FORGIVEN' });
-    load();
+    await refreshNow();
   };
 
   const filteredDebts = debts.filter(d => {
@@ -181,7 +183,7 @@ export default function DebtTracker() {
           <div style={{ marginBottom: 16 }}>
             <DebtIssuanceForm
               members={members}
-              onCreated={() => { setShowForm(false); load(); }}
+              onCreated={() => { setShowForm(false); void refreshNow(); }}
               onCancel={() => setShowForm(false)}
             />
           </div>

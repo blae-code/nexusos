@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Plus, Search, RefreshCw, Ship, Anchor, Package, Users, Wrench, Download } from 'lucide-react';
 import ShipCard from './ShipCard';
 import AddShipDialog from './AddShipDialog';
@@ -38,8 +39,8 @@ export default function FleetRoster() {
   const load = useCallback(async () => {
     try {
       const [shipsData, membersData] = await Promise.all([
-        base44.entities.OrgShip.list('-created_date', 200),
-        listMemberDirectory({ sort: '-joined_at', limit: 200 }),
+        base44.entities.OrgShip.list('-created_date', 200).catch(() => []),
+        listMemberDirectory({ sort: '-joined_at', limit: 200 }).catch(() => []),
       ]);
       setShips(shipsData || []);
       setMembers((membersData || []).filter(m => m.callsign));
@@ -47,18 +48,19 @@ export default function FleetRoster() {
       setLoading(false);
     }
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
-    const unsub = base44.entities.OrgShip.subscribe(() => load());
+    const unsub = base44.entities.OrgShip.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const handleSync = async () => {
     setSyncing(true);
     try {
       await base44.functions.invoke('fleetyardsRosterSync', {});
-      await load();
+      await refreshNow();
     } catch { /* sync failed */ } finally { setSyncing(false); }
   };
 
@@ -165,7 +167,7 @@ export default function FleetRoster() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: 10 }}>
             {filtered.map(ship => (
-              <ShipCard key={ship.id} ship={ship} onEdit={s => setDialog(s)} onRefresh={load} />
+              <ShipCard key={ship.id} ship={ship} onEdit={s => setDialog(s)} onRefresh={refreshNow} />
             ))}
           </div>
         )}
@@ -176,14 +178,14 @@ export default function FleetRoster() {
           ship={dialog === 'add' ? null : dialog}
           members={members}
           onClose={() => setDialog(null)}
-          onSaved={load}
+          onSaved={refreshNow}
         />
       )}
       {showImport && (
         <FleetImportDialog
           ownerCallsign={''}
           onClose={() => setShowImport(false)}
-          onImported={load}
+          onImported={refreshNow}
         />
       )}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

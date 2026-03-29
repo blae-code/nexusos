@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useSession } from '@/core/data/SessionContext';
 import { Plus, Check, X, Package, CreditCard, FileText, Ship } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
@@ -286,17 +287,18 @@ export default function RequisitionManager() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const data = await base44.entities.Requisition.list('-requested_at', 100);
+    const data = await base44.entities.Requisition.list('-requested_at', 100).catch(() => []);
     setReqs(data || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
 
   useEffect(() => {
-    const unsub = base44.entities.Requisition.subscribe(() => load());
+    const unsub = base44.entities.Requisition.subscribe(scheduleRefresh);
     return () => unsub();
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const filtered = useMemo(() => {
     if (statusFilter === 'active') return reqs.filter(r => ['OPEN', 'UNDER_REVIEW', 'APPROVED'].includes(r.status));
@@ -308,6 +310,7 @@ export default function RequisitionManager() {
     try {
       await base44.entities.Requisition.create(form);
       setShowForm(false);
+      await refreshNow();
       showToast('REQUISITION SUBMITTED', 'success');
     } catch (err) {
       showToast(err?.message || 'Failed to submit requisition', 'error');
@@ -331,6 +334,7 @@ export default function RequisitionManager() {
     }
     try {
       await base44.entities.Requisition.update(req.id, updates);
+      await refreshNow();
       showToast(`REQUEST ${action.toUpperCase()}D`, 'success');
     } catch (err) {
       showToast(err?.message || 'Action failed', 'error');
