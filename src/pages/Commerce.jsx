@@ -85,7 +85,7 @@ function SurfaceModePill({ label, tone = 'live' }) {
 
 export default function Commerce() {
   const navigate = useNavigate();
-  const { user } = useSession();
+  const { user, patchUser } = useSession();
   const [activeTab, setActiveTab] = useState('wallet');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -178,7 +178,7 @@ export default function Commerce() {
     capabilities.tradeLive ? 'Trade profitability is using live cargo records.' : 'Trade profitability is informational only because CargoLog is unavailable.',
   ]), [capabilities]);
   const currentWallet = wallets.find((wallet) => wallet.member_id === viewerId) || null;
-  const walletBalance = Number(currentWallet?.balance_aUEC ?? user?.wallet_balance ?? 0) || 0;
+  const walletBalance = Number(currentWallet?.balance_aUEC ?? user?.aUEC_balance ?? 0) || 0;
   const walletTransactions = transactions
     .filter((entry) => entry.wallet_id === currentWallet?.id || entry.member_id === viewerId)
     .sort((left, right) => new Date(right.created_at || right.created_date || 0).getTime() - new Date(left.created_at || left.created_date || 0).getTime());
@@ -243,7 +243,8 @@ export default function Commerce() {
         const nextBalance = Math.max(0, walletBalance + delta);
         await base44.entities.Wallet.update(wallet.id, { balance_aUEC: nextBalance, last_updated: now });
         try {
-          await base44.entities.NexusUser.update(viewerId, { wallet_balance: nextBalance });
+          await base44.entities.NexusUser.update(viewerId, { aUEC_balance: nextBalance });
+          patchUser({ aUEC_balance: nextBalance });
         } catch {
           // Ignore read-only NexusUser deployments.
         }

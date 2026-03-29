@@ -13,6 +13,10 @@ export type NexusUserRecord = {
   login_name?: string | null;
   username?: string | null;
   nexus_rank?: string | null;
+  op_role?: string | null;
+  specialization?: string | null;
+  intel_access?: string | null;
+  aUEC_balance?: number | null;
   joined_at?: string | null;
   onboarding_complete?: boolean | null;
   key_revoked?: boolean | null;
@@ -24,6 +28,7 @@ export type NexusUserRecord = {
   key_issued_at?: string | null;
   last_seen_at?: string | null;
   notifications_seen_at?: string | null;
+  uex_handle?: string | null;
   consent_given?: boolean | null;
   consent_timestamp?: string | null;
   created_date?: string | null;
@@ -712,6 +717,7 @@ export function toSessionResponse(user: NexusUserRecord) {
   const isAdmin = isAdminUser(user);
   const loginName = resolvePersistedLoginName(user) || resolveUserLoginName(user);
   const onboardingComplete = isOnboardingComplete(user);
+  const rank = String(user.nexus_rank || 'AFFILIATE').toUpperCase();
 
   return {
     authenticated: true,
@@ -722,10 +728,15 @@ export function toSessionResponse(user: NexusUserRecord) {
       login_name: loginName,
       username: loginName,
       callsign: resolveUserCallsign(user),
-      rank: String(user.nexus_rank || 'AFFILIATE').toUpperCase(),
+      rank,
+      nexus_rank: rank,
+      op_role: String(user.op_role || '').trim() || null,
+      aUEC_balance: Number(user.aUEC_balance || 0) || 0,
       joinedAt: user.joined_at || null,
+      joined_at: user.joined_at || null,
       onboarding_complete: onboardingComplete,
       notifications_seen_at: user.notifications_seen_at || null,
+      uex_handle: String(user.uex_handle || '').trim() || null,
       is_admin: isAdmin,
     },
   };

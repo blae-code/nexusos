@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { useSession } from '@/core/data/SessionContext';
 import NexusToken from '@/core/design/NexusToken';
 import { rankToken } from '@/core/data/tokenMap';
@@ -170,12 +171,11 @@ export default function NexusTopbar({ onMenuToggle }) {
 
   const loadMetrics = useCallback(async () => {
     try {
-      const [cofferLogs, refineryOrders, members, liveOps, me] = await Promise.all([
+      const [cofferLogs, refineryOrders, members, liveOps] = await Promise.all([
         base44.entities.CofferLog.list('-logged_at', 500).catch(() => []),
         base44.entities.RefineryOrder.list('-started_at', 200).catch(() => []),
-        base44.entities.NexusUser.list('-last_seen_at', 500).catch(() => []),
+        listMemberDirectory({ sort: '-last_seen_at', limit: 500 }).catch(() => []),
         base44.entities.Op.filter({ status: 'LIVE' }).catch(() => []),
-        base44.entities.NexusUser.filter({ id: user?.id }).catch(() => []),
       ]);
 
       // Coffer balance
@@ -186,8 +186,7 @@ export default function NexusTopbar({ onMenuToggle }) {
       setCofferBalance(balance);
 
       // Personal wallet
-      const myRecord = Array.isArray(me) && me.length > 0 ? me[0] : null;
-      setPersonalBalance(myRecord?.aUEC_balance ?? 0);
+      setPersonalBalance(Number(user?.aUEC_balance ?? 0) || 0);
 
       // Refinery
       const active = (refineryOrders || []).filter(r => r.status === 'ACTIVE' || r.status === 'READY');
@@ -203,7 +202,7 @@ export default function NexusTopbar({ onMenuToggle }) {
     } catch {
       // individual catches above prevent full failure
     }
-  }, [user?.id]);
+  }, [user?.aUEC_balance]);
 
   useEffect(() => {
     loadMetrics();
@@ -410,7 +409,7 @@ export default function NexusTopbar({ onMenuToggle }) {
           dot="#4A8C5C"
           value={`${onlineCount} ONLINE`}
           valueColor="#9A9488"
-          title="Members Online (last 15 min)"
+          title="Members Online (last 5 min)"
         />
       </div>
 

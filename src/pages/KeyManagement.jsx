@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, Copy, RefreshCw, Shield } from 'lucide-react';
 import { authApi } from '@/core/data/auth-api';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { useSession } from '@/core/data/SessionContext';
 import InviteMessageBuilder from '@/components/InviteMessageBuilder';
 import { showToast } from '@/components/NexusToast';
-import { base44 } from '@/core/data/base44Client';
 import NexusToken from '@/core/design/NexusToken';
 import { keyStatusToken, rankToken } from '@/core/data/tokenMap';
 
@@ -169,7 +169,7 @@ export default function KeyManagement() {
     try {
       const [managedRes, rosterRes] = await Promise.all([
         authApi.listManagedUsers(),
-        base44.entities.NexusUser.list('-joined_at', 500).catch(() => []),
+        listMemberDirectory({ sort: '-joined_at', limit: 500 }).catch(() => []),
       ]);
       const rosterUsers = Array.isArray(rosterRes) ? rosterRes : [];
       const managedUsers = managedRes?.ok === false
@@ -419,7 +419,7 @@ export default function KeyManagement() {
         fontSize: 11,
         lineHeight: 1.6,
       }}>
-        This table shows all readable <strong style={{ color: '#E8E4DC' }}>NexusUser</strong> member records, including members who do not yet have an issued key.
+        This table merges the managed auth roster with the readable member directory, including members who do not yet have an issued key.
         Members marked <strong style={{ color: '#E8A020' }}>NO KEY</strong> can receive their first key from the row action.
       </div>
 
@@ -777,7 +777,7 @@ export default function KeyManagement() {
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#9A9488', fontSize: 11 }}>No readable NexusUser members found.</td>
+                <td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#9A9488', fontSize: 11 }}>No readable member records found.</td>
               </tr>
             ) : users.map((managedUser, index) => {
               const status = userStatus(managedUser);

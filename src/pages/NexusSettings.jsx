@@ -4,6 +4,7 @@ import { base44 } from '@/core/data/base44Client';
 import { useOutletContext } from 'react-router-dom';
 import PersonalWalletPanel from '@/components/PersonalWalletPanel';
 import { useNotificationPreferences } from '@/core/data/notification-preferences';
+import { safeLocalStorage } from '@/core/data/safe-storage';
 import { useSession } from '@/core/data/SessionContext';
 import { showToast } from '@/components/NexusToast';
 
@@ -16,6 +17,10 @@ const RANK_COLORS = {
   VAGRANT: 'var(--t1)',
   AFFILIATE: 'var(--t2)',
 };
+
+function getUexTokenStorageKey(userId) {
+  return `nexusos:uex-api-token:${userId || 'anonymous'}`;
+}
 
 function Section({ title, children }) {
   return (
@@ -99,23 +104,32 @@ function WalletBalanceEditor({ user, patchUser }) {
 }
 
 function UexTokenSection({ user, patchUser }) {
-  const [token, setToken] = useState(user?.uex_api_token || '');
+  const [token, setToken] = useState(() => safeLocalStorage.getItem(getUexTokenStorageKey(user?.id)) || '');
   const [handle, setHandle] = useState(user?.uex_handle || '');
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [status, setStatus] = useState(null); // 'connected' | 'invalid' | null
 
   useEffect(() => {
-    setToken(user?.uex_api_token || '');
+    setToken(safeLocalStorage.getItem(getUexTokenStorageKey(user?.id)) || '');
+  }, [user?.id]);
+
+  useEffect(() => {
     setHandle(user?.uex_handle || '');
-  }, [user?.uex_api_token, user?.uex_handle]);
+  }, [user?.uex_handle]);
 
   const save = async () => {
     if (!user?.id) return;
     setSaving(true);
     try {
-      await base44.entities.NexusUser.update(user.id, { uex_api_token: token, uex_handle: handle });
-      patchUser({ uex_api_token: token, uex_handle: handle });
+      const nextHandle = handle.trim();
+      const nextToken = token.trim();
+      const storageKey = getUexTokenStorageKey(user.id);
+
+      await base44.entities.NexusUser.update(user.id, { uex_handle: nextHandle || null });
+      if (nextToken) safeLocalStorage.setItem(storageKey, nextToken);
+      else safeLocalStorage.removeItem(storageKey);
+      patchUser({ uex_handle: nextHandle || null });
       showToast('UEX credentials saved', 'success');
     } catch {
       showToast('Failed to save UEX credentials', 'error');
@@ -139,8 +153,6 @@ function UexTokenSection({ user, patchUser }) {
       setTesting(false);
     }
   };
-
-  const displayToken = token ? `${token.slice(0, 8)}${'•'.repeat(Math.max(0, token.length - 8))}` : '';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -171,7 +183,7 @@ function UexTokenSection({ user, patchUser }) {
           </div>
         )}
         <div style={{ color: 'var(--t2)', fontSize: 10, marginTop: 6 }}>
-          Get your token from uexcorp.space → Account → API. Each member uses their own token.
+          Get your token from uexcorp.space → Account → API. Stored locally in this browser only.
         </div>
       </div>
       <div>

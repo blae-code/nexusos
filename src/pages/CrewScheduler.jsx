@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { Calendar, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -41,7 +42,7 @@ export default function CrewScheduler() {
       }, '-scheduled_at', 50);
 
       // Load crew roster
-      const members = await base44.entities.NexusUser.list('-joined_at', 200);
+      const members = await listMemberDirectory({ sort: '-joined_at', limit: 200 });
 
       setOperations(ops || []);
       setCrew(members || []);

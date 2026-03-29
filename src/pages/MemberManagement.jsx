@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { RefreshCw, Users } from 'lucide-react';
 import MemberKpiBar from '@/components/member-mgmt/MemberKpiBar';
 import MemberFilters from '@/components/member-mgmt/MemberFilters';
@@ -26,7 +27,7 @@ export default function MemberManagement() {
   const load = useCallback(async () => {
     setLoading(true);
     const [m, bp] = await Promise.all([
-      base44.entities.NexusUser.list('-joined_at', 500).catch(() => []),
+      listMemberDirectory({ sort: '-joined_at', limit: 500 }).catch(() => []),
       base44.entities.Blueprint.list('-created_date', 500).catch(() => []),
     ]);
     setMembers(m || []);
@@ -37,8 +38,8 @@ export default function MemberManagement() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    const unsub = base44.entities.NexusUser.subscribe(() => load());
-    return () => unsub();
+    const id = window.setInterval(load, 60000);
+    return () => window.clearInterval(id);
   }, [load]);
 
   // Blueprint count per callsign

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { Plus, RefreshCw, LayoutGrid, List } from 'lucide-react';
 import AssetKpiBar from '@/components/assets/AssetKpiBar';
 import AssetCard from '@/components/assets/AssetCard';
@@ -23,7 +24,7 @@ export default function AssetManager() {
     setLoading(true);
     const [assetList, memberList, shipList] = await Promise.all([
       base44.entities.OrgAsset.list('-created_date', 500),
-      base44.entities.NexusUser.list('-created_date', 500),
+      listMemberDirectory({ sort: '-joined_at', limit: 500 }),
       base44.entities.OrgShip.list('-created_date', 200),
     ]);
     setAssets(assetList || []);

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { Plus, Search, RefreshCw, Ship, Anchor, Package, Users, Wrench, Download } from 'lucide-react';
 import ShipCard from './ShipCard';
 import AddShipDialog from './AddShipDialog';
@@ -38,7 +39,7 @@ export default function FleetRoster() {
     try {
       const [shipsData, membersData] = await Promise.all([
         base44.entities.OrgShip.list('-created_date', 200),
-        base44.entities.NexusUser.list('-joined_at', 200),
+        listMemberDirectory({ sort: '-joined_at', limit: 200 }),
       ]);
       setShips(shipsData || []);
       setMembers((membersData || []).filter(m => m.callsign));

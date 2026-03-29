@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { Search, Users, Package, Scroll, Flame, ChevronDown, ChevronUp, MessageSquare, Send } from 'lucide-react';
 import MaterialRequisitionDialog from '@/components/requisition/MaterialRequisitionDialog';
 import CrafterResultCard from './find-crafters/CrafterResultCard';
@@ -22,7 +23,7 @@ export default function FindCraftersTab({ blueprints, materials, callsign }) {
   useEffect(() => {
     (async () => {
       const [m, ro, cq, mats] = await Promise.all([
-        base44.entities.NexusUser.list('-last_seen_at', 500).catch(() => []),
+        listMemberDirectory({ sort: '-last_seen_at', limit: 500 }).catch(() => []),
         base44.entities.RefineryOrder.list('-started_at', 200).catch(() => []),
         base44.entities.CraftQueue.list('-created_date', 200).catch(() => []),
         materials?.length ? Promise.resolve(materials) : base44.entities.Material.list('-logged_at', 500).catch(() => []),

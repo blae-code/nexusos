@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { Search, RefreshCw, Ship } from 'lucide-react';
 import FleetStatusKpis from './FleetStatusKpis';
 import FleetStatusRow from './FleetStatusRow';
@@ -26,7 +27,7 @@ export default function FleetStatusPanel() {
   const load = useCallback(async () => {
     const [shipsData, membersData, rsvpData] = await Promise.all([
       base44.entities.OrgShip.list('-created_date', 300).catch(() => []),
-      base44.entities.NexusUser.list('-last_seen_at', 200).catch(() => []),
+      listMemberDirectory({ sort: '-last_seen_at', limit: 200 }).catch(() => []),
       base44.entities.OpRsvp.filter({ status: 'CONFIRMED' }).catch(() => []),
     ]);
     setShips((shipsData || []).filter(s => s.status !== 'ARCHIVED'));

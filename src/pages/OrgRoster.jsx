@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { Search } from 'lucide-react';
 import PresenceDot from '@/components/PresenceDot';
 import MemberPerformanceTab from '@/components/MemberPerformanceTab';
@@ -55,14 +55,14 @@ export default function OrgRoster() {
   const [rosterTab, setRosterTab] = useState('roster');
 
   const load = useCallback(async () => {
-    const data = await base44.entities.NexusUser.list('-joined_at', 200).catch(() => []);
+    const data = await listMemberDirectory({ sort: '-joined_at', limit: 200 }).catch(() => []);
     setUsers(data || []);
   }, []);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    const unsub = base44.entities.NexusUser.subscribe(() => load());
-    return () => unsub();
+    const id = window.setInterval(load, 60000);
+    return () => window.clearInterval(id);
   }, [load]);
 
   const filtered = users.filter(u => {

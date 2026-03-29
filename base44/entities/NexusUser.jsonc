@@ -103,6 +103,11 @@
       "type": "string",
       "format": "date-time"
     },
+    "notifications_seen_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the member last opened the NexusOS notification drawer"
+    },
     "consent_given": {
       "type": "boolean",
       "default": false
@@ -121,10 +126,6 @@
     "onboarding_complete": {
       "type": "boolean",
       "default": false
-    },
-    "uex_api_token": {
-      "type": "string",
-      "description": "User's personal UEX API token"
     },
     "uex_handle": {
       "type": "string",

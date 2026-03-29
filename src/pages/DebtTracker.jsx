@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { Plus } from 'lucide-react';
 import DebtIssuanceForm from '@/components/debt/DebtIssuanceForm';
 import DebtLedgerTable from '@/components/debt/DebtLedgerTable';
@@ -31,7 +32,7 @@ export default function DebtTracker() {
   const load = useCallback(async () => {
     const [d, m] = await Promise.all([
       base44.entities.MemberDebt.list('-issued_at', 200),
-      base44.entities.NexusUser.list('-joined_at', 200),
+      listMemberDirectory({ sort: '-joined_at', limit: 200 }),
     ]);
     setDebts(d || []);
     setMembers(m || []);

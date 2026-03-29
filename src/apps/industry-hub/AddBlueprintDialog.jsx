@@ -4,6 +4,7 @@
  */
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { Plus, X } from 'lucide-react';
 import { Overlay, DialogCard, DialogHeader } from './BlueprintDialogPrimitives';
 import AutocompleteInput from './BlueprintAutocompleteInput';
@@ -46,7 +47,7 @@ export default function AddBlueprintDialog({ onClose, onCreated }) {
   const loadCallsignSuggestions = useCallback(async (query) => {
     if (query.length < 2) { setCallsignSuggestions([]); return; }
     try {
-      const results = await base44.entities.NexusUser.list('-joined_at', 100);
+      const results = await listMemberDirectory({ sort: '-joined_at', limit: 100 });
       setCallsignSuggestions(
         (results || [])
           .filter(u => (u.callsign || '').toLowerCase().includes(query.toLowerCase()))

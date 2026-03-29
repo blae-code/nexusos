@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { Play, Square } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { safeLocalStorage } from '@/core/data/safe-storage';
 import CrewGrid from './CrewGrid';
@@ -84,7 +85,7 @@ export default function LiveOp() {
       const [ops, rsvpData, memberData] = await Promise.all([
         base44.entities.Op.filter({ id }),
         base44.entities.OpRsvp.filter({ op_id: id }),
-        base44.entities.NexusUser.list('-last_seen_at', 200).catch(() => []),
+        listMemberDirectory({ sort: '-last_seen_at', limit: 200 }).catch(() => []),
       ]);
 
       const opData = Array.isArray(ops) ? ops[0] : null;

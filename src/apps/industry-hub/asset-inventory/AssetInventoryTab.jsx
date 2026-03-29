@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import { listMemberDirectory } from '@/core/data/member-directory';
 import { useSession } from '@/core/data/SessionContext';
 import { showToast } from '@/components/NexusToast';
 import { Package, Ship, Boxes, Zap, RefreshCw, Plus, Search, Camera } from 'lucide-react';
@@ -39,7 +40,7 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
     const [assets, ships, mems] = await Promise.all([
       base44.entities.PersonalAsset.list('-logged_at', 500).catch(() => []),
       base44.entities.OrgShip.list('name', 300).catch(() => []),
-      base44.entities.NexusUser.list('-last_seen_at', 500).catch(() => []),
+      listMemberDirectory({ sort: '-last_seen_at', limit: 500 }).catch(() => []),
     ]);
     setPersonalAssets(assets || []);
     setOrgShips(ships || []);
