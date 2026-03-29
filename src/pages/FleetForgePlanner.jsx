@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useMemo, useRef, useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import html2canvas from 'html2canvas';

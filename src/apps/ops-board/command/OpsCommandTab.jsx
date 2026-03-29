@@ -63,7 +63,7 @@ export default function OpsCommandTab() {
     if (typeFilter !== 'ALL') list = list.filter(r => r.request_type === typeFilter);
     if (priorityFilter !== 'ALL') list = list.filter(r => r.priority === priorityFilter);
     // Sort: command_priority desc, then URGENT first, then by date
-    return list.sort((a, b) => {
+    return [...list].sort((a, b) => {
       if ((b.command_priority || 0) !== (a.command_priority || 0)) return (b.command_priority || 0) - (a.command_priority || 0);
       const priOrder = { URGENT: 4, HIGH: 3, NORMAL: 2, LOW: 1 };
       if ((priOrder[b.priority] || 0) !== (priOrder[a.priority] || 0)) return (priOrder[b.priority] || 0) - (priOrder[a.priority] || 0);

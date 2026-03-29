@@ -296,7 +296,7 @@ function CapabilityRadar({ roleScores, drawProgress }) {
 
 export default function FleetMatrix({
   fleetData = [],
-  onGapIdentified,
+  onGapIdentified = undefined,
   interactive = true,
 }) {
   const matrixRef = useRef(null);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useMemo, useState } from 'react';
 import shipComponents from '@/apps/armory/assets/ships/index.jsx';
 

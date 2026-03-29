@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Save,
@@ -43,7 +42,7 @@ function resolveGlyph(assetKey) {
     || null;
 }
 
-function ShipGlyph({ assetKey, size = 60, showHardpoints = false, onHardpointClick }) {
+function ShipGlyph({ assetKey, size = 60, showHardpoints = false, onHardpointClick = undefined }) {
   const Glyph = resolveGlyph(assetKey);
   if (!Glyph) {
     return (
@@ -170,7 +169,7 @@ function loadoutToLegacyHardpoints(entries) {
   }, {});
 }
 
-function DeltaTooltip({ active, payload }) {
+function DeltaTooltip({ active = false, payload = [] }) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', padding: '8px 10px', fontSize: 10 }}>
@@ -374,7 +373,7 @@ export default function FleetForgeShipFitting({
                 <CartesianGrid stroke="var(--b0)" vertical={false} />
                 <XAxis dataKey="label" stroke="var(--t3)" tick={{ fill: 'var(--t3)', fontSize: 10 }} />
                 <YAxis stroke="var(--t3)" tick={{ fill: 'var(--t3)', fontSize: 10 }} />
-                <Tooltip content={<DeltaTooltip />} />
+                <Tooltip content={DeltaTooltip} />
                 <Bar dataKey="stock" fill="rgba(90,96,128,0.45)" radius={[2, 2, 0, 0]} />
                 <Bar dataKey="current" fill="var(--acc)" radius={[2, 2, 0, 0]} />
               </BarChart>
