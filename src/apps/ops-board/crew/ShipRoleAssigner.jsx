@@ -5,7 +5,7 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { showToast } from '@/components/NexusToast';
-import { Anchor, Check, ChevronDown, ChevronUp, UserPlus } from 'lucide-react';
+import { Anchor, ChevronDown, ChevronUp } from 'lucide-react';
 
 const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'QUARTERMASTER', 'FOUNDER', 'PIONEER'];
 const SHIP_ROLES = ['PILOT', 'GUNNER', 'ENGINEER', 'MEDIC', 'NAVIGATOR', 'LOADMASTER'];

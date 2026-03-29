@@ -3,15 +3,14 @@
  * No closed-over variables — props only.
  */
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown } from 'lucide-react';
 import { computeCraftAnalysis, fmtAuec } from '@/core/data/usePriceLookup';
 import {
-  BlueprintHolderChip,
   BlueprintPriorityTag,
 } from '@/apps/industry-hub/IndustryVisuals';
 import NexusToken from '@/core/design/NexusToken';
 import { blueprintToken } from '@/core/data/tokenMap';
-import { TierBadge, CategoryTag } from './BlueprintFilterChips';
+import { CategoryTag } from './BlueprintFilterChips';
 import RecipePanel from './RecipePanel';
 
 // ─── Single blueprint row ─────────────────────────────────────────────────────

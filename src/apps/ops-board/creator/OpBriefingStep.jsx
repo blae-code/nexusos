@@ -2,7 +2,7 @@
  * OpBriefingStep — Smart briefing form with autocomplete locations,
  * contextual name suggestions, quick-schedule buttons, and styled selectors.
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // ─── System data with POIs ──────────────────────────────────────────────────
 

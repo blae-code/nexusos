@@ -3,8 +3,7 @@
  * Shows weekly income/expense breakdown, top earners, and profit trend line.
  */
 import React, { useMemo } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const POSITIVE = ['SALE', 'CRAFT_SALE', 'OP_SPLIT', 'DEPOSIT', 'TREASURY_DEPOSIT'];
 

@@ -2,7 +2,7 @@
  * Add Blueprint dialog — Pioneer+ only.
  * No closed-over variables — props only.
  */
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
 import { Plus, X } from 'lucide-react';

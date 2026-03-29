@@ -11,8 +11,7 @@ import { Upload, ChevronDown, ChevronUp, Search, X, Check } from 'lucide-react';
 import { MaterialStatusPill } from '@/apps/industry-hub/IndustryVisuals';
 import NexusToken from '@/core/design/NexusToken';
 import { materialToken } from '@/core/data/tokenMap';
-import {
-  TH, T2Badge,
+import { T2Badge,
   SortableColHeader, StaticColHeader,
 } from './MaterialTablePrimitives';
 import EditRow from './MaterialEditRow';

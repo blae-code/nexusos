@@ -3,7 +3,7 @@
  * Estimate aUEC cost to craft: material prices × SCU + refinery costs vs buying.
  */
 import React, { useState, useMemo } from 'react';
-import { Calculator, TrendingDown, TrendingUp, Package, HelpCircle, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Calculator, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import { usePriceLookup, computeCraftAnalysis, fmtAuec as fmtAuecShared } from '@/core/data/usePriceLookup';
 
 export default function CraftingCostCalc({ blueprints = [], materials = [] }) {

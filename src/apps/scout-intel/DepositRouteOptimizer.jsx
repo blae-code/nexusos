@@ -4,7 +4,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Route, Fuel, Shield, AlertTriangle } from 'lucide-react';
+import { Route, Fuel, AlertTriangle } from 'lucide-react';
 import { qualityPercentFromRecord } from '@/core/data/quality';
 
 const RISK_OPTIONS = [

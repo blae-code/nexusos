@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { useSession } from '@/core/data/SessionContext';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
-import { Wrench, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { Wrench, TrendingUp, TrendingDown } from 'lucide-react';
 import { computeCraftAnalysis, fmtAuec } from '@/core/data/usePriceLookup';
 import { SectionHeader } from './BlueprintFilterChips';
 import { qualityPercentFromRecord } from '@/core/data/quality';

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { ChevronLeft, TrendingUp, TrendingDown, Activity, Zap, Target } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart, ReferenceLine, CartesianGrid } from 'recharts';
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart, ReferenceLine, CartesianGrid } from 'recharts';
 
 function fmtPrice(v) {
   if (!v) return '—';

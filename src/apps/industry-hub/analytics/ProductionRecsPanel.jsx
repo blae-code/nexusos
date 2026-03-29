@@ -2,7 +2,7 @@
  * ProductionRecsPanel — Ranked blueprint profitability recommendations.
  */
 import React, { useState } from 'react';
-import { Zap, Clock, CheckCircle, AlertTriangle, Package } from 'lucide-react';
+import { Zap, CheckCircle, AlertTriangle } from 'lucide-react';
 
 function fmt(n) {
   if (n == null) return '—';

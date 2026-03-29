@@ -4,7 +4,7 @@
  */
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Heart, Plus, Check, TrendingUp, X } from 'lucide-react';
+import { Heart, Plus, Check, TrendingUp } from 'lucide-react';
 
 const PRIORITY_COLORS = {
   CRITICAL: 'var(--danger)', HIGH: 'var(--warn)', NORMAL: 'var(--t1)', LOW: 'var(--t3)',

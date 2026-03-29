@@ -6,9 +6,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
-import { Plus, RefreshCw, CalendarDays } from 'lucide-react';
+import { RefreshCw, CalendarDays } from 'lucide-react';
 import OpsCommandTab from './command/OpsCommandTab';
-import EmptyState from '@/core/design/EmptyState';
 import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import OpsDashboard from '@/pages/OpsDashboard';
 

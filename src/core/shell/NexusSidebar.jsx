@@ -3,9 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/core/data/SessionContext';
 import SidebarWidget from './SidebarWidget';
 import {
-  Crosshair, LayoutGrid, Clock, PlusCircle, LifeBuoy, Archive,
-  Activity, Factory, BookOpen, GraduationCap, Radar, BarChart3,
-  Shield, Wrench, Package, Ship, Users, Tags, TrendingUp,
+  Crosshair, Factory, BookOpen, GraduationCap, Radar,
+  Shield, Package, Ship, Users, Tags, TrendingUp,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
   Database, AlertTriangle,
 } from 'lucide-react';

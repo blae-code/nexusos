@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
 
 export default function StationPrices({ priceData }) {
   const [sortBy, setSortBy] = useState('sell');

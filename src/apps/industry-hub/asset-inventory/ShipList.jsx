@@ -2,7 +2,7 @@
  * ShipList — displays ships assigned to the current user.
  */
 import React, { useMemo } from 'react';
-import { Ship, Anchor } from 'lucide-react';
+import { Ship } from 'lucide-react';
 
 const STATUS_COLORS = {
   AVAILABLE: '#4A8C5C', ASSIGNED: '#3498DB', MAINTENANCE: '#C8A84B',

@@ -10,7 +10,6 @@ import RefineryManagement from '@/apps/industry-hub/RefineryManagement';
 import PatchDigestHeader from '@/apps/industry-hub/PatchDigestHeader';
 import IndustryDashboard from '@/apps/industry-hub/dashboard/IndustryDashboard';
 import PriceTracker from '@/apps/industry-hub/PriceTracker';
-import CargoMarginTracker from '@/apps/industry-hub/CargoMarginTracker';
 import ProductionTab from '@/apps/industry-hub/ProductionTab';
 import IndustryAnalyticsTab from '@/apps/industry-hub/analytics/IndustryAnalyticsTab';
 import ComponentsTab from '@/apps/industry-hub/ComponentsTab';

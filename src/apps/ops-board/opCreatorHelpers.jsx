@@ -3,9 +3,7 @@
  * Import from here rather than duplicating inside OpCreator.jsx.
  */
 import React, { useState } from 'react';
-import { X, GripVertical } from 'lucide-react';
 import NexusToken from '@/core/design/NexusToken';
-import { opTypeToken } from '@/core/data/tokenMap';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

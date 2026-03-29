@@ -6,7 +6,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { showToast } from '@/components/NexusToast';
-import { Anchor, RefreshCw } from 'lucide-react';
+import { Anchor } from 'lucide-react';
 import ShipRoleCard from './ShipRoleCard';
 
 const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'QUARTERMASTER', 'FOUNDER', 'PIONEER'];

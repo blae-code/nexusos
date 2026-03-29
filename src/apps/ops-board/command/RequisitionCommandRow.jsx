@@ -3,7 +3,7 @@
  * Shows request info, actions (approve/deny/review/tag), and assignment controls.
  */
 import React, { useState } from 'react';
-import { Check, X, Eye, Ship, Target, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
+import { Check, X, Eye, Ship, Target, ChevronDown, ChevronUp } from 'lucide-react';
 
 const TYPE_COLORS = {
   ITEM: '#7AAECC', MATERIAL: '#4A8C5C', CREDIT: '#C8A84B',

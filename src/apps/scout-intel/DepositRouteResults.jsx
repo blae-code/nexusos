@@ -3,7 +3,7 @@
  * with waypoints, refueling stops, safety assessment, and stats.
  */
 import React from 'react';
-import { X, Route, Fuel, Shield, Clock, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Route, Fuel, Shield, Clock } from 'lucide-react';
 
 const SAFETY_COLORS = {
   LOW_RISK: 'var(--live)',

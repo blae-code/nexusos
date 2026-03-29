@@ -26,6 +26,7 @@ async function loginThroughGate(page, username, authKey) {
   await page.getByPlaceholder('ENTER ISSUED USERNAME').fill(username);
   await page.getByPlaceholder('ENTER ACCESS KEY').fill(authKey);
   await page.getByRole('button', { name: /CONTINUE/i }).click();
+  await page.waitForURL(/\/(?:onboarding|app)(?:\/|$)/, { timeout: 20000 });
 }
 
 async function completeOnboardingIfNeeded(page) {
@@ -33,16 +34,32 @@ async function completeOnboardingIfNeeded(page) {
     return;
   }
 
-  await page.getByRole('button', { name: /^CONTINUE$/i }).click();
-  await page.getByRole('button', { name: /^CONTINUE$/i }).click();
+  await page.getByText('Welcome,', { exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
 
-  const privacyPanel = page.locator('div').filter({ hasText: 'NexusOS Privacy & Data Usage Disclosure' }).first();
+  const advanceStep = async (currentMarker, nextMarker) => {
+    const currentNode = page.getByText(currentMarker, { exact: true }).first();
+    if (!(await currentNode.isVisible().catch(() => false))) {
+      return;
+    }
+
+    await page.getByRole('button', { name: /^CONTINUE/i }).first().click();
+    await page.getByText(nextMarker, { exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
+  };
+
+  await advanceStep('Welcome,', 'How It Works');
+  await advanceStep('How It Works', 'Recommended Setup');
+  await advanceStep('Recommended Setup', 'Privacy Disclosure');
+
+  const privacyPanel = page.getByText('Last Updated: 2026-03-23').first();
+  await privacyPanel.waitFor({ state: 'visible', timeout: 10000 });
   await privacyPanel.evaluate((element) => {
-    element.scrollTop = element.scrollHeight;
+    element.scrollTop = element.scrollHeight - element.clientHeight;
     element.dispatchEvent(new Event('scroll', { bubbles: true }));
   });
 
-  await page.getByRole('button', { name: /^CONTINUE$/i }).click();
+  await expect(page.getByRole('button', { name: /^CONTINUE/i })).toBeEnabled({ timeout: 10000 });
+  await page.getByRole('button', { name: /^CONTINUE/i }).click();
+  await page.getByText('Consent & Preferences', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
   await page.getByText('I have read and agree to the NexusOS data disclosure').click();
   await page.getByText('I understand that my assigned rank determines my access level within NexusOS').click();
   await page.getByRole('button', { name: /ENTER NEXUSOS/i }).click();

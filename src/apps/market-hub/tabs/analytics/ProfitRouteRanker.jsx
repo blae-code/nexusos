@@ -3,7 +3,7 @@
  * by combining buy/sell price spreads, jump distance, and risk levels.
  */
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, Shield, Zap, Route } from 'lucide-react';
+import { ArrowRight, Shield, Zap } from 'lucide-react';
 
 const RISK_COLORS = { LOW: '#4A8C5C', MEDIUM: '#C8A84B', HIGH: '#C0392B' };
 const RISK_PENALTY = { LOW: 1.0, MEDIUM: 0.8, HIGH: 0.55 };

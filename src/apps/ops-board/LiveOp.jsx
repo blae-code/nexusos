@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { Play, Square } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
 import { sendNexusNotification } from '@/core/data/nexus-notify';

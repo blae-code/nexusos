@@ -2,9 +2,9 @@
  * CircuitResultsPanel — Displays the planned mining circuit with
  * per-leg travel/fuel breakdown, fuel gauge, and operational summary.
  */
-import React, { useState, useMemo } from 'react';
-import { Route, Fuel, Clock, Package, Shield, AlertTriangle, ChevronLeft, RefreshCw, Pickaxe, Navigation, ChevronDown } from 'lucide-react';
-import { SHIP_OPTIONS, SHIP_LOADOUTS, recalcCircuit, useShipLoadouts } from './shipData';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Fuel, Clock, Package, Shield, AlertTriangle, ChevronLeft, RefreshCw, Navigation, ChevronDown } from 'lucide-react';
+import { SHIP_LOADOUTS, recalcCircuit, useShipLoadouts } from './shipData';
 
 function fmtAuec(n) { return Math.round(n || 0).toLocaleString(); }
 
@@ -188,18 +188,28 @@ function ShipSelectorBar({ currentKey, onChange, loadouts, options }) {
 
 export default function CircuitResultsPanel({ result, onBack, onReplan }) {
   const { loadouts: liveLoadouts, options: liveOptions } = useShipLoadouts();
-  if (!result) return null;
-  const { circuit_name, ship, legs: originalLegs, materials_targeted, risk_assessment, origin, deposit_count } = result;
-  const originalShipKey = ship?.loadout_key || 'PROSPECTOR';
+  const originalShipKey = result?.ship?.loadout_key || 'PROSPECTOR';
   const [refShipKey, setRefShipKey] = useState(originalShipKey);
+  useEffect(() => {
+    setRefShipKey(originalShipKey);
+  }, [originalShipKey]);
 
   const isOriginal = refShipKey === originalShipKey;
   const { legs, summary: s } = useMemo(() => {
+    if (!result) {
+      return { legs: [], summary: null };
+    }
+
+    const originalLegs = Array.isArray(result.legs) ? result.legs : [];
     if (isOriginal) return { legs: originalLegs, summary: result.summary };
     const refShip = liveLoadouts[refShipKey] || SHIP_LOADOUTS[refShipKey];
     if (!refShip) return { legs: originalLegs, summary: result.summary };
-    return recalcCircuit(originalLegs, refShip, deposit_count || 0);
-  }, [refShipKey, isOriginal, originalLegs, result.summary, deposit_count, liveLoadouts]);
+    return recalcCircuit(originalLegs, refShip, result.deposit_count || 0);
+  }, [refShipKey, isOriginal, result, liveLoadouts]);
+
+  if (!result) return null;
+
+  const { circuit_name, ship, materials_targeted, risk_assessment, origin, deposit_count } = result;
 
   const refShipData = liveLoadouts[refShipKey] || SHIP_LOADOUTS[refShipKey] || ship;
   const highestRiskColor = { LOW: '#4A8C5C', MEDIUM: '#C8A84B', HIGH: '#C0392B', EXTREME: '#C0392B' };

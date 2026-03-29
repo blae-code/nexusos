@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Route, Fuel, Clock, Package, Shield, Ship, AlertTriangle, ChevronDown, RefreshCw } from 'lucide-react';
+import { Route, AlertTriangle, ChevronDown } from 'lucide-react';
 import CircuitResultsPanel from './CircuitResultsPanel';
 import { SHIP_OPTIONS, useShipLoadouts } from './shipData';
 

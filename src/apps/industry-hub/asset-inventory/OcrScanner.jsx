@@ -6,7 +6,7 @@
 import React, { useRef, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { showToast } from '@/components/NexusToast';
-import { Camera, Upload, Loader2, X, ScanLine, Ship, Package, DollarSign } from 'lucide-react';
+import { Camera, Loader2, X, ScanLine, Ship, Package, DollarSign } from 'lucide-react';
 
 const MODES = [
   { id: 'inventory', label: 'INVENTORY', icon: Package, desc: 'Materials, items, quantities' },

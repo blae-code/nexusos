@@ -4,7 +4,7 @@
  * Props: { op, rsvps, callsign, rank }
  */
 import React, { useEffect, useState } from 'react';
-import { Shield, Users, Package, AlertTriangle, Clock, Activity } from 'lucide-react';
+import { Users, Package, AlertTriangle, Clock, Activity } from 'lucide-react';
 
 function MetricCard({ icon: Icon, label, value, valueColor, subtext, accent }) {
   return (

@@ -15,7 +15,7 @@
  *   · Animated ping on fresh deposits
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronRight, Navigation, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 
 // ─── System definitions ───────────────────────────────────────────────────────
 

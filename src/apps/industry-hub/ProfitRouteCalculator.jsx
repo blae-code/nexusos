@@ -4,11 +4,10 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { showToast } from '@/components/NexusToast';
 import RouteInputForm from './profit-route/RouteInputForm';
 import RouteResultCard from './profit-route/RouteResultCard';
 import RouteSuggestionsPanel from './profit-route/RouteSuggestionsPanel';
-import { Calculator, TrendingUp } from 'lucide-react';
+import { Calculator } from 'lucide-react';
 
 export default function ProfitRouteCalculator() {
   const [commodities, setCommodities] = useState([]);

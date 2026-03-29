@@ -3,7 +3,7 @@
  * Visible to all crew. Shows who is doing what on each ship.
  */
 import React, { useMemo } from 'react';
-import { Anchor, User } from 'lucide-react';
+import { Anchor } from 'lucide-react';
 
 const ROLE_COLORS = {
   PILOT: '#3498DB', GUNNER: '#C0392B', ENGINEER: '#C8A84B',

@@ -1,7 +1,7 @@
 /**
  * OpCrewStep — Visual crew station editor with capacity rings and fleet assignment.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import FleetAssignSection from '../FleetAssignSection';
 
 function getRoleAccent(name) {

@@ -4,7 +4,6 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, RefreshCw } from 'lucide-react';
 
 function fmt(n) {
   if (n == null) return '—';

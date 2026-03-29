@@ -4,7 +4,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Trash2, Plus, Package, Recycle } from 'lucide-react';
+import { Trash2, Plus, Recycle } from 'lucide-react';
 
 function DismantleForm({ callsign, onSaved }) {
   const [form, setForm] = useState({

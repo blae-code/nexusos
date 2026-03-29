@@ -3,7 +3,7 @@
  * Input: current material inventory → shows which blueprints you can fully/partially fabricate.
  */
 import React, { useState, useMemo } from 'react';
-import { Search, Check, AlertTriangle, Package, HelpCircle } from 'lucide-react';
+import { Search, Check, AlertTriangle, Package } from 'lucide-react';
 
 const STATUS_COLORS = {
   CRAFTABLE: { bg: 'var(--live-bg)', border: 'var(--live-b)', color: 'var(--live)', label: 'READY TO CRAFT' },

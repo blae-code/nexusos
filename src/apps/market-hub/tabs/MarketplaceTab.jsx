@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { RefreshCw, ExternalLink, Flag } from 'lucide-react';
 import { useSession } from '@/core/data/SessionContext';
-import moment from 'moment';
 
 function fmt(v) { return v != null ? v.toLocaleString() : '—'; }
 

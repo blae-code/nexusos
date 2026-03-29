@@ -3,7 +3,7 @@
  * Calculate total SCU needed for a batch of crafts against ship cargo capacity.
  */
 import React, { useState, useMemo } from 'react';
-import { Package, Plus, Trash2, Ship, AlertTriangle, Check } from 'lucide-react';
+import { Package, Trash2, Ship, AlertTriangle, Check } from 'lucide-react';
 
 export default function CargoSCUPlanner({ blueprints = [], ships = [] }) {
   const [craftList, setCraftList] = useState([]);

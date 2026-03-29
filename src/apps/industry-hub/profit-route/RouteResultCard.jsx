@@ -2,7 +2,7 @@
  * RouteResultCard — displays the computed profit route analysis.
  */
 import React from 'react';
-import { TrendingUp, TrendingDown, Clock, Shield, Activity, Zap, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Activity, Zap, ArrowRight } from 'lucide-react';
 
 const RISK_COLORS = { LOW: '#4A8C5C', MEDIUM: '#C8A84B', HIGH: '#C0392B' };
 const VOL_COLORS = { LOW: '#4A8C5C', MEDIUM: '#C8A84B', HIGH: '#C0392B' };

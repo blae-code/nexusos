@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Users } from 'lucide-react';
-import { TypeTag } from './opBoardHelpers';
 import NexusToken from '@/core/design/NexusToken';
 import { opTypeToken, opStatusToken } from '@/core/data/tokenMap';
 

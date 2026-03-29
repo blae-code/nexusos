@@ -4,7 +4,7 @@
  */
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { Target, Search, Star, MapPin, Clock, Coins, Plus, Trash2 } from 'lucide-react';
+import { Target, Search, Star, MapPin, Clock, Coins, Plus } from 'lucide-react';
 
 function MissionCard({ mission, wantedBlueprints, onRemove }) {
   const overlapping = wantedBlueprints.filter(bp =>

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import Sparkline from './Sparkline';
 
 const SIGNAL_STYLES = {

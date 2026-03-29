@@ -2,7 +2,7 @@
  * TradeIntelPanel — Historical trade profitability analysis with route intel.
  */
 import React, { useState } from 'react';
-import { Star, TrendingUp, MapPin } from 'lucide-react';
+import { Star, MapPin } from 'lucide-react';
 
 function fmt(n) {
   if (n == null) return '—';

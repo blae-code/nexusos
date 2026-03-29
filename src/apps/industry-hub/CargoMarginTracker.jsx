@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, TrendingUp, TrendingDown, Package } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 const COMMON_SHIPS = [
   // Dedicated cargo

@@ -215,15 +215,14 @@ const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 export default function LootTally({ op, callsign, rank, currentPhase, onUpdate }) {
   const [showForm, setShowForm] = useState(false);
   const canLog = SCOUT_RANKS.includes(rank);
-
-  // Only visible in phases index >= 4, fades in
-  if ((currentPhase || 0) < 4) return null;
-
+  const isVisible = (currentPhase || 0) >= 4;
   const log = Array.isArray(op.session_log) ? op.session_log : [];
   const loot = log.filter(e => e.type === 'MATERIAL');
-
   const totalSCU = loot.reduce((s, e) => s + (e.quantity_scu || 0), 0);
-  const animatedSCU = useCountUp(totalSCU);
+  const animatedSCU = useCountUp(isVisible ? totalSCU : 0);
+
+  // Only visible in phases index >= 4, fades in.
+  if (!isVisible) return null;
 
   const handleSubmit = async ({ material_name, quantity_scu, quality_pct }) => {
     const entry = {

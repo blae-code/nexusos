@@ -26,6 +26,7 @@ export default function NexusShell() {
   const { status: verseStatus } = useVerseStatus();
   const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const seenLiveOpsRef = useRef(new Set());
   const seenScoutDepositsRef = useRef(new Set());
   const seenRescueCallsRef = useRef(new Set());
@@ -33,6 +34,8 @@ export default function NexusShell() {
   const updateLayoutMode = (nextMode) => {
     setLayoutMode(setStoredLayoutMode(nextMode));
   };
+  const toggleSidebar = useCallback(() => setSidebarOpen((open) => !open), []);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   useEffect(() => {
     if (user?.rank) {
@@ -205,6 +208,11 @@ export default function NexusShell() {
     };
   }, [permission, preferences.ops, preferences.rescue, preferences.scout]);
 
+  // Close sidebar on route change (mobile).
+  useEffect(() => {
+    closeSidebar();
+  }, [location.pathname, closeSidebar]);
+
   if (loading) {
     return (
       <div style={{ height: '100vh', background: '#08080A', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
@@ -244,13 +252,6 @@ export default function NexusShell() {
     source: source || session?.source || 'member',
     sessionUserId: user?.id || null,
   };
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = useCallback(() => setSidebarOpen(p => !p), []);
-  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
-
-  // Close sidebar on route change (mobile)
-  useEffect(() => { closeSidebar(); }, [location.pathname, closeSidebar]);
 
   return (
     <div style={{ height: '100vh', background: '#08080A', position: 'relative' }}>

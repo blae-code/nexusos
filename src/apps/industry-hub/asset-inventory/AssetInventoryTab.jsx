@@ -6,7 +6,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
 import { useSession } from '@/core/data/SessionContext';
-import { showToast } from '@/components/NexusToast';
 import { Package, Ship, Boxes, Zap, RefreshCw, Plus, Search, Camera } from 'lucide-react';
 import AssetList from './AssetList';
 import ShipList from './ShipList';

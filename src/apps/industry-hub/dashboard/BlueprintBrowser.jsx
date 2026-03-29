@@ -2,7 +2,7 @@
  * BlueprintBrowser — searchable, filterable grid of all blueprints.
  * Users can claim/unclaim ownership with a single click.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Search, Grid3X3, LayoutGrid } from 'lucide-react';
 import BlueprintBrowserCard from './BlueprintBrowserCard';
 import BlueprintMissionMatrix from './BlueprintMissionMatrix';

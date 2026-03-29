@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { safeLocalStorage } from '@/core/data/safe-storage';
-import { TrendingDown, TrendingUp, Plus, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import PriceWatchlist from './PriceWatchlist';
 import PriceChart from './PriceChart';
 import StationPrices from './StationPrices';

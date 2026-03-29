@@ -2,7 +2,7 @@
  * DemandForecastPanel — Material supply vs demand analysis.
  */
 import React from 'react';
-import { AlertTriangle, CheckCircle, TrendingUp, Package } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 function fmt(n) {
   if (n == null) return '—';

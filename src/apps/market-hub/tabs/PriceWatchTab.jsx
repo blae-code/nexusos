@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
-import { Plus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import moment from 'moment';
 
 const ALERT_TYPES = ['SELL_ABOVE', 'SELL_BELOW', 'BUY_ABOVE', 'BUY_BELOW', 'MARGIN_ABOVE'];

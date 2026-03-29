@@ -3,7 +3,7 @@
  * Highlights commodities with spikes, drops, and high-margin opportunities.
  */
 import React, { useMemo, useState } from 'react';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Zap } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Zap } from 'lucide-react';
 
 const SIGNAL_CONFIG = {
   SPIKE:  { color: '#4A8C5C', bg: 'rgba(74,140,92,0.12)', label: 'PRICE SPIKE', icon: TrendingUp },

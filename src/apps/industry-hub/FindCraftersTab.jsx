@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
-import { Search, Users, Package, Scroll, Flame, ChevronDown, ChevronUp, MessageSquare, Send } from 'lucide-react';
+import { Users, Package, Scroll } from 'lucide-react';
 import MaterialRequisitionDialog from '@/components/requisition/MaterialRequisitionDialog';
 import CrafterResultCard from './find-crafters/CrafterResultCard';
 import ItemSearchBar from './find-crafters/ItemSearchBar';
