@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
 import { fleetPlanningApi } from '@/core/data/fleet-planning-api';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 
 import FleetForgeShipFitting from './FleetForgeShipFitting';
 import FleetForgePlanner from './FleetForgePlanner';
@@ -44,10 +45,12 @@ export default function FleetForge() {
       setLoading(false);
     }
   }, []);
+  const loadSelectedScenario = useCallback(() => load(selectedScenarioId), [load, selectedScenarioId]);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(loadSelectedScenario);
 
   useEffect(() => {
-    load(selectedScenarioId);
-  }, [load, selectedScenarioId]);
+    void refreshNow();
+  }, [loadSelectedScenario, refreshNow]);
 
   useEffect(() => {
     const unsubscribers = [];
@@ -55,7 +58,7 @@ export default function FleetForge() {
       try {
         const entity = base44.entities?.[entityName];
         if (entity?.subscribe) {
-          unsubscribers.push(entity.subscribe(() => load(selectedScenarioId)));
+          unsubscribers.push(entity.subscribe(scheduleRefresh));
         }
       } catch {
         // entity missing in this deployment
@@ -67,7 +70,7 @@ export default function FleetForge() {
         try { unsubscribe?.(); } catch { /* noop */ }
       });
     };
-  }, [load, selectedScenarioId]);
+  }, [scheduleRefresh]);
 
   const builds = Array.isArray(snapshot?.builds) ? snapshot.builds : [];
 
@@ -118,7 +121,7 @@ export default function FleetForge() {
               user={user}
               onBuildSaved={() => {
                 setTab('BUILD LIBRARY');
-                load(selectedScenarioId);
+                void refreshNow();
               }}
             />
           ) : null}
@@ -129,7 +132,7 @@ export default function FleetForge() {
               scenarios={scenarios}
               selectedScenarioId={selectedScenarioId}
               onSelectScenario={setSelectedScenarioId}
-              onRefresh={() => load(selectedScenarioId)}
+              onRefresh={refreshNow}
               user={user}
             />
           ) : null}

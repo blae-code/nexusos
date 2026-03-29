@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, BarChart3 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { base44 } from '@/core/data/base44Client';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 
 function normalizeName(value) {
   return String(value || '').trim();
@@ -42,18 +43,19 @@ export default function CommodityDemandChart() {
       setLoading(false);
     }
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    void refreshNow();
+  }, [refreshNow]);
 
   useEffect(() => {
     const unsubscribers = [
-      base44.entities.CargoLog.subscribe(() => load()),
-      base44.entities.PriceSnapshot.subscribe(() => load()),
+      base44.entities.CargoLog.subscribe(scheduleRefresh),
+      base44.entities.PriceSnapshot.subscribe(scheduleRefresh),
     ];
     return () => unsubscribers.forEach((unsubscribe) => unsubscribe?.());
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const demandData = useMemo(() => {
     const grouped = new Map();
