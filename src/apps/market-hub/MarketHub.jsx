@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
+import CrawlerStatusPanel from './CrawlerStatusPanel';
 import PricesTab from './tabs/PricesTab';
 import MarketplaceTab from './tabs/MarketplaceTab';
 import TradeBoardTab from './tabs/TradeBoardTab';
@@ -78,6 +79,9 @@ export default function MarketHub() {
 
       {/* Tab content */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <div style={{ padding: '14px 24px 0', maxWidth: 1400, margin: '0 auto' }}>
+          <CrawlerStatusPanel onSynced={loadLastSync} />
+        </div>
         {tab === 'prices' && <PricesTab lastSync={lastSync} onSynced={loadLastSync} />}
         {tab === 'marketplace' && <MarketplaceTab lastSync={lastSync} onSynced={loadLastSync} />}
         {tab === 'trade' && <TradeBoardTab />}
