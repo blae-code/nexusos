@@ -7,8 +7,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { DollarSign, Plus, Check, X, FileText, Users, AlertTriangle, Coins } from 'lucide-react';
-
-const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+import { OPS_LEADER_RANKS } from './rankPolicies';
 
 function fmtAuec(n) {
   if (!n || isNaN(n)) return '0';
@@ -126,7 +125,7 @@ function PayoutRow({ member, payout, taxAmount, paymentStatus, onStatusChange })
 }
 
 export default function OpWrapUpPanel({ op, rsvps = [], callsign, rank, onUpdate }) {
-  const canEdit = LEADER_RANKS.includes(rank);
+  const canEdit = OPS_LEADER_RANKS.includes(rank);
   const wrapUp = op?.wrap_up_data || {};
   const payoutCfg = op?.payout_config || {};
 

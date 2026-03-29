@@ -40,7 +40,7 @@ export const VALID_CRAFT_STATUSES = new Set(['OPEN', 'CLAIMED', 'IN_PROGRESS', '
 export const VALID_RSVP_STATUSES = new Set(['CONFIRMED', 'DECLINED', 'TENTATIVE']);
 export const VALID_VOLUME_ESTIMATES = new Set(['SMALL', 'MEDIUM', 'LARGE', 'MASSIVE']);
 export const VALID_RISK_LEVELS = new Set(['LOW', 'MEDIUM', 'HIGH', 'EXTREME']);
-export const LEADER_RANKS = new Set(['PIONEER', 'FOUNDER', 'VOYAGER']);
+export const LEADER_RANKS = new Set(['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER']);
 
 export function okResponse(payload: Record<string, unknown>, status = 200) {
   return Response.json({ ok: true, ...payload }, { status });

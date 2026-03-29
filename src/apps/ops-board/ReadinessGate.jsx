@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { Zap } from 'lucide-react';
+import { isOpsLeader } from './rankPolicies';
 
-const EDIT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
 const PRIORITY_BORDER = {
   high: 'var(--danger)',
   warn: 'var(--warn)',
@@ -93,7 +93,7 @@ function GateItem({ item, canEdit, onToggle }) {
 }
 
 export default function ReadinessGate({ op, rank, onUpdate }) {
-  const canEdit = EDIT_RANKS.includes(rank);
+  const canEdit = isOpsLeader(rank);
   const [goFired, setGoFired] = useState(false);
   const gate = op.readiness_gate || {};
   const items = Array.isArray(gate.items) ? gate.items : [];

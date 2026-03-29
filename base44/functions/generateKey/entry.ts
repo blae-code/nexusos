@@ -7,6 +7,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 const enc = new TextEncoder();
 const SESSION_COOKIE_NAME = 'nexus_member_session';
 const KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const VALID_RANKS = new Set(['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE']);
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
 function toBase64Url(bytes) {
@@ -84,7 +85,7 @@ Deno.serve(async (req) => {
   const loginName = normalizeLoginName(body.username || body.login_name || body.callsign);
   const callsign = normalizeCallsign(body.callsign || body.username || body.login_name);
   const nexusRank = String(body.nexus_rank || '').trim().toUpperCase();
-  if (!loginName || !callsign || !nexusRank) {
+  if (!loginName || !callsign || !VALID_RANKS.has(nexusRank)) {
     return Response.json({ error: 'missing_required_fields' }, { status: 400 });
   }
 

@@ -169,7 +169,7 @@ test.describe.serial('Live Production Proof', () => {
     const issued = await callAuthedFunction(page, '/api/functions/auth/keys', {
       action: 'issue',
       username: qaUsername,
-      nexus_rank: 'SCOUT',
+      nexus_rank: 'QUARTERMASTER',
     });
 
     expect(issued.ok).toBe(true);

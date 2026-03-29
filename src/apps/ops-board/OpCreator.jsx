@@ -13,8 +13,7 @@ import OpCrewStep from './creator/OpCrewStep';
 import OpTimelineStep from './creator/OpTimelineStep';
 import OpReviewStep from './creator/OpReviewStep';
 import OpPublishOverlay from './creator/OpPublishOverlay';
-
-const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+import { OPS_LEADER_RANKS } from './rankPolicies';
 const TOTAL_STEPS = 5;
 
 const OP_TYPE_DEFAULTS = {
@@ -170,7 +169,7 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
       if (publish) {
         await sendNexusNotification({
           type: 'OP_PUBLISHED', title: 'Operation Published',
-          body: `${payload.name} is published${payload.system_name ? ` · ${payload.system_name}` : ''}.`,
+          body: `${payload.name} is published${payload.system ? ` · ${payload.system}` : ''}.`,
           severity: 'INFO', target_user_id: null, source_module: 'OPS', source_id: op.id,
         });
         setShowOverlay(true);
@@ -189,7 +188,7 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
   };
 
   // Guard
-  if (!SCOUT_RANKS.includes(rank)) {
+  if (!OPS_LEADER_RANKS.includes(rank)) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#5A5850', fontSize: 13 }}>
         Scout rank or above required to create ops

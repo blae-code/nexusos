@@ -10,6 +10,7 @@ import { RefreshCw, CalendarDays } from 'lucide-react';
 import OpsCommandTab from './command/OpsCommandTab';
 import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
 import OpsDashboard from '@/pages/OpsDashboard';
+import { OPS_LEADER_RANKS } from './rankPolicies';
 
 const STATUS_ORDER = ['LIVE', 'PUBLISHED', 'DRAFT', 'COMPLETE', 'ARCHIVED'];
 
@@ -20,8 +21,6 @@ const STATUS_CONFIG = {
   COMPLETE:  { label: 'COMPLETE',  color: '#5A5850', bg: 'rgba(90,88,80,0.12)',  border: '#5A5850', stripe: '#5A5850' },
   ARCHIVED:  { label: 'ARCHIVED',  color: '#5A5850', bg: 'rgba(90,88,80,0.12)',  border: '#5A5850', stripe: '#5A5850' },
 };
-
-const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER'];
 
 function relativeTime(isoStr) {
   if (!isoStr) return '—';
@@ -151,7 +150,7 @@ export default function OpBoard() {
   const [myRsvps, setMyRsvps] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const canLead = LEADER_RANKS.includes(rank);
+  const canLead = OPS_LEADER_RANKS.includes(rank);
 
   const load = useCallback(async () => {
     setLoading(true);

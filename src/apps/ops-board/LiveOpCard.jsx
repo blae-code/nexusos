@@ -9,7 +9,8 @@ export default function LiveOpCard({ op, rsvps, onEnter }) {
   const cap       = slots.reduce((s, r) => s + r.capacity, 0);
   const confirmed = rsvps.filter(r => r.status === 'CONFIRMED').length;
   const phases    = Array.isArray(op.phases) ? op.phases : [];
-  const phaseName = phases[op.phase_current || 0] || null;
+  const activePhase = phases[op.phase_current || 0] || null;
+  const phaseName = typeof activePhase === 'object' ? activePhase?.name || null : activePhase;
   const readyPct  = cap > 0 ? Math.min((confirmed / cap) * 100, 100) : 0;
   const isReady   = readyPct >= 100;
 

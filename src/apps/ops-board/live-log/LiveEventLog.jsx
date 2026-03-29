@@ -10,6 +10,7 @@ import EventEntry from './EventEntry';
 import EventInputBar from './EventInputBar';
 import PinnedEvents from './PinnedEvents';
 import LootSummaryBar from './LootSummaryBar';
+import { isOpsLeader } from '../rankPolicies';
 
 export default function LiveEventLog({ op, callsign, rank, currentPhase, onSessionLogSync }) {
   const [events, setEvents] = useState([]);
@@ -20,7 +21,7 @@ export default function LiveEventLog({ op, callsign, rank, currentPhase, onSessi
 
   const isLive = op?.status === 'LIVE';
   const opId = op?.id;
-  const canPost = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'].includes(rank);
+  const canPost = isOpsLeader(rank);
 
   const fetchEvents = useCallback(async () => {
     if (!opId) return;

@@ -109,9 +109,10 @@ async function main() {
   }
 
   const inviteLoginUsername = `diag-login-${Date.now().toString(36)}`;
-  const inviteLoginIssue = await issueInvite(client, inviteLoginUsername);
+  const inviteLoginIssue = await issueInvite(client, inviteLoginUsername, 'QUARTERMASTER');
   artifact.invite_login = {
     username: inviteLoginUsername,
+    rank: 'QUARTERMASTER',
     issue_ok: true,
     user_id: inviteLoginIssue.user.id,
   };
@@ -125,9 +126,10 @@ async function main() {
   }
 
   const inviteRegisterUsername = `diag-register-${Date.now().toString(36)}`;
-  const inviteRegisterIssue = await issueInvite(client, inviteRegisterUsername);
+  const inviteRegisterIssue = await issueInvite(client, inviteRegisterUsername, 'SCOUT');
   artifact.invite_register = {
     username: inviteRegisterUsername,
+    rank: 'SCOUT',
     issue_ok: true,
     user_id: inviteRegisterIssue.user.id,
   };

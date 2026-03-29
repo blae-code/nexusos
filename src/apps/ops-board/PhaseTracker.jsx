@@ -3,8 +3,7 @@ import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
 import NexusToken from '@/core/design/NexusToken';
 import { phaseToken } from '@/core/data/tokenMap';
-
-const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+import { OPS_LEADER_RANKS } from './rankPolicies';
 
 function PhaseNode({ label, index, status }) {
   const tokenState = status === 'done' ? 'DONE' : status === 'active' ? 'ACTIVE' : 'LOCKED';
@@ -52,7 +51,7 @@ function PhaseNode({ label, index, status }) {
 }
 
 export default function PhaseTracker({ phases = [], currentPhase = 0, opId, opName, rank, onAdvance }) {
-  const canAdvance = SCOUT_RANKS.includes(rank);
+  const canAdvance = OPS_LEADER_RANKS.includes(rank);
   const [confirmingPhase, setConfirmingPhase] = useState(false);
   const [advancingIndex, setAdvancingIndex] = useState(null);
 

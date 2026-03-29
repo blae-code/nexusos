@@ -8,7 +8,7 @@ import { showToast } from '@/components/NexusToast';
 import NexusToken from '@/core/design/NexusToken';
 import { keyStatusToken, rankToken } from '@/core/data/tokenMap';
 
-const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
+const RANK_OPTIONS = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE'];
 const SYSTEM_ADMIN_LOGIN = 'system-admin';
 const SYSTEM_ADMIN_CALLSIGN = 'SYSTEM-ADMIN';
 

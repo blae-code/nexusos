@@ -1,6 +1,6 @@
 /**
  * LiveOpTopbar — dedicated topbar for live op view
- * Props: { op, isLive, phases, currentPhase, startedAt, layoutMode, onLayoutChange }
+ * Props: { op, isLive, phases, currentPhase, startedAt, layoutMode, onLayoutChange, actions }
  */
 import React, { useState, useEffect } from 'react';
 import { Monitor, Maximize2 } from 'lucide-react';
@@ -30,19 +30,76 @@ function ElapsedTimer({ startedAt }) {
   return <span style={{ fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', color: 'var(--t3)', fontSize: 9 }}>{value}</span>;
 }
 
-export default function LiveOpTopbar({ op, isLive, phases, currentPhase, startedAt, layoutMode, onLayoutChange }) {
-  const phaseLabel = (Array.isArray(phases) ? phases[currentPhase] : null) || 'Awaiting phase';
+function ActionButton({ label, tone = 'neutral', busy = false, onClick }) {
+  const tones = {
+    neutral: {
+      color: 'var(--t1)',
+      background: 'rgba(200,170,100,0.04)',
+      border: 'rgba(200,170,100,0.12)',
+    },
+    warn: {
+      color: 'var(--warn)',
+      background: 'rgba(var(--warn-rgb), 0.08)',
+      border: 'rgba(var(--warn-rgb), 0.26)',
+    },
+    live: {
+      color: 'var(--live)',
+      background: 'rgba(var(--live-rgb), 0.08)',
+      border: 'rgba(var(--live-rgb), 0.26)',
+    },
+    danger: {
+      color: 'var(--danger)',
+      background: 'rgba(var(--danger-rgb), 0.08)',
+      border: 'rgba(var(--danger-rgb), 0.28)',
+    },
+  };
+  const style = tones[tone] || tones.neutral;
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={busy}
+      style={{
+        padding: '6px 10px',
+        minHeight: 30,
+        background: style.background,
+        border: `0.5px solid ${style.border}`,
+        borderRadius: 3,
+        cursor: busy ? 'not-allowed' : 'pointer',
+        color: style.color,
+        fontSize: 9,
+        fontFamily: 'var(--font)',
+        fontWeight: 600,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        opacity: busy ? 0.6 : 1,
+        transition: 'all 150ms ease',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {busy ? 'WORKING...' : label}
+    </button>
+  );
+}
+
+export default function LiveOpTopbar({ op, isLive, phases, currentPhase, startedAt, layoutMode, onLayoutChange, actions = [] }) {
+  const activePhase = Array.isArray(phases) ? phases[currentPhase] : null;
+  const phaseLabel = typeof activePhase === 'object'
+    ? (activePhase?.name || `Phase ${currentPhase + 1}`)
+    : (activePhase || 'Awaiting phase');
 
   return (
     <div
       style={{
-        height: 44,
+        minHeight: 44,
         background: '#0A0908',
         borderBottom: '0.5px solid rgba(200,170,100,0.10)',
         display: 'flex',
         alignItems: 'center',
         paddingLeft: 16,
         paddingRight: 16,
+        paddingTop: 6,
+        paddingBottom: 6,
         gap: 12,
       }}
     >
@@ -91,7 +148,7 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
         </span>
       </div>
 
-      {/* Right: Phase pill, layout toggle, elapsed time */}
+      {/* Right: Phase pill, op actions, layout toggle, elapsed time */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         {/* Phase pill */}
         <div
@@ -107,6 +164,20 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
         >
           {phaseLabel}
         </div>
+
+        {actions.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {actions.map((action) => (
+              <ActionButton
+                key={action.id}
+                label={action.label}
+                tone={action.tone}
+                busy={action.busy}
+                onClick={action.onClick}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Layout mode toggle */}
         <div style={{ display: 'flex', gap: 3 }}>

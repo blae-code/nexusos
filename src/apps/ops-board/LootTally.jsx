@@ -6,6 +6,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useCountUp } from '@/core/hooks/useCountUp';
 import { Plus } from 'lucide-react';
+import { OPS_LEADER_RANKS } from './rankPolicies';
 
 function qColor(pct) {
   if ((pct || 0) >= 80) return 'var(--live)';
@@ -210,11 +211,9 @@ function LogForm({ onSubmit, onCancel }) {
   );
 }
 
-const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
-
 export default function LootTally({ op, callsign, rank, currentPhase, onUpdate }) {
   const [showForm, setShowForm] = useState(false);
-  const canLog = SCOUT_RANKS.includes(rank);
+  const canLog = OPS_LEADER_RANKS.includes(rank);
   const isVisible = (currentPhase || 0) >= 4;
   const log = Array.isArray(op.session_log) ? op.session_log : [];
   const loot = log.filter(e => e.type === 'MATERIAL');

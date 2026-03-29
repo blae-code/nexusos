@@ -10,7 +10,6 @@ import { X } from 'lucide-react';
 export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
   const phases = op.phases || [];
   const currentPhaseIdx = op.phase_current || 0;
-  const currentPhaseName = phases[currentPhaseIdx]?.name || phases[currentPhaseIdx] || `Phase ${currentPhaseIdx + 1}`;
 
   const [phaseIdx, setPhaseIdx] = useState(currentPhaseIdx);
   const [phaseName, setPhaseName] = useState(typeof phases[currentPhaseIdx] === 'object' ? phases[currentPhaseIdx]?.name : phases[currentPhaseIdx] || '');
@@ -25,36 +24,39 @@ export default function PhaseBriefPanel({ op, onClose, onLogEntry }) {
     setLoading(true);
     setError('');
     setBriefText('');
-    setPosted(false);
 
-    const phaseLabel = phaseName || `Phase ${phaseIdx + 1}`;
+    try {
+      const phaseLabel = phaseName || `Phase ${phaseIdx + 1}`;
+      const res = await base44.functions.invoke('phaseBriefing', {
+        op_id: op.id,
+        phase_name: phaseLabel,
+        phase_index: phaseIdx,
+        threat_notes: threatNotes,
+        material_status: materialStatus,
+        custom_notes: customNotes,
+      });
 
-    const res = await base44.functions.invoke('phaseBriefing', {
-      op_id: op.id,
-      phase_name: phaseLabel,
-      phase_index: phaseIdx,
-      threat_notes: threatNotes,
-      material_status: materialStatus,
-      custom_notes: customNotes,
-    });
-
-    const data = res?.data || res;
-    if (data?.error) {
-      setError(data.error);
-    } else {
-      setBriefText(data?.brief_text || '');
-      if (onLogEntry) {
-        onLogEntry({
-          type: 'phase_brief',
-          t: new Date().toISOString(),
-          author: 'NEXUSOS',
-          text: `Phase brief generated: ${phaseLabel}`,
-          phase: phaseLabel,
-          phase_index: phaseIdx,
-        });
+      const data = res?.data || res;
+      if (data?.error) {
+        setError(data.error);
+      } else {
+        setBriefText(data?.brief_text || '');
+        if (onLogEntry) {
+          onLogEntry({
+            type: 'phase_brief',
+            t: new Date().toISOString(),
+            author: 'NEXUSOS',
+            text: `Phase brief generated: ${phaseLabel}`,
+            phase: phaseLabel,
+            phase_index: phaseIdx,
+          });
+        }
       }
+    } catch (err) {
+      setError(err?.message || 'Failed to generate phase brief.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

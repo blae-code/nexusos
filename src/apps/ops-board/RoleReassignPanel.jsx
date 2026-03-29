@@ -5,8 +5,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { ArrowRight, Check, X, RefreshCw } from 'lucide-react';
-
-const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+import { OPS_LEADER_RANKS } from './rankPolicies';
 
 function normalizeRoleSlots(slots) {
   if (!slots) return [];
@@ -35,7 +34,7 @@ export default function RoleReassignPanel({ op, rsvps = [], rank, onUpdate }) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(null);
 
-  const canEdit = LEADER_RANKS.includes(rank);
+  const canEdit = OPS_LEADER_RANKS.includes(rank);
   const confirmed = rsvps.filter(r => r.status === 'CONFIRMED');
   const slots = normalizeRoleSlots(op?.role_slots);
   const roleNames = slots.map(s => s.name);

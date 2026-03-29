@@ -9,6 +9,7 @@ import { Crosshair, Users, Plus, ChevronRight } from 'lucide-react';
 import MissionCreateForm from './MissionCreateForm';
 import PhaseObjectivesEditor from './PhaseObjectivesEditor';
 import CrewStatusPanel from './CrewStatusPanel';
+import { isOpsLeader } from '../rankPolicies';
 
 export default function MissionPlannerPage() {
   const outletContext = useOutletContext() || {};
@@ -21,7 +22,7 @@ export default function MissionPlannerPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
 
-  const canLead = ['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT'].includes(rank);
+  const canLead = isOpsLeader(rank);
 
   const load = useCallback(async () => {
     const [opsData, rsvpData] = await Promise.all([

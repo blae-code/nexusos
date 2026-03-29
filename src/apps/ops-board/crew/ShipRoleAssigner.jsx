@@ -6,8 +6,7 @@ import React, { useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { showToast } from '@/components/NexusToast';
 import { Anchor, ChevronDown, ChevronUp } from 'lucide-react';
-
-const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'QUARTERMASTER', 'FOUNDER', 'PIONEER'];
+import { OPS_LEADER_RANKS } from '../rankPolicies';
 const SHIP_ROLES = ['PILOT', 'GUNNER', 'ENGINEER', 'MEDIC', 'NAVIGATOR', 'LOADMASTER'];
 
 const ROLE_COLORS = {
@@ -32,7 +31,7 @@ function specScore(member, shipRole) {
 }
 
 export default function ShipRoleAssigner({ op, rsvps, members, rank, callsign, onUpdate }) {
-  const canEdit = LEADER_RANKS.includes(rank);
+  const canEdit = OPS_LEADER_RANKS.includes(rank);
   const [saving, setSaving] = useState(null);
   const [expanded, setExpanded] = useState(true);
 

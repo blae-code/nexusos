@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { ChevronDown } from 'lucide-react';
+import { OPS_LEADER_RANKS } from './rankPolicies';
 
 const TYPE_DOT_COLORS = {
   PHASE_ADVANCE:    '#C0392B',
@@ -79,8 +80,6 @@ function LogEntry({ entry, index }) {
   );
 }
 
-const SCOUT_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
-
 export default function SessionLog({ op, callsign, rank, onUpdate }) {
   const [input, setInput] = useState('');
   const [posting, setPosting] = useState(false);
@@ -139,7 +138,7 @@ export default function SessionLog({ op, callsign, rank, onUpdate }) {
     setPosting(false);
   };
 
-  const canPost = SCOUT_RANKS.includes(rank);
+  const canPost = OPS_LEADER_RANKS.includes(rank);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, position: 'relative' }}>

@@ -43,7 +43,10 @@ export default function AARTimelineCard({ op }) {
     ? Math.round((endDate.getTime() - startDate.getTime()) / 60000)
     : null;
   const phases = Array.isArray(op.phases) ? op.phases : [];
-  const completedPhases = op.phase_current || phases.length;
+  const phaseIndex = Number.isFinite(op.phase_current) ? Math.max(0, Math.round(op.phase_current)) : 0;
+  const completedPhases = phases.length > 0
+    ? Math.min(phases.length, phaseIndex + 1)
+    : 0;
   const wrapUp = op.wrap_up_data || {};
   const totalRevenue = (wrapUp.sales || []).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
   const totalExpenses = (wrapUp.expenses || []).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);

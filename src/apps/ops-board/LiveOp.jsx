@@ -18,9 +18,7 @@ import ResourceReportPanel from './ResourceReportPanel';
 import OpDebriefPanel from './debrief/OpDebriefPanel';
 import ShipRoleAssigner from './ship-roles/ShipRoleAssigner';
 import ShipRoleDisplay from './ship-roles/ShipRoleDisplay';
-
-const PIONEER_RANKS = ['PIONEER', 'FOUNDER'];
-const SCOUT_RANKS   = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+import { isOpsLeader, isOpsPioneer } from './rankPolicies';
 
 function normalizeRoleSlots(slots) {
   if (!slots) return [];
@@ -114,10 +112,6 @@ export default function LiveOp() {
     setOp((current) => (current ? { ...current, phase_current: nextPhase } : current));
   }, []);
 
-  const handleGateUpdate = useCallback(() => {
-    fetchOp();
-  }, [fetchOp]);
-
   const handleLogUpdate = useCallback((nextLog) => {
     setOp((current) => (current ? { ...current, session_log: nextLog } : current));
   }, []);
@@ -166,6 +160,8 @@ export default function LiveOp() {
       });
       navigate('/app/ops');
     } catch {
+      // navigation stays on page when the request fails
+    } finally {
       setEnding(false);
     }
   };
@@ -186,6 +182,8 @@ export default function LiveOp() {
       });
       await fetchOp();
     } catch {
+      // publishing failed — button re-enables via finally
+    } finally {
       setPublishing(false);
     }
   };
@@ -215,14 +213,20 @@ export default function LiveOp() {
 
   const phases = Array.isArray(op.phases) ? op.phases : [];
   const currentPhase = op.phase_current || 0;
-  const isPioneer = PIONEER_RANKS.includes(rank);
-  const canManage = SCOUT_RANKS.includes(rank);
+  const isPioneer = isOpsPioneer(rank);
+  const canManage = isOpsLeader(rank);
   const isLive = op.status === 'LIVE';
   const isPublished = op.status === 'PUBLISHED';
   const isDraft = op.status === 'DRAFT';
-  const canPublish = isDraft && (
-    (canManage && String(op.created_by_user_id || '') === String(sessionUserId || '')) || isPioneer
-  );
+  const isCreator = !op.created_by_user_id || String(op.created_by_user_id || '') === String(sessionUserId || '');
+  const canPublish = isDraft && (isPioneer || (canManage && isCreator));
+  const canGoLive = isPublished && canManage;
+  const canEnd = isLive && canManage;
+  const topbarActions = [
+    canPublish ? { id: 'publish', label: 'Publish Op', tone: 'warn', busy: publishing, onClick: handlePublish } : null,
+    canGoLive ? { id: 'go-live', label: 'Go Live', tone: 'live', busy: activating, onClick: handleActivate } : null,
+    canEnd ? { id: 'end-op', label: 'End Op', tone: 'danger', busy: ending, onClick: handleEndOp } : null,
+  ].filter(Boolean);
 
 
   const phaseTrackerProps = { phases, currentPhase, opId: op.id, opName: op.name, rank, onAdvance: handlePhaseAdvance };
@@ -252,6 +256,7 @@ export default function LiveOp() {
         startedAt={op.started_at}
         layoutMode={layoutMode}
         onLayoutChange={handleLayoutChange}
+        actions={topbarActions}
       />
 
       {/* Financial wrap-up + debrief for completed/archived ops */}

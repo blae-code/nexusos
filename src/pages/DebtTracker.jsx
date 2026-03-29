@@ -13,7 +13,7 @@ import DebtLedgerTable from '@/components/debt/DebtLedgerTable';
 import MyDebtSummary from '@/components/debt/MyDebtSummary';
 import PaymentDialog from '@/components/debt/PaymentDialog';
 
-const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'FOUNDER', 'PIONEER'];
+const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'QUARTERMASTER', 'FOUNDER', 'PIONEER'];
 
 export default function DebtTracker() {
   const ctx = useOutletContext() || {};

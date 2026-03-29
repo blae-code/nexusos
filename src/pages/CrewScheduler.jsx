@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
@@ -14,16 +15,21 @@ const SHIP_ROLES = [
   { id: 'cargo', label: 'Cargo Specialist', color: '#5A5850' },
 ];
 
+const LEADER_RANKS = ['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER'];
 const RANK_HIERARCHY = {
   PIONEER: 0,
   FOUNDER: 1,
-  VOYAGER: 2,
-  SCOUT: 3,
-  VAGRANT: 4,
-  AFFILIATE: 5,
+  QUARTERMASTER: 2,
+  VOYAGER: 3,
+  SCOUT: 4,
+  VAGRANT: 5,
+  AFFILIATE: 6,
 };
 
 export default function CrewScheduler() {
+  const outletContext = /** @type {any} */ (useOutletContext() || {});
+  const rank = outletContext.rank || 'AFFILIATE';
+  const canManageAssignments = LEADER_RANKS.includes(rank);
   const [operations, setOperations] = useState([]);
   const [crew, setCrew] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,10 +79,15 @@ export default function CrewScheduler() {
   }, []);
 
   useEffect(() => {
+    if (!canManageAssignments) {
+      setLoading(false);
+      return;
+    }
     loadData();
-  }, [loadData]);
+  }, [canManageAssignments, loadData]);
 
   const handleAssignRole = async (opId, crewId, role) => {
+    if (!canManageAssignments) return;
     try {
       setAssignments((prev) => ({
         ...prev,
@@ -107,6 +118,22 @@ export default function CrewScheduler() {
       console.error('[CrewScheduler assign]', err);
     }
   };
+
+  if (!canManageAssignments && !loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+        <div style={{ textAlign: 'center', maxWidth: 420, padding: 24 }}>
+          <Users size={30} style={{ color: 'var(--t3)', opacity: 0.35, marginBottom: 10 }} />
+          <div style={{ color: 'var(--t0)', fontSize: 13, fontWeight: 600, letterSpacing: '0.08em' }}>
+            Crew Scheduler requires Voyager or Quartermaster clearance.
+          </div>
+          <div style={{ color: 'var(--t2)', fontSize: 11, marginTop: 8, lineHeight: 1.6 }}>
+            This view assigns other members to operation roles and is restricted to fleet leadership.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getAvailableCrew = (opId) => {
     const op = operations.find((o) => o.id === opId);

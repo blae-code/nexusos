@@ -17,21 +17,33 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
   const [customNotes, setCustomNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState('');
+  const [error, setError] = useState('');
   const handleGenerate = async () => {
     setLoading(true);
+    setError('');
     setPreview('');
-    const res = await base44.functions.invoke('phaseBriefing', {
-      op_id: op.id,
-      phase_name: phaseName,
-      phase_index: currentPhase,
-      threat_notes: threatNotes,
-      material_status: materialStatus,
-      custom_notes: customNotes,
-    });
-    const text = res?.data?.brief_text || '';
-    setPreview(text);
-    setLoading(false);
-    onPosted && onPosted();
+
+    try {
+      const res = await base44.functions.invoke('phaseBriefing', {
+        op_id: op.id,
+        phase_name: phaseName,
+        phase_index: currentPhase,
+        threat_notes: threatNotes,
+        material_status: materialStatus,
+        custom_notes: customNotes,
+      });
+      const data = res?.data || res;
+      if (data?.error) {
+        setError(data.error);
+      } else {
+        setPreview(data?.brief_text || '');
+        onPosted && onPosted();
+      }
+    } catch (err) {
+      setError(err?.message || 'Failed to generate phase brief.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -107,6 +119,15 @@ export default function PhaseBriefModal({ op, onClose, onPosted }) {
           </div>
 
           {/* Preview */}
+          {error && (
+            <div style={{
+              background: 'rgba(var(--danger-rgb), 0.06)', border: '0.5px solid rgba(var(--danger-rgb), 0.18)', borderRadius: 6,
+              padding: '10px 12px', color: 'var(--danger)', fontSize: 10, lineHeight: 1.5,
+            }}>
+              {error}
+            </div>
+          )}
+
           {preview && (
             <div style={{
               background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 6,

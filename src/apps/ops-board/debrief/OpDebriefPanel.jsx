@@ -9,8 +9,7 @@ import { FileText, Save, CheckCircle2, Award } from 'lucide-react';
 import DebriefMetricsForm from './DebriefMetricsForm';
 import EncounterLog from './EncounterLog';
 import HaulSummary from './HaulSummary';
-
-const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'QUARTERMASTER', 'FOUNDER', 'PIONEER'];
+import { OPS_LEADER_RANKS } from '../rankPolicies';
 const LABEL = { fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, color: '#5A5850', letterSpacing: '0.12em', textTransform: 'uppercase', display: 'block', marginBottom: 4 };
 
 function CommendationRow({ c, onRemove }) {
@@ -28,7 +27,7 @@ function CommendationRow({ c, onRemove }) {
 }
 
 export default function OpDebriefPanel({ op, rsvps, callsign, rank }) {
-  const canEdit = LEADER_RANKS.includes(rank);
+  const canEdit = OPS_LEADER_RANKS.includes(rank);
   const [debrief, setDebrief] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

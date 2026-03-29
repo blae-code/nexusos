@@ -7,7 +7,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 const enc = new TextEncoder();
 const SESSION_COOKIE_NAME = 'nexus_member_session';
 const KEY_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const VALID_RANKS = new Set(['PIONEER', 'FOUNDER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE']);
+const VALID_RANKS = new Set(['PIONEER', 'FOUNDER', 'QUARTERMASTER', 'VOYAGER', 'SCOUT', 'VAGRANT', 'AFFILIATE']);
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
 function toBase64Url(bytes) {

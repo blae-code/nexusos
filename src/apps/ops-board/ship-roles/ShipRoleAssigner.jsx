@@ -8,11 +8,10 @@ import { base44 } from '@/core/data/base44Client';
 import { showToast } from '@/components/NexusToast';
 import { Anchor } from 'lucide-react';
 import ShipRoleCard from './ShipRoleCard';
-
-const LEADER_RANKS = ['SCOUT', 'VOYAGER', 'QUARTERMASTER', 'FOUNDER', 'PIONEER'];
+import { OPS_LEADER_RANKS } from '../rankPolicies';
 
 export default function ShipRoleAssigner({ op, rsvps = [], members = [], rank, onUpdate }) {
-  const canEdit = LEADER_RANKS.includes(rank);
+  const canEdit = OPS_LEADER_RANKS.includes(rank);
   const confirmed = rsvps.filter(r => r.status === 'CONFIRMED');
   const [ships, setShips] = useState([]);
   const [saving, setSaving] = useState(null);
