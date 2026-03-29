@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
 import { formatCompactAuec } from '@/core/data/commerce-logistics';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { Plus } from 'lucide-react';
 import PostExchangeForm from './PostExchangeForm';
 
@@ -245,17 +246,18 @@ export default function ExchangeBoard({ materials, commodities, viewerId, viewer
       setLoading(false);
     }
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
 
   useEffect(() => {
     try {
-      const unsub = base44.entities.TradePost.subscribe(() => load());
+      const unsub = base44.entities.TradePost.subscribe(scheduleRefresh);
       return () => typeof unsub === 'function' && unsub();
     } catch {
       return undefined;
     }
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const myPosts = posts.filter((p) => p.poster_id === viewerId);
   const openPosts = posts.filter((p) => p.status === 'OPEN' && p.poster_id !== viewerId);
@@ -293,7 +295,7 @@ export default function ExchangeBoard({ materials, commodities, viewerId, viewer
           commodities={commodities}
           viewerId={viewerId}
           viewerCallsign={viewerCallsign}
-          onDone={() => { setShowForm(false); load(); }}
+          onDone={() => { setShowForm(false); void refreshNow(); }}
         />
       )}
 
@@ -313,7 +315,7 @@ export default function ExchangeBoard({ materials, commodities, viewerId, viewer
               post={post}
               viewerId={viewerId}
               viewerCallsign={viewerCallsign}
-              onRefresh={load}
+              onRefresh={refreshNow}
             />
           ))
         )}
@@ -331,7 +333,7 @@ export default function ExchangeBoard({ materials, commodities, viewerId, viewer
               post={post}
               viewerId={viewerId}
               viewerCallsign={viewerCallsign}
-              onRefresh={load}
+              onRefresh={refreshNow}
             />
           ))}
         </div>

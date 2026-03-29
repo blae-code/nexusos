@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useCountUp } from '@/core/hooks/useCountUp';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
@@ -151,17 +152,18 @@ export default function Commerce() {
     setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Commerce will degrade to read-only until those entities are available.` : '');
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
     const unsubscribers = [
-      base44.entities.Transaction.subscribe(() => load()),
-      base44.entities.Contract.subscribe(() => load()),
-      base44.entities.CofferLog.subscribe(() => load()),
-      base44.entities.CargoLog.subscribe(() => load()),
+      base44.entities.Transaction.subscribe(scheduleRefresh),
+      base44.entities.Contract.subscribe(scheduleRefresh),
+      base44.entities.CofferLog.subscribe(scheduleRefresh),
+      base44.entities.CargoLog.subscribe(scheduleRefresh),
     ];
     return () => unsubscribers.forEach((unsubscribe) => typeof unsubscribe === 'function' && unsubscribe());
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const viewerId = user?.id || '';
   const viewerCallsign = user?.callsign || 'UNKNOWN';
@@ -252,7 +254,7 @@ export default function Commerce() {
 
       setTransactionForm({ type: 'CREDIT', amount_aUEC: '', description: '' });
       setShowTransactionForm(false);
-      await load();
+      await refreshNow();
     } catch (nextError) {
       setError(nextError?.message || 'Unable to log wallet activity in this deployment.');
     } finally {
@@ -291,7 +293,7 @@ export default function Commerce() {
       });
       setContractForm({ contract_type: 'COURIER', title: '', description: '', reward_aUEC: '', collateral_aUEC: '', pickup_location: '', delivery_location: '', expires_at: '', cargo_manifest_text: '' });
       setShowContractForm(false);
-      await load();
+      await refreshNow();
     } catch (nextError) {
       setError(nextError?.message || 'Unable to create a contract in this deployment.');
     } finally {
@@ -308,7 +310,7 @@ export default function Commerce() {
     setError('');
     try {
       await base44.entities.Contract.update(contract.id, patch);
-      await load();
+      await refreshNow();
     } catch (nextError) {
       setError(nextError?.message || 'Unable to update contract state.');
     } finally {

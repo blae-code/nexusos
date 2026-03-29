@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAnimatedList } from '@/core/hooks/useAnimatedList';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
@@ -133,16 +134,17 @@ export default function Logistics() {
     setWarning(unavailable.length ? `This deployment is missing ${unavailable.join(', ')} data surfaces. Logistics will degrade to read-only until those entities are available.` : '');
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
   useEffect(() => {
     const unsubscribers = [
-      base44.entities.CargoJob.subscribe(() => load()),
-      base44.entities.Consignment.subscribe(() => load()),
-      base44.entities.OrgShip.subscribe(() => load()),
+      base44.entities.CargoJob.subscribe(scheduleRefresh),
+      base44.entities.Consignment.subscribe(scheduleRefresh),
+      base44.entities.OrgShip.subscribe(scheduleRefresh),
     ];
     return () => unsubscribers.forEach((unsubscribe) => typeof unsubscribe === 'function' && unsubscribe());
-  }, [load]);
+  }, [scheduleRefresh]);
 
   const viewerId = user?.id || '';
   const viewerCallsign = user?.callsign || 'UNKNOWN';
@@ -221,7 +223,7 @@ export default function Logistics() {
       });
       setJobForm({ job_type: 'HAUL', title: '', pickup_location: '', delivery_location: '', reward_aUEC: '', collateral_aUEC: '', risk_tier: '', cargo_manifest_text: '', notes: '' });
       setShowJobForm(false);
-      await load();
+      await refreshNow();
     } catch (nextError) {
       setError(nextError?.message || 'Unable to create a cargo job in this deployment.');
     } finally {
@@ -238,7 +240,7 @@ export default function Logistics() {
     setError('');
     try {
       await base44.entities.CargoJob.update(job.id, patch);
-      await load();
+      await refreshNow();
     } catch (nextError) {
       setError(nextError?.message || 'Unable to update cargo job state.');
     } finally {
@@ -272,7 +274,7 @@ export default function Logistics() {
       });
       setConsignmentForm({ goods_text: '', asking_price_aUEC: '', commission_rate: '5', notes: '' });
       setShowConsignmentForm(false);
-      await load();
+      await refreshNow();
     } catch (nextError) {
       setError(nextError?.message || 'Unable to create a consignment in this deployment.');
     } finally {
@@ -289,7 +291,7 @@ export default function Logistics() {
     setError('');
     try {
       await base44.entities.Consignment.update(consignment.id, patch);
-      await load();
+      await refreshNow();
     } catch (nextError) {
       setError(nextError?.message || 'Unable to update consignment state.');
     } finally {

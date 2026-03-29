@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
+import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useSession } from '@/core/data/SessionContext';
 import { Package, Ship, Boxes, Zap, RefreshCw, Plus, Search, Camera } from 'lucide-react';
 import AssetList from './AssetList';
@@ -46,16 +47,17 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
     setMembers(mems || []);
     setLoading(false);
   }, []);
+  const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void refreshNow(); }, [refreshNow]);
 
   useEffect(() => {
     const unsubs = [
-      base44.entities.PersonalAsset.subscribe(() => load()),
-      base44.entities.OrgShip.subscribe(() => load()),
+      base44.entities.PersonalAsset.subscribe(scheduleRefresh),
+      base44.entities.OrgShip.subscribe(scheduleRefresh),
     ];
     return () => unsubs.forEach(u => u());
-  }, [load]);
+  }, [scheduleRefresh]);
 
   // Filter assets to current user
   const myAssets = useMemo(() =>
@@ -142,7 +144,7 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
             }}>— {callsign}</span>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={load} style={{
+            <button onClick={refreshNow} style={{
               padding: '6px 10px', background: '#141410',
               border: '0.5px solid rgba(200,170,100,0.12)', borderRadius: 2,
               color: '#5A5850', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
@@ -238,7 +240,7 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
             items={ocrResults}
             mode={ocrMode}
             callsign={callsign}
-            onSaved={() => { setOcrResults(null); setShowOcr(false); load(); }}
+            onSaved={() => { setOcrResults(null); setShowOcr(false); void refreshNow(); }}
             onCancel={() => { setOcrResults(null); }}
           />
         </div>
@@ -247,7 +249,7 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
       {/* Add asset form */}
       {showAdd && (
         <div style={{ padding: '12px 16px', borderBottom: '0.5px solid rgba(200,170,100,0.10)' }}>
-          <AddAssetForm callsign={callsign} onCreated={() => { setShowAdd(false); load(); }} onCancel={() => setShowAdd(false)} />
+          <AddAssetForm callsign={callsign} onCreated={() => { setShowAdd(false); void refreshNow(); }} onCancel={() => setShowAdd(false)} />
         </div>
       )}
 
@@ -259,7 +261,7 @@ export default function AssetInventoryTab({ blueprints, materials: orgMaterials 
             orgMaterials={myMaterials.orgMats}
             otherAssets={otherAssets}
             search={search}
-            onRefresh={load}
+            onRefresh={refreshNow}
             callsign={callsign}
             members={members}
           />
