@@ -14,6 +14,7 @@
     "test:e2e:live": "playwright test -c ./playwright.live.config.mjs",
     "audit:repo-sample-data": "node ./scripts/prod/audit-repo-sample-data.mjs",
     "audit:prod": "node ./scripts/prod/audit-prod.mjs",
+    "verify:auth-logins": "node ./scripts/prod/verify-auth-logins.mjs",
     "verify:prod-ready": "node ./scripts/prod/verify-prod-ready.mjs",
     "version:sync": "node ./scripts/versioning/sync-versioning.mjs",
     "version:check": "node ./scripts/versioning/check-versioning.mjs",
