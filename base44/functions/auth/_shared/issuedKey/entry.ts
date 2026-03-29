@@ -392,6 +392,27 @@ export async function listNexusUsers(base44: ReturnType<typeof createClientFromR
   return (await base44.asServiceRole.entities.NexusUser.list('-created_date', 500)) || [];
 }
 
+function dedupeUsers(users: NexusUserRecord[]): NexusUserRecord[] {
+  const seen = new Set<string>();
+  return (users || []).filter((user) => {
+    const id = String(user?.id || '');
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+async function safeFilterUsers(
+  base44: ReturnType<typeof createClientFromRequest>,
+  filter: Record<string, unknown>,
+): Promise<NexusUserRecord[]> {
+  try {
+    return ((await base44.asServiceRole.entities.NexusUser.filter(filter)) || []) as NexusUserRecord[];
+  } catch {
+    return [];
+  }
+}
+
 export async function findUserById(
   base44: ReturnType<typeof createClientFromRequest>,
   userId: string,
@@ -406,6 +427,45 @@ export async function findUserByLoginName(
 ): Promise<NexusUserRecord | null> {
   const normalized = normalizeLoginName(loginName);
   if (!normalized) return null;
+
+  const exactMatches = dedupeUsers([
+    ...(await safeFilterUsers(base44, { login_name: normalized })),
+    ...(await safeFilterUsers(base44, { username: normalized })),
+  ]);
+
+  if (exactMatches.length > 0) {
+    const matches = exactMatches;
+    const scoreCandidate = (candidate: NexusUserRecord) => {
+      const exactLoginName = normalizeLoginName(String(candidate.login_name || candidate.username || '')) === normalized ? 1 : 0;
+      const hasActiveKey = candidate.key_revoked === true ? 0 : 1;
+      const hasKeyHash = candidate.auth_key_hash ? 1 : 0;
+      const freshness = new Date(
+        candidate.key_issued_at
+        || candidate.updated_date
+        || candidate.last_seen_at
+        || candidate.created_date
+        || candidate.joined_at
+        || 0,
+      ).getTime();
+
+      return [exactLoginName, hasActiveKey, hasKeyHash, freshness];
+    };
+
+    matches.sort((left, right) => {
+      const leftScore = scoreCandidate(left);
+      const rightScore = scoreCandidate(right);
+
+      for (let index = 0; index < leftScore.length; index += 1) {
+        if (leftScore[index] !== rightScore[index]) {
+          return rightScore[index] - leftScore[index];
+        }
+      }
+
+      return String(right.id || '').localeCompare(String(left.id || ''));
+    });
+
+    return matches[0] || null;
+  }
 
   const users = await listNexusUsers(base44);
   const matches = users.filter((candidate) => resolveUserLoginName(candidate) === normalized);

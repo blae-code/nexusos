@@ -22,6 +22,31 @@ function normalizeLoginName(v) { return String(v || '').trim().toLowerCase().rep
 function normalizeCallsign(v) { return String(v || '').trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '').slice(0, 40); }
 function isAdminUser(u) { return String(u.nexus_rank || '').toUpperCase() === 'PIONEER' || u.is_admin === true; }
 
+async function safeFilterUsers(base44, filter) {
+  try {
+    return (await base44.asServiceRole.entities.NexusUser.filter(filter)) || [];
+  } catch {
+    return [];
+  }
+}
+
+async function findExistingUser(base44, loginName, callsign) {
+  const exactMatches = [
+    ...(loginName ? await safeFilterUsers(base44, { login_name: loginName }) : []),
+    ...(loginName ? await safeFilterUsers(base44, { username: loginName }) : []),
+    ...(callsign ? await safeFilterUsers(base44, { callsign }) : []),
+  ];
+  if (exactMatches.length) {
+    return exactMatches[0] || null;
+  }
+
+  const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
+  return (allUsers || []).find((user) =>
+    normalizeLoginName(user.login_name || user.username || user.callsign) === loginName
+    || normalizeCallsign(user.callsign || '') === callsign,
+  ) || null;
+}
+
 function parseCookies(req) {
   const raw = req.headers.get('cookie') || '';
   return raw.split(';').reduce((acc, part) => {
@@ -89,11 +114,7 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'missing_required_fields' }, { status: 400 });
   }
 
-  const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
-  const existing = (allUsers || []).find(u =>
-    normalizeLoginName(u.login_name || u.username || u.callsign) === loginName
-    || normalizeCallsign(u.callsign || '') === callsign
-  );
+  const existing = await findExistingUser(base44, loginName, callsign);
   if (existing) {
     return Response.json({ error: 'callsign_taken' }, { status: 409 });
   }

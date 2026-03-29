@@ -1,4 +1,4 @@
-// src/components/ui/index.js — barrel export for all UI primitives + NexusOS components
+// src/core/design/index.js — barrel export for UI primitives + NexusOS components
 export { default as NexusToken } from './NexusToken'
 export { default as NexusCompass } from './NexusCompass'
 export { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './accordion'

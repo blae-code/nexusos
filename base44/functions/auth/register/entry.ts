@@ -22,6 +22,72 @@ function resolveUserCallsign(u) { return normalizeCallsign(String(u.callsign || 
 function isAdminUser(u) { return String(u.nexus_rank || '').toUpperCase() === 'PIONEER' || u.is_admin === true; }
 function isOnboardingComplete(u) { return u.onboarding_complete === true || u.consent_given === true || Boolean(u.consent_timestamp); }
 
+function dedupeUsers(users) {
+  const seen = new Set();
+  return (users || []).filter((user) => {
+    const id = String(user?.id || '');
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+function scoreCandidate(user, normalizedLoginName) {
+  const exactLoginName = normalizeLoginName(String(user?.login_name || user?.username || '')) === normalizedLoginName ? 1 : 0;
+  const hasActiveKey = user?.key_revoked === true ? 0 : 1;
+  const hasKeyHash = String(user?.auth_key_hash || '').trim() ? 1 : 0;
+  const freshness = new Date(
+    user?.key_issued_at
+    || user?.updated_date
+    || user?.last_seen_at
+    || user?.created_date
+    || user?.joined_at
+    || 0,
+  ).getTime();
+  return [exactLoginName, hasActiveKey, hasKeyHash, freshness];
+}
+
+function pickBestUser(users, normalizedLoginName) {
+  const matches = dedupeUsers(users);
+  if (!matches.length) return null;
+  matches.sort((left, right) => {
+    const leftScore = scoreCandidate(left, normalizedLoginName);
+    const rightScore = scoreCandidate(right, normalizedLoginName);
+    for (let index = 0; index < leftScore.length; index += 1) {
+      if (leftScore[index] !== rightScore[index]) {
+        return rightScore[index] - leftScore[index];
+      }
+    }
+    return String(right?.id || '').localeCompare(String(left?.id || ''));
+  });
+  return matches[0] || null;
+}
+
+async function safeFilterUsers(base44, filter) {
+  try {
+    return (await base44.asServiceRole.entities.NexusUser.filter(filter)) || [];
+  } catch {
+    return [];
+  }
+}
+
+async function findUserByLoginName(base44, loginName) {
+  const normalized = normalizeLoginName(loginName);
+  if (!normalized) return null;
+
+  const exactMatches = dedupeUsers([
+    ...(await safeFilterUsers(base44, { login_name: normalized })),
+    ...(await safeFilterUsers(base44, { username: normalized })),
+  ]);
+
+  if (exactMatches.length) {
+    return pickBestUser(exactMatches, normalized);
+  }
+
+  const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
+  return pickBestUser((allUsers || []).filter((user) => resolveUserLoginName(user) === normalized), normalized);
+}
+
 async function signValue(value, secret) {
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, enc.encode(value));
@@ -75,8 +141,7 @@ Deno.serve(async (req) => {
     const secret = Deno.env.get('SESSION_SIGNING_SECRET');
     if (!secret) return Response.json({ error: 'session_secret_missing' }, { status: 500, headers: NO_STORE });
     const base44 = createClientFromRequest(req);
-    const allUsers = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
-    const user = (allUsers || []).find(u => resolveUserLoginName(u) === username);
+    const user = await findUserByLoginName(base44, username);
     if (!user) return Response.json({ error: 'user_not_found' }, { status: 401, headers: NO_STORE });
     if (user.key_revoked) return Response.json({ error: 'key_revoked' }, { status: 403, headers: NO_STORE });
     if (!resolvePersistedLoginName(user) || !String(user.auth_key_hash || '').trim()) {

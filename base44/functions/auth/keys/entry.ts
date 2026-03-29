@@ -25,6 +25,45 @@ function resolvePersistedLoginName(u) { return normalizeLoginName(String(u.login
 function resolveUserCallsign(u) { return normalizeCallsign(String(u.callsign || u.login_name || u.username || 'NOMAD')); }
 function isAdminUser(u) { return String(u.nexus_rank || '').toUpperCase() === 'PIONEER' || u.is_admin === true; }
 
+function dedupeUsers(users) {
+  const seen = new Set();
+  return (users || []).filter((user) => {
+    const id = String(user?.id || '');
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+async function safeFilterUsers(base44, filter) {
+  try {
+    return (await base44.asServiceRole.entities.NexusUser.filter(filter)) || [];
+  } catch {
+    return [];
+  }
+}
+
+async function findExistingUser(base44, loginName, callsign) {
+  const normalizedLoginName = normalizeLoginName(loginName);
+  const normalizedCallsign = normalizeCallsign(callsign);
+
+  const exactMatches = dedupeUsers([
+    ...(normalizedLoginName ? await safeFilterUsers(base44, { login_name: normalizedLoginName }) : []),
+    ...(normalizedLoginName ? await safeFilterUsers(base44, { username: normalizedLoginName }) : []),
+    ...(normalizedCallsign ? await safeFilterUsers(base44, { callsign: normalizedCallsign }) : []),
+  ]);
+
+  if (exactMatches.length) {
+    return exactMatches[0] || null;
+  }
+
+  const users = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
+  return (users || []).find((user) =>
+    resolveUserLoginName(user) === normalizedLoginName
+    || normalizeCallsign(user.callsign || '') === normalizedCallsign,
+  ) || null;
+}
+
 function parseCookies(req) {
   const raw = req.headers.get('cookie') || '';
   return raw.split(';').reduce((acc, part) => {
@@ -135,12 +174,11 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'invalid_issue_request' }, { status: 400, headers: NO_STORE });
       }
 
-      const users = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
-      if ((users || []).some(u => normalizeLoginName(u.login_name || u.username || u.callsign) === loginName)) {
-        return Response.json({ error: 'username_taken' }, { status: 409, headers: NO_STORE });
-      }
-      if ((users || []).some(u => normalizeCallsign(u.callsign || '') === callsign)) {
-        return Response.json({ error: 'callsign_taken' }, { status: 409, headers: NO_STORE });
+      const existing = await findExistingUser(base44, loginName, callsign);
+      if (existing) {
+        const loginTaken = resolveUserLoginName(existing) === loginName;
+        const callsignTaken = normalizeCallsign(existing.callsign || '') === callsign;
+        return Response.json({ error: loginTaken ? 'username_taken' : callsignTaken ? 'callsign_taken' : 'duplicate_user' }, { status: 409, headers: NO_STORE });
       }
 
       const authKey = generateAuthKey();
