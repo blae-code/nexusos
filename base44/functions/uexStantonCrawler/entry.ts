@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
     let alertsTriggered = 0;
 
     // ── Step 5: Upsert commodities + snapshots ───────────────────────
-    // Filter to commodities with meaningful price data, cap at 200 to stay within rate limits
+    // Filter to commodities with meaningful price data, cap at 50 to stay within rate limits
     const allEntries = Object.entries(commodityIndex)
       .filter(([_, idx]) => idx.buyOffers.length > 0 || idx.sellOffers.length > 0)
       .sort((a, b) => {
