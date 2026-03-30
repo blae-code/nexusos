@@ -51,33 +51,48 @@ export default function RescueBoard() {
   const submit = async () => {
     if (!form.location || !form.situation) return;
     setSubmitting(true);
-    const nextCall = {
-      id: `rescue_${Date.now()}`,
-      ...form,
-      callsign: sessionCallsign,
-      ts: new Date().toISOString(),
-      status: 'OPEN',
-    };
-    const nextCalls = await createRescueCall(nextCall);
-    setCalls(nextCalls);
-    setForm({ location: '', system: 'STANTON', situation: '', callsign: sessionCallsign });
-    setShowForm(false);
-    setSubmitting(false);
+    try {
+      const nextCall = {
+        id: `rescue_${Date.now()}`,
+        ...form,
+        callsign: sessionCallsign,
+        ts: new Date().toISOString(),
+        status: 'OPEN',
+      };
+      const nextCalls = await createRescueCall(nextCall);
+      setCalls(nextCalls);
+      setForm({ location: '', system: 'STANTON', situation: '', callsign: sessionCallsign });
+      setShowForm(false);
+    } catch {
+      // broadcast failed — form stays open so user can retry
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const respond = async (id) => {
     setUpdatingId(id);
-    const responder = callsign || 'UNKNOWN';
-    const nextCalls = await updateRescueCall(id, { status: 'RESPONDING', responder });
-    setCalls(nextCalls);
-    setUpdatingId(null);
+    try {
+      const responder = callsign || 'UNKNOWN';
+      const nextCalls = await updateRescueCall(id, { status: 'RESPONDING', responder });
+      setCalls(nextCalls);
+    } catch {
+      // update failed silently
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const resolve = async (id) => {
     setUpdatingId(id);
-    const nextCalls = await updateRescueCall(id, { status: 'RESOLVED' });
-    setCalls(nextCalls);
-    setUpdatingId(null);
+    try {
+      const nextCalls = await updateRescueCall(id, { status: 'RESOLVED' });
+      setCalls(nextCalls);
+    } catch {
+      // update failed silently
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const STATUS_COLORS = { OPEN: '#C0392B', RESPONDING: '#C8A84B', RESOLVED: '#4A8C5C' };

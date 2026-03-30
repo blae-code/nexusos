@@ -69,9 +69,14 @@ export default function TradeBoardTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const o = await base44.entities.OrgTradeOrder.list('-created_date', 200);
-    setOrders(o || []);
-    setLoading(false);
+    try {
+      const o = await base44.entities.OrgTradeOrder.list('-created_date', 200);
+      setOrders(o || []);
+    } catch {
+      // load failed — empty state shown
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);

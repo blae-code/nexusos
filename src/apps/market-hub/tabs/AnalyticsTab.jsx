@@ -49,19 +49,24 @@ export default function AnalyticsTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [cl, cfl, tr, ps, cm] = await Promise.all([
-      base44.entities.CargoLog.list('-logged_at', 200),
-      base44.entities.CofferLog.list('-logged_at', 200),
-      base44.entities.TradeRoute.list('-route_score', 500),
-      base44.entities.PriceSnapshot.list('-snapped_at', 500).catch(() => []),
-      base44.entities.GameCacheCommodity.list('-margin_pct', 500).catch(() => []),
-    ]);
-    setLogs(cl || []);
-    setCofferLogs(cfl || []);
-    setRoutes(tr || []);
-    setSnapshots(ps || []);
-    setCommodities(cm || []);
-    setLoading(false);
+    try {
+      const [cl, cfl, tr, ps, cm] = await Promise.all([
+        base44.entities.CargoLog.list('-logged_at', 200),
+        base44.entities.CofferLog.list('-logged_at', 200),
+        base44.entities.TradeRoute.list('-route_score', 500),
+        base44.entities.PriceSnapshot.list('-snapped_at', 500).catch(() => []),
+        base44.entities.GameCacheCommodity.list('-margin_pct', 500).catch(() => []),
+      ]);
+      setLogs(cl || []);
+      setCofferLogs(cfl || []);
+      setRoutes(tr || []);
+      setSnapshots(ps || []);
+      setCommodities(cm || []);
+    } catch {
+      // load failed — empty state shown
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);

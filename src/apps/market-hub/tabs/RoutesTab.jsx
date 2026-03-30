@@ -15,18 +15,28 @@ export default function RoutesTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const r = await base44.entities.TradeRoute.list('-route_score', 200);
-    setRoutes(r || []);
-    setLoading(false);
+    try {
+      const r = await base44.entities.TradeRoute.list('-route_score', 200);
+      setRoutes(r || []);
+    } catch {
+      // load failed — empty state shown
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const handleSync = async () => {
     setSyncing(true);
-    await base44.functions.invoke('uexSyncRoutes', {});
-    await load();
-    setSyncing(false);
+    try {
+      await base44.functions.invoke('uexSyncRoutes', {});
+      await load();
+    } catch {
+      // sync failed — panel stays visible
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const handleFlag = async (id) => {

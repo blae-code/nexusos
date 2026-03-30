@@ -99,6 +99,8 @@ export default function EpicArchive() {
       setDeposits(deps || []);
       setCraftQueue(queue || []);
       setSelectedPatch((current) => current || p?.[0] || null);
+    }).catch(() => {
+      // load failed — tabs render empty states
     });
   }, []);
 

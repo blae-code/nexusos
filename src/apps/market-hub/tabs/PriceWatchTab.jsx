@@ -22,13 +22,18 @@ export default function PriceWatchTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [a, c] = await Promise.all([
-      base44.entities.PriceAlert.list('-created_date', 200),
-      base44.entities.GameCacheCommodity.list('name', 500),
-    ]);
-    setAlerts(a || []);
-    setCommodities(c || []);
-    setLoading(false);
+    try {
+      const [a, c] = await Promise.all([
+        base44.entities.PriceAlert.list('-created_date', 200),
+        base44.entities.GameCacheCommodity.list('name', 500),
+      ]);
+      setAlerts(a || []);
+      setCommodities(c || []);
+    } catch {
+      // load failed — empty state shown
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);

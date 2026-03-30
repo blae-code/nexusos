@@ -132,7 +132,7 @@ export default function LiveOp() {
         target_user_id: null,
         source_module: 'OPS',
         source_id: op.id,
-      });
+      }).catch(() => {});
       await fetchOp();
     } catch {
       // activating failed — button re-enables via finally
@@ -157,7 +157,7 @@ export default function LiveOp() {
         target_user_id: null,
         source_module: 'OPS',
         source_id: op.id,
-      });
+      }).catch(() => {});
       navigate('/app/ops');
     } catch {
       // navigation stays on page when the request fails
@@ -179,7 +179,7 @@ export default function LiveOp() {
         target_user_id: null,
         source_module: 'OPS',
         source_id: op.id,
-      });
+      }).catch(() => {});
       await fetchOp();
     } catch {
       // publishing failed — button re-enables via finally

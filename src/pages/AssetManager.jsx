@@ -22,27 +22,28 @@ export default function AssetManager() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [assetList, memberList, shipList] = await Promise.all([
-      base44.entities.OrgAsset.list('-created_date', 500),
-      listMemberDirectory({ sort: '-joined_at', limit: 500 }),
-      base44.entities.OrgShip.list('-created_date', 200),
-    ]);
-    setAssets(assetList || []);
-    setMembers(memberList || []);
-    setShips(shipList || []);
-    setLoading(false);
+    try {
+      const [assetList, memberList, shipList] = await Promise.all([
+        base44.entities.OrgAsset.list('-created_date', 500),
+        listMemberDirectory({ sort: '-joined_at', limit: 500 }).catch(() => []),
+        base44.entities.OrgShip.list('-created_date', 200),
+      ]);
+      setAssets(assetList || []);
+      setMembers(memberList || []);
+      setShips(shipList || []);
+    } catch {
+      // load failed — empty state shown
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   useEffect(() => {
-    const unsub = base44.entities.OrgAsset.subscribe((event) => {
-      if (event.type === 'create') setAssets(prev => [event.data, ...prev]);
-      else if (event.type === 'update') setAssets(prev => prev.map(a => a.id === event.id ? event.data : a));
-      else if (event.type === 'delete') setAssets(prev => prev.filter(a => a.id !== event.id));
-    });
-    return unsub;
-  }, []);
+    const unsub = base44.entities.OrgAsset.subscribe(loadData);
+    return () => unsub?.();
+  }, [loadData]);
 
   const filtered = useMemo(() => {
     return assets.filter(a => {

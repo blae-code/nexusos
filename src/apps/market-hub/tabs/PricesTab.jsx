@@ -18,23 +18,33 @@ export default function PricesTab({ lastSync, onSynced }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [c, a] = await Promise.all([
-      base44.entities.GameCacheCommodity.list('-margin_pct', 500),
-      base44.entities.PriceAlert.filter({ is_active: true }),
-    ]);
-    setCommodities(c || []);
-    setAlerts(a || []);
-    setLoading(false);
+    try {
+      const [c, a] = await Promise.all([
+        base44.entities.GameCacheCommodity.list('-margin_pct', 500),
+        base44.entities.PriceAlert.filter({ is_active: true }),
+      ]);
+      setCommodities(c || []);
+      setAlerts(a || []);
+    } catch {
+      // load failed — empty state shown
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const handleSync = async () => {
     setSyncing(true);
-    await base44.functions.invoke('uexSyncPrices', {});
-    await load();
-    onSynced?.();
-    setSyncing(false);
+    try {
+      await base44.functions.invoke('uexSyncPrices', {});
+      await load();
+      onSynced?.();
+    } catch {
+      // sync failed — panel stays visible
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const alertMap = useMemo(() => {

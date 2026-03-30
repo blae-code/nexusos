@@ -53,18 +53,26 @@ export default function DebtTracker() {
     const payment = { amount, date: new Date().toISOString(), source: source || 'MANUAL', note };
     const payments = [...(debt.payments || []), payment];
 
-    await base44.entities.MemberDebt.update(debt.id, {
-      amount_paid: newPaid,
-      status: isFullyPaid ? 'PAID' : 'PARTIAL',
-      payments,
-    });
-    setPayingDebt(null);
-    await refreshNow();
+    try {
+      await base44.entities.MemberDebt.update(debt.id, {
+        amount_paid: newPaid,
+        status: isFullyPaid ? 'PAID' : 'PARTIAL',
+        payments,
+      });
+      setPayingDebt(null);
+      await refreshNow();
+    } catch {
+      // update failed — dialog stays open so user can retry
+    }
   };
 
   const handleForgive = async (debt) => {
-    await base44.entities.MemberDebt.update(debt.id, { status: 'FORGIVEN' });
-    await refreshNow();
+    try {
+      await base44.entities.MemberDebt.update(debt.id, { status: 'FORGIVEN' });
+      await refreshNow();
+    } catch {
+      // update failed silently
+    }
   };
 
   const filteredDebts = debts.filter(d => {

@@ -17,19 +17,29 @@ export default function MarketplaceTab({ lastSync, onSynced }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const l = await base44.entities.UEXListing.filter({ is_active: true }, '-synced_at', 200);
-    setListings(l || []);
-    setLoading(false);
+    try {
+      const l = await base44.entities.UEXListing.filter({ is_active: true }, '-synced_at', 200);
+      setListings(l || []);
+    } catch {
+      // load failed — empty state shown
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const handleSync = async () => {
     setSyncing(true);
-    await base44.functions.invoke('uexSyncMarketplace', {});
-    await load();
-    onSynced?.();
-    setSyncing(false);
+    try {
+      await base44.functions.invoke('uexSyncMarketplace', {});
+      await load();
+      onSynced?.();
+    } catch {
+      // sync failed — panel stays visible
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const handleFlag = async (id) => {
