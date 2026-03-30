@@ -197,10 +197,12 @@ export default function IndustryHub() {
   const [priceSnapshots, setPriceSnapshots] = useState([]);
   const [orgShips, setOrgShips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
+    setLoadError(false);
     try {
-      const [mats, bps, queue, refinery, deposits, coffers, priceData, orgShips] = await Promise.all([
+      const [mats, bps, queue, refinery, deposits, coffers, priceData, ships] = await Promise.all([
         base44.entities.Material.list('-logged_at', 100),
         base44.entities.Blueprint.list('-created_date', 100),
         base44.entities.CraftQueue.list('-created_date', 50),
@@ -218,9 +220,9 @@ export default function IndustryHub() {
       setScoutDeposits(deposits || []);
       setCofferLogs(coffers || []);
       setPriceSnapshots(priceData || []);
-      setOrgShips(orgShips || []);
+      setOrgShips(ships || []);
     } catch {
-      // load failed
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -228,6 +230,17 @@ export default function IndustryHub() {
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  // Live subscriptions — refresh when org data changes
+  useEffect(() => {
+    const unsubs = [
+      base44.entities.Material.subscribe(load),
+      base44.entities.Blueprint.subscribe(load),
+      base44.entities.CraftQueue.subscribe(load),
+      base44.entities.RefineryOrder.subscribe(load),
+    ];
+    return () => unsubs.forEach(u => u());
   }, [load]);
 
   const setTab = (nextTab) => {
@@ -248,6 +261,22 @@ export default function IndustryHub() {
           <span />
           <span />
         </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12 }}>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#C0392B', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          FAILED TO LOAD INDUSTRY DATA
+        </div>
+        <div style={{ fontSize: 11, color: '#5A5850' }}>Check your connection and try again.</div>
+        <button onClick={load} style={{
+          padding: '7px 18px', borderRadius: 2, border: '0.5px solid rgba(192,57,43,0.4)',
+          background: 'rgba(192,57,43,0.08)', color: '#C0392B', cursor: 'pointer',
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.1em',
+        }}>RETRY</button>
       </div>
     );
   }

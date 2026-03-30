@@ -35,10 +35,9 @@ export default function Armory() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    const unsub = base44.entities.ArmoryItem.subscribe(event => {
-      if (event.type === 'update' || event.type === 'create') load();
-    });
-    return () => unsub();
+    const unsubItems = base44.entities.ArmoryItem.subscribe(load);
+    const unsubCheckouts = base44.entities.ArmoryCheckout.subscribe(load);
+    return () => { unsubItems(); unsubCheckouts(); };
   }, [load]);
 
   const fpsItems = items.filter(i => i.category === 'FPS');

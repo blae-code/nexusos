@@ -51,6 +51,7 @@ export default function ScoutIntel() {
   const [blueprints, setBlueprints] = useState([]);
   const [liveOp,     setLiveOp]     = useState(null);
   const [loading,    setLoading]    = useState(true);
+  const [loadError,  setLoadError]  = useState(false);
 
   const [filterState,      setFilterState]      = useState(DEFAULT_FILTERS);
   const [panelMode,        setPanelMode]         = useState('default'); // 'default' | 'detail' | 'log' | 'route' | 'route-results' | 'risk'
@@ -69,6 +70,7 @@ export default function ScoutIntel() {
   // ── Data fetch ─────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
+    setLoadError(false);
     try {
       const [deps, mats, bps, ops] = await Promise.all([
         base44.entities.ScoutDeposit.list('-reported_at', 100),
@@ -81,13 +83,22 @@ export default function ScoutIntel() {
       setBlueprints(bps || []);
       setLiveOp(Array.isArray(ops) && ops.length > 0 ? ops[0] : null);
     } catch {
-      // load failed — empty state shown
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Live subscriptions — refresh when deposits change
+  useEffect(() => {
+    const unsubs = [
+      base44.entities.ScoutDeposit.subscribe(load),
+      base44.entities.Op.subscribe(load),
+    ];
+    return () => unsubs.forEach(u => u());
+  }, [load]);
 
   // ── Filter state partial update ────────────────────────────────────────────
 
@@ -108,7 +119,7 @@ export default function ScoutIntel() {
     setPanelMode('default');
   }, [load]);
 
-  // ── Loading state ──────────────────────────────────────────────────────────
+  // ── Loading / error states ─────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -119,6 +130,22 @@ export default function ScoutIntel() {
           borderRadius: '50%', animation: 'spin 0.8s linear infinite',
         }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12 }}>
+        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#C0392B', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          FAILED TO LOAD SCOUT DATA
+        </div>
+        <div style={{ fontSize: 11, color: '#5A5850' }}>Check your connection and try again.</div>
+        <button onClick={load} style={{
+          padding: '7px 18px', borderRadius: 2, border: '0.5px solid rgba(192,57,43,0.4)',
+          background: 'rgba(192,57,43,0.08)', color: '#C0392B', cursor: 'pointer',
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.1em',
+        }}>RETRY</button>
       </div>
     );
   }

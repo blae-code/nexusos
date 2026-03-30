@@ -6,7 +6,7 @@ import {
   Crosshair, Factory, BookOpen, GraduationCap, Radar,
   Shield, Package, Ship, Users, Tags, TrendingUp,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
-  Database, AlertTriangle,
+  Database, AlertTriangle, Archive,
 } from 'lucide-react';
 
 const NAV = [
@@ -22,7 +22,7 @@ const NAV = [
         ],
       },
       { icon: AlertTriangle, label: 'RESCUE BOARD', path: '/app/ops/rescue' },
-
+      { icon: Archive, label: 'EPIC ARCHIVE', path: '/app/ops/archive' },
     ],
   },
   {

@@ -428,7 +428,7 @@ export default function AccessGate() {
         }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#C8A84B' }}>
             <span style={{ animation: 'pulse 3s ease-in-out infinite', color: '#C8A84B' }}>{"\u25CF"}</span>
-            VERSE 4.7.0
+            STAR CITIZEN
           </span>
           {health && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: health.ok ? '#4A8C5C' : '#C0392B' }}>

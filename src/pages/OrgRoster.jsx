@@ -66,7 +66,11 @@ export default function OrgRoster() {
     if (rankFilter !== 'ALL' && (u.nexus_rank || 'AFFILIATE') !== rankFilter) return false;
     if (search && !u.callsign?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  }).sort((a, b) => RANK_ORDER.indexOf(a.nexus_rank || 'AFFILIATE') - RANK_ORDER.indexOf(b.nexus_rank || 'AFFILIATE'));
+  }).sort((a, b) => {
+    const ai = RANK_ORDER.indexOf(a.nexus_rank || 'AFFILIATE');
+    const bi = RANK_ORDER.indexOf(b.nexus_rank || 'AFFILIATE');
+    return (ai === -1 ? RANK_ORDER.length : ai) - (bi === -1 ? RANK_ORDER.length : bi);
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto', padding: 20, gap: 16, animation: 'pageEntrance 200ms ease-out' }}>

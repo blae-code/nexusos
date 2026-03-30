@@ -64,7 +64,6 @@ export default function NexusShell() {
       } catch (error) {
         if (!cancelled) {
           console.warn('[NexusShell] live-op notification seed failed:', error?.message || error);
-          showToast('Failed to load live ops data — check connection', 'warning', 4000);
         }
       }
     };
