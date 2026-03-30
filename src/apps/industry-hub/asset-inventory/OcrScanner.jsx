@@ -1,9 +1,10 @@
 /**
  * OcrScanner — upload a screenshot, extract structured inventory/ship/trade data via LLM vision.
  * Modes: 'inventory' (materials + items), 'ship' (ship status), 'trade' (terminal prices).
- * onResults(items) is called with an array of extracted items.
+ * Supports click-to-upload, drag-and-drop, and clipboard paste (Ctrl+V).
+ * onResults(items, mode) is called with an array of extracted items.
  */
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { showToast } from '@/components/NexusToast';
 import { Camera, Loader2, X, ScanLine, Ship, Package, DollarSign } from 'lucide-react';
@@ -111,23 +112,65 @@ export default function OcrScanner({ onResults, onCancel, compact = false }) {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [scanning, setScanning] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const inputRef = useRef(null);
+
+  // Clipboard paste support (Ctrl+V / Cmd+V)
+  useEffect(() => {
+    const onPaste = (e) => {
+      if (previewUrl) return; // already have an image
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const f = item.getAsFile();
+          if (f) {
+            setFile(f);
+            setPreviewUrl(URL.createObjectURL(f));
+            showToast('Screenshot pasted', 'success');
+          }
+          break;
+        }
+      }
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, [previewUrl]);
+
+  const acceptFile = (f) => {
+    if (!f || !f.type.startsWith('image/')) {
+      showToast('Only image files are supported', 'error');
+      return;
+    }
+    setFile(f);
+    setPreviewUrl(URL.createObjectURL(f));
+  };
 
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
-    if (!f) return;
-    setFile(f);
-    setPreviewUrl(URL.createObjectURL(f));
+    if (f) acceptFile(f);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = () => setDragging(false);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f) acceptFile(f);
   };
 
   const handleScan = async () => {
     if (!file) return;
     setScanning(true);
     try {
-      // Upload file first
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Run LLM vision extraction
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: PROMPTS[mode],
         file_urls: [file_url],
@@ -138,7 +181,7 @@ export default function OcrScanner({ onResults, onCancel, compact = false }) {
       if (items.length === 0) {
         showToast('No items detected in screenshot', 'warning');
       } else {
-        showToast(`Extracted ${items.length} item${items.length > 1 ? 's' : ''} from screenshot`, 'success');
+        showToast(`Extracted ${items.length} item${items.length !== 1 ? 's' : ''} from screenshot`, 'success');
         onResults(items, mode);
       }
     } catch (err) {
@@ -152,6 +195,10 @@ export default function OcrScanner({ onResults, onCancel, compact = false }) {
     setPreviewUrl(null);
     if (inputRef.current) inputRef.current.value = '';
   };
+
+  const borderColor = dragging
+    ? 'rgba(142,68,173,0.8)'
+    : 'rgba(142,68,173,0.3)';
 
   return (
     <div style={{
@@ -171,6 +218,11 @@ export default function OcrScanner({ onResults, onCancel, compact = false }) {
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: compact ? 11 : 13, color: '#E8E4DC', letterSpacing: '0.08em',
           }}>SCREENSHOT OCR</span>
+          {!previewUrl && (
+            <span style={{ fontSize: 8, color: '#5A5850', marginLeft: 4 }}>
+              drop · click · paste
+            </span>
+          )}
         </div>
         {onCancel && (
           <button onClick={onCancel} style={{
@@ -203,19 +255,25 @@ export default function OcrScanner({ onResults, onCancel, compact = false }) {
 
       {/* Upload area */}
       {!previewUrl ? (
-        <label style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: 8, padding: compact ? '20px 12px' : '32px 16px',
-          background: '#141410', border: '1px dashed rgba(142,68,173,0.3)',
-          borderRadius: 2, cursor: 'pointer', transition: 'border-color 150ms',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(142,68,173,0.6)'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(142,68,173,0.3)'; }}>
-          <Camera size={20} style={{ color: '#8E44AD', opacity: 0.6 }} />
+        <label
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 8, padding: compact ? '20px 12px' : '32px 16px',
+            background: dragging ? 'rgba(142,68,173,0.06)' : '#141410',
+            border: `1px dashed ${borderColor}`,
+            borderRadius: 2, cursor: 'pointer', transition: 'border-color 150ms, background 150ms',
+          }}
+          onMouseEnter={e => { if (!dragging) e.currentTarget.style.borderColor = 'rgba(142,68,173,0.6)'; }}
+          onMouseLeave={e => { if (!dragging) e.currentTarget.style.borderColor = borderColor; }}
+        >
+          <Camera size={20} style={{ color: '#8E44AD', opacity: dragging ? 1 : 0.6 }} />
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-            color: '#9A9488', letterSpacing: '0.06em',
-          }}>Click or drop a screenshot here</span>
+            color: dragging ? '#8E44AD' : '#9A9488', letterSpacing: '0.06em',
+          }}>{dragging ? 'RELEASE TO SCAN' : 'Click, drop, or paste a screenshot'}</span>
           <span style={{ fontSize: 9, color: '#5A5850' }}>PNG, JPG, WEBP supported</span>
           <input ref={inputRef} type="file" accept="image/*" onChange={handleFileChange}
             style={{ display: 'none' }} />
