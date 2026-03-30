@@ -151,7 +151,8 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
       const payload = {
         name: form.name.trim() || 'Untitled Op',
         type: form.type,
-        system: form.system_name,           // entity field is "system", not "system_name"
+        system_name: form.system_name,
+        system: form.system_name,
         location: form.location.trim() || null,
         access_type: form.access_type,
         buy_in_cost: form.access_type === 'EXCLUSIVE' ? (form.buy_in_cost || 0) : 0,
@@ -169,9 +170,9 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
       if (publish) {
         await sendNexusNotification({
           type: 'OP_PUBLISHED', title: 'Operation Published',
-          body: `${payload.name} is published${payload.system ? ` · ${payload.system}` : ''}.`,
+          body: `${payload.name} is published${payload.system_name ? ` · ${payload.system_name}` : ''}.`,
           severity: 'INFO', target_user_id: null, source_module: 'OPS', source_id: op.id,
-        });
+        }).catch(() => {});
         setShowOverlay(true);
         setTimeout(() => {
           navigate(`/app/ops/${op.id}?scrollTo=readinessGate&expandReadiness=true`);

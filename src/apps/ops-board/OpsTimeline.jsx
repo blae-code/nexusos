@@ -344,15 +344,20 @@ export default function OpsTimeline() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [allOps, allRsvps, orgShips] = await Promise.all([
-      base44.entities.Op.filter({ status: { $in: ['LIVE', 'PUBLISHED', 'DRAFT'] } }, '-scheduled_at', 100),
-      base44.entities.OpRsvp.list('-created_date', 500),
-      base44.entities.OrgShip.list('name', 100),
-    ]);
-    setOps((allOps || []).filter(o => o.scheduled_at));
-    setRsvps(allRsvps || []);
-    setShips(orgShips || []);
-    setLoading(false);
+    try {
+      const [allOps, allRsvps, orgShips] = await Promise.all([
+        base44.entities.Op.list('-scheduled_at', 100),
+        base44.entities.OpRsvp.list('-created_date', 500),
+        base44.entities.OrgShip.list('name', 100),
+      ]);
+      setOps((allOps || []).filter(o => o.scheduled_at && ['LIVE', 'PUBLISHED', 'DRAFT'].includes(o.status)));
+      setRsvps(allRsvps || []);
+      setShips(orgShips || []);
+    } catch {
+      // load failed — ops/rsvps stay empty, spinner clears
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);

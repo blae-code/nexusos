@@ -36,6 +36,7 @@ export default function MissionCreateForm({ callsign, sessionUserId, onCreated, 
     name: '', type: 'MINING', system: 'STANTON', location: '', scheduled_at: '',
   });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
@@ -43,32 +44,38 @@ export default function MissionCreateForm({ callsign, sessionUserId, onCreated, 
     e.preventDefault();
     if (!form.name.trim()) return;
     setSaving(true);
+    setError('');
 
-    const phases = DEFAULT_PHASES[form.type] || ['Staging', 'Main Op', 'Extraction'];
-    const roleSlots = DEFAULT_ROLES[form.type] || [{ name: 'Crew', capacity: 4 }];
+    try {
+      const phases = DEFAULT_PHASES[form.type] || ['Staging', 'Main Op', 'Extraction'];
+      const roleSlots = DEFAULT_ROLES[form.type] || [{ name: 'Crew', capacity: 4 }];
 
-    const op = await base44.entities.Op.create({
-      name: form.name.trim(),
-      type: form.type,
-      system: form.system,
-      system_name: form.system,
-      location: form.location.trim() || null,
-      scheduled_at: form.scheduled_at || null,
-      status: 'DRAFT',
-      phases,
-      phase_current: 0,
-      role_slots: roleSlots,
-      session_log: [],
-    });
+      const op = await base44.entities.Op.create({
+        name: form.name.trim(),
+        type: form.type,
+        system: form.system,
+        system_name: form.system,
+        location: form.location.trim() || null,
+        scheduled_at: form.scheduled_at || null,
+        status: 'DRAFT',
+        phases,
+        phase_current: 0,
+        role_slots: roleSlots,
+        session_log: [],
+      });
 
-    await sendNexusNotification({
-      type: 'OP_CREATED', title: `New Op: ${form.name}`,
-      body: `${callsign || 'Unknown'} created operation "${form.name}" (${form.type}).`,
-      severity: 'INFO', target_user_id: null, source_module: 'OPS', source_id: op.id,
-    }).catch(() => {});
+      await sendNexusNotification({
+        type: 'OP_CREATED', title: `New Op: ${form.name}`,
+        body: `${callsign || 'Unknown'} created operation "${form.name}" (${form.type}).`,
+        severity: 'INFO', target_user_id: null, source_module: 'OPS', source_id: op.id,
+      }).catch(() => {});
 
-    setSaving(false);
-    onCreated(op);
+      onCreated(op);
+    } catch {
+      setError('Failed to create operation. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputStyle = {
@@ -82,6 +89,11 @@ export default function MissionCreateForm({ callsign, sessionUserId, onCreated, 
       <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.12em', marginBottom: 12, textTransform: 'uppercase' }}>
         QUICK CREATE OPERATION
       </div>
+      {error && (
+        <div style={{ fontSize: 10, color: '#C0392B', background: 'rgba(192,57,43,0.08)', border: '0.5px solid rgba(192,57,43,0.25)', borderRadius: 2, padding: '6px 10px', marginBottom: 10 }}>
+          {error}
+        </div>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
         <div>
           <label style={{ fontSize: 9, color: 'var(--t2)', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>OP NAME *</label>
