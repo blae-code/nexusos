@@ -3,6 +3,7 @@ import { safeLocalStorage } from '@/core/data/safe-storage';
 const isNode = typeof window === 'undefined';
 const importMetaWithEnv = /** @type {{ env?: Record<string, string | undefined> }} */ (import.meta);
 const viteEnv = importMetaWithEnv.env || {};
+const embeddedBase44AppId = typeof __BASE44_APP_ID__ === 'string' ? __BASE44_APP_ID__ : '';
 let cachedAppParams = null;
 const INVALID_PARAM_SENTINELS = new Set(['null', 'undefined', 'nan']);
 
@@ -128,7 +129,7 @@ function resolveAppParams() {
 
   cachedAppParams = {
     appId: readAppParamValue('app_id', {
-      defaultValue: viteEnv.VITE_BASE44_APP_ID,
+      defaultValue: viteEnv.VITE_BASE44_APP_ID || embeddedBase44AppId,
     }),
     token: readAppParamValue('access_token', { removeFromUrl: true }),
     fromUrl: readAppParamValue('from_url', {
