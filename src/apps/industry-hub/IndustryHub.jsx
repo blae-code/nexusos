@@ -34,6 +34,7 @@ import MarketplaceTab from '@/apps/industry-hub/marketplace/MarketplaceTab';
 import FindCraftersTab from '@/apps/industry-hub/FindCraftersTab';
 import ProfitRouteCalculator from '@/apps/industry-hub/ProfitRouteCalculator';
 import AssetInventoryTab from '@/apps/industry-hub/asset-inventory/AssetInventoryTab';
+import InventoryForecastPanel from '@/apps/industry-hub/forecast/InventoryForecastPanel';
 import IndustryTabBar from '@/components/IndustryTabBar';
 import { RefineryFlow } from '@/core/design/Illustrations';
 
@@ -68,6 +69,7 @@ const TABS = [
   { id: 'findcrafters', label: 'FIND CRAFTERS' },
   { id: 'profitroute', label: 'PROFIT ROUTE' },
   { id: 'myinventory', label: 'MY INVENTORY' },
+  { id: 'stockforecast', label: 'STOCK FORECAST' },
 ];
 
 const METHOD_STYLE = {
@@ -364,6 +366,7 @@ export default function IndustryHub() {
         {tab === 'findcrafters' ? <FindCraftersTab blueprints={blueprints} materials={materials} callsign={callsign} /> : null}
         {tab === 'profitroute' ? <ProfitRouteCalculator /> : null}
         {tab === 'myinventory' ? <AssetInventoryTab blueprints={blueprints} materials={materials} /> : null}
+        {tab === 'stockforecast' ? <InventoryForecastPanel /> : null}
       </div>
     </div>
   );
