@@ -1,9 +1,10 @@
 /**
  * WizardStepIndicator — Horizontal pipeline with glowing nodes and labels.
+ * Accepts a `steps` prop so the wizard can vary the step count by op type.
  */
 import React from 'react';
 
-const STEPS = [
+const DEFAULT_STEPS = [
   { id: 0, label: 'TYPE' },
   { id: 1, label: 'BRIEFING' },
   { id: 2, label: 'CREW' },
@@ -11,13 +12,13 @@ const STEPS = [
   { id: 4, label: 'REVIEW' },
 ];
 
-export default function WizardStepIndicator({ currentStep, onStepClick }) {
+export default function WizardStepIndicator({ currentStep, onStepClick, steps = DEFAULT_STEPS }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       gap: 0, padding: '16px 24px',
     }}>
-      {STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const isDone = i < currentStep;
         const isActive = i === currentStep;
         const isFuture = i > currentStep;

@@ -319,9 +319,11 @@ export function opTypeToken(type) {
     SALVAGE:     T('mechanics-orange'),
     COMBAT:      T('target-red'),
     ESCORT:      T('target-alt-blue'),
-    RESCUE:      T('hospital-green'),
-    EXPLORATION: T('objective-blue'),
-    DELIVERY:    T('fuel-yellow'),
+    RESCUE:          T('hospital-green'),
+    EXPLORATION:     T('objective-blue'),
+    DELIVERY:        T('fuel-yellow'),
+    REP_GRIND:       T('objective-blue'),
+    BLUEPRINT_GRIND: T('mechanics-orange'),
   }
   return map[type] || T('objective-grey')
 }

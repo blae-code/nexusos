@@ -13,8 +13,21 @@ import OpCrewStep from './creator/OpCrewStep';
 import OpTimelineStep from './creator/OpTimelineStep';
 import OpReviewStep from './creator/OpReviewStep';
 import OpPublishOverlay from './creator/OpPublishOverlay';
+import OpPlanningStep from './creator/OpPlanningStep';
 import { OPS_LEADER_RANKS } from './rankPolicies';
-const TOTAL_STEPS = 5;
+
+const TOTAL_STEPS = 6;
+const WIZARD_STEPS = [
+  { label: 'TYPE' }, { label: 'PLANNING' }, { label: 'BRIEFING' },
+  { label: 'CREW' }, { label: 'TIMELINE' }, { label: 'REVIEW' },
+];
+// Step indices (fixed — all types now have 6 steps)
+const BRIEFING_STEP  = 2;
+const CREW_STEP      = 3;
+const TIMELINE_STEP  = 4;
+const REVIEW_STEP    = 5;
+// Planning step requires a selection only for these types
+const PLANNING_REQUIRED = ['REP_GRIND', 'BLUEPRINT_GRIND'];
 
 const OP_TYPE_DEFAULTS = {
   ROCKBREAKER: {
@@ -82,22 +95,29 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
     logLootTally: true, calcSplitOnClose: true,
   });
 
+  const [planningData, setPlanningData] = useState({
+    selectedFactions: [], missionTypes: [], currentRep: 0, targetTier: '',
+    sessionMissionTarget: 15, primaryLocation: '',
+    selectedBlueprints: [],
+  });
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showOverlay, setShowOverlay] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [validationErrors, setValidationErrors] = useState({ type: null, system: null, roleSlots: null, schedule: null });
 
-  // Re-seed roles + phases when op type changes
+  // Re-seed roles + phases when op type changes; reset planning data
   const prevType = useRef(form.type);
   useEffect(() => {
     if (form.type !== prevType.current) {
       const d = getDefaults(form.type);
       setRoleSlots(d.roles);
       setPhases(d.phases);
+      setPlanningData({ selectedFactions: [], missionTypes: [], currentRep: 0, targetTier: '', sessionMissionTarget: 15, primaryLocation: '', selectedBlueprints: [] });
       prevType.current = form.type;
     }
-  }, [form.type]);
+  }, [form.type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (k, v) => {
     setForm(f => ({ ...f, [k]: v }));
@@ -163,6 +183,7 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
         phase_current: 0,
         status: publish ? 'PUBLISHED' : 'DRAFT',
         session_log: [],
+        planning_data: planningData,
       };
 
       const op = await base44.entities.Op.create(payload);
@@ -197,18 +218,28 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
     );
   }
 
-  // Step titles
-  const STEP_TITLES = ['Select Operation Type', 'Mission Briefing', 'Crew Configuration', 'Operation Phases', 'Review & Authorize'];
+  const STEP_TITLES = [
+    'Select Operation Type', 'Mission Planning', 'Mission Briefing',
+    'Crew Configuration', 'Operation Phases', 'Review & Authorize',
+  ];
   const stepTitle = STEP_TITLES[step];
 
-  // Can advance?
   const canAdvance = () => {
     if (step === 0) return Boolean(form.type);
-    if (step === 1) return Boolean(form.name.trim() && form.system_name && form.scheduled_at);
-    if (step === 2) return roleSlots.length > 0 && roleSlots.every(r => r.name?.trim());
-    if (step === 3) return phases.length > 0;
+    if (step === 1) {
+      if (!PLANNING_REQUIRED.includes(form.type)) return true;
+      if (form.type === 'REP_GRIND') return planningData.selectedFactions.length > 0;
+      if (form.type === 'BLUEPRINT_GRIND') return planningData.selectedBlueprints.length > 0;
+    }
+    if (step === BRIEFING_STEP) return Boolean(form.name.trim() && form.system_name && form.scheduled_at);
+    if (step === CREW_STEP) return roleSlots.length > 0 && roleSlots.every(r => r.name?.trim());
+    if (step === TIMELINE_STEP) return phases.length > 0;
     return true;
   };
+  const briefingStep = BRIEFING_STEP;
+  const crewStep = CREW_STEP;
+  const timelineStep = TIMELINE_STEP;
+  const reviewStep = REVIEW_STEP;
 
   return (
     <div className="nexus-page-enter" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', position: 'relative' }}>
@@ -252,7 +283,8 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
         </div>
 
         {/* Step indicator */}
-        <WizardStepIndicator currentStep={step} onStepClick={goToStep} />
+        <WizardStepIndicator currentStep={step} onStepClick={goToStep} steps={WIZARD_STEPS} />
+
       </div>
 
       {/* Step title */}
@@ -287,20 +319,29 @@ export default function OpCreator({ rank, callsign, sessionUserId }) {
           {/* Steps */}
           <div style={{ animation: 'nexus-fade-in 200ms ease-out both' }} key={step}>
             {step === 0 && <OpTypeSelector value={form.type} onChange={v => set('type', v)} />}
-            {step === 1 && <OpBriefingStep form={form} set={set} validationErrors={validationErrors} opType={form.type} />}
-            {step === 2 && (
+            {step === 1 && (
+              <OpPlanningStep
+                opType={form.type}
+                planningData={planningData}
+                onChange={setPlanningData}
+                onSystemChange={v => set('system_name', v)}
+                onLocationChange={v => set('location', v)}
+              />
+            )}
+            {step === briefingStep && <OpBriefingStep form={form} set={set} validationErrors={validationErrors} opType={form.type} />}
+            {step === crewStep && (
               <OpCrewStep
                 roleSlots={roleSlots} onRoleSlotsChange={setRoleSlots}
                 fleetAssignments={fleetAssignments} onFleetChange={setFleetAssignments}
                 validationErrors={validationErrors}
               />
             )}
-            {step === 3 && <OpTimelineStep phases={phases} onChange={setPhases} />}
-            {step === 4 && <OpReviewStep form={form} roleSlots={roleSlots} phases={phases} settings={settings} />}
+            {step === timelineStep && <OpTimelineStep phases={phases} onChange={setPhases} />}
+            {step === reviewStep && <OpReviewStep form={form} roleSlots={roleSlots} phases={phases} settings={settings} />}
           </div>
 
           {/* Settings toggles (only on review step) */}
-          {step === 4 && (
+          {step === reviewStep && (
             <div style={{
               marginTop: 20, padding: '16px',
               background: '#0C0C0A', border: '0.5px solid rgba(200,170,100,0.06)',

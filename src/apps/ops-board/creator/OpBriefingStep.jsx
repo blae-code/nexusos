@@ -53,6 +53,8 @@ const NAME_TEMPLATES = {
   RECON: ['Recon — {loc}', 'Scout Sweep — {sys}', 'Intel Run — {loc}'],
   RESCUE: ['SAR — {loc}', 'Rescue Op — {sys}', 'Medevac — {loc}'],
   S17: ['Classified — {sys}', 'Black Op — {loc}', 'S17 — {sys}'],
+  REP_GRIND: ['Rep Grind — {sys}', 'Faction Push — {loc}', 'Standing Run — {sys}'],
+  BLUEPRINT_GRIND: ['Blueprint Hunt — {loc}', 'Schematic Run — {sys}', 'Blueprint Grind — {loc}'],
 };
 
 function generateNames(type, system, location) {

@@ -14,6 +14,8 @@ const TYPE_COLORS = {
   RECON: '#9DA1CD',
   RESCUE: '#E8A020',
   S17: '#C0392B',
+  REP_GRIND: '#7AAECC',
+  BLUEPRINT_GRIND: '#C8A84B',
 };
 
 function fmtAuec(v) {

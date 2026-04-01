@@ -8,8 +8,10 @@ import NexusToken from '@/core/design/NexusToken';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 export const OP_TYPES = [
-  'INDUSTRY', 'MINING', 'ROCKBREAKER', 'SALVAGE',
-  'PATROL', 'COMBAT', 'ESCORT', 'S17', 'RESCUE', 'RACING',
+  'MINING', 'ROCKBREAKER', 'SALVAGE', 'CARGO',
+  'COMBAT', 'PATROL', 'ESCORT', 'RESCUE',
+  'RECON', 'S17',
+  'REP_GRIND', 'BLUEPRINT_GRIND',
 ];
 
 export const SYSTEMS = ['Stanton', 'Pyro', 'Nyx'];
@@ -31,28 +33,44 @@ const OP_TYPE_DEFAULTS = {
     phases: ['Staging', 'Transit', 'Mining', 'Extraction', 'Refinery Run'],
   },
   PATROL: {
-    roles:  [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
-    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+    roles:  [{ name: 'Patrol Lead', capacity: 1 }, { name: 'Combat', capacity: 3 }, { name: 'Scanner', capacity: 1 }, { name: 'Support', capacity: 1 }],
+    phases: ['Staging', 'Sweep', 'Intercept', 'Disengage'],
   },
   COMBAT: {
-    roles:  [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
-    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+    roles:  [{ name: 'Combat Lead', capacity: 1 }, { name: 'Assault', capacity: 3 }, { name: 'Support', capacity: 2 }],
+    phases: ['Staging', 'Transit', 'Engagement', 'Mop Up', 'Extraction'],
   },
   ESCORT: {
-    roles:  [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
-    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+    roles:  [{ name: 'Escort Lead', capacity: 1 }, { name: 'Combat Wing', capacity: 3 }, { name: 'Scout', capacity: 1 }],
+    phases: ['Staging', 'Convoy Form Up', 'Transit', 'Threat Response', 'Delivery'],
   },
   S17: {
-    roles:  [{ name: 'Combat', capacity: 4 }, { name: 'Support', capacity: 2 }],
-    phases: ['Staging', 'Patrol', 'Engagement', 'Extraction'],
+    roles:  [{ name: 'Op Lead', capacity: 1 }, { name: 'Operative', capacity: 3 }, { name: 'Overwatch', capacity: 1 }, { name: 'Exfil', capacity: 1 }],
+    phases: ['Briefing', 'Infiltration', 'Objective', 'Exfil'],
+  },
+  CARGO: {
+    roles:  [{ name: 'Haul Lead', capacity: 1 }, { name: 'Hauler', capacity: 2 }, { name: 'Escort', capacity: 2 }],
+    phases: ['Staging', 'Loading', 'Transit', 'Delivery'],
   },
   SALVAGE: {
-    roles:  [{ name: 'Salvage', capacity: 3 }, { name: 'Escort', capacity: 2 }],
-    phases: ['Staging', 'Main Op', 'Extraction'],
+    roles:  [{ name: 'Salvage Lead', capacity: 1 }, { name: 'Salvage', capacity: 2 }, { name: 'Escort', capacity: 2 }],
+    phases: ['Staging', 'Transit', 'Salvage', 'Extraction'],
+  },
+  RECON: {
+    roles:  [{ name: 'Scout Lead', capacity: 1 }, { name: 'Scout', capacity: 2 }, { name: 'Escort', capacity: 1 }, { name: 'Intel Coord', capacity: 1 }],
+    phases: ['Staging', 'Deploy', 'Survey Zone', 'Data Collection', 'Report & Extract'],
   },
   RESCUE: {
-    roles:  [{ name: 'Rescue', capacity: 3 }, { name: 'Medical', capacity: 1 }],
-    phases: ['Staging', 'Main Op', 'Extraction'],
+    roles:  [{ name: 'Rescue Lead', capacity: 1 }, { name: 'Rescue', capacity: 2 }, { name: 'Medical', capacity: 1 }, { name: 'Escort', capacity: 2 }],
+    phases: ['Staging', 'Response', 'On-Site Medical', 'Evac', 'Stand Down'],
+  },
+  REP_GRIND: {
+    roles:  [{ name: 'Mission Runner', capacity: 4 }, { name: 'Escort', capacity: 2 }, { name: 'Support', capacity: 1 }],
+    phases: ['Staging', 'Mission Select', 'Grind Loop', 'Rep Check', 'Extraction'],
+  },
+  BLUEPRINT_GRIND: {
+    roles:  [{ name: 'Runner', capacity: 3 }, { name: 'Escort', capacity: 2 }, { name: 'Fabricator', capacity: 1 }],
+    phases: ['Staging', 'Target ID', 'Acquisition Run', 'Blueprint Secure', 'Extraction'],
   },
 };
 
