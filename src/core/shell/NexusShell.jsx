@@ -17,6 +17,9 @@ import { showToast } from '@/components/NexusToast';
 import AmbientBackground from './components/AmbientBackground';
 import { useOperationalState } from './useOperationalState';
 import usePresence from '@/core/hooks/usePresence';
+import { useTutorial } from '@/core/tutorial/useTutorial';
+import TourOverlay from '@/core/tutorial/TourOverlay';
+import HelpButton from '@/core/tutorial/HelpButton';
 
 export default function NexusShell() {
   const location = useLocation();
@@ -30,6 +33,19 @@ export default function NexusShell() {
   const seenLiveOpsRef = useRef(new Set());
   const seenScoutDepositsRef = useRef(new Set());
   const seenRescueCallsRef = useRef(new Set());
+
+  const tutorial = useTutorial(user);
+
+  // Auto-launch tour for users who haven't completed it
+  const autoLaunchRef = useRef(false);
+  useEffect(() => {
+    if (user?.onboarding_complete && !tutorial.tourComplete && !tutorial.dismissed && !autoLaunchRef.current) {
+      autoLaunchRef.current = true;
+      // Small delay to let shell render first
+      const timer = setTimeout(() => tutorial.startTour(), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [user?.onboarding_complete, tutorial.tourComplete, tutorial.dismissed]);
 
   const updateLayoutMode = (nextMode) => {
     setLayoutMode(setStoredLayoutMode(nextMode));
@@ -255,7 +271,7 @@ export default function NexusShell() {
   return (
     <div style={{ height: '100vh', background: '#08080A', position: 'relative' }}>
       <AmbientBackground />
-      <NexusSidebar mobileOpen={sidebarOpen} onClose={closeSidebar} />
+      <NexusSidebar mobileOpen={sidebarOpen} onClose={closeSidebar} tutorial={tutorial} />
       <div className="nexus-main-area" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <NexusTopbar onMenuToggle={toggleSidebar} />
         <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto', zIndex: 1 }}>
@@ -264,6 +280,21 @@ export default function NexusShell() {
           </AppErrorBoundary>
         </main>
       </div>
+
+      {/* Tutorial system */}
+      {tutorial.tourActive && (
+        <TourOverlay
+          tourStep={tutorial.tourStep}
+          onNext={tutorial.nextStep}
+          onPrev={tutorial.prevStep}
+          onSkip={tutorial.skipTour}
+        />
+      )}
+      <HelpButton
+        onStartTour={tutorial.startTour}
+        onShowChecklist={tutorial.showChecklist}
+        tourComplete={tutorial.tourComplete}
+      />
     </div>
   );
 }

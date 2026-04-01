@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/core/data/SessionContext';
 import SidebarWidget from './SidebarWidget';
+import GettingStartedPanel from '@/core/tutorial/GettingStartedPanel';
 import {
   Crosshair, Factory, BookOpen, GraduationCap, Radar,
   Shield, Package, Ship, Users, Tags, TrendingUp,
@@ -189,7 +190,7 @@ function SubItem({ label, path, active }) {
   );
 }
 
-export default function NexusSidebar({ mobileOpen, onClose }) {
+export default function NexusSidebar({ mobileOpen, onClose, tutorial }) {
   const { pathname } = useLocation();
   const { isAdmin, logout } = useSession();
 
@@ -254,6 +255,21 @@ export default function NexusSidebar({ mobileOpen, onClose }) {
       </div>
 
       <SidebarWidget />
+
+      {tutorial && !tutorial.dismissed && (
+        <GettingStartedPanel
+          completedItems={tutorial.completedItems}
+          progress={tutorial.progress}
+          completedCount={tutorial.completedCount}
+          totalItems={tutorial.totalItems}
+          onCompleteItem={tutorial.completeItem}
+          onStartTour={tutorial.startTour}
+          onDismiss={tutorial.dismissChecklist}
+          onReset={tutorial.resetAll}
+          dismissed={tutorial.dismissed}
+          tourComplete={tutorial.tourComplete}
+        />
+      )}
 
       <div style={S.bottom}>
         {BOTTOM.map((item) => (

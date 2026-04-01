@@ -1,0 +1,177 @@
+/**
+ * tutorialSteps.js — Defines all guided tour steps and getting-started checklist items.
+ * Each step targets a section of the app and provides contextual guidance.
+ */
+
+export const TOUR_STEPS = [
+  {
+    id: 'welcome',
+    title: 'Welcome to NexusOS',
+    body: 'This guided tour will walk you through the core modules of NexusOS — your org\'s operational command center. Each step highlights a key area and explains what it does.',
+    icon: '🧭',
+    route: null, // shown as overlay on current page
+    position: 'center',
+  },
+  {
+    id: 'sidebar',
+    title: 'Navigation Sidebar',
+    body: 'The sidebar is your primary navigation. Modules are grouped by function: Operations, Industry, Scout Intel, Armory, and Org. Collapsed groups expand on click. Admin tools appear only for Pioneers.',
+    icon: '📋',
+    route: null,
+    target: '.nexus-sidebar',
+    position: 'right',
+  },
+  {
+    id: 'topbar',
+    title: 'Live Status Bar',
+    body: 'The topbar shows real-time org metrics: coffer balance, your personal wallet, active refinery orders, live ops count, and online members. Click any chip to jump to its module.',
+    icon: '📊',
+    route: null,
+    target: '.nexus-topbar-header',
+    position: 'bottom',
+  },
+  {
+    id: 'industry',
+    title: 'Industry Hub',
+    body: 'Your one-stop shop for materials, blueprints, crafting queues, refinery management, and market prices. The tab bar at the top lets you switch between 30+ specialized views.',
+    icon: '🏭',
+    route: '/app/industry',
+    position: 'center',
+  },
+  {
+    id: 'ops',
+    title: 'Ops Board',
+    body: 'Plan, schedule, and run live operations. Create ops with phases, role slots, and readiness gates. During a live op, the command center shows crew, event logs, loot tally, and split calculations.',
+    icon: '🎯',
+    route: '/app/ops',
+    position: 'center',
+  },
+  {
+    id: 'scout',
+    title: 'Scout Intel',
+    body: 'Log deposit discoveries with location, quality, and material type. The system map visualizes all known deposits. Use the route optimizer to plan efficient mining circuits.',
+    icon: '🛰️',
+    route: '/app/scout',
+    position: 'center',
+  },
+  {
+    id: 'market',
+    title: 'Market Hub',
+    body: 'Live commodity prices synced from UEX every 15 minutes. Track price trends, set alerts, browse trade routes, and analyze market volatility to maximize your hauling profits.',
+    icon: '📈',
+    route: '/app/market',
+    position: 'center',
+  },
+  {
+    id: 'armory',
+    title: 'Armory & Fleet',
+    body: 'Manage org ships, personal equipment, and asset inventory. The fleet hub tracks ship readiness, crew assignments, and loadout configurations synced from FleetYards.',
+    icon: '🛡️',
+    route: '/app/armory',
+    position: 'center',
+  },
+  {
+    id: 'settings',
+    title: 'Your Settings',
+    body: 'Update your callsign, configure notification preferences, set your UEX API token, manage your personal wallet, and export your data. Your callsign can be changed anytime.',
+    icon: '⚙️',
+    route: '/app/settings',
+    position: 'center',
+  },
+  {
+    id: 'complete',
+    title: 'Tour Complete!',
+    body: 'You\'re ready to dive in. Check the Getting Started checklist in the sidebar for recommended first actions. You can replay this tour anytime from Settings or by clicking the help button.',
+    icon: '🎉',
+    route: null,
+    position: 'center',
+  },
+];
+
+export const GETTING_STARTED_ITEMS = [
+  {
+    id: 'complete_tour',
+    label: 'Complete the guided tour',
+    description: 'Walk through each NexusOS module to understand the platform layout.',
+    icon: '🧭',
+    category: 'SETUP',
+  },
+  {
+    id: 'set_callsign',
+    label: 'Set your callsign',
+    description: 'Your callsign is your display name across the entire platform.',
+    icon: '🏷️',
+    route: '/app/settings',
+    category: 'SETUP',
+  },
+  {
+    id: 'set_layout',
+    label: 'Choose your layout mode',
+    description: 'Alt-Tab for single monitor, or 2nd Monitor for expanded live op views.',
+    icon: '🖥️',
+    route: '/app/settings',
+    category: 'SETUP',
+  },
+  {
+    id: 'browse_industry',
+    label: 'Browse the Industry Hub',
+    description: 'Explore materials, blueprints, and the crafting reference guide.',
+    icon: '🏭',
+    route: '/app/industry',
+    category: 'EXPLORE',
+  },
+  {
+    id: 'check_ops',
+    label: 'Check the Ops Board',
+    description: 'See upcoming operations and RSVP to one.',
+    icon: '🎯',
+    route: '/app/ops',
+    category: 'EXPLORE',
+  },
+  {
+    id: 'log_deposit',
+    label: 'Log your first scout deposit',
+    description: 'Found a good rock? Log it to share with the org.',
+    icon: '🛰️',
+    route: '/app/scout',
+    category: 'CONTRIBUTE',
+  },
+  {
+    id: 'log_material',
+    label: 'Log a material to the ledger',
+    description: 'Track salvage, ore, or crafting materials you\'ve collected.',
+    icon: '📦',
+    route: '/app/industry?tab=materials',
+    category: 'CONTRIBUTE',
+  },
+  {
+    id: 'check_market',
+    label: 'Check live market prices',
+    description: 'See what commodities are selling for across Stanton.',
+    icon: '📈',
+    route: '/app/market',
+    category: 'EXPLORE',
+  },
+  {
+    id: 'view_fleet',
+    label: 'View the org fleet',
+    description: 'See what ships are available and their readiness status.',
+    icon: '🚀',
+    route: '/app/armory/fleet',
+    category: 'EXPLORE',
+  },
+  {
+    id: 'enable_notifications',
+    label: 'Enable browser notifications',
+    description: 'Get alerted when ops go live or high-value deposits are found.',
+    icon: '🔔',
+    route: '/app/settings',
+    category: 'SETUP',
+  },
+];
+
+export const CATEGORIES = {
+  SETUP: { label: 'Initial Setup', color: '#C8A84B' },
+  EXPLORE: { label: 'Explore Modules', color: '#7AAECC' },
+  CONTRIBUTE: { label: 'First Contributions', color: '#2edb7a' },
+};
