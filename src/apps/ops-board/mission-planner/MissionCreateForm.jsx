@@ -4,12 +4,9 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
-
-const OP_TYPES = [
-  'ROCKBREAKER', 'MINING', 'SALVAGE', 'CARGO', 'PATROL',
-  'COMBAT', 'ESCORT', 'RESCUE', 'RECON', 'S17',
-];
-const SYSTEMS = ['STANTON', 'PYRO', 'NYX'];
+import SmartSelect from '@/components/sc/SmartSelect';
+import SmartCombobox from '@/components/sc/SmartCombobox';
+import { useSCReferenceOptions } from '@/core/data/useSCReferenceOptions';
 
 const DEFAULT_PHASES = {
   ROCKBREAKER: ['Staging', 'Breach & Clear', 'Power Up', 'Craft Lenses', 'Fire Laser', 'Harvest & Extract'],
@@ -37,6 +34,9 @@ export default function MissionCreateForm({ callsign, sessionUserId, onCreated, 
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const { options: opTypeOptions } = useSCReferenceOptions('op-types', { currentValue: form.type });
+  const { options: systemOptions } = useSCReferenceOptions('systems', { currentValue: form.system });
+  const { options: locationOptions } = useSCReferenceOptions('locations', { system: form.system, currentValue: form.location });
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
@@ -101,19 +101,39 @@ export default function MissionCreateForm({ callsign, sessionUserId, onCreated, 
         </div>
         <div>
           <label style={{ fontSize: 9, color: 'var(--t2)', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>TYPE</label>
-          <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.type} onChange={e => set('type', e.target.value)}>
-            {OP_TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
-          </select>
+          <SmartSelect
+            value={form.type}
+            onChange={(nextValue) => set('type', nextValue)}
+            options={opTypeOptions}
+            theme="tactical"
+            storageKey="nexus-smart:ops:type"
+            helperText="Patch-tagged mission taxonomy"
+          />
         </div>
         <div>
           <label style={{ fontSize: 9, color: 'var(--t2)', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>SYSTEM</label>
-          <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.system} onChange={e => set('system', e.target.value)}>
-            {SYSTEMS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <SmartSelect
+            value={form.system}
+            onChange={(nextValue) => set('system', nextValue)}
+            options={systemOptions}
+            theme="tactical"
+            storageKey="nexus-smart:ops:system"
+            helperText="Live 4.7 system registry"
+          />
         </div>
         <div>
           <label style={{ fontSize: 9, color: 'var(--t2)', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>LOCATION</label>
-          <input style={inputStyle} value={form.location} onChange={e => set('location', e.target.value)} placeholder="e.g. Yela asteroid belt" />
+          <SmartCombobox
+            value={form.location}
+            onChange={(nextValue) => set('location', nextValue)}
+            options={locationOptions}
+            theme="tactical"
+            storageKey="nexus-smart:ops:location"
+            searchPlaceholder={`Search ${form.system || 'system'} locations`}
+            placeholder="Select or mint a location"
+            allowCustom
+            helperText="Known 4.7 locations plus custom AO naming"
+          />
         </div>
         <div>
           <label style={{ fontSize: 9, color: 'var(--t2)', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>SCHEDULED</label>

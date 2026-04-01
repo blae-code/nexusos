@@ -7,22 +7,11 @@ import { base44 } from '@/core/data/base44Client';
 import { Route, AlertTriangle, ChevronDown } from 'lucide-react';
 import CircuitResultsPanel from './CircuitResultsPanel';
 import { SHIP_OPTIONS, useShipLoadouts } from './shipData';
+import SmartSelect from '@/components/sc/SmartSelect';
+import SmartCombobox from '@/components/sc/SmartCombobox';
+import { useSCReferenceOptions } from '@/core/data/useSCReferenceOptions';
 
 // Ship data imported from shipData.js
-
-const ORIGIN_STATIONS = [
-  'CRU-L1', 'ARC-L1', 'HUR-L1', 'HUR-L2', 'MIC-L1',
-  'Port Olisar', 'Everus Harbor', 'Baijini Point', 'Port Tressler',
-  'New Babbage', 'Lorville', 'Area 18', 'Orison',
-];
-
-const RISK_OPTIONS = [
-  { value: 'LOW', label: 'LOW', color: '#4A8C5C' },
-  { value: 'MEDIUM', label: 'MEDIUM', color: '#C8A84B' },
-  { value: 'HIGH', label: 'HIGH', color: '#C0392B' },
-];
-
-const SYSTEM_OPTIONS = ['ALL', 'STANTON', 'PYRO', 'NYX'];
 
 const LABEL = {
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, fontWeight: 600,
@@ -63,7 +52,7 @@ function ShipCard({ ship, selected, onClick }) {
 }
 
 export default function MiningCircuitPlanner() {
-  const { options: shipOptions, loadouts: shipLoadouts, loading: shipsLoading } = useShipLoadouts();
+  const { options: shipOptions, loading: shipsLoading } = useShipLoadouts();
   const [deposits, setDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,6 +66,9 @@ export default function MiningCircuitPlanner() {
   const [includeReturn, setIncludeReturn] = useState(true);
   const [targetMaterials, setTargetMaterials] = useState([]);
   const [showShipPicker, setShowShipPicker] = useState(false);
+  const { options: originOptions } = useSCReferenceOptions('stations', { currentValue: originStation });
+  const { options: systemOptions } = useSCReferenceOptions('systems', { value: systemFilter, includeAll: true, allLabel: 'All Systems' });
+  const { options: riskOptions } = useSCReferenceOptions('risk-levels', { currentValue: maxRisk });
 
   // Results state
   const [circuitResult, setCircuitResult] = useState(null);
@@ -213,32 +205,30 @@ export default function MiningCircuitPlanner() {
           {/* Origin Station */}
           <div>
             <span style={LABEL}>ORIGIN / RETURN STATION</span>
-            <select value={originStation} onChange={e => setOriginStation(e.target.value)} style={{
-              width: '100%', padding: '8px 12px', cursor: 'pointer',
-              background: '#0C0C0A', border: '0.5px solid rgba(200,170,100,0.08)',
-              borderRadius: 2, color: '#E8E4DC', fontSize: 11,
-              fontFamily: "'Barlow Condensed', sans-serif",
-            }}>
-              {ORIGIN_STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <SmartCombobox
+              value={originStation}
+              onChange={(nextValue) => setOriginStation(nextValue)}
+              options={originOptions}
+              theme="industrial"
+              storageKey="nexus-smart:mining:origin"
+              searchPlaceholder="Search origin stations"
+              placeholder="Select refinery or return port"
+              allowCustom
+              helperText="Patch-aware station registry with legacy preservation"
+            />
           </div>
 
           {/* System Filter */}
           <div>
             <span style={LABEL}>SYSTEM</span>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {SYSTEM_OPTIONS.map(sys => (
-                <button key={sys} onClick={() => setSystemFilter(sys)} style={{
-                  flex: 1, padding: '6px 0', fontSize: 10, cursor: 'pointer',
-                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                  letterSpacing: '0.1em',
-                  background: systemFilter === sys ? 'rgba(192,57,43,0.08)' : '#0C0C0A',
-                  border: `0.5px solid ${systemFilter === sys ? '#C0392B' : 'rgba(200,170,100,0.06)'}`,
-                  color: systemFilter === sys ? '#E8E4DC' : '#5A5850',
-                  borderRadius: 2, transition: 'all 150ms',
-                }}>{sys}</button>
-              ))}
-            </div>
+            <SmartSelect
+              value={systemFilter}
+              onChange={(nextValue) => setSystemFilter(nextValue)}
+              options={systemOptions}
+              theme="tactical"
+              storageKey="nexus-smart:mining:system"
+              helperText="System filter stays aligned with live registry"
+            />
           </div>
 
           {/* Quality + Risk */}
@@ -257,15 +247,15 @@ export default function MiningCircuitPlanner() {
             <div style={{ flex: 1 }}>
               <span style={LABEL}>MAX RISK</span>
               <div style={{ display: 'flex', gap: 4 }}>
-                {RISK_OPTIONS.map(r => (
+                {riskOptions.filter((option) => option.value !== 'EXTREME').map(r => (
                   <button key={r.value} onClick={() => setMaxRisk(r.value)} style={{
                     flex: 1, padding: '6px 0', fontSize: 9, cursor: 'pointer',
                     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    background: maxRisk === r.value ? `${r.color}15` : '#0C0C0A',
-                    border: `0.5px solid ${maxRisk === r.value ? r.color : 'rgba(200,170,100,0.06)'}`,
-                    color: maxRisk === r.value ? r.color : '#5A5850',
+                    background: maxRisk === r.value ? `${r.meta?.tone === 'safe' ? '#4A8C5C' : r.meta?.tone === 'warn' ? '#C8A84B' : '#C0392B'}15` : '#0C0C0A',
+                    border: `0.5px solid ${maxRisk === r.value ? (r.meta?.tone === 'safe' ? '#4A8C5C' : r.meta?.tone === 'warn' ? '#C8A84B' : '#C0392B') : 'rgba(200,170,100,0.06)'}`,
+                    color: maxRisk === r.value ? (r.meta?.tone === 'safe' ? '#4A8C5C' : r.meta?.tone === 'warn' ? '#C8A84B' : '#C0392B') : '#5A5850',
                     borderRadius: 2, transition: 'all 150ms',
-                  }}>{r.label}</button>
+                  }}>{r.label.toUpperCase()}</button>
                 ))}
               </div>
             </div>

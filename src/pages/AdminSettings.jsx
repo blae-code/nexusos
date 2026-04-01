@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, XCircle, HelpCircle } from 'lucide-react';
 import { showToast } from '@/components/NexusToast';
 import ReadinessAuditPanel from '@/components/admin/ReadinessAuditPanel';
+import ReferenceAuditPanel from '@/components/admin/ReferenceAuditPanel';
 import SystemOperationsPanel from '@/components/admin/SystemOperationsPanel';
 
 const REQUIRED_SECRETS = [
@@ -345,6 +346,8 @@ export default function AdminSettings() {
       </div>
 
       <SystemOperationsPanel />
+
+      <ReferenceAuditPanel autoRun />
 
       <ReadinessAuditPanel autoRun compact={false} />
 

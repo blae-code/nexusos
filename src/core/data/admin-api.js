@@ -81,6 +81,10 @@ export const adminApi = {
   runOperation({ action, reason = '' }, timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
     return post('adminOps', { action, reason }, timeoutMs);
   },
+
+  referenceAudit(timeoutMs = AUTH_REQUEST_TIMEOUT_MS) {
+    return post('referenceAudit', {}, timeoutMs);
+  },
 };
 
 export default adminApi;

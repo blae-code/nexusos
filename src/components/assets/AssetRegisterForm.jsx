@@ -1,262 +1,430 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { X } from 'lucide-react';
-
-const ASSET_TYPES = [
-  { value: 'SHIP', label: 'Ship' },
-  { value: 'VEHICLE', label: 'Ground Vehicle' },
-  { value: 'FPS_WEAPON', label: 'FPS Weapon' },
-  { value: 'FPS_ARMOR', label: 'FPS Armor' },
-  { value: 'SHIP_COMPONENT', label: 'Ship Component' },
-  { value: 'EQUIPMENT', label: 'Equipment' },
-  { value: 'OTHER', label: 'Other' },
-];
-const STATUSES = ['ACTIVE', 'STORED', 'DEPLOYED', 'MAINTENANCE', 'DAMAGED', 'DESTROYED', 'LOANED', 'MISSING'];
-const CONDITIONS = ['PRISTINE', 'GOOD', 'FAIR', 'DAMAGED', 'WRECKED'];
-const SOURCES = ['PURCHASED', 'CRAFTED', 'LOOTED', 'DONATED', 'OP_REWARD', 'SALVAGED', 'OTHER'];
+import SmartSelect from '@/components/sc/SmartSelect';
+import SmartCombobox from '@/components/sc/SmartCombobox';
+import { useSCReferenceOptions } from '@/core/data/useSCReferenceOptions';
 
 /** @type {import('react').CSSProperties} */
 const inputStyle = {
-  width: '100%', boxSizing: 'border-box', padding: '9px 12px',
-  background: '#141410', border: '0.5px solid rgba(200,170,100,0.12)',
-  borderRadius: 2, color: '#E8E4DC',
-  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-  letterSpacing: '0.06em', outline: 'none',
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '9px 12px',
+  background: '#141410',
+  border: '0.5px solid rgba(200,170,100,0.12)',
+  borderRadius: 2,
+  color: '#E8E4DC',
+  fontFamily: "'Barlow Condensed', sans-serif",
+  fontSize: 12,
+  letterSpacing: '0.06em',
+  outline: 'none',
 };
+
 /** @type {import('react').CSSProperties} */
 const labelStyle = {
-  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
-  color: '#5A5850', letterSpacing: '0.18em', textTransform: 'uppercase',
-  marginBottom: 4, display: 'block',
+  fontFamily: "'Barlow Condensed', sans-serif",
+  fontSize: 9,
+  color: '#5A5850',
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase',
+  marginBottom: 4,
+  display: 'block',
 };
 
 export default function AssetRegisterForm({ editAsset, members, ships, onClose, onSaved }) {
   const isEdit = Boolean(editAsset?.id);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    asset_name: '', asset_type: 'SHIP', model: '', manufacturer: '',
-    serial_tag: '', status: 'STORED', condition: 'GOOD',
-    assigned_to_callsign: '', assigned_to_id: '',
-    location_system: '', location_detail: '',
-    linked_ship_id: '', linked_ship_name: '',
-    estimated_value_aUEC: '', quantity: '1',
-    acquisition_source: 'PURCHASED', is_org_property: true, notes: '',
+    asset_name: '',
+    asset_type: 'SHIP',
+    model: '',
+    manufacturer: '',
+    serial_tag: '',
+    status: 'STORED',
+    condition: 'GOOD',
+    assigned_to_callsign: '',
+    assigned_to_id: '',
+    location_system: '',
+    location_detail: '',
+    linked_ship_id: '',
+    linked_ship_name: '',
+    estimated_value_aUEC: '',
+    quantity: '1',
+    acquisition_source: 'PURCHASED',
+    is_org_property: true,
+    notes: '',
+  });
+
+  const { options: assetTypeOptions } = useSCReferenceOptions('asset-types', { currentValue: form.asset_type });
+  const { options: statusOptions } = useSCReferenceOptions('asset-statuses', { currentValue: form.status });
+  const { options: conditionOptions } = useSCReferenceOptions('asset-conditions', { currentValue: form.condition });
+  const { options: sourceOptions } = useSCReferenceOptions('asset-sources', { currentValue: form.acquisition_source });
+  const { options: systemOptions } = useSCReferenceOptions('systems', {
+    currentValue: form.location_system,
+    includeBlank: true,
+    blankLabel: 'No System',
+  });
+  const { options: assetNameOptions } = useSCReferenceOptions('asset-names', {
+    assetType: form.asset_type,
+    currentValue: form.asset_name,
+  });
+  const { options: manufacturerOptions } = useSCReferenceOptions('manufacturers', {
+    currentValue: form.manufacturer,
+    ships,
+  });
+  const { options: locationOptions } = useSCReferenceOptions('locations', {
+    system: form.location_system,
+    currentValue: form.location_detail,
+  });
+  const { options: shipOptions } = useSCReferenceOptions('org-ships', {
+    ships,
+    currentValue: form.linked_ship_id,
+    includeBlank: true,
+    blankLabel: 'None',
   });
 
   useEffect(() => {
-    if (editAsset) {
-      setForm({
-        asset_name: editAsset.asset_name || '',
-        asset_type: editAsset.asset_type || 'SHIP',
-        model: editAsset.model || '',
-        manufacturer: editAsset.manufacturer || '',
-        serial_tag: editAsset.serial_tag || '',
-        status: editAsset.status || 'STORED',
-        condition: editAsset.condition || 'GOOD',
-        assigned_to_callsign: editAsset.assigned_to_callsign || '',
-        assigned_to_id: editAsset.assigned_to_id || '',
-        location_system: editAsset.location_system || '',
-        location_detail: editAsset.location_detail || '',
-        linked_ship_id: editAsset.linked_ship_id || '',
-        linked_ship_name: editAsset.linked_ship_name || '',
-        estimated_value_aUEC: editAsset.estimated_value_aUEC || '',
-        quantity: editAsset.quantity || '1',
-        acquisition_source: editAsset.acquisition_source || 'PURCHASED',
-        is_org_property: editAsset.is_org_property !== false,
-        notes: editAsset.notes || '',
-      });
-    }
+    if (!editAsset) return;
+    setForm({
+      asset_name: editAsset.asset_name || '',
+      asset_type: editAsset.asset_type || 'SHIP',
+      model: editAsset.model || '',
+      manufacturer: editAsset.manufacturer || '',
+      serial_tag: editAsset.serial_tag || '',
+      status: editAsset.status || 'STORED',
+      condition: editAsset.condition || 'GOOD',
+      assigned_to_callsign: editAsset.assigned_to_callsign || '',
+      assigned_to_id: editAsset.assigned_to_id || '',
+      location_system: editAsset.location_system || '',
+      location_detail: editAsset.location_detail || '',
+      linked_ship_id: editAsset.linked_ship_id || '',
+      linked_ship_name: editAsset.linked_ship_name || '',
+      estimated_value_aUEC: editAsset.estimated_value_aUEC || '',
+      quantity: editAsset.quantity || '1',
+      acquisition_source: editAsset.acquisition_source || 'PURCHASED',
+      is_org_property: editAsset.is_org_property !== false,
+      notes: editAsset.notes || '',
+    });
   }, [editAsset]);
 
   const handleMemberSelect = (callsign) => {
-    const m = members.find(u => (u.callsign || '').toUpperCase() === callsign.toUpperCase());
-    setForm(f => ({ ...f, assigned_to_callsign: callsign, assigned_to_id: m?.id || '' }));
+    const member = members.find((user) => (user.callsign || '').toUpperCase() === callsign.toUpperCase());
+    setForm((current) => ({
+      ...current,
+      assigned_to_callsign: callsign,
+      assigned_to_id: member?.id || '',
+    }));
   };
 
   const handleShipSelect = (shipId) => {
-    const s = ships.find(sh => sh.id === shipId);
-    setForm(f => ({ ...f, linked_ship_id: shipId, linked_ship_name: s ? `${s.name} (${s.model})` : '' }));
+    const ship = ships.find((entry) => entry.id === shipId);
+    setForm((current) => ({
+      ...current,
+      linked_ship_id: shipId,
+      linked_ship_name: ship ? `${ship.name} (${ship.model})` : '',
+    }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     if (!form.asset_name.trim()) return;
+
     setSaving(true);
     const payload = {
       ...form,
-      estimated_value_aUEC: parseInt(form.estimated_value_aUEC) || 0,
-      quantity: parseInt(form.quantity) || 1,
+      estimated_value_aUEC: parseInt(form.estimated_value_aUEC, 10) || 0,
+      quantity: parseInt(form.quantity, 10) || 1,
       acquired_at: isEdit ? (editAsset.acquired_at || new Date().toISOString()) : new Date().toISOString(),
     };
+
     if (isEdit) {
       await base44.entities.OrgAsset.update(editAsset.id, payload);
     } else {
       await base44.entities.OrgAsset.create(payload);
     }
+
     setSaving(false);
     onSaved();
   };
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{
-        background: '#0A0908', border: '0.5px solid rgba(200,170,100,0.15)',
-        borderLeft: '2px solid #C0392B', borderRadius: 2,
-        width: '100%', maxWidth: 620, maxHeight: '90vh', overflow: 'auto',
-        padding: '24px 28px',
-      }}>
-        {/* Header */}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 200,
+        background: 'rgba(0,0,0,0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      <div
+        style={{
+          background: '#0A0908',
+          border: '0.5px solid rgba(200,170,100,0.15)',
+          borderLeft: '2px solid #7AAECC',
+          borderRadius: 2,
+          width: '100%',
+          maxWidth: 720,
+          maxHeight: '90vh',
+          overflow: 'auto',
+          padding: '24px 28px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <div style={{
-            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-            fontSize: 16, color: '#E8E4DC', letterSpacing: '0.08em', textTransform: 'uppercase',
-          }}>{isEdit ? 'EDIT ASSET' : 'REGISTER ASSET'}</div>
-          <button onClick={onClose} style={{
-            background: 'none', border: 'none', color: '#5A5850', cursor: 'pointer', padding: 4,
-          }}><X size={16} /></button>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#E8E4DC', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            {isEdit ? 'Edit Asset' : 'Register Asset'}
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#5A5850', cursor: 'pointer', padding: 4 }}>
+            <X size={16} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 16px' }}>
-            {/* Name */}
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={labelStyle}>Asset Name *</label>
-              <input style={inputStyle} value={form.asset_name} required placeholder="e.g. Shadow Fang, GP-33 MOD, Nightrider Helmet"
-                onChange={e => setForm(f => ({ ...f, asset_name: e.target.value }))} />
+              <SmartCombobox
+                value={form.asset_name}
+                onChange={(nextValue, option) => {
+                  setForm((current) => ({
+                    ...current,
+                    asset_name: nextValue,
+                    manufacturer: current.manufacturer || option?.meta?.manufacturer || current.manufacturer,
+                  }));
+                }}
+                options={assetNameOptions}
+                theme="vehicle"
+                storageKey="nexus-smart:asset:name"
+                searchPlaceholder="Search live vehicles or items"
+                placeholder="Select cache-backed asset name or type a custom label"
+                allowCustom
+                helperText="Live 4.7 cache merged with preserved legacy labels"
+              />
             </div>
-            {/* Type */}
+
             <div>
               <label style={labelStyle}>Type *</label>
-              <select style={inputStyle} value={form.asset_type} onChange={e => setForm(f => ({ ...f, asset_type: e.target.value }))}>
-                {ASSET_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
+              <SmartSelect
+                value={form.asset_type}
+                onChange={(nextValue) => setForm((current) => ({ ...current, asset_type: nextValue }))}
+                options={assetTypeOptions}
+                theme="vehicle"
+                storageKey="nexus-smart:asset:type"
+                helperText="Domain-aware asset families"
+              />
             </div>
-            {/* Model */}
+
             <div>
               <label style={labelStyle}>Model / Variant</label>
-              <input style={inputStyle} value={form.model} placeholder="e.g. Cutlass Black"
-                onChange={e => setForm(f => ({ ...f, model: e.target.value }))} />
+              <input
+                style={inputStyle}
+                value={form.model}
+                placeholder="e.g. Cutlass Black"
+                onChange={(event) => setForm((current) => ({ ...current, model: event.target.value }))}
+              />
             </div>
-            {/* Manufacturer */}
+
             <div>
               <label style={labelStyle}>Manufacturer</label>
-              <input style={inputStyle} value={form.manufacturer} placeholder="e.g. Drake, Kastak Arms"
-                onChange={e => setForm(f => ({ ...f, manufacturer: e.target.value }))} />
+              <SmartCombobox
+                value={form.manufacturer}
+                onChange={(nextValue) => setForm((current) => ({ ...current, manufacturer: nextValue }))}
+                options={manufacturerOptions}
+                theme="vehicle"
+                storageKey="nexus-smart:asset:manufacturer"
+                searchPlaceholder="Search manufacturers"
+                placeholder="RSI, Drake, Behring, Kastak Arms..."
+                allowCustom
+                helperText="Derived from live vehicle and item caches"
+              />
             </div>
-            {/* Serial */}
+
             <div>
               <label style={labelStyle}>Serial Tag</label>
-              <input style={inputStyle} value={form.serial_tag} placeholder="e.g. RSN-SHP-042"
-                onChange={e => setForm(f => ({ ...f, serial_tag: e.target.value }))} />
+              <input
+                style={inputStyle}
+                value={form.serial_tag}
+                placeholder="e.g. RSN-SHP-042"
+                onChange={(event) => setForm((current) => ({ ...current, serial_tag: event.target.value }))}
+              />
             </div>
-            {/* Status */}
+
             <div>
               <label style={labelStyle}>Status</label>
-              <select style={inputStyle} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <SmartSelect
+                value={form.status}
+                onChange={(nextValue) => setForm((current) => ({ ...current, status: nextValue }))}
+                options={statusOptions}
+                theme="vehicle"
+                storageKey="nexus-smart:asset:status"
+              />
             </div>
-            {/* Condition */}
+
             <div>
               <label style={labelStyle}>Condition</label>
-              <select style={inputStyle} value={form.condition} onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-                {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <SmartSelect
+                value={form.condition}
+                onChange={(nextValue) => setForm((current) => ({ ...current, condition: nextValue }))}
+                options={conditionOptions}
+                theme="vehicle"
+                storageKey="nexus-smart:asset:condition"
+              />
             </div>
-            {/* Assigned to */}
+
             <div>
               <label style={labelStyle}>Assigned To</label>
-              <select style={inputStyle} value={form.assigned_to_callsign}
-                onChange={e => handleMemberSelect(e.target.value)}>
+              <select
+                style={inputStyle}
+                value={form.assigned_to_callsign}
+                onChange={(event) => handleMemberSelect(event.target.value)}
+              >
                 <option value="">Unassigned</option>
-                {members.map(m => (
-                  <option key={m.id} value={m.callsign || m.login_name}>{m.callsign || m.login_name}</option>
+                {members.map((member) => (
+                  <option key={member.id} value={member.callsign || member.login_name}>
+                    {member.callsign || member.login_name}
+                  </option>
                 ))}
               </select>
             </div>
-            {/* Location system */}
+
             <div>
               <label style={labelStyle}>System</label>
-              <select style={inputStyle} value={form.location_system} onChange={e => setForm(f => ({ ...f, location_system: e.target.value }))}>
-                <option value="">—</option>
-                <option value="STANTON">Stanton</option>
-                <option value="PYRO">Pyro</option>
-                <option value="NYX">Nyx</option>
-              </select>
+              <SmartSelect
+                value={form.location_system}
+                onChange={(nextValue) => setForm((current) => ({ ...current, location_system: nextValue }))}
+                options={systemOptions}
+                theme="tactical"
+                storageKey="nexus-smart:asset:system"
+                helperText="Registry-aware system tagging"
+              />
             </div>
-            {/* Location detail */}
+
             <div>
               <label style={labelStyle}>Location Detail</label>
-              <input style={inputStyle} value={form.location_detail} placeholder="e.g. Port Olisar Hangar B"
-                onChange={e => setForm(f => ({ ...f, location_detail: e.target.value }))} />
+              <SmartCombobox
+                value={form.location_detail}
+                onChange={(nextValue) => setForm((current) => ({ ...current, location_detail: nextValue }))}
+                options={locationOptions}
+                theme="tactical"
+                storageKey="nexus-smart:asset:location"
+                searchPlaceholder={`Search ${form.location_system || 'known'} locations`}
+                placeholder="Hangar, moon, station, or custom detail"
+                allowCustom
+                helperText="Preserves historical locations like Port Olisar"
+              />
             </div>
-            {/* Linked Ship */}
+
             <div>
               <label style={labelStyle}>Installed On Ship</label>
-              <select style={inputStyle} value={form.linked_ship_id}
-                onChange={e => handleShipSelect(e.target.value)}>
-                <option value="">None</option>
-                {ships.map(s => (
-                  <option key={s.id} value={s.id}>{s.name} ({s.model})</option>
-                ))}
-              </select>
+              <SmartCombobox
+                value={form.linked_ship_id}
+                onChange={(nextValue) => handleShipSelect(nextValue)}
+                options={shipOptions}
+                theme="vehicle"
+                storageKey="nexus-smart:asset:ship"
+                searchPlaceholder="Search org ships"
+                placeholder="None"
+                helperText="Entity-linked org ship roster"
+              />
             </div>
-            {/* Value */}
+
             <div>
               <label style={labelStyle}>Estimated Value (aUEC)</label>
-              <input style={inputStyle} type="number" min="0" value={form.estimated_value_aUEC}
-                onChange={e => setForm(f => ({ ...f, estimated_value_aUEC: e.target.value }))} />
+              <input
+                style={inputStyle}
+                type="number"
+                min="0"
+                value={form.estimated_value_aUEC}
+                onChange={(event) => setForm((current) => ({ ...current, estimated_value_aUEC: event.target.value }))}
+              />
             </div>
-            {/* Quantity */}
+
             <div>
               <label style={labelStyle}>Quantity</label>
-              <input style={inputStyle} type="number" min="1" value={form.quantity}
-                onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+              <input
+                style={inputStyle}
+                type="number"
+                min="1"
+                value={form.quantity}
+                onChange={(event) => setForm((current) => ({ ...current, quantity: event.target.value }))}
+              />
             </div>
-            {/* Source */}
+
             <div>
               <label style={labelStyle}>Acquisition Source</label>
-              <select style={inputStyle} value={form.acquisition_source}
-                onChange={e => setForm(f => ({ ...f, acquisition_source: e.target.value }))}>
-                {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <SmartSelect
+                value={form.acquisition_source}
+                onChange={(nextValue) => setForm((current) => ({ ...current, acquisition_source: nextValue }))}
+                options={sourceOptions}
+                theme="industrial"
+                storageKey="nexus-smart:asset:source"
+              />
             </div>
-            {/* Org property */}
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 18 }}>
-              <input type="checkbox" checked={form.is_org_property}
-                onChange={e => setForm(f => ({ ...f, is_org_property: e.target.checked }))}
-                style={{ accentColor: '#C0392B', width: 14, height: 14 }} />
-              <label style={{ ...labelStyle, margin: 0 }}>ORG PROPERTY</label>
+              <input
+                type="checkbox"
+                checked={form.is_org_property}
+                onChange={(event) => setForm((current) => ({ ...current, is_org_property: event.target.checked }))}
+                style={{ accentColor: '#7AAECC', width: 14, height: 14 }}
+              />
+              <label style={{ ...labelStyle, margin: 0 }}>Org Property</label>
             </div>
-            {/* Notes */}
+
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={labelStyle}>Notes</label>
-              <textarea style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} value={form.notes}
+              <textarea
+                style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }}
+                value={form.notes}
                 placeholder="Optional notes..."
-                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+                onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+              />
             </div>
           </div>
 
-          {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
-            <button type="button" onClick={onClose} style={{
-              padding: '10px 20px', background: '#141410',
-              border: '0.5px solid rgba(200,170,100,0.12)', borderRadius: 2,
-              color: '#9A9488', fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 12, fontWeight: 600, letterSpacing: '0.12em',
-              textTransform: 'uppercase', cursor: 'pointer',
-            }}>CANCEL</button>
-            <button type="submit" disabled={saving || !form.asset_name.trim()} style={{
-              padding: '10px 24px', background: '#C0392B',
-              border: 'none', borderRadius: 2, color: '#E8E4DC',
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 12, fontWeight: 600, letterSpacing: '0.12em',
-              textTransform: 'uppercase', cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.6 : 1,
-            }}>{saving ? 'SAVING...' : (isEdit ? 'UPDATE ASSET' : 'REGISTER ASSET')}</button>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: '10px 20px',
+                background: '#141410',
+                border: '0.5px solid rgba(200,170,100,0.12)',
+                borderRadius: 2,
+                color: '#9A9488',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || !form.asset_name.trim()}
+              style={{
+                padding: '10px 24px',
+                background: '#7AAECC',
+                border: 'none',
+                borderRadius: 2,
+                color: '#08121A',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
+              {saving ? 'Saving...' : (isEdit ? 'Update Asset' : 'Register Asset')}
+            </button>
           </div>
         </form>
       </div>

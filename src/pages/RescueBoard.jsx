@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { AlertTriangle, Radio, MapPin, Clock } from 'lucide-react';
 import OperationalReferenceStrip from '@/core/design/OperationalReferenceStrip';
+import SmartSelect from '@/components/sc/SmartSelect';
+import SmartCombobox from '@/components/sc/SmartCombobox';
+import { useSCReferenceOptions } from '@/core/data/useSCReferenceOptions';
 import {
   createRescueCall,
   getActiveRescueCount,
@@ -24,6 +27,8 @@ export default function RescueBoard() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const { options: systemOptions } = useSCReferenceOptions('systems', { currentValue: form.system });
+  const { options: locationOptions } = useSCReferenceOptions('locations', { system: form.system, currentValue: form.location });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -159,14 +164,29 @@ export default function RescueBoard() {
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>SYSTEM</label>
-                <select className="nexus-input" value={form.system} onChange={e => set('system', e.target.value)} style={{ cursor: 'pointer' }}>
-                  {['STANTON','PYRO','NYX'].map(s => <option key={s}>{s}</option>)}
-                </select>
+                <SmartSelect
+                  value={form.system}
+                  onChange={(nextValue) => set('system', nextValue)}
+                  options={systemOptions}
+                  theme="tactical"
+                  storageKey="nexus-smart:rescue:system"
+                  helperText="Current live system registry"
+                />
               </div>
             </div>
             <div>
               <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>LOCATION</label>
-              <input className="nexus-input" value={form.location} onChange={e => set('location', e.target.value)} placeholder="Keeger Belt · Sector 9 / Station / Grid" />
+              <SmartCombobox
+                value={form.location}
+                onChange={(nextValue) => set('location', nextValue)}
+                options={locationOptions}
+                theme="tactical"
+                storageKey="nexus-smart:rescue:location"
+                searchPlaceholder={`Search ${form.system || 'system'} rescue locations`}
+                placeholder="Station, moon, belt, or grid"
+                allowCustom
+                helperText="Preserves custom distress coordinates"
+              />
             </div>
             <div>
               <label style={{ color: 'var(--t2)', fontSize: 10, letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>SITUATION</label>

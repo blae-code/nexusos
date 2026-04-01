@@ -6,12 +6,14 @@
  * Quality slider with live T2 feedback (≥80% green, 60-79% amber, <60% dim).
  * On submit: ScoutDeposit.create using the current NexusOS session identity.
  */
-import React, { useState, useRef, useCallback } from 'react';
-import { base44 } from '@/core/data/base44Client';
+import React, { useState } from 'react';
 import { useSession } from '@/core/data/SessionContext';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
 import { qualityScoreFromPercent } from '@/core/data/quality';
 import { X } from 'lucide-react';
+import SmartSelect from '@/components/sc/SmartSelect';
+import SmartCombobox from '@/components/sc/SmartCombobox';
+import { useSCReferenceOptions } from '@/core/data/useSCReferenceOptions';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -66,66 +68,6 @@ function SegCtrl({ options, value, onChange, riskColors }) {
   );
 }
 
-// ─── Material autocomplete ────────────────────────────────────────────────────
-
-function MaterialInput({ value, onChange }) {
-  const [suggestions, setSuggestions] = useState([]);
-  const [open, setOpen] = useState(false);
-  const debounce = useRef(null);
-
-  const loadSugg = useCallback(async (q) => {
-    if (q.length < 2) { setSuggestions([]); return; }
-    try {
-      const res = await base44.entities.game_cache_commodities.list('-name', 100);
-      setSuggestions(
-        (res || [])
-          .filter(c => (c.name || c.commodity_name || '').toLowerCase().includes(q.toLowerCase()))
-          .slice(0, 8)
-          .map(c => c.name || c.commodity_name)
-      );
-    } catch { setSuggestions([]); }
-  }, []);
-
-  return (
-    <div style={{ position: 'relative' }}>
-      <input
-        className="nexus-input"
-        value={value}
-        placeholder="Laranite, Quantanium..."
-        onChange={e => {
-          onChange(e.target.value);
-          clearTimeout(debounce.current);
-          debounce.current = setTimeout(() => loadSugg(e.target.value), 250);
-          setOpen(true);
-        }}
-        onFocus={() => suggestions.length > 0 && setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
-        autoComplete="off"
-        style={{ width: '100%', boxSizing: 'border-box' }}
-      />
-      {open && suggestions.length > 0 && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 60,
-          background: 'var(--bg3)', border: '0.5px solid var(--b2)',
-          borderRadius: '0 0 3px 3px', maxHeight: 160, overflowY: 'auto',
-        }}>
-          {suggestions.map((s, i) => (
-            <div
-              key={i}
-              onMouseDown={() => { onChange(s); setOpen(false); }}
-              style={{ padding: '6px 10px', color: 'var(--t0)', fontSize: 12, cursor: 'pointer' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg4)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              {s}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── LogForm ──────────────────────────────────────────────────────────────────
 
 export default function LogForm({ callsign, onSubmit, onCancel }) {
@@ -144,6 +86,9 @@ export default function LogForm({ callsign, onSubmit, onCancel }) {
   });
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
+  const { options: materialOptions } = useSCReferenceOptions('tradeable-items', { currentValue: form.material_name });
+  const { options: systemOptions } = useSCReferenceOptions('systems', { currentValue: form.system_name.toUpperCase() });
+  const { options: locationOptions } = useSCReferenceOptions('locations', { system: form.system_name.toUpperCase(), currentValue: form.location_detail });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -198,31 +143,45 @@ export default function LogForm({ callsign, onSubmit, onCancel }) {
       {/* Material */}
       <div>
         <label style={LABEL}>MATERIAL *</label>
-        <MaterialInput
+        <SmartCombobox
           value={form.material_name}
           onChange={v => set('material_name', v)}
+          options={materialOptions}
+          theme="industrial"
+          storageKey="nexus-smart:deposit:material"
+          searchPlaceholder="Search live items and commodities"
+          placeholder="Laranite, Quantanium, Hephaestanite..."
+          allowCustom
+          helperText="Live trade cache with custom scout shorthand support"
         />
       </div>
 
       {/* System */}
       <div>
         <label style={LABEL}>SYSTEM</label>
-        <SegCtrl
-          options={['Stanton', 'Pyro', 'Nyx']}
-          value={form.system_name}
-          onChange={v => set('system_name', v)}
+        <SmartSelect
+          value={form.system_name.toUpperCase()}
+          onChange={v => set('system_name', v.charAt(0) + v.slice(1).toLowerCase())}
+          options={systemOptions}
+          theme="tactical"
+          storageKey="nexus-smart:deposit:system"
+          helperText="Patch-aware live system registry"
         />
       </div>
 
       {/* Location */}
       <div>
         <label style={LABEL}>LOCATION DETAIL *</label>
-        <input
-          className="nexus-input"
+        <SmartCombobox
           value={form.location_detail}
-          onChange={e => set('location_detail', e.target.value)}
-          placeholder="Keeger Belt · Sector 7"
-          style={{ width: '100%', boxSizing: 'border-box' }}
+          onChange={v => set('location_detail', v)}
+          options={locationOptions}
+          theme="tactical"
+          storageKey="nexus-smart:deposit:location"
+          searchPlaceholder={`Search ${form.system_name} scout locations`}
+          placeholder="Keeger Belt, moon, station, or custom grid"
+          allowCustom
+          helperText="Known locations plus custom belt sectors"
         />
       </div>
 
