@@ -22,6 +22,8 @@ Local auth and SDK traffic run through the Vite same-origin `/api` proxy so issu
 
 For administrator recovery, bootstrap or repair the fixed `system-admin` account from `/app/admin/keys` once an admin session exists, or via the protected bootstrap function using `SYSTEM_ADMIN_BOOTSTRAP_SECRET`. The old public `resetAdmin` recovery path has been removed.
 
+Production auth uses the `NexusUser` table. To avoid invalidating every issued key during secret rotation, configure `AUTH_KEY_HASH_SECRET` separately from `SESSION_SIGNING_SECRET`, and keep previous hash secrets in `AUTH_KEY_HASH_FALLBACK_SECRETS` during migrations.
+
 ## Auth Model
 - Users are invited by a Pioneer/admin user.
 - Each invite issues:

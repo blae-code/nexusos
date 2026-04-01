@@ -98,6 +98,34 @@ async function hashAuthKey(authKey, secret) {
   const sig = await crypto.subtle.sign('HMAC', key, enc.encode(authKey));
   return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+function parseSecretList(value) {
+  return String(value || '').split(/[\n,]/).map((entry) => entry.trim()).filter(Boolean);
+}
+function dedupeSecrets(secrets) {
+  const seen = new Set();
+  return (secrets || []).filter((secret) => {
+    if (!secret || seen.has(secret)) return false;
+    seen.add(secret);
+    return true;
+  });
+}
+function getAuthKeySecrets() {
+  const explicitSecret = String(Deno.env.get('AUTH_KEY_HASH_SECRET') || '').trim();
+  const sessionSecret = String(Deno.env.get('SESSION_SIGNING_SECRET') || '').trim();
+  const primary = explicitSecret || sessionSecret;
+  if (!primary) throw new Error('AUTH_KEY_HASH_SECRET or SESSION_SIGNING_SECRET not configured');
+  const fallbacks = dedupeSecrets([
+    ...(explicitSecret && sessionSecret && explicitSecret !== sessionSecret ? [sessionSecret] : []),
+    ...parseSecretList(Deno.env.get('AUTH_KEY_HASH_FALLBACK_SECRETS')),
+  ]).filter((secret) => secret !== primary);
+  return { primary, fallbacks };
+}
+async function matchAuthKeySecret(authKey, storedHash, secrets) {
+  for (const secret of dedupeSecrets([secrets.primary, ...secrets.fallbacks])) {
+    if ((await hashAuthKey(authKey, secret)) === storedHash) return secret;
+  }
+  return null;
+}
 function isSecure(req) {
   const appUrl = Deno.env.get('APP_URL') || '';
   return appUrl.startsWith('https://') || new URL(req.url).protocol === 'https:' || (req.headers.get('x-forwarded-proto') || '').includes('https');
@@ -140,6 +168,7 @@ Deno.serve(async (req) => {
   try {
     const secret = Deno.env.get('SESSION_SIGNING_SECRET');
     if (!secret) return Response.json({ error: 'session_secret_missing' }, { status: 500, headers: NO_STORE });
+    const authKeySecrets = getAuthKeySecrets();
     const base44 = createClientFromRequest(req);
     const user = await findUserByLoginName(base44, username);
     if (!user) return Response.json({ error: 'user_not_found' }, { status: 401, headers: NO_STORE });
@@ -147,16 +176,20 @@ Deno.serve(async (req) => {
     if (!resolvePersistedLoginName(user) || !String(user.auth_key_hash || '').trim()) {
       return Response.json({ error: 'missing_auth_fields' }, { status: 401, headers: NO_STORE });
     }
-    const presentedHash = await hashAuthKey(authKey, secret);
-    if (presentedHash !== user.auth_key_hash) return Response.json({ error: 'hash_mismatch' }, { status: 401, headers: NO_STORE });
+    const matchedSecret = await matchAuthKeySecret(authKey, String(user.auth_key_hash || ''), authKeySecrets);
+    if (!matchedSecret) return Response.json({ error: 'hash_mismatch' }, { status: 401, headers: NO_STORE });
     const now = new Date().toISOString();
     const isNew = !user.joined_at;
     const loginName = resolvePersistedLoginName(user) || username;
     const callsign = resolveUserCallsign(user);
     const onboardingComplete = isOnboardingComplete(user);
     const admin = isAdminUser(user);
+    const nextAuthKeyHash = matchedSecret === authKeySecrets.primary
+      ? String(user.auth_key_hash || '')
+      : await hashAuthKey(authKey, authKeySecrets.primary);
     await base44.asServiceRole.entities.NexusUser.update(user.id, {
       login_name: loginName, username: loginName, callsign,
+      auth_key_hash: nextAuthKeyHash,
       joined_at: user.joined_at || now, last_seen_at: now,
       is_admin: admin, key_revoked: false,
       ...(onboardingComplete ? { onboarding_complete: true } : {}),

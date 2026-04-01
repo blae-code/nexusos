@@ -248,10 +248,57 @@ export function getSessionSigningSecret(): string {
   return secret;
 }
 
+function parseSecretList(value: string | null | undefined): string[] {
+  return String(value || '')
+    .split(/[\n,]/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function dedupeSecrets(secrets: string[]): string[] {
+  const seen = new Set<string>();
+  return secrets.filter((secret) => {
+    if (!secret || seen.has(secret)) return false;
+    seen.add(secret);
+    return true;
+  });
+}
+
+export function getAuthKeyHashSecrets(): { primary: string; fallbacks: string[] } {
+  const explicitSecret = String(Deno.env.get('AUTH_KEY_HASH_SECRET') || '').trim();
+  const sessionSecret = String(Deno.env.get('SESSION_SIGNING_SECRET') || '').trim();
+  const primary = explicitSecret || sessionSecret;
+
+  if (!primary) {
+    throw new Error('AUTH_KEY_HASH_SECRET or SESSION_SIGNING_SECRET not configured');
+  }
+
+  const fallbacks = dedupeSecrets([
+    ...(explicitSecret && sessionSecret && explicitSecret !== sessionSecret ? [sessionSecret] : []),
+    ...parseSecretList(Deno.env.get('AUTH_KEY_HASH_FALLBACK_SECRETS')),
+  ]).filter((secret) => secret !== primary);
+
+  return { primary, fallbacks };
+}
+
 export async function hashAuthKey(authKey: string, secret: string): Promise<string> {
   const key = await getSigningKey(secret);
   const signature = await crypto.subtle.sign('HMAC', key, enc.encode(authKey));
   return Array.from(new Uint8Array(signature)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export async function matchAuthKeySecret(
+  authKey: string,
+  storedHash: string,
+  secrets: { primary: string; fallbacks: string[] },
+): Promise<string | null> {
+  const candidates = dedupeSecrets([secrets.primary, ...secrets.fallbacks]);
+  for (const secret of candidates) {
+    if ((await hashAuthKey(authKey, secret)) === storedHash) {
+      return secret;
+    }
+  }
+  return null;
 }
 
 export function generateAuthKey(): string {
@@ -525,8 +572,8 @@ export async function authenticateIssuedKeyCredentials(
   base44: ReturnType<typeof createClientFromRequest>,
   loginName: string,
   authKey: string,
-  secret: string,
-): Promise<AuthFailureResult | AuthSuccessResult<{ user: NexusUserRecord }>> {
+  secrets: { primary: string; fallbacks: string[] },
+): Promise<AuthFailureResult | AuthSuccessResult<{ user: NexusUserRecord; matched_secret: string }>> {
   const user = await findUserByLoginName(base44, loginName);
   if (!user) {
     return { ok: false, error: 'user_not_found', status: 401 };
@@ -549,18 +596,19 @@ export async function authenticateIssuedKeyCredentials(
     };
   }
 
-  const presentedHash = await hashAuthKey(authKey, secret);
-  if (presentedHash !== user.auth_key_hash) {
+  const matchedSecret = await matchAuthKeySecret(authKey, String(user.auth_key_hash || ''), secrets);
+  if (!matchedSecret) {
     return { ok: false, error: 'hash_mismatch', status: 401 };
   }
 
-  return { ok: true, user };
+  return { ok: true, user, matched_secret: matchedSecret };
 }
 
 export async function hydrateAuthenticatedUser(
   base44: ReturnType<typeof createClientFromRequest>,
   user: NexusUserRecord,
   fallbackLoginName: string,
+  authKeyHash: string = String(user.auth_key_hash || ''),
 ): Promise<AuthFailureResult | AuthSuccessResult<{
   user: NexusUserRecord;
   login_name: string;
@@ -580,6 +628,7 @@ export async function hydrateAuthenticatedUser(
     login_name: loginName,
     username: loginName,
     callsign,
+    auth_key_hash: authKeyHash,
     joined_at: user.joined_at || now,
     last_seen_at: now,
     is_admin: admin,
@@ -591,7 +640,7 @@ export async function hydrateAuthenticatedUser(
     login_name: loginName,
     username: loginName,
     callsign,
-    auth_key_hash: user.auth_key_hash,
+    auth_key_hash: authKeyHash,
     key_revoked: false,
     is_admin: admin,
   }, ['login_name', 'username', 'callsign', 'auth_key_hash', 'key_revoked', 'is_admin']);
@@ -664,8 +713,9 @@ export async function handleIssuedKeySignIn(req: Request): Promise<Response> {
 
   try {
     const secret = getSessionSigningSecret();
+    const authKeySecrets = getAuthKeyHashSecrets();
     const base44 = createClientFromRequest(req);
-    const authResult = await authenticateIssuedKeyCredentials(base44, parsedBody.username, parsedBody.authKey, secret);
+    const authResult = await authenticateIssuedKeyCredentials(base44, parsedBody.username, parsedBody.authKey, authKeySecrets);
 
     if (!authResult.ok) {
       return Response.json({
@@ -674,7 +724,10 @@ export async function handleIssuedKeySignIn(req: Request): Promise<Response> {
       }, { status: authResult.status, headers: sessionNoStoreHeaders() });
     }
 
-    const hydrated = await hydrateAuthenticatedUser(base44, authResult.user, parsedBody.username);
+    const nextAuthKeyHash = authResult.matched_secret === authKeySecrets.primary
+      ? String(authResult.user.auth_key_hash || '')
+      : await hashAuthKey(parsedBody.authKey, authKeySecrets.primary);
+    const hydrated = await hydrateAuthenticatedUser(base44, authResult.user, parsedBody.username, nextAuthKeyHash);
     if (!hydrated.ok) {
       return Response.json({
         error: hydrated.error,

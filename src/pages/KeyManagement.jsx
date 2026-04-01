@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AlertTriangle, Copy, RefreshCw, Shield } from 'lucide-react';
 import { authApi } from '@/core/data/auth-api';
 import { listMemberDirectory } from '@/core/data/member-directory';
@@ -163,6 +164,7 @@ export default function KeyManagement() {
   const [showSystemAdminRecovery, setShowSystemAdminRecovery] = useState(false);
   const [systemAdminRecoveryEnabled, setSystemAdminRecoveryEnabled] = useState(false);
   const [systemAdminMessage, setSystemAdminMessage] = useState('');
+  const [confirmPrepareAll, setConfirmPrepareAll] = useState(false);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -317,6 +319,32 @@ export default function KeyManagement() {
     }
   };
 
+  const handlePrepareAllForReissue = async () => {
+    setSubmitting(true);
+    setWorkingUserId('prepare-all-reissue');
+    setError('');
+    setSystemAdminMessage('');
+    setGeneratedKey(null);
+
+    try {
+      const res = await authApi.prepareAllKeysForReissue({ includeSystemAdmin: true });
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        setConfirmPrepareAll(false);
+        setSystemAdminRecoveryEnabled(true);
+        setSystemAdminMessage('All stored NexusUser key material was cleared. Regenerate member keys from this table. Recover system-admin from /setup using the bootstrap secret, then sign in at /gate.');
+        showToast(`PREPARED ${res?.affected_count || 0} USERS FOR REISSUE`, 'success');
+        await loadUsers();
+      }
+    } catch (err) {
+      setError(err?.message || 'Failed to prepare keys for reissue.');
+    } finally {
+      setSubmitting(false);
+      setWorkingUserId('');
+    }
+  };
+
   const STATUS_COLOR = {
     INVITED: '#4AE830',
     REGISTERED: '#C8A84B',
@@ -421,6 +449,107 @@ export default function KeyManagement() {
       }}>
         This table merges the managed auth roster with the readable member directory, including members who do not yet have an issued key.
         Members marked <strong style={{ color: '#E8A020' }}>NO KEY</strong> can receive their first key from the row action.
+      </div>
+
+      <div style={{
+        background: '#0F0F0D',
+        borderLeft: '2px solid #E8A020',
+        borderTop: '0.5px solid rgba(200,170,100,0.10)',
+        borderRight: '0.5px solid rgba(200,170,100,0.10)',
+        borderBottom: '0.5px solid rgba(200,170,100,0.10)',
+        borderRadius: 2,
+        padding: '20px 24px',
+        marginBottom: 24,
+      }}>
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 11,
+          color: '#C8A84B',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          marginBottom: 10,
+          fontWeight: 600,
+        }}>
+          Prepare NexusUser Table For Reissue
+        </div>
+
+        <div style={{ color: '#9A9488', fontSize: 11, lineHeight: 1.7, marginBottom: 16 }}>
+          Clears stored auth key material for every readable NexusUser, including <strong style={{ color: '#E8E4DC' }}>system-admin</strong>, so affected rows move to <strong style={{ color: '#E8A020' }}>NO KEY</strong>.
+          After this runs, regenerate member keys from this table. For the fixed admin account, recover a fresh key from{' '}
+          <Link to="/setup" style={{ color: '#C8A84B', textDecoration: 'underline', textUnderlineOffset: '3px' }}>/setup</Link>
+          {' '}and then sign in at <strong style={{ color: '#E8E4DC' }}>/gate</strong> with username <strong style={{ color: '#E8E4DC' }}>system-admin</strong>.
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          {confirmPrepareAll ? (
+            <>
+              <button
+                type="button"
+                onClick={handlePrepareAllForReissue}
+                disabled={submitting}
+                style={{
+                  padding: '10px 20px',
+                  background: submitting && workingUserId === 'prepare-all-reissue' ? '#5A2620' : '#C0392B',
+                  border: '1px solid rgba(192,57,43,0.6)',
+                  borderRadius: 2,
+                  color: '#F0EDE5',
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: submitting ? 'wait' : 'pointer',
+                }}
+              >
+                {submitting && workingUserId === 'prepare-all-reissue' ? 'Preparing…' : 'Confirm Prepare All'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmPrepareAll(false)}
+                disabled={submitting}
+                style={{
+                  padding: '10px 20px',
+                  background: 'transparent',
+                  border: '0.5px solid rgba(200,170,100,0.10)',
+                  borderRadius: 2,
+                  color: '#9A9488',
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 12,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: submitting ? 'wait' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmPrepareAll(true)}
+              disabled={submitting}
+              style={{
+                padding: '10px 20px',
+                background: 'transparent',
+                border: '0.5px solid rgba(232,160,32,0.35)',
+                borderRadius: 2,
+                color: '#E8A020',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 600,
+                fontSize: 12,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: submitting ? 'wait' : 'pointer',
+              }}
+            >
+              Prepare All Keys For Reissue
+            </button>
+          )}
+
+          <span style={{ color: '#5A5850', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            Existing sessions will be invalidated on next refresh.
+          </span>
+        </div>
       </div>
 
       <div style={{

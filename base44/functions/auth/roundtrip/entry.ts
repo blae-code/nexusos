@@ -39,6 +39,28 @@ async function hashAuthKey(authKey, secret) {
   const sig = await crypto.subtle.sign('HMAC', key, enc.encode(authKey));
   return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+function parseSecretList(value) {
+  return String(value || '').split(/[\n,]/).map((entry) => entry.trim()).filter(Boolean);
+}
+function dedupeSecrets(secrets) {
+  const seen = new Set();
+  return (secrets || []).filter((secret) => {
+    if (!secret || seen.has(secret)) return false;
+    seen.add(secret);
+    return true;
+  });
+}
+function getAuthKeyPrimarySecret() {
+  const explicitSecret = String(Deno.env.get('AUTH_KEY_HASH_SECRET') || '').trim();
+  const sessionSecret = String(Deno.env.get('SESSION_SIGNING_SECRET') || '').trim();
+  const primary = explicitSecret || sessionSecret;
+  if (!primary) throw new Error('AUTH_KEY_HASH_SECRET or SESSION_SIGNING_SECRET not configured');
+  dedupeSecrets([
+    ...(explicitSecret && sessionSecret && explicitSecret !== sessionSecret ? [sessionSecret] : []),
+    ...parseSecretList(Deno.env.get('AUTH_KEY_HASH_FALLBACK_SECRETS')),
+  ]);
+  return primary;
+}
 function generateAuthKey() {
   const bytes = new Uint8Array(12);
   crypto.getRandomValues(bytes);
@@ -48,7 +70,7 @@ function generateAuthKey() {
 function keyPrefixFromAuthKey(k) { return k.slice(0, 8); }
 
 async function requireAdmin(req, base44) {
-  const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+  const secret = getAuthKeyPrimarySecret();
   if (!secret) return null;
   const token = parseCookies(req)[SESSION_COOKIE_NAME];
   if (!token) return null;

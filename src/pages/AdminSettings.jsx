@@ -11,7 +11,9 @@ import SystemOperationsPanel from '@/components/admin/SystemOperationsPanel';
 const REQUIRED_SECRETS = [
   { id: 'UEX_API_KEY', label: 'UEX API Key', help: 'Powers commodity price tracking and market data. Get yours at uexcorp.space/api', critical: false },
   { id: 'SC_API_KEY', label: 'StarCitizen API Key', help: 'Used for RSI organization roster sync and game data. Available at robertsspaceindustries.com/account/settings', critical: false },
-  { id: 'SESSION_SIGNING_SECRET', label: 'Session Signing Secret', help: 'CRITICAL — Used to sign all auth session cookies. Must be a strong random string. Without this, authentication will not work.', critical: true },
+  { id: 'SESSION_SIGNING_SECRET', label: 'Session Signing Secret', help: 'CRITICAL — Used to sign all auth session cookies. If AUTH_KEY_HASH_SECRET is not configured, this also hashes issued NexusUser auth keys. Rotating it without a hash-secret migration path can invalidate every existing key.', critical: true },
+  { id: 'AUTH_KEY_HASH_SECRET', label: 'Auth Key Hash Secret', help: 'Recommended — Dedicated HMAC secret for NexusUser auth_key_hash values. Set this to decouple issued keys from session-cookie secret rotation.', critical: false },
+  { id: 'AUTH_KEY_HASH_FALLBACK_SECRETS', label: 'Auth Key Hash Fallbacks', help: 'Optional migration list of prior key-hash secrets. Keep previous values here temporarily so older issued keys can still be verified and rehashed after rotation.', critical: false },
   { id: 'SYSTEM_ADMIN_BOOTSTRAP_SECRET', label: 'System Admin Bootstrap Secret', help: 'Emergency recovery secret for the system admin account. Set during initial deployment.', critical: true },
   { id: 'APP_URL', label: 'App URL', help: 'The public URL of your NexusOS deployment. Used for cookie domains and invite links. Format: https://your-nexusos.app', critical: true },
   { id: 'FLEETYARDS_HANDLE', label: 'FleetYards Handle', help: 'Required for fleet sync and readiness proofs. Use the FleetYards fleet slug or RSI SID for the target fleet.', critical: true },
@@ -40,6 +42,10 @@ export default function AdminSettings() {
   const [authHealth, setAuthHealth] = useState(null);
   const [authRoundtrip, setAuthRoundtrip] = useState(null);
   const [runningRoundtrip, setRunningRoundtrip] = useState(false);
+  const criticalSecrets = useMemo(
+    () => REQUIRED_SECRETS.filter((item) => item.critical),
+    [],
+  );
 
   const runAuthRoundtrip = useCallback(async () => {
     setRunningRoundtrip(true);
@@ -108,8 +114,8 @@ export default function AdminSettings() {
   };
 
   const configuredCount = useMemo(
-    () => REQUIRED_SECRETS.filter((item) => secrets[item.id]?.configured).length,
-    [secrets],
+    () => criticalSecrets.filter((item) => secrets[item.id]?.configured).length,
+    [criticalSecrets, secrets],
   );
 
   const appUrl = environment?.app_url || null;
@@ -127,7 +133,7 @@ export default function AdminSettings() {
     authHealth?.ok
     && authHealth?.auth_mode === 'issued_key'
     && authRoundtrip?.ok === true
-    && REQUIRED_SECRETS.every((item) => secrets[item.id]?.configured),
+    && criticalSecrets.every((item) => secrets[item.id]?.configured),
   );
 
   if (!isAdmin) {
@@ -166,7 +172,7 @@ export default function AdminSettings() {
           <StatusChip ok={launchReady} label={launchReady ? 'Ready For Smoke' : 'Needs Attention'} />
         </div>
         <div style={{ color: 'var(--t2)', fontSize: 11, lineHeight: 1.6 }}>
-          {configuredCount}/{REQUIRED_SECRETS.length} required deployment values detected. Auth runtime reports <strong style={{ color: 'var(--t1)' }}>{authHealth?.auth_mode || 'unknown'}</strong>.
+          {configuredCount}/{criticalSecrets.length} required deployment values detected. Auth runtime reports <strong style={{ color: 'var(--t1)' }}>{authHealth?.auth_mode || 'unknown'}</strong>.
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ padding: '8px 10px', background: 'var(--bg1)', borderRadius: 3, fontSize: 10, color: 'var(--t1)' }}>

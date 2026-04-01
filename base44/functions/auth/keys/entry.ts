@@ -24,6 +24,9 @@ function resolveUserLoginName(u) { return normalizeLoginName(String(u.login_name
 function resolvePersistedLoginName(u) { return normalizeLoginName(String(u.login_name || u.username || '')); }
 function resolveUserCallsign(u) { return normalizeCallsign(String(u.callsign || u.login_name || u.username || 'NOMAD')); }
 function isAdminUser(u) { return String(u.nexus_rank || '').toUpperCase() === 'PIONEER' || u.is_admin === true; }
+function isSystemAdminUser(u) {
+  return resolveUserLoginName(u) === 'system-admin' || resolveUserCallsign(u) === 'SYSTEM-ADMIN';
+}
 
 function dedupeUsers(users) {
   const seen = new Set();
@@ -83,6 +86,31 @@ async function hashAuthKey(authKey, secret) {
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, enc.encode(authKey));
   return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function parseSecretList(value) {
+  return String(value || '').split(/[\n,]/).map((entry) => entry.trim()).filter(Boolean);
+}
+
+function dedupeSecrets(secrets) {
+  const seen = new Set();
+  return (secrets || []).filter((secret) => {
+    if (!secret || seen.has(secret)) return false;
+    seen.add(secret);
+    return true;
+  });
+}
+
+function getAuthKeyPrimarySecret() {
+  const explicitSecret = String(Deno.env.get('AUTH_KEY_HASH_SECRET') || '').trim();
+  const sessionSecret = String(Deno.env.get('SESSION_SIGNING_SECRET') || '').trim();
+  const primary = explicitSecret || sessionSecret;
+  if (!primary) throw new Error('AUTH_KEY_HASH_SECRET or SESSION_SIGNING_SECRET not configured');
+  dedupeSecrets([
+    ...(explicitSecret && sessionSecret && explicitSecret !== sessionSecret ? [sessionSecret] : []),
+    ...parseSecretList(Deno.env.get('AUTH_KEY_HASH_FALLBACK_SECRETS')),
+  ]);
+  return primary;
 }
 
 function generateAuthKey() {
@@ -163,7 +191,7 @@ Deno.serve(async (req) => {
 
     const action = String(body?.action || '').trim().toLowerCase();
     const now = new Date().toISOString();
-    const secret = Deno.env.get('SESSION_SIGNING_SECRET');
+    const secret = getAuthKeyPrimarySecret();
 
     if (action === 'issue') {
       const loginName = normalizeLoginName(body?.username || body?.login_name || body?.callsign);
@@ -252,6 +280,38 @@ Deno.serve(async (req) => {
       return Response.json({
         ok: true,
         user: (refreshed || [])[0] ? serializeManagedUser(refreshed[0]) : null,
+      }, { headers: NO_STORE });
+    }
+
+    if (action === 'prepare_reissue_all') {
+      const includeSystemAdmin = body?.include_system_admin !== false;
+      const users = await base44.asServiceRole.entities.NexusUser.list('-created_date', 500);
+      const targets = (users || []).filter((target) => {
+        if (!target?.id) return false;
+        if (!includeSystemAdmin && isSystemAdminUser(target)) return false;
+        return Boolean(
+          String(target.auth_key_hash || '').trim()
+          || String(target.key_prefix || '').trim()
+          || String(target.key_issued_at || '').trim()
+          || target.key_revoked === true,
+        );
+      });
+
+      for (const target of targets) {
+        await base44.asServiceRole.entities.NexusUser.update(target.id, {
+          auth_key_hash: null,
+          key_prefix: null,
+          key_issued_by: null,
+          key_issued_at: null,
+          key_revoked: false,
+          session_invalidated_at: now,
+        });
+      }
+
+      return Response.json({
+        ok: true,
+        affected_count: targets.length,
+        included_system_admin: includeSystemAdmin,
       }, { headers: NO_STORE });
     }
 

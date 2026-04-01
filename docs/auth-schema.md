@@ -27,6 +27,16 @@ These fields must persist correctly for login, session hydration, onboarding, an
 - `consent_timestamp`
 - `is_admin`
 
+## Secret Handling
+
+- `SESSION_SIGNING_SECRET` signs member session cookies.
+- Issued auth keys are HMAC-hashed before storage in `NexusUser.auth_key_hash`.
+- If `AUTH_KEY_HASH_SECRET` is configured, it is the primary secret for key hashing.
+- If `AUTH_KEY_HASH_SECRET` is not configured, key hashing falls back to `SESSION_SIGNING_SECRET`.
+- `AUTH_KEY_HASH_FALLBACK_SECRETS` may contain comma- or newline-separated legacy hash secrets to verify older issued keys during migration.
+
+Rotating `SESSION_SIGNING_SECRET` without a dedicated `AUTH_KEY_HASH_SECRET` can invalidate every previously issued auth key. Rotating key-hash secrets safely requires keeping the prior hash secret in `AUTH_KEY_HASH_FALLBACK_SECRETS` until members have logged in and their hashes have been migrated.
+
 ## Endpoint Contract
 
 - `auth/login`

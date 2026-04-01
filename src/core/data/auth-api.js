@@ -64,6 +64,7 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = AUTH_REQUEST_TIMEOUT
 /** @typedef {{ rememberMe?: boolean, timeoutMs?: number }} LoginOptions */
 /** @typedef {{ username: string, callsign?: string, nexusRank: string, timeoutMs?: number }} KeyIssueOptions */
 /** @typedef {{ userId: string, timeoutMs?: number }} KeyMutationOptions */
+/** @typedef {{ includeSystemAdmin?: boolean, timeoutMs?: number }} PrepareReissueOptions */
 /** @typedef {{ recoveryToken?: string, reset?: boolean, timeoutMs?: number }} BootstrapSystemAdminOptions */
 
 export const authApi = {
@@ -198,6 +199,21 @@ export const authApi = {
         action: 'update_rank',
         user_id: userId,
         nexus_rank: nexusRank,
+      }),
+    }, timeoutMs);
+
+    return parseApiResponse(response);
+  },
+
+  async prepareAllKeysForReissue(/** @type {PrepareReissueOptions} */ { includeSystemAdmin = true, timeoutMs = AUTH_REQUEST_TIMEOUT_MS } = {}) {
+    const response = await fetchWithTimeout(buildFunctionUrl('auth/keys'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        action: 'prepare_reissue_all',
+        include_system_admin: includeSystemAdmin,
       }),
     }, timeoutMs);
 
