@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/core/data/SessionContext';
 import SidebarWidget from './SidebarWidget';
-import GettingStartedPanel from '@/core/tutorial/GettingStartedPanel';
 import {
   Crosshair, Factory, BookOpen, GraduationCap, Radar,
   Shield, Package, Ship, Users, Tags, TrendingUp,
@@ -109,7 +108,7 @@ const S = {
   },
   groupLabel: {
     fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
-    fontSize: 10, color: '#C8A84B', textTransform: 'uppercase',
+    fontSize: 10, color: 'var(--t2)', textTransform: 'uppercase',
     letterSpacing: '0.28em', padding: '20px 16px 5px',
   },
   navItem: {
@@ -190,7 +189,7 @@ function SubItem({ label, path, active }) {
   );
 }
 
-export default function NexusSidebar({ mobileOpen, onClose, tutorial }) {
+export default function NexusSidebar({ mobileOpen, onClose }) {
   const { pathname } = useLocation();
   const { isAdmin, logout } = useSession();
 
@@ -251,25 +250,10 @@ export default function NexusSidebar({ mobileOpen, onClose, tutorial }) {
       {/* Verse tag */}
       <div style={S.verseTag}>
         <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#4A8C5C', animation: 'pulse 3s ease-in-out infinite', flexShrink: 0 }} aria-hidden="true" />
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: '#5A5850', textTransform: 'uppercase', letterSpacing: '0.15em' }}>VERSE 4.7.0</span>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 400, fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>VERSE 4.7.0</span>
       </div>
 
       <SidebarWidget />
-
-      {tutorial && !tutorial.dismissed && (
-        <GettingStartedPanel
-          completedItems={tutorial.completedItems}
-          progress={tutorial.progress}
-          completedCount={tutorial.completedCount}
-          totalItems={tutorial.totalItems}
-          onCompleteItem={tutorial.completeItem}
-          onStartTour={tutorial.startTour}
-          onDismiss={tutorial.dismissChecklist}
-          onReset={tutorial.resetAll}
-          dismissed={tutorial.dismissed}
-          tourComplete={tutorial.tourComplete}
-        />
-      )}
 
       <div style={S.bottom}>
         {BOTTOM.map((item) => (

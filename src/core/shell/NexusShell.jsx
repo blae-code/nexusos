@@ -20,6 +20,7 @@ import usePresence from '@/core/hooks/usePresence';
 import { useTutorial } from '@/core/tutorial/useTutorial';
 import TourOverlay from '@/core/tutorial/TourOverlay';
 import HelpButton from '@/core/tutorial/HelpButton';
+import GettingStartedBanner from '@/core/tutorial/GettingStartedBanner';
 
 export default function NexusShell() {
   const location = useLocation();
@@ -271,9 +272,13 @@ export default function NexusShell() {
   return (
     <div style={{ height: '100vh', background: '#08080A', position: 'relative' }}>
       <AmbientBackground />
-      <NexusSidebar mobileOpen={sidebarOpen} onClose={closeSidebar} tutorial={tutorial} />
+      <NexusSidebar mobileOpen={sidebarOpen} onClose={closeSidebar} />
       <div className="nexus-main-area" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <NexusTopbar onMenuToggle={toggleSidebar} />
+        {/* Getting Started banner — rendered in main content area for readability */}
+        {!tutorial.dismissed && !tutorial.tourActive && tutorial.progress < 100 && (
+          <GettingStartedBanner tutorial={tutorial} />
+        )}
         <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto', zIndex: 1 }}>
           <AppErrorBoundary compact key={`${location.pathname}${location.search}`}>
             <Outlet context={outletContext} />

@@ -1,28 +1,28 @@
 :root {
   /* ── Backgrounds — warm void ──────────────────────── */
-  --bg0: #0A0908;
-  --bg1: #0F0E0C;
-  --bg2: #151310;
-  --bg3: #1C1A16;
-  --bg4: #231F1A;
-  --bg5: #2C271F;
+  --bg0: #0A0A0A;
+  --bg1: #101010;
+  --bg2: #161616;
+  --bg3: #1D1D1C;
+  --bg4: #242322;
+  --bg5: #2D2C2A;
 
-  /* ── Borders — amber-tinted glass ────────────────── */
-  --b0: #1E1B16;
-  --b1: #2A2520;
-  --b2: #38322A;
-  --b3: #4A4238;
+  /* ── Borders — neutral warm ──────────────────────── */
+  --b0: #1F1E1C;
+  --b1: #2C2A28;
+  --b2: #3A3836;
+  --b3: #4C4A46;
 
-  /* ── Text — warm parchment ───────────────────────── */
-  --t0: #E8E4DC;
-  --t1: #B8B0A4;
-  --t2: #7A7470;
-  --t3: #4A4640;
+  /* ── Text — brighter, less amber ─────────────────── */
+  --t0: #F0ECE6;
+  --t1: #CCC6BA;
+  --t2: #908A82;
+  --t3: #605C56;
 
-  /* ── Accent — Redscar amber ──────────────────────── */
-  --acc:     #C8A84B;
-  --acc2:    #D8BC70;
-  --acc-rgb: 200, 168, 75;   /* for rgba() use: rgba(var(--acc-rgb), 0.x) */
+  /* ── Accent — desaturated warm (less golden) ─────── */
+  --acc:     #B0A090;
+  --acc2:    #C4B8A8;
+  --acc-rgb: 176, 160, 144;
 
   /* ── Brand red — use sparingly for emphasis ──────── */
   --red:     #C0392B;
@@ -30,20 +30,20 @@
 
   /* ── Status (semantic only — never decorative) ───── */
   --live:       #2edb7a;
-  --warn:       #C8A84B;
+  --warn:       #D4A940;
   --danger:     #C0392B;
   --info:       #7AAECC;
   --live-rgb:   46, 219, 122;
-  --warn-rgb:   200, 168, 75;
+  --warn-rgb:   212, 169, 64;
   --danger-rgb: 192, 57, 43;
   --info-rgb:   122, 174, 204;
-  --bg0-rgb:    10, 9, 8;
+  --bg0-rgb:    10, 10, 10;
 
   /* ── Status backgrounds (for status-bearing cards) ── */
   --live-bg:   #071410;
   --live-b:    #164A28;
-  --warn-bg:   #160F00;
-  --warn-b:    #3A2C00;
+  --warn-bg:   #161000;
+  --warn-b:    #3A2E00;
   --danger-bg: #180A08;
   --danger-b:  #3C1410;
   --info-bg:   #081018;
@@ -71,7 +71,7 @@
 @property --acc {
   syntax: '<color>';
   inherits: true;
-  initial-value: #C8A84B;
+  initial-value: #B0A090;
 }
 
 :root {
@@ -79,8 +79,8 @@
 }
 
 :root.op-live {
-  --acc:     #D39B40;   /* 8° warmer on hue wheel from #C8A84B */
-  --acc-rgb: 211, 155, 64;
+  --acc:     #C8A060;
+  --acc-rgb: 200, 160, 96;
 }
 
 /* ── Global reset and base ───────────────────────── */
@@ -109,11 +109,11 @@ body {
   background: var(--bg0);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(200,170,100,0.15);
+  background: rgba(180,175,165,0.15);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(200,170,100,0.28);
+  background: rgba(180,175,165,0.28);
 }
 
 html {

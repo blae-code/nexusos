@@ -17,14 +17,14 @@ body {
   font-family: 'Barlow', sans-serif;
 }
 
-::selection { background: rgba(192,57,43,0.3); color: #E8E4DC; }
+::selection { background: rgba(192,57,43,0.3); color: #F0ECE6; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(200,170,100,0.18); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(200,170,100,0.32); }
+::-webkit-scrollbar-thumb { background: rgba(180,175,165,0.18); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(180,175,165,0.32); }
 
-*:focus-visible { outline: 1px solid #C8A84B; outline-offset: 2px; }
+*:focus-visible { outline: 1px solid var(--acc); outline-offset: 2px; }
 
 a {
   color: inherit;
@@ -58,7 +58,7 @@ input, textarea, select {
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: #C8A84B;
+  border-color: var(--acc);
 }
 
 input::placeholder, textarea::placeholder {
