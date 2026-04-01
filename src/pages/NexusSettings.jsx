@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Columns, Download, LogOut, Monitor, Save, Link2, CheckCircle, XCircle } from 'lucide-react';
+import { Bell, Columns, Download, LogOut, Monitor, Save, Link2, CheckCircle, XCircle, Play, RotateCcw, Trash2 } from 'lucide-react';
+import { useTutorial } from '@/core/tutorial/useTutorial';
 import { base44 } from '@/core/data/base44Client';
 import { useOutletContext } from 'react-router-dom';
 import PersonalWalletPanel from '@/components/PersonalWalletPanel';
@@ -201,6 +202,84 @@ function UexTokenSection({ user, patchUser }) {
       <button onClick={save} disabled={saving} className="nexus-btn primary" style={{ padding: '6px 12px', fontSize: 10, alignSelf: 'flex-start' }}>
         <Save size={11} /> {saving ? 'SAVING' : 'SAVE CREDENTIALS'}
       </button>
+    </div>
+  );
+}
+
+function TutorialSettingsSection({ user }) {
+  const tutorial = useTutorial(user);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <Row
+        label="Guided Tour"
+        description={tutorial.tourComplete ? 'Completed — you can replay it anytime.' : 'Walk through every NexusOS module with an interactive step-by-step tour.'}
+      >
+        <button
+          onClick={tutorial.startTour}
+          className="nexus-btn"
+          style={{ padding: '5px 12px', fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}
+        >
+          {tutorial.tourComplete ? <RotateCcw size={11} /> : <Play size={11} />}
+          {tutorial.tourComplete ? 'REPLAY TOUR' : 'START TOUR'}
+        </button>
+      </Row>
+
+      <Row
+        label="Getting Started Checklist"
+        description={`${tutorial.completedCount}/${tutorial.totalItems} completed (${tutorial.progress}%). ${tutorial.dismissed ? 'Hidden from sidebar.' : 'Visible in sidebar.'}`}
+      >
+        <div className="flex gap-2">
+          {tutorial.dismissed ? (
+            <button
+              onClick={tutorial.showChecklist}
+              className="nexus-btn"
+              style={{ padding: '5px 12px', fontSize: 10 }}
+            >
+              SHOW
+            </button>
+          ) : (
+            <button
+              onClick={tutorial.dismissChecklist}
+              className="nexus-btn"
+              style={{ padding: '5px 12px', fontSize: 10 }}
+            >
+              HIDE
+            </button>
+          )}
+        </div>
+      </Row>
+
+      <Row
+        label="Reset All Tutorial Progress"
+        description="Clear tour completion and checklist progress. The guided tour will re-launch on next page load."
+      >
+        <button
+          onClick={() => { tutorial.resetAll(); showToast('Tutorial progress reset', 'info'); }}
+          className="nexus-btn"
+          style={{ padding: '5px 12px', fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}
+        >
+          <Trash2 size={11} />
+          RESET
+        </button>
+      </Row>
+
+      {/* Progress bar */}
+      <div style={{ padding: '4px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          <span style={{ color: 'var(--t2)', fontSize: 9, letterSpacing: '0.08em' }}>ONBOARDING PROGRESS</span>
+          <span style={{ color: tutorial.progress >= 100 ? '#2edb7a' : 'var(--t2)', fontSize: 9, fontWeight: 600 }}>{tutorial.progress}%</span>
+        </div>
+        <div style={{ height: 3, background: 'var(--bg4)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${tutorial.progress}%`,
+            background: tutorial.progress >= 100 ? '#2edb7a' : '#C0392B',
+            borderRadius: 2,
+            transition: 'width 400ms ease',
+          }} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -428,6 +507,10 @@ export default function NexusSettings() {
 
       <Section title="INTEGRATIONS">
         <UexTokenSection user={user} patchUser={patchUser} />
+      </Section>
+
+      <Section title="HELP & TUTORIALS">
+        <TutorialSettingsSection user={user} />
       </Section>
 
       <Section title="DATA">
