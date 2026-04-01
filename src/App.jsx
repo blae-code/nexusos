@@ -28,6 +28,7 @@ import RescueBoard from '@/pages/RescueBoard';
 import OrgRoster from '@/pages/OrgRoster';
 import EpicArchive from '@/pages/EpicArchive';
 import BootScreen from '@/pages/BootScreen';
+import Setup from '@/pages/Setup';
 import DebtTracker from '@/pages/DebtTracker';
 import AssetManager from '@/pages/AssetManager';
 import MarketIntelligence from '@/apps/market-intel/MarketIntelligence';
@@ -49,6 +50,7 @@ function App() {
             <Route path="/" element={withRouteBoundary(<AccessGate />)} />
             <Route path="/gate" element={withRouteBoundary(<AccessGate />)} />
             <Route path="/boot" element={withRouteBoundary(<BootScreen />)} />
+            <Route path="/setup" element={withRouteBoundary(<Setup />)} />
             <Route path="/training" element={withRouteBoundary(<TrainingHub />)} />
             <Route path="/onboarding" element={withRouteBoundary(<Onboarding />)} />
             <Route path="/AccessGate" element={<Navigate to="/gate" replace />} />

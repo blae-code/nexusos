@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { withAppBase } from '@/core/data/app-base-path';
 import { authApi } from '@/core/data/auth-api';
 import { useSession } from '@/core/data/SessionContext';
@@ -403,7 +403,11 @@ export default function AccessGate() {
               <div>3. <strong style={{ color: '#E8E4DC' }}>Auth Key</strong> is a long code starting with RSN-. Enter it exactly as received.</div>
               <div>4. <strong style={{ color: '#E8E4DC' }}>Lost your key?</strong> Contact a Pioneer — keys can be regenerated but not recovered.</div>
               <div style={{ marginTop: 8, color: '#5A5850' }}>
-                Admin first-time setup? Use the System Admin Bootstrap in Key Management after logging in.
+                System-admin locked out? Use the public{' '}
+                <Link to="/setup" style={{ color: '#C8A84B', textDecoration: 'underline', textUnderlineOffset: '3px' }}>
+                  recovery screen
+                </Link>
+                {' '}with the deployment recovery secret.
               </div>
             </div>
           </div>
