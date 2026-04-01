@@ -1,11 +1,12 @@
 /**
- * GettingStartedBanner — Full-width banner at the top of the main content area.
- * Much more readable than the previous cramped sidebar panel.
+ * GettingStartedBanner — Slim, non-intrusive banner at top of main content.
+ * Collapsed by default to a single row. Expands on click to show checklist.
+ * Once dismissed, it never reappears unless user explicitly re-enables via Settings or Help button.
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GETTING_STARTED_ITEMS, CATEGORIES } from './tutorialSteps';
-import { Check, ChevronDown, ChevronUp, Play, RotateCcw, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Play, RotateCcw, X, ArrowRight } from 'lucide-react';
 
 function ChecklistItem({ item, completed, onToggle, onNavigate }) {
   const cat = CATEGORIES[item.category] || CATEGORIES.SETUP;
@@ -17,28 +18,27 @@ function ChecklistItem({ item, completed, onToggle, onNavigate }) {
         onToggle(item.id);
       }}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: 10,
-        padding: '10px 14px',
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '8px 12px',
         background: completed ? 'rgba(46,219,122,0.03)' : 'var(--bg2)',
-        border: `0.5px solid ${completed ? 'rgba(46,219,122,0.12)' : 'var(--b1)'}`,
-        borderRadius: 6,
+        border: `0.5px solid ${completed ? 'rgba(46,219,122,0.1)' : 'var(--b1)'}`,
+        borderRadius: 5,
         cursor: 'pointer', textAlign: 'left',
         transition: 'all 150ms',
         minWidth: 0,
       }}
-      onMouseEnter={e => { if (!completed) e.currentTarget.style.borderColor = 'var(--b3)'; }}
-      onMouseLeave={e => { if (!completed) e.currentTarget.style.borderColor = 'var(--b1)'; }}
-      title={completed ? `✓ ${item.label} — click to undo` : item.description}
+      onMouseEnter={e => { if (!completed) { e.currentTarget.style.borderColor = 'var(--b3)'; e.currentTarget.style.background = 'var(--bg3)'; } }}
+      onMouseLeave={e => { if (!completed) { e.currentTarget.style.borderColor = 'var(--b1)'; e.currentTarget.style.background = 'var(--bg2)'; } }}
     >
       {/* Checkbox */}
       <div style={{
-        width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 1,
+        width: 16, height: 16, borderRadius: 3, flexShrink: 0,
         border: `1px solid ${completed ? '#2edb7a' : 'var(--b2)'}`,
         background: completed ? 'rgba(46,219,122,0.12)' : 'transparent',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'all 200ms',
       }}>
-        {completed && <Check size={11} style={{ color: '#2edb7a' }} />}
+        {completed && <Check size={10} style={{ color: '#2edb7a' }} />}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -46,31 +46,34 @@ function ChecklistItem({ item, completed, onToggle, onNavigate }) {
           fontSize: 12, fontWeight: 500,
           color: completed ? 'var(--t3)' : 'var(--t0)',
           textDecoration: completed ? 'line-through' : 'none',
-          lineHeight: 1.3,
+          lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 6,
         }}>
-          {item.icon} {item.label}
+          <span>{item.label}</span>
+          {!completed && item.route && <ArrowRight size={10} style={{ color: 'var(--t3)', flexShrink: 0 }} />}
         </div>
         {!completed && (
-          <div style={{ fontSize: 11, color: 'var(--t2)', marginTop: 3, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 10, color: 'var(--t2)', marginTop: 2, lineHeight: 1.45 }}>
             {item.description}
           </div>
         )}
       </div>
 
-      {/* Category dot */}
+      {/* Category indicator */}
       <div style={{
-        width: 5, height: 5, borderRadius: '50%',
-        background: cat.color, flexShrink: 0, marginTop: 7,
-        opacity: completed ? 0.3 : 0.7,
-      }} title={cat.label} />
+        fontSize: 8, color: cat.color, opacity: completed ? 0.3 : 0.6,
+        letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0,
+        fontWeight: 600,
+      }}>
+        {item.category === 'SETUP' ? 'SETUP' : item.category === 'EXPLORE' ? 'EXPLORE' : 'DO'}
+      </div>
     </button>
   );
 }
 
 export default function GettingStartedBanner({ tutorial }) {
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(true);
-  const [showAll, setShowAll] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
 
   const {
     completedItems, progress, completedCount, totalItems,
@@ -78,128 +81,134 @@ export default function GettingStartedBanner({ tutorial }) {
   } = tutorial;
 
   const incompleteItems = GETTING_STARTED_ITEMS.filter(i => !completedItems.includes(i.id));
-  const displayItems = showAll ? GETTING_STARTED_ITEMS : incompleteItems.slice(0, 6);
+  const allDone = progress >= 100;
+
+  const handleDismiss = () => {
+    setDismissing(true);
+    // Animate out then dismiss permanently
+    setTimeout(() => dismissChecklist(), 200);
+  };
 
   return (
     <div style={{
-      margin: 0,
-      background: 'var(--bg1)',
-      borderBottom: '0.5px solid var(--b1)',
       flexShrink: 0,
-      animation: 'nexus-fade-in 200ms ease-out both',
+      background: 'var(--bg1)',
+      borderBottom: expanded ? '0.5px solid var(--b1)' : 'none',
+      overflow: 'hidden',
+      transition: 'max-height 250ms ease, opacity 200ms ease',
+      maxHeight: dismissing ? 0 : expanded ? 600 : 44,
+      opacity: dismissing ? 0 : 1,
     }}>
-      {/* Header bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '10px 24px',
-      }}>
-        {/* Progress ring */}
-        <div style={{ position: 'relative', width: 32, height: 32, flexShrink: 0 }}>
-          <svg width="32" height="32" viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="13" fill="none" stroke="var(--b1)" strokeWidth="2" />
-            <circle
-              cx="16" cy="16" r="13" fill="none"
-              stroke={progress >= 100 ? '#2edb7a' : '#C0392B'}
-              strokeWidth="2"
-              strokeDasharray={`${2 * Math.PI * 13}`}
-              strokeDashoffset={`${2 * Math.PI * 13 * (1 - progress / 100)}`}
-              strokeLinecap="round"
-              transform="rotate(-90 16 16)"
-              style={{ transition: 'stroke-dashoffset 500ms ease' }}
-            />
-          </svg>
-          <span style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 9, fontWeight: 700, color: 'var(--t1)',
-            fontVariantNumeric: 'tabular-nums',
-          }}>
-            {Math.round(progress)}%
+      {/* Collapsed header — always visible */}
+      <div
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '0 20px',
+          height: 44,
+          cursor: 'pointer',
+          borderBottom: '0.5px solid var(--b0)',
+          transition: 'background 150ms',
+        }}
+        onClick={() => setExpanded(!expanded)}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg2)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+      >
+        {/* Mini progress bar */}
+        <div style={{
+          width: 60, height: 3, borderRadius: 2,
+          background: 'var(--b1)', overflow: 'hidden', flexShrink: 0,
+        }}>
+          <div style={{
+            height: '100%', borderRadius: 2,
+            width: `${progress}%`,
+            background: allDone ? '#2edb7a' : '#C0392B',
+            transition: 'width 500ms ease',
+          }} />
+        </div>
+
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--t1)', letterSpacing: '0.04em' }}>
+          Getting Started
+        </span>
+
+        <span style={{ fontSize: 10, color: 'var(--t3)', fontVariantNumeric: 'tabular-nums' }}>
+          {completedCount}/{totalItems}
+        </span>
+
+        {!allDone && incompleteItems.length > 0 && (
+          <span style={{ fontSize: 10, color: 'var(--t2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            — next: {incompleteItems[0].label}
           </span>
-        </div>
+        )}
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t0)', letterSpacing: '0.04em' }}>
-            Getting Started
+        {allDone && (
+          <span style={{ fontSize: 10, color: '#2edb7a', fontWeight: 600 }}>All complete!</span>
+        )}
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {/* Tour button inline */}
+          <button
+            onClick={e => { e.stopPropagation(); startTour(); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '4px 10px', borderRadius: 3,
+              background: 'transparent',
+              border: '0.5px solid var(--b2)',
+              fontSize: 9, fontWeight: 600, color: 'var(--t2)',
+              letterSpacing: '0.06em', cursor: 'pointer',
+              transition: 'all 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--b3)'; e.currentTarget.style.color = 'var(--t0)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--b2)'; e.currentTarget.style.color = 'var(--t2)'; }}
+          >
+            {tourComplete ? <RotateCcw size={9} /> : <Play size={9} />}
+            {tourComplete ? 'REPLAY' : 'TOUR'}
+          </button>
+
+          {/* Expand/collapse chevron */}
+          <div style={{ color: 'var(--t3)', display: 'flex', alignItems: 'center' }}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--t2)', marginTop: 1 }}>
-            {completedCount} of {totalItems} tasks complete — {incompleteItems.length > 0
-              ? `next: ${incompleteItems[0].label}`
-              : 'All done!'}
-          </div>
+
+          {/* Dismiss */}
+          <button
+            onClick={e => { e.stopPropagation(); handleDismiss(); }}
+            style={{
+              width: 22, height: 22, borderRadius: 3,
+              background: 'transparent', border: '0.5px solid transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--t3)', cursor: 'pointer',
+              transition: 'all 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.borderColor = 'var(--danger-b)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--t3)'; e.currentTarget.style.borderColor = 'transparent'; }}
+            title="Dismiss permanently — reopen via Settings or the Help button (bottom-right)"
+          >
+            <X size={12} />
+          </button>
         </div>
-
-        {/* Category legend */}
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexShrink: 0 }}>
-          {Object.entries(CATEGORIES).map(([key, cat]) => (
-            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: cat.color, opacity: 0.7 }} />
-              <span style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                {cat.label}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Tour button */}
-        <button
-          onClick={startTour}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '6px 14px', borderRadius: 4,
-            background: tourComplete ? 'var(--bg2)' : 'rgba(192,57,43,0.08)',
-            border: `0.5px solid ${tourComplete ? 'var(--b2)' : 'rgba(192,57,43,0.25)'}`,
-            fontSize: 10, fontWeight: 600, color: tourComplete ? 'var(--t2)' : '#C0392B',
-            letterSpacing: '0.08em', cursor: 'pointer', flexShrink: 0,
-            transition: 'all 150ms',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = tourComplete ? 'var(--b3)' : 'rgba(192,57,43,0.4)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = tourComplete ? 'var(--b2)' : 'rgba(192,57,43,0.25)'; }}
-        >
-          {tourComplete ? <RotateCcw size={10} /> : <Play size={10} />}
-          {tourComplete ? 'REPLAY TOUR' : 'START TOUR'}
-        </button>
-
-        {/* Expand/Collapse */}
-        <button
-          onClick={() => setExpanded(!expanded)}
-          style={{
-            width: 28, height: 28, borderRadius: 4,
-            background: 'var(--bg2)', border: '0.5px solid var(--b1)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--t3)', cursor: 'pointer', flexShrink: 0,
-            transition: 'all 150ms',
-          }}
-          title={expanded ? 'Collapse checklist' : 'Expand checklist'}
-        >
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </button>
-
-        {/* Dismiss */}
-        <button
-          onClick={dismissChecklist}
-          style={{
-            width: 28, height: 28, borderRadius: 4,
-            background: 'var(--bg2)', border: '0.5px solid var(--b1)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--t3)', cursor: 'pointer', flexShrink: 0,
-            transition: 'all 150ms',
-          }}
-          title="Dismiss — reopen via Settings or Help button"
-        >
-          <X size={12} />
-        </button>
       </div>
 
-      {/* Expanded checklist grid */}
+      {/* Expanded checklist */}
       {expanded && (
-        <div style={{ padding: '0 24px 16px' }}>
+        <div style={{ padding: '12px 20px 16px', animation: 'nexus-fade-in 150ms ease-out both' }}>
+          {/* Category legend */}
+          <div style={{ display: 'flex', gap: 16, marginBottom: 10 }}>
+            {Object.entries(CATEGORIES).map(([key, cat]) => (
+              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 4, height: 4, borderRadius: '50%', background: cat.color, opacity: 0.6 }} />
+                <span style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  {cat.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 8,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 6,
           }}>
-            {displayItems.map(item => (
+            {GETTING_STARTED_ITEMS.map(item => (
               <ChecklistItem
                 key={item.id}
                 item={item}
@@ -210,23 +219,13 @@ export default function GettingStartedBanner({ tutorial }) {
             ))}
           </div>
 
-          {/* Show all toggle */}
-          {GETTING_STARTED_ITEMS.length > 6 && (
-            <button
-              onClick={() => setShowAll(!showAll)}
-              style={{
-                marginTop: 8, padding: '4px 12px',
-                background: 'none', border: 'none',
-                fontSize: 10, color: 'var(--t3)', letterSpacing: '0.06em',
-                cursor: 'pointer', textAlign: 'center', width: '100%',
-                transition: 'color 150ms',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--t1)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--t3)'; }}
-            >
-              {showAll ? '↑ SHOW LESS' : `↓ SHOW ALL ${GETTING_STARTED_ITEMS.length} TASKS`}
-            </button>
-          )}
+          {/* Dismiss hint */}
+          <div style={{
+            marginTop: 10, fontSize: 9, color: 'var(--t3)', textAlign: 'center',
+            letterSpacing: '0.06em',
+          }}>
+            Dismiss this banner with ✕ — you can always re-enable it from Settings or the help button (bottom-right).
+          </div>
         </div>
       )}
     </div>

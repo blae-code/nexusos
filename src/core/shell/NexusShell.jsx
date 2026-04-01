@@ -37,16 +37,7 @@ export default function NexusShell() {
 
   const tutorial = useTutorial(user);
 
-  // Auto-launch tour for users who haven't completed it
-  const autoLaunchRef = useRef(false);
-  useEffect(() => {
-    if (user?.onboarding_complete && !tutorial.tourComplete && !tutorial.dismissed && !autoLaunchRef.current) {
-      autoLaunchRef.current = true;
-      // Small delay to let shell render first
-      const timer = setTimeout(() => tutorial.startTour(), 800);
-      return () => clearTimeout(timer);
-    }
-  }, [user?.onboarding_complete, tutorial.tourComplete, tutorial.dismissed]);
+  // No auto-launch — tour is opt-in via the Getting Started banner or Help button
 
   const updateLayoutMode = (nextMode) => {
     setLayoutMode(setStoredLayoutMode(nextMode));
@@ -275,8 +266,8 @@ export default function NexusShell() {
       <NexusSidebar mobileOpen={sidebarOpen} onClose={closeSidebar} />
       <div className="nexus-main-area" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         <NexusTopbar onMenuToggle={toggleSidebar} />
-        {/* Getting Started banner — rendered in main content area for readability */}
-        {!tutorial.dismissed && !tutorial.tourActive && tutorial.progress < 100 && (
+        {/* Getting Started banner — only shown if user hasn't dismissed it */}
+        {!tutorial.dismissed && (
           <GettingStartedBanner tutorial={tutorial} />
         )}
         <main className="nexus-shell-content nexus-fade-in" style={{ position: 'relative', flex: 1, overflow: 'auto', zIndex: 1 }}>
