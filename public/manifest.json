@@ -2,8 +2,8 @@
   "name": "NexusOS",
   "short_name": "NexusOS",
   "description": "Redscar Nomads operations, industry, logistics, and command surface.",
-  "start_url": "./",
-  "display": "standalone",
+  "start_url": "./gate",
+  "display": "fullscreen",
   "background_color": "#07080b",
   "theme_color": "#0a0908",
   "icons": [

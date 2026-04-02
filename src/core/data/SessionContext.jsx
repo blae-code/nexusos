@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { withAppBase } from '@/core/data/app-base-path';
 import { authApi, AUTH_REQUEST_TIMEOUT_MS } from '@/core/data/auth-api';
+import { getBase44Client } from '@/core/data/base44Client';
+import { safeLocalStorage } from '@/core/data/safe-storage';
 
 const SessionContext = createContext(null);
 const SESSION_REFRESH_TIMEOUT_MS = AUTH_REQUEST_TIMEOUT_MS;
@@ -64,6 +66,17 @@ export function SessionProvider({ children }) {
       const data = await authApi.getSession({ timeoutMs: SESSION_REFRESH_TIMEOUT_MS });
       if (data?.authenticated) {
         nextSession = data;
+        // Apply the SSO access token returned by the session endpoint so the
+        // Base44 SDK client can authenticate entity calls for member accounts.
+        // Members have no platform token of their own — the backend issues one
+        // via SSO after validating the cookie session.
+        if (data.access_token && data.source === 'member') {
+          try {
+            getBase44Client().auth.setToken(data.access_token, true);
+          } catch (tokenErr) {
+            console.warn('[SessionProvider] failed to apply SSO token:', tokenErr);
+          }
+        }
       } else if (data?.status === 401 && previousSession?.authenticated) {
         transportIssue = 'Session expired';
       } else if (data?.status >= 500 && data?.error) {
@@ -86,6 +99,8 @@ export function SessionProvider({ children }) {
     }
 
     if (transportIssue === 'Session expired' && previousSession?.authenticated) {
+      safeLocalStorage.removeItem('base44_access_token');
+      safeLocalStorage.removeItem('token');
       setSession(null);
       setStartupIssue('Session expired');
       setLoading(false);
@@ -124,6 +139,10 @@ export function SessionProvider({ children }) {
     } catch (error) {
       console.warn('[SessionProvider] logout failed:', error);
     }
+
+    // Clear the SSO access token that was issued for this member session.
+    safeLocalStorage.removeItem('base44_access_token');
+    safeLocalStorage.removeItem('token');
 
     setSession(null);
     window.location.assign(destination);

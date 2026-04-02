@@ -1,0 +1,72 @@
+{
+  "name": "CargoLog",
+  "type": "object",
+  "properties": {
+    "commodity": {
+      "type": "string",
+      "description": "Commodity name"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": ["LOAD", "OFFLOAD"],
+      "description": "Whether cargo was loaded (bought) or offloaded (sold)"
+    },
+    "quantity_scu": {
+      "type": "number",
+      "description": "Quantity in Standard Cargo Units"
+    },
+    "purchase_price_scu": {
+      "type": "number",
+      "description": "Buy price per SCU in aUEC"
+    },
+    "sale_price_scu": {
+      "type": "number",
+      "description": "Sell price per SCU in aUEC"
+    },
+    "total_cost": {
+      "type": "number",
+      "description": "Total purchase cost in aUEC"
+    },
+    "total_revenue": {
+      "type": "number",
+      "description": "Total sale revenue in aUEC"
+    },
+    "profit_loss": {
+      "type": "number",
+      "description": "Net profit or loss in aUEC (revenue - cost)"
+    },
+    "margin_pct": {
+      "type": "number",
+      "description": "Profit margin as a percentage"
+    },
+    "origin_station": {
+      "type": "string",
+      "description": "Station or terminal where cargo was purchased"
+    },
+    "destination_station": {
+      "type": "string",
+      "description": "Station or terminal where cargo was sold"
+    },
+    "logged_by_user_id": {
+      "type": "string",
+      "description": "Base44 user ID of the member who logged this"
+    },
+    "logged_by_callsign": {
+      "type": "string",
+      "description": "In-game callsign of the member who logged this"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes or source annotation (e.g. OCR scan)"
+    },
+    "logged_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this cargo transaction was recorded"
+    }
+  },
+  "required": [
+    "commodity",
+    "logged_at"
+  ]
+}

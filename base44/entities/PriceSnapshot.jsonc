@@ -1,0 +1,71 @@
+{
+  "name": "PriceSnapshot",
+  "type": "object",
+  "properties": {
+    "commodity_name": {
+      "type": "string",
+      "description": "Normalised commodity name"
+    },
+    "prev_buy_avg": {
+      "type": "number",
+      "description": "Average buy price from the previous snapshot"
+    },
+    "prev_sell_avg": {
+      "type": "number",
+      "description": "Average sell price from the previous snapshot"
+    },
+    "curr_buy_avg": {
+      "type": "number",
+      "description": "Current average buy price across all terminals"
+    },
+    "curr_sell_avg": {
+      "type": "number",
+      "description": "Current average sell price across all terminals"
+    },
+    "buy_change_pct": {
+      "type": "number",
+      "description": "Percentage change in buy price vs previous snapshot"
+    },
+    "sell_change_pct": {
+      "type": "number",
+      "description": "Percentage change in sell price vs previous snapshot"
+    },
+    "best_buy_price": {
+      "type": "number",
+      "description": "Lowest buy price found across all terminals"
+    },
+    "best_buy_station": {
+      "type": "string",
+      "description": "Terminal offering the best (lowest) buy price"
+    },
+    "best_sell_price": {
+      "type": "number",
+      "description": "Highest sell price found across all terminals"
+    },
+    "best_sell_station": {
+      "type": "string",
+      "description": "Terminal offering the best (highest) sell price"
+    },
+    "margin_pct": {
+      "type": "number",
+      "description": "Best achievable margin between buy and sell in percent"
+    },
+    "alert_triggered": {
+      "type": "boolean",
+      "description": "Whether this snapshot triggered a price alert"
+    },
+    "alert_type": {
+      "type": "string",
+      "description": "Alert classification if triggered (e.g. SPIKE, DROP, OPPORTUNITY)"
+    },
+    "snapped_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this price snapshot was captured"
+    }
+  },
+  "required": [
+    "commodity_name",
+    "snapped_at"
+  ]
+}

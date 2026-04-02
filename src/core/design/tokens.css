@@ -534,3 +534,29 @@ select.error:focus {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ── useAnimatedList row animations ─────────────────── */
+/* Consumed by useAnimatedList.js via _state class names. */
+.nexus-list-row--entering {
+  animation: listEnter 200ms ease-out forwards;
+}
+.nexus-list-row--exiting {
+  animation: listExit 150ms ease-in forwards;
+  transform-origin: top;
+  pointer-events: none;
+}
+
+@keyframes listEnter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes listExit {
+  from { opacity: 1; transform: scaleY(1); }
+  to   { opacity: 0; transform: scaleY(0); }
+}
+
+/* ── font-variant-numeric for count-up values ────────── */
+.nexus-count {
+  font-variant-numeric: tabular-nums;
+}

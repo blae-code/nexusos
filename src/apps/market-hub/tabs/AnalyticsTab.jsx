@@ -51,7 +51,7 @@ export default function AnalyticsTab() {
     setLoading(true);
     try {
       const [cl, cfl, tr, ps, cm] = await Promise.all([
-        base44.entities.CargoLog.list('-logged_at', 200),
+        base44.entities.CargoLog.list('-logged_at', 200).catch(() => []),
         base44.entities.CofferLog.list('-logged_at', 200),
         base44.entities.TradeRoute.list('-route_score', 500),
         base44.entities.PriceSnapshot.list('-snapped_at', 500).catch(() => []),
