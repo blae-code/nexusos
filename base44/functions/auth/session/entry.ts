@@ -194,24 +194,10 @@ Deno.serve(async (req) => {
     const admin = isAdminUser(user);
     const loginName = resolvePersistedLoginName(user) || resolveUserLoginName(user);
 
-    // Fetch a Base44 SSO access token so the frontend SDK can authenticate entity calls.
-    // Members authenticate via cookie only — they have no platform access token, which
-    // causes all base44.entities.X.list/filter() calls to be rejected as unauthenticated.
-    // SSO issues a user-scoped token tied to the NexusUser entity ID.
-    let ssoAccessToken: string | null = null;
-    try {
-      const ssoResult = await base44.asServiceRole.sso.getAccessToken(user.id);
-      ssoAccessToken = ssoResult?.access_token ?? null;
-    } catch (ssoErr) {
-      // Non-fatal — frontend falls back to unauthenticated reads (may fail for private entities)
-      console.warn('[session] SSO token unavailable:', (ssoErr as Error)?.message || ssoErr);
-    }
-
     return Response.json({
       authenticated: true,
       source: 'member',
       is_admin: admin,
-      ...(ssoAccessToken ? { access_token: ssoAccessToken } : {}),
       user: {
         id: user.id,
         login_name: loginName,
