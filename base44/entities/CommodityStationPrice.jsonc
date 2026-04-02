@@ -1,0 +1,39 @@
+{
+  "name": "CommodityStationPrice",
+  "type": "object",
+  "properties": {
+    "station_price_key": {
+      "type": "string"
+    },
+    "commodity_wiki_id": {
+      "type": "string"
+    },
+    "commodity_name": {
+      "type": "string"
+    },
+    "terminal_name": {
+      "type": "string"
+    },
+    "station_name": {
+      "type": "string"
+    },
+    "system_name": {
+      "type": "string"
+    },
+    "price_buy": {
+      "type": "number"
+    },
+    "price_sell": {
+      "type": "number"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "station_price_key",
+    "commodity_wiki_id",
+    "commodity_name"
+  ]
+}

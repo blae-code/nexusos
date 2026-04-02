@@ -10,7 +10,7 @@ import MaterialRequisitionDialog from '@/components/requisition/MaterialRequisit
 import CrafterResultCard from './find-crafters/CrafterResultCard';
 import ItemSearchBar from './find-crafters/ItemSearchBar';
 
-export default function FindCraftersTab({ blueprints, materials, callsign }) {
+export default function FindCraftersTab({ blueprints, materials, callsign, embedded = false }) {
   const [members, setMembers] = useState([]);
   const [allMaterials, setAllMaterials] = useState(materials || []);
   const [refineryOrders, setRefineryOrders] = useState([]);
@@ -222,24 +222,25 @@ export default function FindCraftersTab({ blueprints, materials, callsign }) {
   }
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 1100, margin: '0 auto' }}>
-      {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <Users size={15} style={{ color: '#C0392B' }} />
-          <span style={{
-            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-            fontSize: 16, color: '#E8E4DC', letterSpacing: '0.08em', textTransform: 'uppercase',
-          }}>FIND CRAFTERS</span>
+    <div style={{ padding: embedded ? 0 : 16, display: 'flex', flexDirection: 'column', gap: 14, maxWidth: embedded ? 'none' : 1100, margin: embedded ? 0 : '0 auto' }}>
+      {!embedded && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Users size={15} style={{ color: '#C0392B' }} />
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+              fontSize: 16, color: '#E8E4DC', letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}>FIND CRAFTERS</span>
+          </div>
+          <div style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
+            color: '#5A5850', lineHeight: 1.5,
+          }}>
+            Search by item name to find who owns the blueprint, holds required materials, or is already refining ingredients.
+            Switch modes to search by material name or member callsign.
+          </div>
         </div>
-        <div style={{
-          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-          color: '#5A5850', lineHeight: 1.5,
-        }}>
-          Search by item name to find who owns the blueprint, holds required materials, or is already refining ingredients.
-          Switch modes to search by material name or member callsign.
-        </div>
-      </div>
+      )}
 
       {/* Search mode tabs */}
       <div style={{ display: 'flex', gap: 4 }}>

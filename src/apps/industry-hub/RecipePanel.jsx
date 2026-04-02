@@ -84,7 +84,7 @@ export default function RecipePanel({ blueprint, materials, callsign, onCraftQue
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', borderBottom: '0.5px solid var(--b0)' }}
               >
                 <span style={{ flex: 1, color: 'var(--t0)', fontSize: 11 }}>{ing.material_name}</span>
-                {/* Live price per SCU */}
+                {/* Cached market price per SCU */}
                 {(() => {
                   const bd = analysis?.breakdown?.find(b => (b.name || '').toLowerCase() === (ing.material_name || '').toLowerCase());
                   if (!bd) return null;
@@ -132,7 +132,7 @@ export default function RecipePanel({ blueprint, materials, callsign, onCraftQue
             </div>
             <div style={{ fontSize: 9, color: 'var(--t2)', marginTop: 1 }}>
               Craft: {fmtAuec(analysis.totalCraftCost)} · Market: {fmtAuec(analysis.marketValue)} · {analysis.margin}% margin
-              {analysis.marketValueSource === 'LIVE' ? ' · Live price' : analysis.marketValueSource === 'ESTIMATE' ? ' · Est. price' : ''}
+              {analysis.marketValueSource === 'LIVE' ? ' · Cached market price' : analysis.marketValueSource === 'ESTIMATE' ? ' · Est. price' : ''}
             </div>
           </div>
         </div>

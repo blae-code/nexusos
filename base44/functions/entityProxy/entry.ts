@@ -26,7 +26,7 @@ const NO_STORE = { 'Cache-Control': 'no-store' };
 const READABLE_ENTITIES = new Set([
   'ArmoryCheckout', 'ArmoryItem', 'AssetReservation', 'Blueprint',
   'BlueprintWishlist', 'CargoJob', 'CargoLog', 'CofferLog',
-  'ComponentHarvest', 'Consignment', 'Contract', 'CraftQueue',
+  'CommodityStationPrice', 'ComponentHarvest', 'Consignment', 'Contract', 'CraftQueue',
   'DismantleLog', 'FabricationJob', 'FleetBuild', 'GameCacheCommodity',
   'GameCacheItem', 'GameCacheVehicle', 'MarketSync', 'Material',
   'MaterialListing', 'MaterialTransfer', 'MemberDebt', 'MissionDrop',

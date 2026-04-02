@@ -13,7 +13,7 @@ const STATUS = {
   MISSING: { color: '#C0392B', label: 'MISSING', bg: 'rgba(192,57,43,0.10)' },
 };
 
-function GapRow({ gap, blueprintName }) {
+function GapRow({ gap }) {
   const pct = gap.need > 0 ? Math.min((gap.have / gap.need) * 100, 100) : 0;
   const met = gap.have >= gap.need;
   return (
@@ -127,7 +127,7 @@ function BlueprintGapCard({ analysis, callsign, onRequisitionSent }) {
           display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 10,
         }}>
           {/* Material bars */}
-          {allMats.map((m, i) => <GapRow key={i} gap={m} blueprintName={bp.item_name} />)}
+          {allMats.map((m, i) => <GapRow key={i} gap={m} />)}
 
           {/* Auto-requisition button */}
           {gaps.length > 0 && (
@@ -160,7 +160,7 @@ function BlueprintGapCard({ analysis, callsign, onRequisitionSent }) {
   );
 }
 
-export default function GapAnalysis({ blueprints, inventory, callsign }) {
+export default function GapAnalysis({ blueprints, inventory, callsign, basisLabel }) {
   const [filter, setFilter] = useState('ALL');
   const [reqSentCount, setReqSentCount] = useState(0);
 
@@ -250,6 +250,19 @@ export default function GapAnalysis({ blueprints, inventory, callsign }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {basisLabel && (
+        <div style={{
+          padding: '8px 12px',
+          background: 'rgba(122,174,204,0.08)',
+          border: '0.5px solid rgba(122,174,204,0.18)',
+          borderRadius: 2,
+          fontSize: 10,
+          color: '#7AAECC',
+        }}>
+          Craftability is being measured against <strong>{basisLabel}</strong>.
+        </div>
+      )}
+
       {/* Summary bar */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',

@@ -1,22 +1,11 @@
 /**
- * fleetReadiness — Aggregates org ship data with UEX vehicle specs and verse status
- * Returns enriched ship cards with stats from UEX Corp API + SC API server status
+ * fleetReadiness — Aggregates org ship data with cached vehicle specs and verse status.
+ * Returns enriched ship cards with Base44 cache data plus SC API server status.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
-const UEX_API_BASE = 'https://uexcorp.space/api/2.0';
 const SC_API_BASE = 'https://api.starcitizen-api.com';
-
-async function fetchUEX(path) {
-  const res = await fetch(`${UEX_API_BASE}${path}`, {
-    signal: AbortSignal.timeout(10000),
-    headers: { 'User-Agent': 'NexusOS/1.0 (Redscar Nomads)' },
-  });
-  if (!res.ok) throw new Error(`UEX ${path} returned ${res.status}`);
-  const json = await res.json();
-  return json?.data ?? [];
-}
 
 async function getVerseStatus() {
   const scApiKey = Deno.env.get('SC_API_KEY');
@@ -44,23 +33,31 @@ async function getVerseStatus() {
   }
 }
 
-async function getUEXVehicleStats(vehicleName, uexVehicles) {
-  if (!vehicleName || !uexVehicles?.length) return null;
-  const normalized = vehicleName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const match = uexVehicles.find(v => {
-    const vn = (v.name ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+function normalizeVehicleName(vehicleName) {
+  return String(vehicleName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+async function getCachedVehicleStats(vehicleName, cachedVehicles) {
+  if (!vehicleName || !cachedVehicles?.length) return null;
+  const normalized = normalizeVehicleName(vehicleName);
+  const match = cachedVehicles.find((v) => {
+    const vn = normalizeVehicleName(v.name);
     return vn === normalized || vn.includes(normalized) || normalized.includes(vn);
   });
   return match || null;
 }
 
-async function getHydrogenFuelPrice(uexCommodities) {
-  if (!uexCommodities?.length) return null;
-  const fuel = uexCommodities.find(c =>
+async function getHydrogenFuelPrice(cachedCommodities) {
+  if (!cachedCommodities?.length) return null;
+  const fuel = cachedCommodities.find((c) =>
     (c.name ?? '').toLowerCase().includes('hydrogen fuel') ||
     (c.name ?? '').toLowerCase().includes('hydrogen')
   );
-  return fuel ? { name: fuel.name, buy: fuel.price_buy ?? 0, sell: fuel.price_sell ?? 0 } : null;
+  return fuel ? {
+    name: fuel.name,
+    buy: fuel.buy_price_uex ?? fuel.npc_avg_buy ?? 0,
+    sell: fuel.sell_price_uex ?? fuel.npc_avg_sell ?? 0,
+  } : null;
 }
 
 Deno.serve(async (req) => {
@@ -69,50 +66,48 @@ Deno.serve(async (req) => {
     const session = await resolveIssuedKeySession(req);
     if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Fetch in parallel: org ships from DB, UEX vehicle specs, verse status, UEX commodities
-    const [orgShips, uexVehicles, verseStatus, uexCommodities] = await Promise.allSettled([
+    const [orgShips, cachedVehicles, cachedCommodities, verseStatus] = await Promise.allSettled([
       base44.asServiceRole.entities.OrgShip.list('name', 200),
-      fetchUEX('/vehicles'),
+      base44.asServiceRole.entities.GameCacheVehicle.list('name', 500),
+      base44.asServiceRole.entities.GameCacheCommodity.list('name', 1000),
       getVerseStatus(),
-      fetchUEX('/commodities'),
     ]);
 
     const ships = orgShips.status === 'fulfilled' ? (orgShips.value ?? []) : [];
-    const vehicles = uexVehicles.status === 'fulfilled' ? (uexVehicles.value ?? []) : [];
+    const vehicles = cachedVehicles.status === 'fulfilled' ? (cachedVehicles.value ?? []) : [];
+    const commodities = cachedCommodities.status === 'fulfilled' ? (cachedCommodities.value ?? []) : [];
     const status = verseStatus.status === 'fulfilled' ? verseStatus.value : 'unknown';
-    const commodities = uexCommodities.status === 'fulfilled' ? (uexCommodities.value ?? []) : [];
 
     const hydrogenFuel = await getHydrogenFuelPrice(commodities);
 
-    // Enrich each ship with UEX vehicle specs
     const enriched = await Promise.all(ships.map(async (ship) => {
-      const uexData = await getUEXVehicleStats(ship.model, vehicles);
+      const cachedData = await getCachedVehicleStats(ship.model, vehicles);
+      const stats = cachedData?.stats_json || {};
       return {
         id: ship.id,
         name: ship.name,
         model: ship.model,
-        manufacturer: ship.manufacturer || uexData?.manufacturer_name || '',
+        manufacturer: ship.manufacturer || cachedData?.manufacturer || '',
         class: ship.class,
         status: ship.status,
         assigned_to: ship.assigned_to,
         assigned_to_callsign: ship.assigned_to_callsign,
-        cargo_scu: ship.cargo_scu ?? uexData?.scu ?? 0,
-        crew_size: ship.crew_size ?? uexData?.crew_max ?? 1,
+        cargo_scu: ship.cargo_scu ?? cachedData?.cargo_scu ?? 0,
+        crew_size: ship.crew_size ?? stats.crew_max ?? 1,
         notes: ship.notes || '',
         last_synced: ship.last_synced,
-        // UEX-enriched stats
-        uex: uexData ? {
-          speed_scm: uexData.speed_scm ?? 0,
-          speed_max: uexData.speed_max ?? 0,
-          shield_hp: uexData.shield_hp ?? 0,
-          hull_hp: uexData.hull_hp ?? 0,
-          mass: uexData.mass ?? 0,
-          hydrogen_capacity: uexData.hydrogen_capacity ?? uexData.fuel_hydrogen ?? 0,
-          quantum_capacity: uexData.quantum_capacity ?? uexData.fuel_quantum ?? 0,
-          role: uexData.role ?? uexData.focus ?? '',
-          size: uexData.size ?? '',
-          crew_min: uexData.crew_min ?? 1,
-          crew_max: uexData.crew_max ?? 1,
+        uex: cachedData ? {
+          speed_scm: stats.speed_scm ?? 0,
+          speed_max: stats.speed_max ?? 0,
+          shield_hp: stats.shields ?? 0,
+          hull_hp: stats.hull_hp ?? 0,
+          mass: stats.mass ?? 0,
+          hydrogen_capacity: stats.hydrogen_capacity ?? stats.fuel_hydrogen ?? 0,
+          quantum_capacity: stats.quantum_capacity ?? stats.fuel_quantum ?? 0,
+          role: stats.role ?? stats.focus ?? '',
+          size: stats.size ?? '',
+          crew_min: stats.crew_min ?? 1,
+          crew_max: stats.crew_max ?? 1,
         } : null,
       };
     }));

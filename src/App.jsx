@@ -18,7 +18,6 @@ import OpCreator from '@/apps/ops-board/OpCreatorPage';
 import ScoutIntel from '@/apps/scout-intel/ScoutIntel';
 import RedscarHandbook from '@/pages/RedscarHandbook';
 import Armory from '@/pages/Armory';
-import InventoryManager from '@/pages/InventoryManager';
 import FleetHub from '@/pages/FleetHub';
 import TrainingHub from '@/pages/TrainingHub';
 import AdminSettings from '@/pages/AdminSettings';
@@ -30,7 +29,6 @@ import EpicArchive from '@/pages/EpicArchive';
 import BootScreen from '@/pages/BootScreen';
 import Setup from '@/pages/Setup';
 import DebtTracker from '@/pages/DebtTracker';
-import AssetManager from '@/pages/AssetManager';
 import MarketIntelligence from '@/apps/market-intel/MarketIntelligence';
 import MarketHub from '@/apps/market-hub/MarketHub';
 import MemberManagement from '@/pages/MemberManagement';
@@ -86,8 +84,8 @@ function App() {
               {/* Armory + Fleet Hub */}
               <Route path="armory" element={withRouteBoundary(<Armory />, true)} />
               <Route path="armory/fleet" element={withRouteBoundary(<FleetHub />, true)} />
-              <Route path="armory/inventory" element={withRouteBoundary(<InventoryManager />, true)} />
-              <Route path="armory/assets" element={withRouteBoundary(<AssetManager />, true)} />
+              <Route path="armory/inventory" element={<Navigate to="/app/industry?tab=inventory&inventoryScope=org&inventoryView=gear" replace />} />
+              <Route path="armory/assets" element={<Navigate to="/app/industry?tab=inventory&inventoryScope=org&inventoryView=assets" replace />} />
               {/* Market Intelligence */}
               <Route path="market" element={withRouteBoundary(<MarketHub />, true)} />
               <Route path="market/legacy" element={withRouteBoundary(<MarketIntelligence />, true)} />

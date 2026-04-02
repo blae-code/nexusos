@@ -4,6 +4,7 @@
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { fetchFleetYardsFleetVehicles, resolveFleetYardsFleet } from '../_shared/fleetyards/entry.ts';
+import { fetchUexData } from '../_shared/uexRetry/entry.ts';
 
 const enc = new TextEncoder();
 const NO_STORE = { 'Cache-Control': 'no-store' };
@@ -46,7 +47,18 @@ async function runIntegrationAudit() {
   const checks = [];
   const uexKey = tv(Deno.env.get('UEX_API_KEY'));
   if (!uexKey) checks.push({ id: 'uex_api', label: 'UEX', ok: false, severity: 'critical', detail: 'UEX_API_KEY not configured.' });
-  else { try { const r = await fetch('https://uexcorp.space/api/2.0/commodities', { signal: AbortSignal.timeout(10000) }); checks.push({ id: 'uex_api', label: 'UEX', ok: r.ok, severity: 'critical', detail: r.ok ? 'UEX OK.' : `UEX ${r.status}.` }); } catch (e) { checks.push({ id: 'uex_api', label: 'UEX', ok: false, severity: 'critical', detail: e.message }); } }
+  else {
+    try {
+      await fetchUexData('https://uexcorp.space/api/2.0/commodities', {
+        timeoutMs: 10000,
+        maxAttempts: 2,
+        headers: { Authorization: `Bearer ${uexKey}` },
+      });
+      checks.push({ id: 'uex_api', label: 'UEX', ok: true, severity: 'critical', detail: 'UEX OK.' });
+    } catch (e) {
+      checks.push({ id: 'uex_api', label: 'UEX', ok: false, severity: 'critical', detail: e.message });
+    }
+  }
 
   const ftHandle = tv(Deno.env.get('FLEETYARDS_HANDLE'));
   if (!ftHandle) {

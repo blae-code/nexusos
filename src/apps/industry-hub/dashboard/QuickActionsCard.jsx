@@ -1,8 +1,9 @@
 import React from 'react';
-import { Plus, Flame, Wrench, Package, FileText, BarChart3 } from 'lucide-react';
+import { Plus, Flame, Wrench, Package, FileText, BarChart3, Boxes } from 'lucide-react';
 
 const ACTIONS = [
   { icon: Plus, label: 'LOG MATERIAL', tab: 'materials', tone: 'primary' },
+  { icon: Boxes, label: 'INVENTORY', tab: 'inventory', tone: 'default' },
   { icon: Flame, label: 'NEW REFINERY', tab: 'refinery', tone: 'default' },
   { icon: Wrench, label: 'CRAFT QUEUE', tab: 'craft', tone: 'default' },
   { icon: Package, label: 'MARKETPLACE', tab: 'marketplace', tone: 'default' },
@@ -10,7 +11,7 @@ const ACTIONS = [
   { icon: BarChart3, label: 'ANALYTICS', tab: 'analytics', tone: 'default' },
 ];
 
-export default function QuickActionsCard({ onTabChange, navigate }) {
+export default function QuickActionsCard({ onTabChange }) {
   return (
     <div style={{
       background: '#0F0F0D',

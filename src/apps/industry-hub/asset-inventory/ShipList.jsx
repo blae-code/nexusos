@@ -9,10 +9,20 @@ const STATUS_COLORS = {
   DESTROYED: '#C0392B', ARCHIVED: '#5A5850',
 };
 
-export default function ShipList({ ships, search }) {
+export default function ShipList({ ships, search, scope = 'me' }) {
   const q = (search || '').toLowerCase();
   const filtered = useMemo(() =>
-    ships.filter(s => !q || (s.name || '').toLowerCase().includes(q) || (s.model || '').toLowerCase().includes(q)),
+    ships.filter((ship) => {
+      if (!q) return true;
+      const haystack = [
+        ship.name,
+        ship.model,
+        ship.manufacturer,
+        ship.assigned_to_callsign,
+        ship.status,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
+    }),
     [ships, q]
   );
 
@@ -23,7 +33,7 @@ export default function ShipList({ ships, search }) {
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#5A5850',
       }}>
         <Ship size={28} style={{ opacity: 0.15, marginBottom: 8 }} />
-        <div>{search ? 'No ships match your search' : 'No ships assigned to you'}</div>
+        <div>{search ? 'No ships match your search' : scope === 'org' ? 'No org ships logged yet' : 'No ships assigned to you'}</div>
       </div>
     );
   }
@@ -49,6 +59,11 @@ export default function ShipList({ ships, search }) {
             </div>
             <div style={{ fontSize: 11, color: '#9A9488', marginBottom: 4 }}>{s.model}</div>
             {s.manufacturer && <div style={{ fontSize: 9, color: '#5A5850' }}>{s.manufacturer}</div>}
+            {scope === 'org' && s.assigned_to_callsign && (
+              <div style={{ fontSize: 9, color: '#C8A84B', marginTop: 4 }}>
+                Custody: {s.assigned_to_callsign}
+              </div>
+            )}
             <div style={{
               display: 'flex', gap: 10, marginTop: 8, fontSize: 10, color: '#5A5850',
             }}>

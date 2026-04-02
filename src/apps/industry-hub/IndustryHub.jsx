@@ -17,9 +17,6 @@ import Commerce from '@/pages/Commerce';
 import CofferLedger from '@/pages/CofferLedger';
 import Logistics from '@/pages/Logistics';
 import CargoTracker from '@/pages/CargoTracker';
-
-import MaterialLifecycleTracker from '@/apps/industry-hub/MaterialLifecycleTracker';
-import BlueprintOwnershipPanel from '@/apps/industry-hub/BlueprintOwnershipPanel';
 import OrgTreasuryDashboard from '@/apps/industry-hub/OrgTreasuryDashboard';
 import RequisitionManager from '@/pages/RequisitionManager';
 import ProductionForecast from '@/apps/industry-hub/ProductionForecast';
@@ -31,7 +28,6 @@ import BlueprintWishlistPanel from '@/apps/industry-hub/BlueprintWishlistPanel';
 import CraftingCostCalc from '@/apps/industry-hub/CraftingCostCalc';
 import CargoSCUPlanner from '@/apps/industry-hub/CargoSCUPlanner';
 import MarketplaceTab from '@/apps/industry-hub/marketplace/MarketplaceTab';
-import FindCraftersTab from '@/apps/industry-hub/FindCraftersTab';
 import ProfitRouteCalculator from '@/apps/industry-hub/ProfitRouteCalculator';
 import AssetInventoryTab from '@/apps/industry-hub/asset-inventory/AssetInventoryTab';
 import InventoryForecastPanel from '@/apps/industry-hub/forecast/InventoryForecastPanel';
@@ -42,6 +38,7 @@ const TABS = [
   { id: 'overview', label: 'OVERVIEW' },
   { id: 'guide', label: 'GUIDE' },
   { id: 'materials', label: 'MATERIALS' },
+  { id: 'inventory', label: 'INVENTORY' },
   { id: 'blueprints', label: 'BLUEPRINTS' },
   { id: 'craft', label: 'CRAFT QUEUE' },
   { id: 'production', label: 'PRODUCTION' },
@@ -53,8 +50,6 @@ const TABS = [
   { id: 'analytics', label: 'ANALYTICS' },
   { id: 'components', label: 'COMPONENTS' },
   { id: 'coffer', label: 'COFFER' },
-  { id: 'lifecycle', label: 'LIFECYCLE' },
-  { id: 'ownership', label: 'OWNERSHIP' },
   { id: 'treasury', label: 'TREASURY' },
   { id: 'requisitions', label: 'REQUISITIONS' },
   { id: 'forecast', label: 'FORECAST' },
@@ -66,11 +61,18 @@ const TABS = [
   { id: 'costcalc', label: 'COST CALC' },
   { id: 'cargoplanner', label: 'SCU PLAN' },
   { id: 'marketplace', label: 'MARKETPLACE' },
-  { id: 'findcrafters', label: 'FIND CRAFTERS' },
   { id: 'profitroute', label: 'PROFIT ROUTE' },
-  { id: 'myinventory', label: 'MY INVENTORY' },
   { id: 'stockforecast', label: 'STOCK FORECAST' },
 ];
+
+const INVENTORY_SCOPES = new Set(['me', 'org']);
+const INVENTORY_VIEWS = new Set(['holdings', 'network', 'assets', 'gear', 'readiness']);
+const LEGACY_INVENTORY_PARAMS = {
+  myinventory: { inventoryScope: 'me', inventoryView: 'holdings' },
+  ownership: { inventoryScope: 'org', inventoryView: 'network' },
+  findcrafters: { inventoryScope: 'org', inventoryView: 'network' },
+  lifecycle: { inventoryScope: 'org', inventoryView: 'readiness' },
+};
 
 const METHOD_STYLE = {
   DINYX_SOLVATION: { label: 'DINYX SOLVATION', bg: 'rgba(74,140,92,0.12)', border: 'rgba(74,140,92,0.3)', color: '#4A8C5C' },
@@ -148,7 +150,6 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
         {animatedOrders.map(({ item: order, state }) => {
           const isReady = order.status === 'READY' || timeLeft(order.completes_at) === 'READY';
           const isActive = order.status === 'ACTIVE';
-          const isCollected = order.status === 'COLLECTED';
           const ms = METHOD_STYLE[order.method] || { label: order.method || '—', bg: 'rgba(90,88,80,0.15)', border: 'rgba(90,88,80,0.25)', color: '#9A9488' };
           const ss = SUBTYPE_MAP[order.input_subtype] || null;
 
@@ -189,7 +190,9 @@ export default function IndustryHub() {
   const callsign = outletContext.callsign;
   const rank = outletContext.rank;
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = TABS.some((item) => item.id === searchParams.get('tab')) ? searchParams.get('tab') : 'overview';
+  const rawTab = searchParams.get('tab');
+  const requestedTab = LEGACY_INVENTORY_PARAMS[rawTab] ? 'inventory' : rawTab;
+  const tab = TABS.some((item) => item.id === requestedTab) ? requestedTab : 'overview';
   const [materials, setMaterials] = useState([]);
   const [blueprints, setBlueprints] = useState([]);
   const [craftQueue, setCraftQueue] = useState([]);
@@ -245,12 +248,64 @@ export default function IndustryHub() {
     return () => unsubs.forEach(u => u());
   }, [load]);
 
+  useEffect(() => {
+    const legacyInventory = LEGACY_INVENTORY_PARAMS[rawTab];
+    const nextParams = new URLSearchParams(searchParams);
+    let changed = false;
+
+    if (legacyInventory) {
+      nextParams.set('tab', 'inventory');
+      nextParams.set('inventoryScope', legacyInventory.inventoryScope);
+      nextParams.set('inventoryView', legacyInventory.inventoryView);
+      changed = true;
+    }
+
+    const effectiveTab = legacyInventory ? 'inventory' : rawTab;
+    if (effectiveTab === 'inventory') {
+      const scope = nextParams.get('inventoryScope');
+      const view = nextParams.get('inventoryView');
+
+      if (!INVENTORY_SCOPES.has(scope)) {
+        nextParams.set('inventoryScope', 'me');
+        changed = true;
+      }
+      if (!INVENTORY_VIEWS.has(view)) {
+        nextParams.set('inventoryView', 'holdings');
+        changed = true;
+      }
+    } else {
+      if (nextParams.has('inventoryScope')) {
+        nextParams.delete('inventoryScope');
+        changed = true;
+      }
+      if (nextParams.has('inventoryView')) {
+        nextParams.delete('inventoryView');
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [rawTab, searchParams, setSearchParams]);
+
   const setTab = (nextTab) => {
     const nextParams = new URLSearchParams(searchParams);
     if (nextTab === 'overview') {
       nextParams.delete('tab');
     } else {
       nextParams.set('tab', nextTab);
+    }
+    if (nextTab === 'inventory') {
+      if (!INVENTORY_SCOPES.has(nextParams.get('inventoryScope'))) {
+        nextParams.set('inventoryScope', 'me');
+      }
+      if (!INVENTORY_VIEWS.has(nextParams.get('inventoryView'))) {
+        nextParams.set('inventoryView', 'holdings');
+      }
+    } else {
+      nextParams.delete('inventoryScope');
+      nextParams.delete('inventoryView');
     }
     setSearchParams(nextParams, { replace: true });
   };
@@ -336,22 +391,6 @@ export default function IndustryHub() {
             blueprints={blueprints}
           />
         ) : null}
-        {tab === 'lifecycle' ? (
-          <div style={{ padding: '14px 16px' }}>
-            <MaterialLifecycleTracker
-              materials={materials}
-              refineryOrders={refineryOrders}
-              craftQueue={craftQueue}
-              cofferLogs={cofferLogs}
-              scoutDeposits={scoutDeposits}
-            />
-          </div>
-        ) : null}
-        {tab === 'ownership' ? (
-          <div style={{ padding: '14px 16px' }}>
-            <BlueprintOwnershipPanel blueprints={blueprints} callsign={callsign} rank={rank} />
-          </div>
-        ) : null}
         {tab === 'treasury' ? <OrgTreasuryDashboard /> : null}
         {tab === 'requisitions' ? <RequisitionManager /> : null}
         {tab === 'forecast' ? <ProductionForecast craftQueue={craftQueue} blueprints={blueprints} materials={materials} /> : null}
@@ -363,9 +402,19 @@ export default function IndustryHub() {
         {tab === 'costcalc' ? <CraftingCostCalc blueprints={blueprints} materials={materials} /> : null}
         {tab === 'cargoplanner' ? <CargoSCUPlanner blueprints={blueprints} ships={orgShips} /> : null}
         {tab === 'marketplace' ? <MarketplaceTab materials={materials} blueprints={blueprints} craftQueue={craftQueue} /> : null}
-        {tab === 'findcrafters' ? <FindCraftersTab blueprints={blueprints} materials={materials} callsign={callsign} /> : null}
         {tab === 'profitroute' ? <ProfitRouteCalculator /> : null}
-        {tab === 'myinventory' ? <AssetInventoryTab blueprints={blueprints} materials={materials} /> : null}
+        {tab === 'inventory' ? (
+          <AssetInventoryTab
+            blueprints={blueprints}
+            materials={materials}
+            callsign={callsign}
+            rank={rank}
+            craftQueue={craftQueue}
+            refineryOrders={refineryOrders}
+            scoutDeposits={scoutDeposits}
+            cofferLogs={cofferLogs}
+          />
+        ) : null}
         {tab === 'stockforecast' ? <InventoryForecastPanel /> : null}
       </div>
     </div>

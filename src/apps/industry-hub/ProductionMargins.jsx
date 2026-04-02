@@ -1,6 +1,6 @@
 /**
  * ProductionMargins — Dashboard showing aUEC profit margins for production jobs.
- * Compares material input costs (from UEX prices) vs estimated market value of outputs.
+ * Uses cached commodity averages from GameCacheCommodity instead of live UEX calls.
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/core/data/base44Client';
@@ -31,7 +31,9 @@ function MarginBar({ pct }) {
         }} />
       </div>
       <span style={{
-        fontSize: 10, fontFamily: 'monospace', fontWeight: 600,
+        fontSize: 10,
+        fontFamily: 'monospace',
+        fontWeight: 600,
         color: positive ? '#4AE830' : '#C0392B',
       }}>
         {pct > 0 ? '+' : ''}{pct.toFixed(1)}%
@@ -46,7 +48,9 @@ function JobMarginRow({ row }) {
     <div style={{
       display: 'grid',
       gridTemplateColumns: '1.5fr 0.5fr 1fr 1fr 1fr 1fr',
-      gap: 8, padding: '8px 12px', alignItems: 'center',
+      gap: 8,
+      padding: '8px 12px',
+      alignItems: 'center',
       borderBottom: '0.5px solid var(--b0)',
       fontSize: 11,
     }}>
@@ -61,7 +65,7 @@ function JobMarginRow({ row }) {
       </div>
 
       <div style={{ color: row.hasUexData ? 'var(--t1)' : 'var(--t3)', fontSize: 10, textAlign: 'center' }}>
-        {row.hasUexData ? '✓ UEX' : '~ EST'}
+        {row.hasUexData ? '✓ CACHE' : '~ EST'}
       </div>
 
       <div style={{ textAlign: 'right', fontFamily: 'monospace', color: '#C0392B', fontSize: 10 }}>
@@ -73,7 +77,10 @@ function JobMarginRow({ row }) {
       </div>
 
       <div style={{
-        textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, fontSize: 10,
+        textAlign: 'right',
+        fontFamily: 'monospace',
+        fontWeight: 600,
+        fontSize: 10,
         color: profitable ? '#4AE830' : '#C0392B',
       }}>
         {profitable ? '+' : ''}{fmt(row.profit)}
@@ -85,28 +92,25 @@ function JobMarginRow({ row }) {
 }
 
 export default function ProductionMargins({ jobs, blueprints }) {
-  const [uexPrices, setUexPrices] = useState(null);
+  const [cachedPrices, setCachedPrices] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch UEX commodity averages for material cost lookups
   useEffect(() => {
     let active = true;
     async function fetchPrices() {
       setLoading(true);
       try {
-        const res = await base44.functions.invoke('uexInventory', { action: 'commodities' });
-        const commodities = res?.data?.commodities || [];
-        // Build a map: normalised name → { buy_avg, sell_avg }
+        const rows = await base44.entities.GameCacheCommodity.list('name', 1000).catch(() => []);
         const map = {};
-        for (const c of commodities) {
-          map[norm(c.name)] = {
-            buy_avg: c.price_buy_avg || c.price_buy || 0,
-            sell_avg: c.price_sell_avg || c.price_sell || 0,
+        for (const row of (rows || [])) {
+          map[norm(row.name)] = {
+            buy_avg: row.npc_avg_buy || row.buy_price_uex || 0,
+            sell_avg: row.npc_avg_sell || row.sell_price_uex || 0,
           };
         }
-        if (active) setUexPrices(map);
+        if (active) setCachedPrices(map);
       } catch {
-        if (active) setUexPrices({});
+        if (active) setCachedPrices({});
       }
       if (active) setLoading(false);
     }
@@ -114,71 +118,66 @@ export default function ProductionMargins({ jobs, blueprints }) {
     return () => { active = false; };
   }, []);
 
-  // Build blueprint lookup
   const bpMap = useMemo(() => {
-    const m = {};
-    for (const bp of blueprints) m[bp.id] = bp;
-    return m;
+    const map = {};
+    for (const blueprint of blueprints) map[blueprint.id] = blueprint;
+    return map;
   }, [blueprints]);
 
-  // Calculate margins for each non-cancelled job
   const margins = useMemo(() => {
-    if (!uexPrices) return [];
+    if (!cachedPrices) return [];
 
-    const relevantJobs = jobs.filter(j => j.status === 'ACTIVE' || j.status === 'COMPLETE');
+    return jobs
+      .filter((job) => job.status === 'ACTIVE' || job.status === 'COMPLETE')
+      .map((job) => {
+        const blueprint = bpMap[job.blueprint_id];
+        const consumed = job.materials_consumed || [];
+        const totalOutput = (job.quantity || 1) * (job.output_per_craft || 1);
+        let inputCost = 0;
+        let hasUexData = false;
 
-    return relevantJobs.map(job => {
-      const bp = bpMap[job.blueprint_id];
-      const consumed = job.materials_consumed || [];
-      const totalOutput = (job.quantity || 1) * (job.output_per_craft || 1);
-
-      // Calculate input cost from consumed materials × UEX buy prices
-      let inputCost = 0;
-      let hasUexData = false;
-      for (const mat of consumed) {
-        const price = uexPrices[norm(mat.material)];
-        if (price && price.buy_avg > 0) {
-          inputCost += (mat.quantity_scu || 0) * price.buy_avg;
-          hasUexData = true;
+        for (const material of consumed) {
+          const price = cachedPrices[norm(material.material)];
+          if (price && price.buy_avg > 0) {
+            inputCost += (material.quantity_scu || 0) * price.buy_avg;
+            hasUexData = true;
+          }
         }
-      }
 
-      // Output value: blueprint aUEC_value_est × total output
-      const outputValue = (bp?.aUEC_value_est || 0) * totalOutput;
+        const outputValue = (blueprint?.aUEC_value_est || 0) * totalOutput;
+        const profit = outputValue - inputCost;
+        const marginPct = inputCost > 0 ? (profit / inputCost) * 100 : (outputValue > 0 ? 100 : 0);
 
-      const profit = outputValue - inputCost;
-      const marginPct = inputCost > 0 ? (profit / inputCost) * 100 : (outputValue > 0 ? 100 : 0);
+        return {
+          id: job.id,
+          blueprint_name: job.blueprint_name,
+          tier: job.tier,
+          category: job.category,
+          status: job.status,
+          totalOutput,
+          inputCost,
+          outputValue,
+          profit,
+          marginPct,
+          hasUexData,
+        };
+      })
+      .sort((a, b) => b.profit - a.profit);
+  }, [jobs, cachedPrices, bpMap]);
 
-      return {
-        id: job.id,
-        blueprint_name: job.blueprint_name,
-        tier: job.tier,
-        category: job.category,
-        status: job.status,
-        totalOutput,
-        inputCost,
-        outputValue,
-        profit,
-        marginPct,
-        hasUexData,
-      };
-    }).sort((a, b) => b.profit - a.profit);
-  }, [jobs, uexPrices, bpMap]);
-
-  // Aggregate stats
   const totals = useMemo(() => {
-    const active = margins.filter(m => m.status === 'ACTIVE');
-    const all = margins;
+    const activeJobs = margins.filter((margin) => margin.status === 'ACTIVE');
+    const allJobs = margins;
     return {
-      totalInputCost: all.reduce((s, m) => s + m.inputCost, 0),
-      totalOutputValue: all.reduce((s, m) => s + m.outputValue, 0),
-      totalProfit: all.reduce((s, m) => s + m.profit, 0),
-      activeProfit: active.reduce((s, m) => s + m.profit, 0),
-      avgMargin: all.length > 0
-        ? all.reduce((s, m) => s + m.marginPct, 0) / all.length
+      totalInputCost: allJobs.reduce((sum, margin) => sum + margin.inputCost, 0),
+      totalOutputValue: allJobs.reduce((sum, margin) => sum + margin.outputValue, 0),
+      totalProfit: allJobs.reduce((sum, margin) => sum + margin.profit, 0),
+      activeProfit: activeJobs.reduce((sum, margin) => sum + margin.profit, 0),
+      avgMargin: allJobs.length > 0
+        ? allJobs.reduce((sum, margin) => sum + margin.marginPct, 0) / allJobs.length
         : 0,
-      jobCount: all.length,
-      profitableCount: all.filter(m => m.profit > 0).length,
+      jobCount: allJobs.length,
+      profitableCount: allJobs.filter((margin) => margin.profit > 0).length,
     };
   }, [margins]);
 
@@ -202,8 +201,6 @@ export default function ProductionMargins({ jobs, blueprints }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-      {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
         <div style={{ padding: '10px 14px', background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 4 }}>
           <div style={{ fontSize: 8, color: 'var(--t3)', letterSpacing: '0.1em', marginBottom: 4 }}>MATERIAL COST</div>
@@ -218,52 +215,45 @@ export default function ProductionMargins({ jobs, blueprints }) {
         </div>
 
         <div style={{ padding: '10px 14px', background: totalProfitable ? 'rgba(74,232,48,0.06)' : 'rgba(192,57,43,0.06)', border: `0.5px solid ${totalProfitable ? 'rgba(74,232,48,0.15)' : 'rgba(192,57,43,0.15)'}`, borderRadius: 4 }}>
-          <div style={{ fontSize: 8, color: 'var(--t3)', letterSpacing: '0.1em', marginBottom: 4 }}>NET PROFIT</div>
+          <div style={{ fontSize: 8, color: 'var(--t3)', letterSpacing: '0.1em', marginBottom: 4 }}>TOTAL PROFIT</div>
           <div style={{ fontSize: 18, fontWeight: 700, color: totalProfitable ? '#4AE830' : '#C0392B', fontFamily: 'monospace' }}>
-            {totalProfitable ? '+' : ''}{fmt(totals.totalProfit)}
+            {totals.totalProfit >= 0 ? '+' : ''}{fmt(totals.totalProfit)}
           </div>
-          <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 2 }}>across {totals.jobCount} jobs</div>
+          <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 2 }}>all tracked jobs</div>
         </div>
 
         <div style={{ padding: '10px 14px', background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 4 }}>
           <div style={{ fontSize: 8, color: 'var(--t3)', letterSpacing: '0.1em', marginBottom: 4 }}>AVG MARGIN</div>
           <div style={{ fontSize: 18, fontWeight: 700, color: totals.avgMargin >= 0 ? '#4AE830' : '#C0392B', fontFamily: 'monospace' }}>
-            {totals.avgMargin > 0 ? '+' : ''}{totals.avgMargin.toFixed(1)}%
+            {totals.avgMargin >= 0 ? '+' : ''}{totals.avgMargin.toFixed(1)}%
           </div>
-          <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 2 }}>
-            {totals.profitableCount}/{totals.jobCount} profitable
-          </div>
+          <div style={{ fontSize: 9, color: 'var(--t3)', marginTop: 2 }}>{totals.profitableCount}/{totals.jobCount} profitable</div>
         </div>
       </div>
 
-      {/* Per-job breakdown table */}
       <div style={{ background: 'var(--bg1)', border: '0.5px solid var(--b1)', borderRadius: 4, overflow: 'hidden' }}>
-        {/* Header */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1.5fr 0.5fr 1fr 1fr 1fr 1fr',
-          gap: 8, padding: '8px 12px',
-          background: 'var(--bg2)', borderBottom: '0.5px solid var(--b1)',
-          fontSize: 9, color: 'var(--t2)', letterSpacing: '0.08em', fontWeight: 600,
+          gap: 8,
+          padding: '9px 12px',
+          borderBottom: '0.5px solid var(--b1)',
+          color: 'var(--t3)',
+          fontSize: 8,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
         }}>
-          <div>ITEM</div>
-          <div style={{ textAlign: 'center' }}>SOURCE</div>
-          <div style={{ textAlign: 'right' }}>INPUT COST</div>
-          <div style={{ textAlign: 'right' }}>OUTPUT VALUE</div>
-          <div style={{ textAlign: 'right' }}>PROFIT</div>
-          <div>MARGIN</div>
+          <div>Blueprint</div>
+          <div style={{ textAlign: 'center' }}>Price</div>
+          <div style={{ textAlign: 'right' }}>Input Cost</div>
+          <div style={{ textAlign: 'right' }}>Output Value</div>
+          <div style={{ textAlign: 'right' }}>Profit</div>
+          <div>Margin</div>
         </div>
 
-        {/* Rows */}
-        {margins.map(row => (
+        {margins.map((row) => (
           <JobMarginRow key={row.id} row={row} />
         ))}
-      </div>
-
-      {/* Note about data sources */}
-      <div style={{ fontSize: 9, color: 'var(--t3)', padding: '0 4px', lineHeight: 1.5 }}>
-        Input costs use UEX buy averages for consumed materials. Output values use blueprint estimated aUEC values.
-        Jobs without UEX price data show "~ EST" and may have zero input cost.
       </div>
     </div>
   );

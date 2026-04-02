@@ -25,7 +25,7 @@ export default function PriceWatchlist({ watchlist, onSelectCommodity, onRemove 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {watchlist.map((commodity) => (
           <button
-            key={commodity.id}
+            key={commodity.id || commodity.wiki_id || commodity.name}
             onClick={() => onSelectCommodity(commodity)}
             style={{
               display: 'flex',

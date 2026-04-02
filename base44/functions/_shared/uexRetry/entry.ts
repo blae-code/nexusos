@@ -16,9 +16,11 @@ export async function fetchUexData<T = unknown>(
   {
     timeoutMs = DEFAULT_TIMEOUT_MS,
     maxAttempts = DEFAULT_MAX_ATTEMPTS,
+    headers = {},
   }: {
     timeoutMs?: number;
     maxAttempts?: number;
+    headers?: HeadersInit;
   } = {},
 ): Promise<T[]> {
   let lastError: Error | null = null;
@@ -27,7 +29,10 @@ export async function fetchUexData<T = unknown>(
     try {
       const response = await fetch(url, {
         signal: AbortSignal.timeout(timeoutMs),
-        headers: { 'User-Agent': 'NexusOS/1.0 (Redscar Nomads)' },
+        headers: {
+          'User-Agent': 'NexusOS/1.0 (Redscar Nomads)',
+          ...headers,
+        },
       });
 
       if (!response.ok) {

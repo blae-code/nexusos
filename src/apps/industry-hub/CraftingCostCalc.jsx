@@ -6,8 +6,8 @@ import React, { useState, useMemo } from 'react';
 import { Calculator, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import { usePriceLookup, computeCraftAnalysis, fmtAuec as fmtAuecShared } from '@/core/data/usePriceLookup';
 
-export default function CraftingCostCalc({ blueprints = [], materials = [] }) {
-  const { prices, loading: pricesLoading } = usePriceLookup();
+export default function CraftingCostCalc({ blueprints = [] }) {
+  const { prices } = usePriceLookup();
   const [selectedBp, setSelectedBp] = useState('');
 
   const bp = blueprints.find(b => b.id === selectedBp);
@@ -51,10 +51,10 @@ export default function CraftingCostCalc({ blueprints = [], materials = [] }) {
             {/* Summary cards */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {[
-                { label: 'MATERIAL COST', value: fmtAuec(analysis.totalMaterialCost), color: 'var(--warn)', tip: 'Sum of material purchase costs from live UEX data' },
+                { label: 'MATERIAL COST', value: fmtAuec(analysis.totalMaterialCost), color: 'var(--warn)', tip: 'Sum of material purchase costs from cached UEX market data' },
                 { label: 'REFINERY EST.', value: fmtAuec(analysis.refineryCostEst), color: 'var(--t2)', tip: '~10% overhead for refining raw materials' },
                 { label: 'TOTAL CRAFT', value: fmtAuec(analysis.totalCraftCost), color: 'var(--danger)', tip: 'Total cost to craft from scratch' },
-                { label: 'MARKET VALUE', value: fmtAuec(analysis.marketValue), color: 'var(--info)', tip: analysis.marketValueSource === 'LIVE' ? 'Live sell price from UEX data' : 'Estimated value from blueprint data', sub: analysis.marketValueSource === 'LIVE' ? '● LIVE' : analysis.marketValueSource === 'ESTIMATE' ? '○ EST' : '' },
+                { label: 'MARKET VALUE', value: fmtAuec(analysis.marketValue), color: 'var(--info)', tip: analysis.marketValueSource === 'LIVE' ? 'Cached sell price from UEX market data' : 'Estimated value from blueprint data', sub: analysis.marketValueSource === 'LIVE' ? '● CACHE' : analysis.marketValueSource === 'ESTIMATE' ? '○ EST' : '' },
                 { label: 'PROFIT', value: `${analysis.profit >= 0 ? '+' : ''}${fmtAuec(analysis.profit)}`, color: analysis.profit >= 0 ? 'var(--live)' : 'var(--danger)', tip: 'Market value minus craft cost' },
               ].map(s => (
                 <div key={s.label} className="nexus-tooltip" data-tooltip={s.tip} style={{

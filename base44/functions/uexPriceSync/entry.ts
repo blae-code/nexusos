@@ -1,28 +1,20 @@
 /**
- * uexPriceSync — on-demand commodity price lookup for PriceTracker UI.
- *
- * Called by: src/apps/industry-hub/PriceTracker.jsx
- * Requires user auth (user-triggered, not a background job).
- *
- * Actions:
- *   commodities — top commodities by trade volume
- *   prices      — per-station prices for a specific commodity id
+ * uexPriceSync — Cache-backed commodity lookup for legacy PriceTracker consumers.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 import { resolveIssuedKeySession } from '../auth/_shared/issuedKey/entry.ts';
 
-const UEX_API_BASE  = 'https://uexcorp.space/api/2.0';
-const FETCH_TIMEOUT = 15_000;
-const UA            = { 'User-Agent': 'NexusOS/1.0 (Redscar Nomads)' };
+function safeNumber(value) {
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
 
-async function fetchUEX(path: string) {
-  const res = await fetch(`${UEX_API_BASE}${path}`, {
-    signal: AbortSignal.timeout(FETCH_TIMEOUT),
-    headers: UA,
-  });
-  if (!res.ok) throw new Error(`UEX ${path} returned ${res.status}`);
-  const json = await res.json();
-  return json?.data ?? [];
+function norm(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+async function loadCommodityCache(base44) {
+  const records = await base44.asServiceRole.entities.GameCacheCommodity.list('name', 1000).catch(() => []);
+  return Array.isArray(records) ? records : [];
 }
 
 Deno.serve(async (req) => {
@@ -35,48 +27,58 @@ Deno.serve(async (req) => {
     const session = await resolveIssuedKeySession(req);
     if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const body   = await req.json();
+    const body = await req.json().catch(() => ({}));
     const action = body?.action ?? '';
 
-    // ── commodities: top 20 by trade volume ───────────────────────────────────
     if (action === 'commodities') {
-      const commodities = await fetchUEX('/commodities');
-      const top = (commodities as Record<string, unknown>[])
-        .sort((a, b) => ((b.trade_volume as number) || 0) - ((a.trade_volume as number) || 0))
+      const commodities = await loadCommodityCache(base44);
+      const ranked = [...commodities]
+        .sort((a, b) => safeNumber(b.trade_volume_uex) - safeNumber(a.trade_volume_uex) || safeNumber(b.margin_pct) - safeNumber(a.margin_pct))
         .slice(0, 20);
-      return Response.json({ commodities: top });
+      return Response.json({ commodities: ranked });
     }
 
-    // ── prices: per-station prices for one commodity ───────────────────────────
     if (action === 'prices') {
       const commodityId = body?.commodity_id;
       if (!commodityId) {
         return Response.json({ error: 'commodity_id required' }, { status: 400 });
       }
 
-      const prices = await fetchUEX(`/commodities_prices?id_commodity=${commodityId}`);
-      const priceNums = (prices as Record<string, unknown>[])
-        .map(p => (p.price_buy as number) || (p.price_sell as number) || 0)
-        .filter(n => n > 0);
+      const commodities = await loadCommodityCache(base44);
+      const selected = commodities.find((commodity) =>
+        commodity.id === commodityId ||
+        String(commodity.wiki_id) === String(commodityId) ||
+        norm(commodity.name) === norm(commodityId)
+      );
+
+      const prices = selected?.wiki_id
+        ? await base44.asServiceRole.entities.CommodityStationPrice.filter({ commodity_wiki_id: String(selected.wiki_id) }, '-price_sell', 300).catch(() => [])
+        : [];
+
+      const formattedPrices = (prices || []).map((price) => ({
+        ...price,
+        station: price.station_name || price.terminal_name || 'Unknown',
+      }));
+      const priceNums = formattedPrices
+        .flatMap((price) => [safeNumber(price.price_buy), safeNumber(price.price_sell)])
+        .filter((value) => value > 0);
 
       return Response.json({
         commodity_id: commodityId,
-        prices,
+        prices: formattedPrices,
         stats: {
-          average: priceNums.length ? priceNums.reduce((a, b) => a + b, 0) / priceNums.length : 0,
-          min:     priceNums.length ? Math.min(...priceNums) : 0,
-          max:     priceNums.length ? Math.max(...priceNums) : 0,
-          count:   priceNums.length,
+          average: priceNums.length ? priceNums.reduce((sum, value) => sum + value, 0) / priceNums.length : 0,
+          min: priceNums.length ? Math.min(...priceNums) : 0,
+          max: priceNums.length ? Math.max(...priceNums) : 0,
+          count: priceNums.length,
         },
       });
     }
 
     return Response.json({ error: 'Invalid action' }, { status: 400 });
-
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error('[uexPriceSync] error:', msg);
-    return Response.json({ error: msg }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[uexPriceSync] error:', message);
+    return Response.json({ error: message }, { status: 500 });
   }
 });
-

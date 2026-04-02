@@ -4,7 +4,7 @@ import { useSession } from '@/core/data/SessionContext';
 import SidebarWidget from './SidebarWidget';
 import {
   Crosshair, Factory, BookOpen, GraduationCap, Radar,
-  Shield, Package, Ship, Users, Tags, TrendingUp,
+  Shield, Ship, Users, TrendingUp, Boxes,
   Key, ShieldAlert, ClipboardList, Settings, LogOut,
   Database, AlertTriangle, Archive,
 } from 'lucide-react';
@@ -28,7 +28,18 @@ const NAV = [
   {
     label: 'INDUSTRY',
     items: [
-      { icon: Factory, label: 'INDUSTRY HUB', path: '/app/industry' },
+      {
+        icon: Factory,
+        label: 'INDUSTRY HUB',
+        path: '/app/industry',
+        match: ({ pathname, searchParams }) => pathname === '/app/industry' && searchParams.get('tab') !== 'inventory',
+      },
+      {
+        icon: Boxes,
+        label: 'INVENTORY',
+        path: '/app/industry?tab=inventory',
+        match: ({ pathname, searchParams }) => pathname === '/app/industry' && searchParams.get('tab') === 'inventory',
+      },
       { icon: TrendingUp, label: 'MARKET HUB', path: '/app/market' },
     ],
   },
@@ -44,8 +55,6 @@ const NAV = [
     items: [
       { icon: Shield, label: 'ARMORY', path: '/app/armory' },
       { icon: Ship, label: 'FLEET', path: '/app/armory/fleet' },
-      { icon: Tags, label: 'ASSETS', path: '/app/armory/assets' },
-      { icon: Package, label: 'INVENTORY', path: '/app/armory/inventory' },
     ],
   },
   {
@@ -161,6 +170,12 @@ const S = {
 
 function isExact(pathname, path) { return pathname === path; }
 function isUnder(pathname, path) { return pathname === path || pathname.startsWith(path + '/'); }
+function isItemActive(item, pathname, searchParams) {
+  if (typeof item.match === 'function') {
+    return item.match({ pathname, searchParams });
+  }
+  return !item.children ? isUnder(pathname, item.path) : false;
+}
 
 function NavItem({ icon: Icon, label, path, active }) {
   return (
@@ -190,8 +205,9 @@ function SubItem({ label, path, active }) {
 }
 
 export default function NexusSidebar({ mobileOpen, onClose }) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { isAdmin, logout } = useSession();
+  const searchParams = new URLSearchParams(search);
 
   return (
     <>
@@ -230,7 +246,7 @@ export default function NexusSidebar({ mobileOpen, onClose }) {
                     icon={item.icon}
                     label={item.label}
                     path={item.path}
-                    active={!item.children ? isUnder(pathname, item.path) : false}
+                    active={isItemActive(item, pathname, searchParams)}
                   />
                   {item.children && item.children.map((child) => (
                     <SubItem

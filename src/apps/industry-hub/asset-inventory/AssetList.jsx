@@ -49,10 +49,12 @@ function AssetRow({ asset, isOrgMat, onDelete, onDonate }) {
   const qty = isOrgMat ? asset.quantity_scu : asset.quantity;
   const unit = isOrgMat ? 'SCU' : '×';
   const quality = asset.quality_score;
-  const loc = isOrgMat ? asset.location || asset.held_in : asset.location;
+  const location = isOrgMat ? asset.held_in || asset.location || asset.container : asset.location;
+  const custodian = isOrgMat ? (asset.custodian_callsign || asset.logged_by_callsign || '') : '';
   const catColor = isOrgMat ? '#4A8C5C' : (CAT_COLORS[asset.category] || '#5A5850');
   const catLabel = isOrgMat ? (asset.material_type || 'MAT') : (asset.category || 'OTHER');
   const isContributed = !isOrgMat && asset.is_contributed;
+  const isCraftReady = Number(quality || 0) >= 800;
 
   return (
     <div style={{
@@ -76,7 +78,11 @@ function AssetRow({ asset, isOrgMat, onDelete, onDonate }) {
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 600,
           color: '#E8E4DC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{name}</div>
-        {loc && <div style={{ fontSize: 9, color: '#5A5850', marginTop: 1 }}>{loc}</div>}
+        {(location || custodian) && (
+          <div style={{ fontSize: 9, color: '#5A5850', marginTop: 1 }}>
+            {[location, custodian ? `Custody: ${custodian}` : null].filter(Boolean).join(' · ')}
+          </div>
+        )}
       </div>
 
       {/* Ownership badge */}
@@ -94,6 +100,15 @@ function AssetRow({ asset, isOrgMat, onDelete, onDonate }) {
           fontSize: 9, color: quality >= 800 ? '#C8A84B' : '#5A5850',
           minWidth: 35, textAlign: 'right',
         }}>Q{quality}</span>
+      )}
+
+      {isCraftReady && (
+        <span style={{
+          fontSize: 8, fontWeight: 700, padding: '2px 7px', borderRadius: 2,
+          color: '#C8A84B', background: 'rgba(200,168,75,0.10)',
+          border: '0.5px solid rgba(200,168,75,0.25)',
+          letterSpacing: '0.08em',
+        }}>CRAFT READY</span>
       )}
 
       {/* Condition */}
@@ -131,15 +146,45 @@ export default function AssetList({ materialAssets, orgMaterials, otherAssets, s
   const q = (search || '').toLowerCase();
 
   const filteredMats = useMemo(() =>
-    materialAssets.filter(a => !q || (a.item_name || '').toLowerCase().includes(q)),
+    materialAssets.filter((asset) => {
+      if (!q) return true;
+      const haystack = [
+        asset.item_name,
+        asset.category,
+        asset.location,
+        asset.notes,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
+    }),
     [materialAssets, q]
   );
   const filteredOrg = useMemo(() =>
-    orgMaterials.filter(m => !q || (m.material_name || '').toLowerCase().includes(q)),
+    orgMaterials.filter((material) => {
+      if (!q) return true;
+      const haystack = [
+        material.material_name,
+        material.material_type,
+        material.custodian_callsign,
+        material.logged_by_callsign,
+        material.held_in,
+        material.location,
+        material.container,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
+    }),
     [orgMaterials, q]
   );
   const filteredOther = useMemo(() =>
-    otherAssets.filter(a => !q || (a.item_name || '').toLowerCase().includes(q)),
+    otherAssets.filter((asset) => {
+      if (!q) return true;
+      const haystack = [
+        asset.item_name,
+        asset.category,
+        asset.location,
+        asset.notes,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
+    }),
     [otherAssets, q]
   );
 

@@ -17,6 +17,12 @@
     "sell_price_uex": {
       "type": "number"
     },
+    "buy_min_uex": {
+      "type": "number"
+    },
+    "sell_max_uex": {
+      "type": "number"
+    },
     "best_buy_terminal": {
       "type": "string"
     },
@@ -48,6 +54,12 @@
       "type": "number"
     },
     "npc_avg_sell": {
+      "type": "number"
+    },
+    "cax_score": {
+      "type": "number"
+    },
+    "trade_volume_uex": {
       "type": "number"
     },
     "price_synced_at": {

@@ -15,6 +15,7 @@
     "status": {
       "type": "string",
       "enum": [
+        "RUNNING",
         "SUCCESS",
         "PARTIAL",
         "FAILED"
@@ -26,6 +27,14 @@
     },
     "duration_ms": {
       "type": "integer"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lease_expires_at": {
+      "type": "string",
+      "format": "date-time"
     },
     "error_message": {
       "type": "string"
