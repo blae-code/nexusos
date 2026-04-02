@@ -5,7 +5,7 @@ import { listMemberDirectory } from '@/core/data/member-directory';
 import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useSession } from '@/core/data/SessionContext';
 import { qualityPercentFromRecord } from '@/core/data/quality';
-import { Boxes, Camera, Package, Plus, RefreshCw, Search, Shield, Users, Zap } from 'lucide-react';
+import { Boxes, Camera, Inbox, Package, Plus, RefreshCw, Search, Shield, Users, Zap } from 'lucide-react';
 import BlueprintOwnershipPanel from '@/apps/industry-hub/BlueprintOwnershipPanel';
 import FindCraftersTab from '@/apps/industry-hub/FindCraftersTab';
 import MaterialLifecycleTracker from '@/apps/industry-hub/MaterialLifecycleTracker';
@@ -19,6 +19,9 @@ import OcrScanner from './OcrScanner';
 import OcrResultsReview from './OcrResultsReview';
 import InventoryNetworkPanel from './InventoryNetworkPanel';
 import InventoryAssetRoster from './InventoryAssetRoster';
+import AssetReservationPanel from './AssetReservationPanel';
+import OpReadinessPanel from './OpReadinessPanel';
+import InventorySearchPanel from './InventorySearchPanel';
 
 const INVENTORY_VIEWS = [
   { id: 'holdings', label: 'HOLDINGS', icon: Boxes },
@@ -26,6 +29,7 @@ const INVENTORY_VIEWS = [
   { id: 'assets', label: 'ASSETS', icon: Package },
   { id: 'gear', label: 'GEAR', icon: Shield },
   { id: 'readiness', label: 'READINESS', icon: Zap },
+  { id: 'search', label: 'SEARCH', icon: Search },
 ];
 
 const SCOPES = [
@@ -221,6 +225,156 @@ function SectionBlock({ eyebrow, title, description, children }) {
   );
 }
 
+function TransferOfferRow({ transfer, onAccept, onDecline }) {
+  const [busy, setBusy] = useState(false);
+
+  const itemSummary = (transfer.items || [])
+    .map((item) => `${Number(item.quantity_scu || 0)} SCU ${item.material_name || item.material_type || ''}`.trim())
+    .filter(Boolean)
+    .join(', ');
+
+  const offeredAt = transfer.offered_at
+    ? new Date(transfer.offered_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    : '';
+
+  const handleAccept = async () => {
+    setBusy(true);
+    await onAccept(transfer);
+    setBusy(false);
+  };
+
+  const handleDecline = async () => {
+    setBusy(true);
+    await onDecline(transfer);
+    setBusy(false);
+  };
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '7px 0',
+        borderBottom: '0.5px solid rgba(200,170,100,0.06)',
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 10, color: '#E8E4DC' }}>
+          <span style={{ color: '#3498DB', fontWeight: 600 }}>{transfer.from_callsign || '—'}</span>
+          <span style={{ color: '#5A5850', margin: '0 6px' }}>→</span>
+          <span>{itemSummary || 'Transfer package'}</span>
+        </div>
+        <div style={{ fontSize: 9, color: '#5A5850', marginTop: 2, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {transfer.pickup_location && <span>From: {transfer.pickup_location}</span>}
+          {Number(transfer.aUEC) > 0 && <span style={{ color: '#C8A84B' }}>{Number(transfer.aUEC).toLocaleString()} aUEC</span>}
+          {offeredAt && <span>Offered {offeredAt}</span>}
+          {transfer.notes && <span style={{ color: '#9A9488', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{transfer.notes}</span>}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={handleDecline}
+        disabled={busy}
+        style={{
+          padding: '4px 10px',
+          background: 'transparent',
+          border: '0.5px solid rgba(192,57,43,0.35)',
+          borderRadius: 2,
+          color: busy ? '#5A5850' : '#C0392B',
+          fontSize: 9,
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 700,
+          cursor: busy ? 'not-allowed' : 'pointer',
+          letterSpacing: '0.08em',
+        }}
+      >
+        DECLINE
+      </button>
+      <button
+        type="button"
+        onClick={handleAccept}
+        disabled={busy}
+        style={{
+          padding: '4px 10px',
+          background: busy ? 'transparent' : 'rgba(74,140,92,0.12)',
+          border: `0.5px solid ${busy ? 'rgba(74,140,92,0.15)' : 'rgba(74,140,92,0.45)'}`,
+          borderRadius: 2,
+          color: busy ? '#5A5850' : '#4A8C5C',
+          fontSize: 9,
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 700,
+          cursor: busy ? 'not-allowed' : 'pointer',
+          letterSpacing: '0.08em',
+        }}
+      >
+        ACCEPT
+      </button>
+    </div>
+  );
+}
+
+function TransferInbox({ transfers, onAccept, onDecline }) {
+  if (!transfers || transfers.length === 0) return null;
+
+  return (
+    <div
+      style={{
+        marginBottom: 12,
+        background: '#0A0C10',
+        border: '0.5px solid rgba(52,152,219,0.22)',
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          padding: '7px 12px',
+          borderBottom: '0.5px solid rgba(52,152,219,0.12)',
+          background: 'rgba(52,152,219,0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <Inbox size={11} style={{ color: '#3498DB' }} />
+        <span
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 700,
+            fontSize: 10,
+            color: '#3498DB',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Transfer Offers
+        </span>
+        <span
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 9,
+            color: '#5A5850',
+            marginLeft: 4,
+          }}
+        >
+          {transfers.length} pending — accept to confirm receipt intent, decline to reject
+        </span>
+      </div>
+      <div style={{ padding: '4px 12px' }}>
+        {transfers.map((transfer) => (
+          <TransferOfferRow
+            key={transfer.id}
+            transfer={transfer}
+            onAccept={onAccept}
+            onDecline={onDecline}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AssetInventoryTab({
   blueprints = [],
   materials: orgMaterials = [],
@@ -244,6 +398,7 @@ export default function AssetInventoryTab({
   const [orgShips, setOrgShips] = useState([]);
   const [orgAssets, setOrgAssets] = useState([]);
   const [members, setMembers] = useState([]);
+  const [pendingTransfers, setPendingTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showOcr, setShowOcr] = useState(false);
@@ -252,17 +407,19 @@ export default function AssetInventoryTab({
   const [search, setSearch] = useState('');
 
   const load = useCallback(async () => {
-    const [assets, ships, assetsRegistry, directory] = await Promise.all([
+    const [assets, ships, assetsRegistry, directory, transfers] = await Promise.all([
       base44.entities.PersonalAsset.list('-logged_at', 500).catch(() => []),
       base44.entities.OrgShip.list('name', 300).catch(() => []),
       base44.entities.OrgAsset.list('-acquired_at', 500).catch(() => []),
       listMemberDirectory({ sort: '-last_seen_at', limit: 500 }).catch(() => []),
+      base44.entities.MaterialTransfer.filter({ status: 'OFFERED' }, '-offered_at', 100).catch(() => []),
     ]);
 
     setPersonalAssets(assets || []);
     setOrgShips(ships || []);
     setOrgAssets(assetsRegistry || []);
     setMembers(directory || []);
+    setPendingTransfers(transfers || []);
     setLoading(false);
   }, []);
 
@@ -277,6 +434,7 @@ export default function AssetInventoryTab({
       base44.entities.PersonalAsset.subscribe(scheduleRefresh),
       base44.entities.OrgShip.subscribe(scheduleRefresh),
       base44.entities.OrgAsset.subscribe(scheduleRefresh),
+      base44.entities.MaterialTransfer.subscribe(scheduleRefresh),
     ];
     return () => unsubs.forEach((unsub) => unsub());
   }, [scheduleRefresh]);
@@ -340,6 +498,32 @@ export default function AssetInventoryTab({
   const myInventory = useMemo(() => buildInventoryMap(myMaterialAssets, myOrgMaterials), [myMaterialAssets, myOrgMaterials]);
   const orgInventory = useMemo(() => buildInventoryMap([], orgNetworkMaterials), [orgNetworkMaterials]);
 
+  const myPendingTransfers = useMemo(() => {
+    if (!callsign) return [];
+    return pendingTransfers.filter((t) => matchesCallsign(t.to_callsign, callsign));
+  }, [pendingTransfers, callsign]);
+
+  const handleAcceptTransfer = useCallback(async (transfer) => {
+    try {
+      await base44.entities.MaterialTransfer.update(transfer.id, {
+        status: 'ACCEPTED',
+        confirmed_at: new Date().toISOString(),
+      });
+      void refreshNow();
+    } catch (err) {
+      console.error('[TransferInbox] accept failed:', err);
+    }
+  }, [refreshNow]);
+
+  const handleDeclineTransfer = useCallback(async (transfer) => {
+    try {
+      await base44.entities.MaterialTransfer.update(transfer.id, { status: 'CANCELLED' });
+      void refreshNow();
+    } catch (err) {
+      console.error('[TransferInbox] decline failed:', err);
+    }
+  }, [refreshNow]);
+
   const scopedCraftQueue = useMemo(() => {
     if (inventoryScope === 'org') return craftQueue;
     return craftQueue.filter((job) => {
@@ -388,6 +572,7 @@ export default function AssetInventoryTab({
         { label: 'ORG ASSETS', value: myOrgAssets.length, color: '#7AAECC' },
         { label: 'SHIPS', value: myShips.length, color: '#3498DB' },
         { label: 'PERSONAL VALUE', value: `${(myPersonalValue / 1000).toFixed(0)}K`, color: '#E8A020' },
+        ...(myPendingTransfers.length > 0 ? [{ label: 'INCOMING', value: myPendingTransfers.length, color: '#3498DB' }] : []),
       ]
     : [
         { label: 'MATERIAL LINES', value: orgNetworkMaterials.length, color: '#4A8C5C' },
@@ -424,7 +609,9 @@ export default function AssetInventoryTab({
       case 'gear':
         return 'Shared gear and ship components live here as the authoritative ArmoryItem manager. Armory reuses the same stock read-only.';
       case 'readiness':
-        return 'Measure craftability, follow lifecycle flow, and watch low-stock shortages against the current inventory basis.';
+        return 'Measure craftability, reserve assets for ops, cross-reference fleet readiness, and watch low-stock shortages against the current inventory basis.';
+      case 'search':
+        return 'Full-scope search across materials, personal assets, org assets, and ships in a single unified results view.';
       default:
         return '';
     }
@@ -445,15 +632,22 @@ export default function AssetInventoryTab({
   const renderHoldings = () => {
     if (inventoryScope === 'me') {
       return (
-        <AssetList
-          materialAssets={myMaterialAssets}
-          orgMaterials={myOrgMaterials}
-          otherAssets={otherAssets}
-          search={search}
-          onRefresh={refreshNow}
-          callsign={callsign}
-          members={members}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <TransferInbox
+            transfers={myPendingTransfers}
+            onAccept={handleAcceptTransfer}
+            onDecline={handleDeclineTransfer}
+          />
+          <AssetList
+            materialAssets={myMaterialAssets}
+            orgMaterials={myOrgMaterials}
+            otherAssets={otherAssets}
+            search={search}
+            onRefresh={refreshNow}
+            callsign={callsign}
+            members={members}
+          />
+        </div>
       );
     }
 
@@ -553,6 +747,22 @@ export default function AssetInventoryTab({
       </SectionBlock>
 
       <SectionBlock
+        eyebrow="Asset Reservations"
+        title="Schedule ships and assets for ops or personal use"
+        description="Reserve a ship or asset for a time window. Leaders confirm and activate reservations. Conflicts are detected before booking."
+      >
+        <AssetReservationPanel callsign={callsign} rank={rank} ships={orgShips} orgAssets={orgAssets} />
+      </SectionBlock>
+
+      <SectionBlock
+        eyebrow="Op Fleet Readiness"
+        title="Live ops cross-referenced against ship mission readiness"
+        description="See which ships in the fleet are fit for each active or upcoming op type, and which assets are unassigned and ready to deploy."
+      >
+        <OpReadinessPanel ships={orgShips} orgAssets={orgAssets} />
+      </SectionBlock>
+
+      <SectionBlock
         eyebrow="Lifecycle Flow"
         title="Material movement through scouting, refining, crafting, and sale"
         description="This flow view uses the same inventory scope to show whether readiness bottlenecks are in intake, refining, or fabrication."
@@ -574,6 +784,21 @@ export default function AssetInventoryTab({
         <LowStockAlerts materials={readinessMaterials} callsign={callsign} />
       </SectionBlock>
     </div>
+  );
+
+  const renderSearch = () => (
+    <SectionBlock
+      eyebrow="Unified Search"
+      title="Search across all inventory"
+      description="Query materials, personal assets, org assets, and ships in a single pass."
+    >
+      <InventorySearchPanel
+        materials={inventoryScope === 'me' ? myOrgMaterials : orgNetworkMaterials}
+        personalAssets={inventoryScope === 'me' ? myMaterialAssets.concat(otherAssets) : personalAssets}
+        orgAssets={inventoryScope === 'me' ? myOrgAssets : orgAssets}
+        orgShips={inventoryScope === 'me' ? myShips : orgShips}
+      />
+    </SectionBlock>
   );
 
   return (
@@ -798,6 +1023,7 @@ export default function AssetInventoryTab({
         {inventoryView === 'assets' && renderAssets()}
         {inventoryView === 'gear' && renderGear()}
         {inventoryView === 'readiness' && renderReadiness()}
+        {inventoryView === 'search' && renderSearch()}
       </div>
     </div>
   );

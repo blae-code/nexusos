@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
-import { AlertCircle, Boxes, MapPin, Package, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { AlertCircle, Boxes, MapPin, Minus, Package, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
 
 const ITEM_CATEGORIES = [
   { value: 'FPS', label: 'FPS GEAR' },
@@ -28,118 +28,125 @@ const RARITY_COLORS = {
   VERY_RARE: '#C8A84B',
 };
 
-function StockCard({ item, readOnly, onDelete }) {
+function StockCard({ item, readOnly, onDelete, onAdjust, onSetThreshold }) {
   const categoryColor = CATEGORY_COLORS[item.category] || '#5A5850';
   const rarityColor = RARITY_COLORS[item.rarity] || '#9A9488';
-  const isLowStock = Number(item.min_threshold || 0) > 0 && Number(item.quantity || 0) <= Number(item.min_threshold || 0);
+  const threshold = Number(item.min_threshold || 0);
+  const qty = Number(item.quantity || 0);
+  const isLowStock = threshold > 0 && qty <= threshold;
+  const [editingThreshold, setEditingThreshold] = useState(false);
+  const [thresholdInput, setThresholdInput] = useState(String(threshold || ''));
 
   return (
-    <div
-      style={{
-        background: '#11110E',
-        border: `0.5px solid ${isLowStock ? 'rgba(192,57,43,0.26)' : 'rgba(200,170,100,0.10)'}`,
-        borderLeft: `2px solid ${categoryColor}`,
-        borderRadius: 2,
-        padding: '12px 14px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 10,
-      }}
-    >
+    <div style={{
+      background: '#11110E',
+      border: `0.5px solid ${isLowStock ? 'rgba(192,57,43,0.26)' : 'rgba(200,170,100,0.10)'}`,
+      borderLeft: `2px solid ${categoryColor}`,
+      borderRadius: 2, padding: '12px 14px',
+      display: 'flex', alignItems: 'flex-start', gap: 10,
+    }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-          <span
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#E8E4DC',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {item.item_name}
-          </span>
-          <span
-            style={{
-              fontSize: 8,
-              fontWeight: 700,
-              padding: '2px 6px',
-              borderRadius: 2,
-              background: `${categoryColor}15`,
-              border: `0.5px solid ${categoryColor}40`,
-              color: categoryColor,
-              letterSpacing: '0.08em',
-            }}
-          >
-            {item.category || 'OTHER'}
-          </span>
-          <span
-            style={{
-              fontSize: 8,
-              fontWeight: 700,
-              padding: '2px 6px',
-              borderRadius: 2,
-              background: `${rarityColor}15`,
-              border: `0.5px solid ${rarityColor}35`,
-              color: rarityColor,
-              letterSpacing: '0.08em',
-            }}
-          >
-            {item.rarity || 'COMMON'}
-          </span>
+          <span style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
+            fontWeight: 700, color: '#E8E4DC', letterSpacing: '0.04em',
+          }}>{item.item_name}</span>
+          <span style={{
+            fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 2,
+            background: `${categoryColor}15`, border: `0.5px solid ${categoryColor}40`,
+            color: categoryColor, letterSpacing: '0.08em',
+          }}>{item.category || 'OTHER'}</span>
+          <span style={{
+            fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 2,
+            background: `${rarityColor}15`, border: `0.5px solid ${rarityColor}35`,
+            color: rarityColor, letterSpacing: '0.08em',
+          }}>{item.rarity || 'COMMON'}</span>
           {isLowStock && (
-            <span
-              style={{
-                fontSize: 8,
-                fontWeight: 700,
-                padding: '2px 6px',
-                borderRadius: 2,
-                background: 'rgba(192,57,43,0.10)',
-                border: '0.5px solid rgba(192,57,43,0.25)',
-                color: '#C0392B',
-                letterSpacing: '0.08em',
-              }}
-            >
-              LOW STOCK
-            </span>
+            <span style={{
+              fontSize: 8, fontWeight: 700, padding: '2px 6px', borderRadius: 2,
+              background: 'rgba(192,57,43,0.10)', border: '0.5px solid rgba(192,57,43,0.25)',
+              color: '#C0392B', letterSpacing: '0.08em',
+            }}>LOW STOCK</span>
           )}
         </div>
 
         {item.description && (
-          <div style={{ fontSize: 10, color: '#9A9488', marginBottom: 6 }}>
-            {item.description}
-          </div>
+          <div style={{ fontSize: 10, color: '#9A9488', marginBottom: 6 }}>{item.description}</div>
         )}
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 10, color: '#C8A84B', fontVariantNumeric: 'tabular-nums' }}>
-            Qty {Number(item.quantity || 0)}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {/* Quantity with ±1 controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {!readOnly && (
+              <button type="button" onClick={() => onAdjust(item, -1)}
+                style={{ background: 'none', border: 'none', color: '#5A5850', cursor: 'pointer', padding: 2, display: 'flex' }}>
+                <Minus size={10} />
+              </button>
+            )}
+            <span style={{
+              fontSize: 11, color: isLowStock ? '#C0392B' : '#C8A84B',
+              fontVariantNumeric: 'tabular-nums', fontFamily: 'monospace',
+              minWidth: 24, textAlign: 'center',
+            }}>
+              {qty}
+            </span>
+            {!readOnly && (
+              <button type="button" onClick={() => onAdjust(item, +1)}
+                style={{ background: 'none', border: 'none', color: '#4A8C5C', cursor: 'pointer', padding: 2, display: 'flex' }}>
+                <Plus size={10} />
+              </button>
+            )}
+          </div>
+
           {item.location && (
             <span style={{ fontSize: 10, color: '#5A5850' }}>
-              <MapPin size={10} style={{ verticalAlign: 'text-bottom', marginRight: 4 }} />
+              <MapPin size={10} style={{ verticalAlign: 'text-bottom', marginRight: 3 }} />
               {item.location}
             </span>
+          )}
+
+          {/* Threshold inline editor */}
+          {!readOnly && (
+            editingThreshold ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: 9, color: '#5A5850' }}>MIN:</span>
+                <input
+                  type="number" min="0"
+                  value={thresholdInput}
+                  onChange={e => setThresholdInput(e.target.value)}
+                  style={{
+                    width: 36, fontSize: 9, background: '#1A1A16',
+                    border: '0.5px solid rgba(200,170,100,0.2)', borderRadius: 2,
+                    color: '#E8E4DC', padding: '1px 4px', fontFamily: 'monospace',
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') { onSetThreshold(item, thresholdInput); setEditingThreshold(false); }
+                    if (e.key === 'Escape') setEditingThreshold(false);
+                  }}
+                  autoFocus
+                />
+                <button type="button"
+                  onClick={() => { onSetThreshold(item, thresholdInput); setEditingThreshold(false); }}
+                  style={{ fontSize: 9, background: 'none', border: 'none', color: '#4A8C5C', cursor: 'pointer' }}>✓</button>
+              </div>
+            ) : (
+              <button type="button"
+                onClick={() => { setThresholdInput(String(threshold || '')); setEditingThreshold(true); }}
+                style={{
+                  fontSize: 9, background: 'none', border: 'none',
+                  color: threshold > 0 ? '#9A9488' : '#3A3A30', cursor: 'pointer',
+                  fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.06em',
+                }}>
+                {threshold > 0 ? `MIN ${threshold}` : 'SET MIN'}
+              </button>
+            )
           )}
         </div>
       </div>
 
       {!readOnly && (
-        <button
-          type="button"
-          onClick={() => onDelete(item.id)}
-          title="Delete item"
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#5A5850',
-            cursor: 'pointer',
-            padding: 4,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
+        <button type="button" onClick={() => onDelete(item.id)} title="Delete item"
+          style={{ background: 'none', border: 'none', color: '#5A5850', cursor: 'pointer', padding: 4 }}>
           <Trash2 size={12} />
         </button>
       )}
@@ -166,7 +173,10 @@ export default function ArmoryStockPanel({
     description: '',
     quantity: '1',
     rarity: 'COMMON',
+    min_threshold: '',
   });
+  const [adjustingId, setAdjustingId] = useState(null);
+  const [adjustQty, setAdjustQty] = useState('');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -251,6 +261,7 @@ export default function ArmoryStockPanel({
         description: formData.description.trim(),
         location: formData.location.trim(),
         rarity: formData.rarity,
+        min_threshold: formData.min_threshold !== '' ? parseInt(formData.min_threshold, 10) : 0,
         last_restocked_at: new Date().toISOString(),
       });
 
@@ -261,6 +272,7 @@ export default function ArmoryStockPanel({
         description: '',
         quantity: '1',
         rarity: 'COMMON',
+        min_threshold: '',
       });
       setShowForm(false);
       await loadData();
@@ -276,6 +288,28 @@ export default function ArmoryStockPanel({
       await loadData();
     } catch (err) {
       setError(err.message || 'Failed to delete armory item');
+    }
+  };
+
+  const handleAdjustQuantity = async (item, delta) => {
+    const next = Math.max(0, Number(item.quantity || 0) + delta);
+    try {
+      await base44.entities.ArmoryItem.update(item.id, {
+        quantity: next,
+        ...(delta > 0 ? { last_restocked_at: new Date().toISOString() } : {}),
+      });
+      await loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to update quantity');
+    }
+  };
+
+  const handleSetThreshold = async (item, threshold) => {
+    try {
+      await base44.entities.ArmoryItem.update(item.id, { min_threshold: parseInt(threshold, 10) || 0 });
+      await loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to update threshold');
     }
   };
 
@@ -374,7 +408,7 @@ export default function ArmoryStockPanel({
           onSubmit={handleAddItem}
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.4fr 0.9fr 1fr 0.7fr 0.8fr',
+            gridTemplateColumns: '1.4fr 0.9fr 1fr 0.7fr 0.8fr 0.7fr',
             gap: 10,
             background: '#10100D',
             border: '0.5px solid rgba(200,170,100,0.12)',
@@ -432,6 +466,16 @@ export default function ArmoryStockPanel({
               </option>
             ))}
           </select>
+          <input
+            className="nexus-input"
+            type="number"
+            min="0"
+            value={formData.min_threshold}
+            onChange={(event) => setFormData((current) => ({ ...current, min_threshold: event.target.value }))}
+            placeholder="Low-stock min"
+            title="Alert when quantity falls at or below this number"
+            style={{ fontSize: 10 }}
+          />
           <textarea
             className="nexus-input"
             value={formData.description}
@@ -577,7 +621,14 @@ export default function ArmoryStockPanel({
                 }}
               >
                 {group.items.map((item) => (
-                  <StockCard key={item.id} item={item} readOnly={readOnly} onDelete={handleDeleteItem} />
+                  <StockCard
+                    key={item.id}
+                    item={item}
+                    readOnly={readOnly}
+                    onDelete={handleDeleteItem}
+                    onAdjust={handleAdjustQuantity}
+                    onSetThreshold={handleSetThreshold}
+                  />
                 ))}
               </div>
             </div>
