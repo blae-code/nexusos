@@ -7,8 +7,13 @@ import CommoditySelector from './analytics/CommoditySelector';
 import ProfitRouteRanker from './analytics/ProfitRouteRanker';
 import MarginHeatmap from './analytics/MarginHeatmap';
 import VolatilityTable from './analytics/VolatilityTable';
+import { useCountUp } from '@/core/hooks/useCountUp';
 
-function StatCard({ label, value, color = '#E8E4DC' }) {
+function StatCard({ label, rawValue, suffix = '', decimals = 0, color = '#E8E4DC' }) {
+  const animated = useCountUp(typeof rawValue === 'number' ? rawValue : 0);
+  const display = typeof rawValue === 'number'
+    ? `${decimals > 0 ? animated.toFixed(decimals) : fmt(Math.round(animated))}${suffix}`
+    : '—';
   return (
     <div style={{
       background: '#0F0F0D', borderLeft: '2px solid #C0392B',
@@ -17,7 +22,7 @@ function StatCard({ label, value, color = '#E8E4DC' }) {
       borderBottom: '0.5px solid rgba(200,170,100,0.10)',
       borderRadius: 2, padding: '16px 20px',
     }}>
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 26, color, letterSpacing: '0.02em', lineHeight: 1 }}>{value}</div>
+      <div className="nexus-count" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 26, color, letterSpacing: '0.02em', lineHeight: 1 }}>{display}</div>
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, color: '#5A5850', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 6 }}>{label}</div>
     </div>
   );
@@ -125,10 +130,10 @@ export default function AnalyticsTab() {
         <div>
           {/* Stat cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
-            <StatCard label="TOTAL TRADE VOLUME" value={`${fmt(totalVolume)} aUEC`} />
-            <StatCard label="BEST MARGIN TRADE" value={`${bestMargin.toFixed(1)}%`} color="#4A8C5C" />
-            <StatCard label="ACTIVE ROUTES" value={String(routes.length)} color="#C8A84B" />
-            <StatCard label="PRICE SNAPSHOTS" value={String(snapshots.length)} color="#3498DB" />
+            <StatCard label="TOTAL TRADE VOLUME" rawValue={totalVolume} suffix=" aUEC" />
+            <StatCard label="BEST MARGIN TRADE" rawValue={bestMargin} decimals={1} suffix="%" color="#4A8C5C" />
+            <StatCard label="ACTIVE ROUTES" rawValue={routes.length} color="#C8A84B" />
+            <StatCard label="PRICE SNAPSHOTS" rawValue={snapshots.length} color="#3498DB" />
           </div>
 
           {/* Charts */}

@@ -5,6 +5,7 @@ import { listMemberDirectory } from '@/core/data/member-directory';
 import { useCoalescedRefresh } from '@/core/hooks/useCoalescedRefresh';
 import { useSession } from '@/core/data/SessionContext';
 import { qualityPercentFromRecord } from '@/core/data/quality';
+import { useCountUp } from '@/core/hooks/useCountUp';
 import { Boxes, Camera, Inbox, Package, Plus, RefreshCw, Search, Shield, Users, Zap } from 'lucide-react';
 import BlueprintOwnershipPanel from '@/apps/industry-hub/BlueprintOwnershipPanel';
 import FindCraftersTab from '@/apps/industry-hub/FindCraftersTab';
@@ -143,7 +144,11 @@ function ViewButton({ view, active, onClick }) {
   );
 }
 
-function KpiCard({ label, value, color = '#E8E4DC' }) {
+function KpiCard({ label, value, rawValue, decimals = 0, suffix = '', color = '#E8E4DC' }) {
+  const animated = useCountUp(typeof rawValue === 'number' ? rawValue : 0);
+  const displayValue = typeof rawValue === 'number'
+    ? `${decimals > 0 ? animated.toFixed(decimals) : Math.round(animated)}${suffix}`
+    : value;
   return (
     <div
       style={{
@@ -156,6 +161,7 @@ function KpiCard({ label, value, color = '#E8E4DC' }) {
     >
       <div style={{ fontSize: 9, color: '#5A5850', letterSpacing: '0.1em', marginBottom: 2 }}>{label}</div>
       <div
+        className="nexus-count"
         style={{
           fontSize: 16,
           fontWeight: 700,
@@ -163,7 +169,7 @@ function KpiCard({ label, value, color = '#E8E4DC' }) {
           fontFamily: "'Barlow Condensed', sans-serif",
         }}
       >
-        {value}
+        {displayValue}
       </div>
     </div>
   );
@@ -566,21 +572,21 @@ export default function AssetInventoryTab({
 
   const kpis = inventoryScope === 'me'
     ? [
-        { label: 'HOLDING LINES', value: myMaterialLines, color: '#4A8C5C' },
-        { label: 'TOTAL SCU', value: myTotalScu.toFixed(1), color: '#C8A84B' },
-        { label: 'CRAFT READY', value: myCraftReady, color: '#C8A84B' },
-        { label: 'ORG ASSETS', value: myOrgAssets.length, color: '#7AAECC' },
-        { label: 'SHIPS', value: myShips.length, color: '#3498DB' },
-        { label: 'PERSONAL VALUE', value: `${(myPersonalValue / 1000).toFixed(0)}K`, color: '#E8A020' },
-        ...(myPendingTransfers.length > 0 ? [{ label: 'INCOMING', value: myPendingTransfers.length, color: '#3498DB' }] : []),
+        { label: 'HOLDING LINES', rawValue: myMaterialLines, color: '#4A8C5C' },
+        { label: 'TOTAL SCU', rawValue: myTotalScu, decimals: 1, color: '#C8A84B' },
+        { label: 'CRAFT READY', rawValue: myCraftReady, color: '#C8A84B' },
+        { label: 'ORG ASSETS', rawValue: myOrgAssets.length, color: '#7AAECC' },
+        { label: 'SHIPS', rawValue: myShips.length, color: '#3498DB' },
+        { label: 'PERSONAL VALUE', rawValue: myPersonalValue / 1000, decimals: 0, suffix: 'K', color: '#E8A020' },
+        ...(myPendingTransfers.length > 0 ? [{ label: 'INCOMING', rawValue: myPendingTransfers.length, color: '#3498DB' }] : []),
       ]
     : [
-        { label: 'MATERIAL LINES', value: orgNetworkMaterials.length, color: '#4A8C5C' },
-        { label: 'ORG SCU', value: orgTotalScu.toFixed(1), color: '#C8A84B' },
-        { label: 'CRAFT READY', value: orgCraftReady, color: '#C8A84B' },
-        { label: 'ORG ASSETS', value: orgAssets.length, color: '#7AAECC' },
-        { label: 'SHIPS', value: orgShips.length, color: '#3498DB' },
-        { label: 'HOLDERS', value: orgHolderCount, color: '#9A9488' },
+        { label: 'MATERIAL LINES', rawValue: orgNetworkMaterials.length, color: '#4A8C5C' },
+        { label: 'ORG SCU', rawValue: orgTotalScu, decimals: 1, color: '#C8A84B' },
+        { label: 'CRAFT READY', rawValue: orgCraftReady, color: '#C8A84B' },
+        { label: 'ORG ASSETS', rawValue: orgAssets.length, color: '#7AAECC' },
+        { label: 'SHIPS', rawValue: orgShips.length, color: '#3498DB' },
+        { label: 'HOLDERS', rawValue: orgHolderCount, color: '#9A9488' },
       ];
 
   const showSearch = ['holdings', 'network', 'assets'].includes(inventoryView);

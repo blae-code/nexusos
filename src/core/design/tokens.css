@@ -74,13 +74,27 @@
   initial-value: #B0A090;
 }
 
+@property --bg0 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #0A0A0A;
+}
+
+@property --b1 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #2C2A28;
+}
+
 :root {
-  transition: --acc 400ms ease;
+  transition: --acc 400ms ease, --bg0 400ms ease, --b1 400ms ease;
 }
 
 :root.op-live {
   --acc:     #C8A060;
   --acc-rgb: 200, 160, 96;
+  --bg0:     #0C0B09;
+  --b1:      #302C24;
 }
 
 /* ── Global reset and base ───────────────────────── */
