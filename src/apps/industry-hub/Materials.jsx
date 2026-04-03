@@ -6,6 +6,7 @@
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
+import { showToast } from '@/components/NexusToast';
 import { isT2Eligible, qualityPercentFromRecord, qualityScoreFromPercent } from '@/core/data/quality';
 import { Upload, ChevronDown, ChevronUp, Search, X, Check } from 'lucide-react';
 import { MaterialStatusPill } from '@/apps/industry-hub/IndustryVisuals';
@@ -190,7 +191,7 @@ export default function Materials({ materials, onRefresh }) {
       setReviewItems([]);
       onRefresh();
     } catch {
-      // confirm create failed
+      showToast('Failed to log materials — check your connection and try again.', 'error');
     }
     setConfirming(false);
   };
@@ -200,9 +201,14 @@ export default function Materials({ materials, onRefresh }) {
   // ── Archive (delete) ──────────────────────────────────
 
   const handleArchive = async (id) => {
-    await base44.entities.Material.delete(id);
-    setArchiveConfirmId(null);
-    onRefresh();
+    try {
+      await base44.entities.Material.delete(id);
+      setArchiveConfirmId(null);
+      onRefresh();
+    } catch {
+      showToast('Failed to archive material — check your connection and try again.', 'error');
+      setArchiveConfirmId(null);
+    }
   };
 
   // ── Render ────────────────────────────────────────────

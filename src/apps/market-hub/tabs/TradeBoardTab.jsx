@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { useSession } from '@/core/data/SessionContext';
+import { showToast } from '@/components/NexusToast';
 import { Plus, X } from 'lucide-react';
 import SmartSelect from '@/components/sc/SmartSelect';
 import SmartCombobox from '@/components/sc/SmartCombobox';
@@ -80,6 +81,8 @@ export default function TradeBoardTab() {
   const { user } = useSession();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     order_type: 'WTS',
@@ -106,11 +109,12 @@ export default function TradeBoardTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const nextOrders = await base44.entities.OrgTradeOrder.list('-created_date', 200);
       setOrders(nextOrders || []);
     } catch {
-      // load failed — empty state shown
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -122,43 +126,52 @@ export default function TradeBoardTab() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!form.item_name.trim()) return;
-
-    const now = new Date().toISOString();
-    await base44.entities.OrgTradeOrder.create({
-      ...form,
-      price_aUEC: parseInt(form.price_aUEC, 10) || 0,
-      quantity: parseInt(form.quantity, 10) || 1,
-      quality_score: parseInt(form.quality_score, 10) || 0,
-      posted_by_callsign: user?.callsign || '',
-      status: 'OPEN',
-      posted_at: now,
-    });
-
-    setShowForm(false);
-    setForm({
-      order_type: 'WTS',
-      item_name: '',
-      item_category: 'COMMODITY',
-      price_aUEC: '',
-      price_negotiable: false,
-      quantity: '1',
-      quality_score: '',
-      condition: 'GOOD',
-      system_location: '',
-      description: '',
-      post_to_uex: false,
-    });
-    load();
+    if (!form.item_name.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      const now = new Date().toISOString();
+      await base44.entities.OrgTradeOrder.create({
+        ...form,
+        price_aUEC: parseInt(form.price_aUEC, 10) || 0,
+        quantity: parseInt(form.quantity, 10) || 1,
+        quality_score: parseInt(form.quality_score, 10) || 0,
+        posted_by_callsign: user?.callsign || '',
+        status: 'OPEN',
+        posted_at: now,
+      });
+      setShowForm(false);
+      setForm({
+        order_type: 'WTS',
+        item_name: '',
+        item_category: 'COMMODITY',
+        price_aUEC: '',
+        price_negotiable: false,
+        quantity: '1',
+        quality_score: '',
+        condition: 'GOOD',
+        system_location: '',
+        description: '',
+        post_to_uex: false,
+      });
+      load();
+    } catch {
+      showToast('Failed to post order — check your connection and try again.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleFulfill = async (order) => {
-    await base44.entities.OrgTradeOrder.update(order.id, {
-      status: 'COMPLETED',
-      fulfilled_by_callsign: user?.callsign || '',
-      fulfilled_at: new Date().toISOString(),
-    });
-    load();
+    try {
+      await base44.entities.OrgTradeOrder.update(order.id, {
+        status: 'COMPLETED',
+        fulfilled_by_callsign: user?.callsign || '',
+        fulfilled_at: new Date().toISOString(),
+      });
+      load();
+    } catch {
+      showToast('Failed to fulfill order — check your connection and try again.', 'error');
+    }
   };
 
   const wts = orders.filter((order) => order.order_type === 'WTS');
@@ -168,6 +181,15 @@ export default function TradeBoardTab() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
         <div className="nexus-loading-dots" style={{ color: '#C8A84B' }}><span /><span /><span /></div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 60, gap: 10 }}>
+        <span style={{ fontSize: 11, color: 'var(--danger)' }}>Failed to load trade board — check your connection.</span>
+        <button onClick={load} className="nexus-btn" style={{ padding: '6px 16px', fontSize: 10 }}>RETRY</button>
       </div>
     );
   }
@@ -329,9 +351,10 @@ export default function TradeBoardTab() {
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '9px 24px', background: '#C8A84B', border: 'none', borderRadius: 2, color: '#161108', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', cursor: 'pointer' }}
+                  disabled={submitting}
+                  style={{ padding: '9px 24px', background: '#C8A84B', border: 'none', borderRadius: 2, color: '#161108', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.6 : 1 }}
                 >
-                  Post Order
+                  {submitting ? 'POSTING...' : 'Post Order'}
                 </button>
               </div>
             </form>

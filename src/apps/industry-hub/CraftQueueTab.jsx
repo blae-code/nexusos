@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
+import { showToast } from '@/components/NexusToast';
 import { Zap, Wrench } from 'lucide-react';
 import EmptyState from '@/core/design/EmptyState';
 import { RefineryFlow } from '@/core/design/Illustrations';
@@ -8,7 +9,7 @@ import RefineryEfficiencyCalculator from '@/apps/industry-hub/RefineryEfficiency
 import { OptimisedRow, DefaultRow } from './CraftQueueRows';
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function CraftQueueTab({ craftQueue, materials = [], blueprints = [] }) {
+export default function CraftQueueTab({ craftQueue, callsign, materials = [], blueprints = [] }) {
   const [optimising, setOptimising]         = useState(false);
   const [suggestedOrder, setSuggestedOrder] = useState(null); // null = off, [] = loaded
   const [optimiseError, setOptimiseError]   = useState('');
@@ -58,7 +59,11 @@ export default function CraftQueueTab({ craftQueue, materials = [], blueprints =
   };
 
   const handleClaim = async (id) => {
-    await nexusWriteApi.claimCraftQueue(id);
+    try {
+      await nexusWriteApi.claimCraftQueue(id);
+    } catch {
+      showToast('Failed to claim job — check your connection and try again.', 'error');
+    }
   };
 
   const isOptimised = suggestedOrder !== null && suggestedOrder.length > 0;

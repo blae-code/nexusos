@@ -4,6 +4,7 @@
  */
 import React, { useState } from 'react';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
+import { showToast } from '@/components/NexusToast';
 import NexusToken from '@/core/design/NexusToken';
 import { materialToken } from '@/core/data/tokenMap';
 import { qualityPercentFromRecord, qualityScoreFromPercent } from '@/core/data/quality';
@@ -32,14 +33,18 @@ export default function EditRow({ material, onSave, onCancel }) {
 
   const handleSave = async () => {
     const qualityPct = parseFloat(qual) || 0;
-    await nexusWriteApi.updateMaterial(material.id, {
-      quantity_scu: parseFloat(qty)  || 0,
-      quality_score: qualityScoreFromPercent(qualityPct),
-      quality_pct:  qualityPct,
-      material_type: type,
-      t2_eligible:  qualityPct >= 80,
-    });
-    onSave();
+    try {
+      await nexusWriteApi.updateMaterial(material.id, {
+        quantity_scu: parseFloat(qty)  || 0,
+        quality_score: qualityScoreFromPercent(qualityPct),
+        quality_pct:  qualityPct,
+        material_type: type,
+        t2_eligible:  qualityPct >= 80,
+      });
+      onSave();
+    } catch {
+      showToast('Failed to save changes — check your connection and try again.', 'error');
+    }
   };
 
   return (
