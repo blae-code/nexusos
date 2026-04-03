@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
+import { showToast } from '@/components/NexusToast';
 
 const THREAT_TYPES = ['PIRATE', 'GRIEFER', 'SERVER_ISSUES', 'SHIP_DOWN', 'MEDICAL', 'CARGO_LOSS', 'OTHER'];
 
@@ -16,30 +17,34 @@ export default function ThreatAlertModal({ op, callsign, onClose, onPosted }) {
   const handlePost = async () => {
     if (!description.trim()) return;
     setPosting(true);
+    try {
+      await sendNexusNotification({
+        type: 'OP_THREAT',
+        title: 'Threat Alert',
+        body: `${op.name}: [${threatType}] ${description.trim()}${op.system ? ` · ${op.system}` : ''}`,
+        severity: ['PIRATE', 'GRIEFER', 'SHIP_DOWN', 'MEDICAL', 'CARGO_LOSS'].includes(threatType) ? 'CRITICAL' : 'WARN',
+        target_user_id: null,
+        source_module: 'OPS',
+        source_id: op.id,
+      });
 
-    await sendNexusNotification({
-      type: 'OP_THREAT',
-      title: 'Threat Alert',
-      body: `${op.name}: [${threatType}] ${description.trim()}${op.system ? ` · ${op.system}` : ''}`,
-      severity: ['PIRATE', 'GRIEFER', 'SHIP_DOWN', 'MEDICAL', 'CARGO_LOSS'].includes(threatType) ? 'CRITICAL' : 'WARN',
-      target_user_id: null,
-      source_module: 'OPS',
-      source_id: op.id,
-    });
+      // Log to session
+      const entry = {
+        type: 'threat',
+        t: new Date().toISOString(),
+        author: callsign,
+        text: `⚠ ${threatType}: ${description.trim()}`,
+      };
+      const updated = [...(op.session_log || []), entry];
+      await base44.entities.Op.update(op.id, { session_log: updated });
 
-    // Log to session
-    const entry = {
-      type: 'threat',
-      t: new Date().toISOString(),
-      author: callsign,
-      text: `⚠ ${threatType}: ${description.trim()}`,
-    };
-    const updated = [...(op.session_log || []), entry];
-    await base44.entities.Op.update(op.id, { session_log: updated });
-
-    setPosting(false);
-    onPosted && onPosted({ ...op, session_log: updated });
-    onClose();
+      onPosted && onPosted({ ...op, session_log: updated });
+      onClose();
+    } catch {
+      showToast('Failed to send threat alert — check your connection and try again.', 'error');
+    } finally {
+      setPosting(false);
+    }
   };
 
   return (

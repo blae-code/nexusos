@@ -346,6 +346,24 @@ export default function OcrUploadPanel({ callsign, onComplete }) {
               </div>
             </div>
           )}
+
+          {result.screenshot_type === 'SHIP_STATUS' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ color: 'var(--warn)', fontSize: 9, letterSpacing: '0.12em', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <AlertTriangle size={11} /> SHIP STATUS — REVIEW BEFORE DISMISSING
+              </div>
+              {result.notes && <div style={{ color: 'var(--t2)', fontSize: 9, padding: '6px 8px', background: 'var(--bg2)', borderRadius: 4 }}>{result.notes}</div>}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={reset} className="nexus-btn" style={{ padding: '6px 14px', fontSize: 9 }}>DISCARD</button>
+                <button onClick={handleDone} style={{
+                  flex: 1, padding: '6px 0', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10,
+                  background: 'rgba(var(--live-rgb), 0.08)', border: '0.5px solid rgba(var(--live-rgb), 0.3)', color: 'var(--live)',
+                }}>
+                  ACKNOWLEDGED
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -335,6 +335,7 @@ export default function OpsTimeline() {
   const [rsvps, setRsvps] = useState([]);
   const [ships, setShips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [dragOp, setDragOp] = useState(null);
   const [rsvpTarget, setRsvpTarget] = useState(null);
   const [viewMode, setViewMode] = useState('timeline'); // 'timeline' | 'ships'
@@ -344,6 +345,7 @@ export default function OpsTimeline() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const [allOps, allRsvps, orgShips] = await Promise.all([
         base44.entities.Op.list('-scheduled_at', 100),
@@ -354,7 +356,7 @@ export default function OpsTimeline() {
       setRsvps(allRsvps || []);
       setShips(orgShips || []);
     } catch {
-      // load failed — ops/rsvps stay empty, spinner clears
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -458,6 +460,15 @@ export default function OpsTimeline() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
         <div className="nexus-loading-dots"><span /><span /><span /></div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 10 }}>
+        <span style={{ color: 'var(--danger)', fontSize: 11 }}>Failed to load timeline — check your connection.</span>
+        <button onClick={load} className="nexus-btn" style={{ padding: '6px 16px', fontSize: 10 }}>RETRY</button>
       </div>
     );
   }

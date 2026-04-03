@@ -19,6 +19,7 @@ import OpDebriefPanel from './debrief/OpDebriefPanel';
 import ShipRoleAssigner from './ship-roles/ShipRoleAssigner';
 import ShipRoleDisplay from './ship-roles/ShipRoleDisplay';
 import { isOpsLeader, isOpsPioneer } from './rankPolicies';
+import { showToast } from '@/components/NexusToast';
 
 function normalizeRoleSlots(slots) {
   if (!slots) return [];
@@ -135,7 +136,7 @@ export default function LiveOp() {
       }).catch(() => {});
       await fetchOp();
     } catch {
-      // activating failed — button re-enables via finally
+      showToast('Failed to go live — check your connection and try again.', 'error');
     } finally {
       setActivating(false);
     }
@@ -160,7 +161,7 @@ export default function LiveOp() {
       }).catch(() => {});
       navigate('/app/ops');
     } catch {
-      // navigation stays on page when the request fails
+      showToast('Failed to end operation — check your connection and try again.', 'error');
     } finally {
       setEnding(false);
     }
@@ -182,7 +183,7 @@ export default function LiveOp() {
       }).catch(() => {});
       await fetchOp();
     } catch {
-      // publishing failed — button re-enables via finally
+      showToast('Failed to publish op — check your connection and try again.', 'error');
     } finally {
       setPublishing(false);
     }

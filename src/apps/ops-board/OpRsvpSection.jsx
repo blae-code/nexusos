@@ -9,6 +9,7 @@
  */
 import React, { useState } from 'react';
 import { nexusWriteApi } from '@/core/data/nexus-write-api';
+import { showToast } from '@/components/NexusToast';
 
 function getRoleColor(roleName) {
   const lower = (roleName || '').toLowerCase();
@@ -123,7 +124,7 @@ export default function OpRsvpSection({ op, rsvps = [], sessionUserId }) {
       await nexusWriteApi.declineOpRsvp(op.id);
       window.dispatchEvent(new CustomEvent('op-rsvp-updated', { detail: { op_id: op.id } }));
     } catch {
-      // Handle error
+      showToast('Failed to leave op — check your connection and try again.', 'error');
     }
   };
 

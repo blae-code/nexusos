@@ -3,7 +3,8 @@
  * Props: { op, isLive, phases, currentPhase, startedAt, layoutMode, onLayoutChange, actions }
  */
 import React, { useState, useEffect } from 'react';
-import { Monitor, Maximize2 } from 'lucide-react';
+import { Monitor, Maximize2, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function ElapsedTimer({ startedAt }) {
   const [seconds, setSeconds] = useState(0);
@@ -83,6 +84,7 @@ function ActionButton({ label, tone = 'neutral', busy = false, onClick }) {
 }
 
 export default function LiveOpTopbar({ op, isLive, phases, currentPhase, startedAt, layoutMode, onLayoutChange, actions = [] }) {
+  const navigate = useNavigate();
   const activePhase = Array.isArray(phases) ? phases[currentPhase] : null;
   const phaseLabel = typeof activePhase === 'object'
     ? (activePhase?.name || `Phase ${currentPhase + 1}`)
@@ -103,6 +105,23 @@ export default function LiveOpTopbar({ op, isLive, phases, currentPhase, started
         gap: 12,
       }}
     >
+      {/* Back link */}
+      <button
+        onClick={() => navigate('/app/ops')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 3,
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: 'var(--t3)', fontSize: 9, fontFamily: 'var(--font)',
+          letterSpacing: '0.10em', textTransform: 'uppercase', flexShrink: 0,
+          padding: '4px 2px',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--t1)'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--t3)'; }}
+      >
+        <ChevronLeft size={12} />OPS
+      </button>
+      <div style={{ width: '0.5px', height: 16, background: 'var(--b1)', flexShrink: 0 }} />
+
       {/* Left: Live indicator + Op name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
         {isLive && (

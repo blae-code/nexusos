@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/core/data/base44Client';
 import { sendNexusNotification } from '@/core/data/nexus-notify';
+import { showToast } from '@/components/NexusToast';
 import NexusToken from '@/core/design/NexusToken';
 import { phaseToken } from '@/core/data/tokenMap';
 import { OPS_LEADER_RANKS } from './rankPolicies';
@@ -91,7 +92,7 @@ export default function PhaseTracker({ phases = [], currentPhase = 0, opId, opNa
       });
       onAdvance?.(nextPhase);
     } catch {
-      // phase update failed — UI stays on current phase
+      showToast('Failed to advance phase — check your connection and try again.', 'error');
     } finally {
       setTimeout(() => setAdvancingIndex(null), 300);
     }
