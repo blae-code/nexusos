@@ -1,5 +1,5 @@
 /**
- * FleetHealthDashboard — Visualizes org fleet health from OrgShip entity.
+ * FleetHealthDashboard — Visualizes tracked ship support status from OrgShip.
  * Shows status distribution, cargo capacity, crew readiness, and dispatch-ready ships.
  */
 import React, { useMemo } from 'react';
@@ -201,7 +201,7 @@ export default function FleetHealthDashboard({ orgShips = [] }) {
         <div style={{
           fontFamily: "'Barlow', sans-serif", fontSize: 10,
           color: '#3A3830', marginTop: 4,
-        }}>Register ships in Fleet Hub to populate fleet health</div>
+        }}>Register ships through Industry inventory to populate ship support data</div>
       </div>
     );
   }
@@ -212,7 +212,7 @@ export default function FleetHealthDashboard({ orgShips = [] }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Summary stats */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <MiniStat icon={Ship} label="FLEET SIZE" value={stats.active.length}
+        <MiniStat icon={Ship} label="SHIP COUNT" value={stats.active.length}
           sub={`${stats.available.length} available · ${stats.assigned.length} assigned`}
           color="#E8E4DC" />
         <MiniStat icon={CheckCircle2} label="DISPATCH READY" value={stats.dispatchReady.length}

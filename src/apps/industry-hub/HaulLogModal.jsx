@@ -65,7 +65,6 @@ const lbl = {
 
 function MiningRow({ line, index, onUpdate, onRemove, canRemove }) {
   const qColor = qualityColor(line.quality);
-  const resolvedName = line.name === CUSTOM_OPTION ? line.custom : line.name;
 
   return (
     <div style={{
@@ -239,7 +238,7 @@ function SalvageRow({ line, index, onUpdate, onRemove, canRemove }) {
 
 // ─── Sale section ─────────────────────────────────────────────────────────────
 
-function SaleSection({ lines, mode, destination, setDestination, salePrices, setSalePrices }) {
+function SaleSection({ lines, destination, setDestination, salePrices, setSalePrices }) {
   const validLines = lines.filter(l => l.name && parseFloat(l.scu) > 0);
 
   return (
@@ -300,6 +299,7 @@ export default function HaulLogModal({ onClose, onRefresh, callsign: propCallsig
   const [location, setLocation] = useState('');
   const [miningLines, setMiningLines] = useState([{ ...EMPTY_MINING }]);
   const [salvageLines, setSalvageLines] = useState([{ ...EMPTY_SALVAGE }]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [showSale, setShowSale] = useState(false);
   const [destination, setDestination] = useState('');
   const [salePrices, setSalePrices] = useState({});
@@ -321,6 +321,8 @@ export default function HaulLogModal({ onClose, onRefresh, callsign: propCallsig
   });
   const totalScu = validLines.reduce((s, l) => s + (parseFloat(l.scu) || 0), 0);
   const canSubmit = validLines.length > 0 && !submitting;
+  const hiddenDetailsCount = Math.max(0, lines.length - 1);
+  const hasHiddenDetails = hiddenDetailsCount > 0 || location.trim() || showSale || destination.trim();
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -469,32 +471,42 @@ export default function HaulLogModal({ onClose, onRefresh, callsign: propCallsig
             ))}
           </div>
 
-          {/* Location row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 10 }}>
-            <div>
-              <label style={lbl}>SYSTEM</label>
-              <SmartSelect
-                value={system}
-                onChange={setSystem}
-                options={systemOptions}
-                theme="tactical"
-                storageKey="nexus-haul:system"
-              />
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '8px 10px',
+            border: '0.5px solid var(--b1)',
+            borderRadius: 3,
+            background: 'var(--bg2)',
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: 'var(--t1)', fontSize: 10, letterSpacing: '0.08em' }}>
+                {showAdvanced
+                  ? 'Advanced haul form unlocked'
+                  : 'Quick entry keeps this to one line and uses STANTON until expanded'}
+              </div>
+              {(showAdvanced || hasHiddenDetails) && (
+                <div style={{ color: 'var(--t3)', fontSize: 9, marginTop: 2 }}>
+                  {showAdvanced
+                    ? 'Location, multi-line entry, and optional sale logging are open below.'
+                    : [
+                        hiddenDetailsCount > 0 ? `${hiddenDetailsCount} extra line${hiddenDetailsCount > 1 ? 's' : ''} hidden` : null,
+                        location.trim() ? 'location saved' : null,
+                        showSale ? 'sale logging enabled' : null,
+                      ].filter(Boolean).join(' · ')}
+                </div>
+              )}
             </div>
-            <div>
-              <label style={lbl}>{mode === 'mining' ? 'ROCK / BELT / MOON' : 'WRECK / LOCATION'}</label>
-              <input
-                style={inp}
-                value={location}
-                onChange={e => setLocation(e.target.value)}
-                placeholder={mode === 'mining'
-                  ? 'e.g. Yela Belt Alpha, Cellin surface...'
-                  : 'e.g. Derelict Reclaimer, Magnus II orbit...'}
-              />
-            </div>
+            <button
+              onClick={() => setShowAdvanced(v => !v)}
+              className="nexus-btn"
+              style={{ padding: '5px 10px', fontSize: 9, whiteSpace: 'nowrap' }}
+            >
+              {showAdvanced ? 'HIDE DETAILS' : 'EXPAND DETAILS'}
+            </button>
           </div>
 
-          {/* Column headers */}
           <div>
             <div style={{
               display: 'grid',
@@ -511,8 +523,26 @@ export default function HaulLogModal({ onClose, onRefresh, callsign: propCallsig
               <span />
             </div>
 
-            {/* Material lines */}
-            {mode === 'mining'
+            {!showAdvanced && mode === 'mining' && miningLines[0] && (
+              <MiningRow
+                line={miningLines[0]}
+                index={0}
+                onUpdate={updateLine}
+                onRemove={removeLine}
+                canRemove={false}
+              />
+            )}
+            {!showAdvanced && mode === 'salvage' && salvageLines[0] && (
+              <SalvageRow
+                line={salvageLines[0]}
+                index={0}
+                onUpdate={updateLine}
+                onRemove={removeLine}
+                canRemove={false}
+              />
+            )}
+
+            {showAdvanced && (mode === 'mining'
               ? miningLines.map((line, i) => (
                 <MiningRow
                   key={i}
@@ -533,48 +563,79 @@ export default function HaulLogModal({ onClose, onRefresh, callsign: propCallsig
                   canRemove={salvageLines.length > 1}
                 />
               ))
-            }
+            )}
 
-            {/* Add line */}
-            <button
-              onClick={addLine}
-              className="nexus-btn"
-              style={{ marginTop: 8, padding: '5px 12px', fontSize: 9, display: 'flex', alignItems: 'center', gap: 5 }}
-            >
-              <Plus size={10} />
-              ADD LINE
-            </button>
-          </div>
-
-          {/* Also log sale (collapsible) */}
-          <div style={{ border: '0.5px solid var(--b1)', borderRadius: 3, overflow: 'hidden' }}>
-            <button
-              onClick={() => setShowSale(v => !v)}
-              style={{
-                width: '100%', background: showSale ? 'var(--bg2)' : 'var(--bg1)',
-                border: 'none', borderBottom: showSale ? '0.5px solid var(--b1)' : 'none',
-                color: 'var(--t1)', fontFamily: 'inherit', fontSize: 10,
-                padding: '9px 12px', textAlign: 'left', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}
-            >
-              {showSale ? <ChevronDown size={11} style={{ color: 'var(--t2)' }} /> : <ChevronRight size={11} style={{ color: 'var(--t2)' }} />}
-              <span style={{ letterSpacing: '0.08em' }}>Also log sale to Coffer</span>
-              <span style={{ fontSize: 9, color: 'var(--t3)', marginLeft: 4 }}>optional — records revenue in Market Analytics</span>
-            </button>
-            {showSale && (
-              <div style={{ padding: '12px 12px' }}>
-                <SaleSection
-                  lines={lines}
-                  mode={mode}
-                  destination={destination}
-                  setDestination={setDestination}
-                  salePrices={salePrices}
-                  setSalePrices={setSalePrices}
-                />
+            {showAdvanced ? (
+              <button
+                onClick={addLine}
+                className="nexus-btn"
+                style={{ marginTop: 8, padding: '5px 12px', fontSize: 9, display: 'flex', alignItems: 'center', gap: 5 }}
+              >
+                <Plus size={10} />
+                ADD LINE
+              </button>
+            ) : (
+              <div style={{ marginTop: 8, color: 'var(--t3)', fontSize: 9 }}>
+                Expand details for multi-line haul entries, route notes, and sale logging.
               </div>
             )}
           </div>
+
+          {showAdvanced && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 10 }}>
+                <div>
+                  <label style={lbl}>SYSTEM</label>
+                  <SmartSelect
+                    value={system}
+                    onChange={setSystem}
+                    options={systemOptions}
+                    theme="tactical"
+                    storageKey="nexus-haul:system"
+                  />
+                </div>
+                <div>
+                  <label style={lbl}>{mode === 'mining' ? 'ROCK / BELT / MOON' : 'WRECK / LOCATION'}</label>
+                  <input
+                    style={inp}
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    placeholder={mode === 'mining'
+                      ? 'e.g. Yela Belt Alpha, Cellin surface...'
+                      : 'e.g. Derelict Reclaimer, Magnus II orbit...'}
+                  />
+                </div>
+              </div>
+
+              <div style={{ border: '0.5px solid var(--b1)', borderRadius: 3, overflow: 'hidden' }}>
+                <button
+                  onClick={() => setShowSale(v => !v)}
+                  style={{
+                    width: '100%', background: showSale ? 'var(--bg2)' : 'var(--bg1)',
+                    border: 'none', borderBottom: showSale ? '0.5px solid var(--b1)' : 'none',
+                    color: 'var(--t1)', fontFamily: 'inherit', fontSize: 10,
+                    padding: '9px 12px', textAlign: 'left', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  {showSale ? <ChevronDown size={11} style={{ color: 'var(--t2)' }} /> : <ChevronRight size={11} style={{ color: 'var(--t2)' }} />}
+                  <span style={{ letterSpacing: '0.08em' }}>Also log sale to Coffer</span>
+                  <span style={{ fontSize: 9, color: 'var(--t3)', marginLeft: 4 }}>optional — records revenue in Market Analytics</span>
+                </button>
+                {showSale && (
+                  <div style={{ padding: '12px 12px' }}>
+                    <SaleSection
+                      lines={lines}
+                      destination={destination}
+                      setDestination={setDestination}
+                      salePrices={salePrices}
+                      setSalePrices={setSalePrices}
+                    />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
         </div>
 

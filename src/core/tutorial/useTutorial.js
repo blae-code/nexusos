@@ -4,10 +4,10 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { safeLocalStorage } from '@/core/data/safe-storage';
-import { base44 } from '@/core/data/base44Client';
 import { TOUR_STEPS, GETTING_STARTED_ITEMS } from './tutorialSteps';
 
 const STORAGE_KEY = 'nexusos:tutorial';
+const VALID_ITEM_IDS = new Set(['complete_tour', ...GETTING_STARTED_ITEMS.map((item) => item.id)]);
 
 function loadLocal() {
   try {
@@ -20,6 +20,10 @@ function saveLocal(state) {
   safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function normalizeCompletedItems(items) {
+  return [...new Set((items || []).filter((itemId) => VALID_ITEM_IDS.has(itemId)))];
+}
+
 const DEFAULT_STATE = {
   tourComplete: false,
   tourStep: 0,
@@ -30,20 +34,21 @@ const DEFAULT_STATE = {
 
 export function useTutorial(user) {
   const [state, setState] = useState(() => loadLocal() || DEFAULT_STATE);
+  const completedItems = normalizeCompletedItems(state.completedItems);
 
   // Sync from user entity on load
   useEffect(() => {
     if (!user?.id) return;
     const local = loadLocal();
     if (local) {
-      setState(local);
+      setState({ ...local, completedItems: normalizeCompletedItems(local.completedItems) });
     }
   }, [user?.id]);
 
   // Persist to localStorage on every change
   useEffect(() => {
-    saveLocal(state);
-  }, [state]);
+    saveLocal({ ...state, completedItems });
+  }, [completedItems, state]);
 
   const startTour = useCallback(() => {
     setState(prev => ({ ...prev, tourActive: true, tourStep: 0 }));
@@ -59,8 +64,8 @@ export function useTutorial(user) {
           tourStep: 0,
           tourComplete: true,
           completedItems: prev.completedItems.includes('complete_tour')
-            ? prev.completedItems
-            : [...prev.completedItems, 'complete_tour'],
+            ? normalizeCompletedItems(prev.completedItems)
+            : normalizeCompletedItems([...prev.completedItems, 'complete_tour']),
         };
       }
       return { ...prev, tourStep: next };
@@ -81,14 +86,14 @@ export function useTutorial(user) {
   const completeItem = useCallback((itemId) => {
     setState(prev => {
       if (prev.completedItems.includes(itemId)) return prev;
-      return { ...prev, completedItems: [...prev.completedItems, itemId] };
+      return { ...prev, completedItems: normalizeCompletedItems([...prev.completedItems, itemId]) };
     });
   }, []);
 
   const uncompleteItem = useCallback((itemId) => {
     setState(prev => ({
       ...prev,
-      completedItems: prev.completedItems.filter(id => id !== itemId),
+      completedItems: normalizeCompletedItems(prev.completedItems.filter(id => id !== itemId)),
     }));
   }, []);
 
@@ -105,14 +110,15 @@ export function useTutorial(user) {
   }, []);
 
   const progress = GETTING_STARTED_ITEMS.length > 0
-    ? Math.round((state.completedItems.length / GETTING_STARTED_ITEMS.length) * 100)
+    ? Math.round((completedItems.length / GETTING_STARTED_ITEMS.length) * 100)
     : 0;
 
   return {
     ...state,
+    completedItems,
     progress,
     totalItems: GETTING_STARTED_ITEMS.length,
-    completedCount: state.completedItems.length,
+    completedCount: completedItems.length,
     startTour,
     nextStep,
     prevStep,

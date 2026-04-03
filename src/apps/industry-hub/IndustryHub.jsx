@@ -36,34 +36,34 @@ import HaulLogModal from '@/apps/industry-hub/HaulLogModal';
 import { RefineryFlow } from '@/core/design/Illustrations';
 
 const TABS = [
-  { id: 'overview', label: 'OVERVIEW' },
-  { id: 'guide', label: 'GUIDE' },
-  { id: 'materials', label: 'MATERIALS' },
-  { id: 'inventory', label: 'INVENTORY' },
-  { id: 'blueprints', label: 'BLUEPRINTS' },
-  { id: 'craft', label: 'CRAFT QUEUE' },
-  { id: 'production', label: 'PRODUCTION' },
-  { id: 'refinery', label: 'REFINERY' },
-  { id: 'logistics', label: 'LOGISTICS' },
-  { id: 'commerce', label: 'COMMERCE' },
-  { id: 'cargo', label: 'CARGO' },
-  { id: 'prices', label: 'PRICES' },
-  { id: 'analytics', label: 'ANALYTICS' },
-  { id: 'components', label: 'COMPONENTS' },
-  { id: 'coffer', label: 'COFFER' },
-  { id: 'treasury', label: 'TREASURY' },
-  { id: 'requisitions', label: 'REQUISITIONS' },
-  { id: 'forecast', label: 'FORECAST' },
-  { id: 'pipeline', label: 'PIPELINE' },
-  { id: 'craftable', label: 'CRAFTABLE' },
-  { id: 'missions', label: 'MISSIONS' },
-  { id: 'dismantle', label: 'DISMANTLE' },
-  { id: 'wishlist', label: 'WISHLIST' },
-  { id: 'costcalc', label: 'COST CALC' },
-  { id: 'cargoplanner', label: 'SCU PLAN' },
-  { id: 'marketplace', label: 'MARKETPLACE' },
-  { id: 'profitroute', label: 'PROFIT ROUTE' },
-  { id: 'stockforecast', label: 'STOCK FORECAST' },
+  { id: 'overview', label: 'OVERVIEW', section: 'production' },
+  { id: 'guide', label: 'GUIDE', section: 'production' },
+  { id: 'materials', label: 'MATERIALS', section: 'production' },
+  { id: 'inventory', label: 'INVENTORY', section: 'production' },
+  { id: 'blueprints', label: 'BLUEPRINTS', section: 'production' },
+  { id: 'craft', label: 'CRAFT QUEUE', section: 'production' },
+  { id: 'production', label: 'PRODUCTION', section: 'production' },
+  { id: 'refinery', label: 'REFINERY', section: 'production' },
+  { id: 'components', label: 'COMPONENTS', section: 'production' },
+  { id: 'craftable', label: 'CRAFTABLE', section: 'production' },
+  { id: 'wishlist', label: 'WISHLIST', section: 'production' },
+  { id: 'costcalc', label: 'COST CALC', section: 'production' },
+  { id: 'prices', label: 'PRICES', section: 'market' },
+  { id: 'analytics', label: 'ANALYTICS', section: 'market' },
+  { id: 'commerce', label: 'COMMERCE', section: 'market' },
+  { id: 'coffer', label: 'COFFER', section: 'market' },
+  { id: 'treasury', label: 'TREASURY', section: 'market' },
+  { id: 'marketplace', label: 'MARKETPLACE', section: 'market' },
+  { id: 'profitroute', label: 'PROFIT ROUTE', section: 'market' },
+  { id: 'logistics', label: 'LOGISTICS', section: 'logistics' },
+  { id: 'cargo', label: 'CARGO', section: 'logistics' },
+  { id: 'requisitions', label: 'REQUISITIONS', section: 'logistics' },
+  { id: 'forecast', label: 'FORECAST', section: 'logistics' },
+  { id: 'pipeline', label: 'PIPELINE', section: 'logistics' },
+  { id: 'missions', label: 'MISSIONS', section: 'logistics' },
+  { id: 'dismantle', label: 'DISMANTLE', section: 'logistics' },
+  { id: 'cargoplanner', label: 'SCU PLAN', section: 'logistics' },
+  { id: 'stockforecast', label: 'STOCK FORECAST', section: 'logistics' },
 ];
 
 const INVENTORY_SCOPES = new Set(['me', 'org']);
@@ -123,7 +123,7 @@ function RefineryTab({ refineryOrders, materials, callsign }) {
             className="nexus-btn primary"
             style={{ width: '100%', padding: '8px 12px', fontSize: 10 }}
           >
-            + NEW REFINERY BATCH
+            NEW ORDER +
           </button>
         </div>
       )}

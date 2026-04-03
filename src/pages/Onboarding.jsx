@@ -129,7 +129,7 @@ function Step1Welcome({ callsign, onContinue }) {
         <div style={{ fontSize: 9, color: 'var(--t3)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Welcome,</div>
         <div style={{ fontSize: 26, color: 'var(--t0)', fontWeight: 500, letterSpacing: '0.05em' }}>{callsign}</div>
         <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.6, maxWidth: 360, margin: '0 auto' }}>
-          This is Redscar Nomads' operational coordination platform. It helps us plan missions, track resources, and stay organized across the verse.
+          This is Redscar Nomads&apos; industry-first production workspace. The current release is centered on mining, salvaging, crafting, inventory control, and market visibility.
         </div>
       </div>
       <ContinueButton onClick={onContinue} finalStyle />
@@ -141,11 +141,11 @@ function Step1Welcome({ callsign, onContinue }) {
 
 function Step2HowItWorks({ onContinue }) {
   const bullets = [
-    { text: 'Industry Hub — Material tracking, refinery management, crafting queue, blueprint registry, and market prices.', color: '#C8A84B' },
-    { text: 'Ops Board — Plan, schedule, and run live operations with crew coordination and financial wrap-ups.', color: '#C0392B' },
-    { text: 'Scout Intel — Log and share deposit locations, plan mining routes, and track discoveries.', color: '#7AAECC' },
-    { text: 'Armory & Fleet — Manage org ships, equipment checkouts, and fleet readiness.', color: '#2edb7a' },
-    { text: 'Your data is private to Redscar Nomads. Pioneer rank grants admin access. Your callsign can be changed anytime in Settings.', color: '#9A9488' },
+    { text: 'Industry Hub is the live production surface for haul logging, material custody, refinery flow, blueprints, and craft management.', color: '#C8A84B' },
+    { text: 'Market Hub is the live market surface for cached commodity prices, route planning, analytics, and org trade visibility.', color: '#7AAECC' },
+    { text: 'Inventory now lives inside Industry Hub so personal holdings, org stock, shared gear, and craft readiness stay aligned.', color: '#2edb7a' },
+    { text: 'Other NexusOS modules are intentionally hidden as future features until the industrial release is production-ready.', color: '#C0392B' },
+    { text: 'Your data remains private to Redscar Nomads and is used only for authenticated platform operations.', color: '#9A9488' },
   ];
 
   return (
@@ -171,7 +171,7 @@ function Step2HowItWorks({ onContinue }) {
 function StepInstallPWA({ onContinue }) {
   const tips = [
     { icon: '📲', title: 'Install as an App', text: 'When prompted by your browser, tap "Install" or "Add to Home Screen" to pin NexusOS. On desktop Chrome, look for the install icon in the address bar.' },
-    { icon: '🖥️', title: 'Use in Fullscreen', text: 'For the best experience — especially during live ops — run NexusOS in fullscreen mode (F11 on desktop or launch from home screen on mobile).' },
+    { icon: '🖥️', title: 'Use in Fullscreen', text: 'For the cleanest mining, salvage, and crafting workflow, run NexusOS in fullscreen mode or launch it from your home screen.' },
     { icon: '🔄', title: 'Always Up to Date', text: 'The app updates automatically in the background. No app store downloads required — just open it and you\'re always on the latest version.' },
   ];
 
@@ -202,7 +202,7 @@ function StepInstallPWA({ onContinue }) {
 
 /* ── Step 4: Privacy + Consent (combined — eliminates dead-end) ───────── */
 
-function StepPrivacyConsent({ user, onComplete }) {
+function StepPrivacyConsent({ onComplete }) {
   const scrollRef = useRef(null);
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
   const [consent1, setConsent1] = useState(false);
@@ -341,7 +341,7 @@ function StepPrivacyConsent({ user, onComplete }) {
           </button>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 1 }}>
             <span style={{ color: 'var(--t1)', fontSize: 11 }}>Enable AI-assisted features</span>
-            <span style={{ color: 'var(--t3)', fontSize: 9 }}>Helps surface insights and recommendations. Can be changed later in Settings.</span>
+            <span style={{ color: 'var(--t3)', fontSize: 9 }}>Helps surface insights and recommendations across the current Industry and Market workflows.</span>
           </div>
         </div>
       </div>
@@ -463,7 +463,7 @@ export default function Onboarding() {
           {step === 0 && <Step1Welcome callsign={user.callsign} onContinue={() => setStep(1)} />}
           {step === 1 && <Step2HowItWorks onContinue={() => setStep(2)} />}
           {step === 2 && <StepInstallPWA onContinue={() => setStep(3)} />}
-          {step === 3 && <StepPrivacyConsent user={user} onComplete={handleComplete} />}
+          {step === 3 && <StepPrivacyConsent onComplete={handleComplete} />}
         </div>
 
         {/* Back button — visible on steps 1-2 */}

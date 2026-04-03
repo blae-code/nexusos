@@ -99,15 +99,15 @@ export default function IndustryOverview({
         </div>
       </section>
 
-      {/* Fleet Health */}
+      {/* Ship Support Snapshot */}
       <section>
-        <SectionHeader>FLEET HEALTH</SectionHeader>
+        <SectionHeader>SHIP SUPPORT SNAPSHOT</SectionHeader>
         <FleetHealthDashboard orgShips={orgShips} />
       </section>
 
-      {/* Scout Intel Feed */}
+      {/* Deposit Signals */}
       <section>
-        <SectionHeader>SCOUT INTEL FEED</SectionHeader>
+        <SectionHeader>DEPOSIT SIGNALS</SectionHeader>
         <div style={{
           background: '#0F0F0D',
           borderLeft: '2px solid #C0392B',
@@ -122,7 +122,7 @@ export default function IndustryOverview({
               padding: '24px 0', textAlign: 'center',
               fontFamily: "'Earth Orbiter','EarthOrbiter','Barlow Condensed',sans-serif",
               fontSize: 11, color: '#5A5850', textTransform: 'uppercase',
-            }}>NO FRESH INTEL</div>
+            }}>NO RECENT SIGNALS</div>
           )}
         </div>
       </section>

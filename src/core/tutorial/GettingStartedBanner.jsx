@@ -1,7 +1,7 @@
 /**
  * GettingStartedBanner — Slim, non-intrusive banner at top of main content.
  * Collapsed by default to a single row. Expands on click to show checklist.
- * Once dismissed, it never reappears unless user explicitly re-enables via Settings or Help button.
+ * Once dismissed, it never reappears unless user explicitly re-enables via the help button.
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -181,7 +181,7 @@ export default function GettingStartedBanner({ tutorial }) {
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.borderColor = 'var(--danger-b)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--t3)'; e.currentTarget.style.borderColor = 'transparent'; }}
-            title="Dismiss permanently — reopen via Settings or the Help button (bottom-right)"
+            title="Dismiss permanently — reopen via the help button (bottom-right)"
           >
             <X size={12} />
           </button>
@@ -224,7 +224,7 @@ export default function GettingStartedBanner({ tutorial }) {
             marginTop: 10, fontSize: 9, color: 'var(--t3)', textAlign: 'center',
             letterSpacing: '0.06em',
           }}>
-            Dismiss this banner with ✕ — you can always re-enable it from Settings or the help button (bottom-right).
+            Dismiss this banner with ✕. You can always re-enable it from the help button.
           </div>
         </div>
       )}

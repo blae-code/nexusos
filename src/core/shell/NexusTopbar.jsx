@@ -4,6 +4,7 @@ import { Bell, Menu } from 'lucide-react';
 import { base44 } from '@/core/data/base44Client';
 import { listMemberDirectory } from '@/core/data/member-directory';
 import { useSession } from '@/core/data/SessionContext';
+import { getFutureFeatureDescriptor } from '@/core/shell/futureFeatures';
 import NexusToken from '@/core/design/NexusToken';
 import { rankToken } from '@/core/data/tokenMap';
 
@@ -34,12 +35,18 @@ function relativeTime(isoStr) {
 function getBreadcrumb(pathname, search) {
   const p = new URLSearchParams(search || '');
   const tab = p.get('tab');
+  const futureFeature = getFutureFeatureDescriptor(pathname);
+
+  if (futureFeature) {
+    return { module: 'Future Features', page: futureFeature.title };
+  }
 
   if (pathname.startsWith('/app/industry')) {
     const seg = pathname.split('/')[3];
     const labels = {
       overview: 'Overview',
       guide: 'Guide',
+      inventory: 'Inventory',
       materials: 'Materials',
       blueprints: 'Blueprints',
       craft: 'Craft Queue',
@@ -67,46 +74,24 @@ function getBreadcrumb(pathname, search) {
     };
     return { module: 'Industry', page: labels[seg] || labels[tab] || 'Overview' };
   }
-  if (pathname.startsWith('/app/scout')) return { module: 'Intel', page: tab === 'routes' ? 'Routes' : 'Deposits' };
-  if (pathname.startsWith('/app/ops')) {
-    const seg = pathname.split('/')[3];
-    if (seg === 'new') return { module: 'Operations', page: 'New Op' };
-    if (seg === 'rescue') return { module: 'Operations', page: 'Rescue Board' };
-    if (seg === 'timeline') return { module: 'Operations', page: 'Timeline' };
-    if (seg === 'planner') return { module: 'Operations', page: 'Mission Planner' };
-    if (seg === 'archive') return { module: 'Operations', page: 'Archive' };
-    if (seg) return { module: 'Operations', page: 'Live Op' };
-    if (p.get('view') === 'analytics') return { module: 'Operations', page: 'Analytics' };
-    const status = p.get('status');
-    if (status === 'complete') return { module: 'Operations', page: 'Complete Ops' };
-    if (status === 'all') return { module: 'Operations', page: 'All Ops' };
-    return { module: 'Operations', page: 'Board' };
+  if (pathname.startsWith('/app/market')) {
+    const marketLabels = {
+      prices: 'Prices',
+      marketplace: 'Marketplace',
+      trade: 'Trade Board',
+      routes: 'Routes',
+      alerts: 'Price Watch',
+      analytics: 'Analytics',
+    };
+    return { module: 'Market', page: marketLabels[tab] || 'Prices' };
   }
-  if (pathname.startsWith('/app/armory')) {
-    const seg = pathname.split('/')[3];
-    const labels = { fleet:'Fleet', inventory:'Inventory', assets:'Assets' };
-    return { module: 'Armory', page: labels[seg] || null };
-  }
-  if (pathname === '/app/roster/manage') return { module: 'Roster', page: 'Member Mgmt' };
-  if (pathname === '/app/roster/debts') return { module: 'Roster', page: 'Debt Tracker' };
-  if (pathname === '/app/roster') return { module: 'Roster', page: null };
-  if (pathname === '/app/settings' || pathname === '/app/profile') return { module: 'Settings', page: null };
-  if (pathname === '/app/handbook') return { module: 'Handbook', page: null };
-  if (pathname === '/app/training') return { module: 'Training', page: null };
-  if (pathname === '/app/keys' || pathname === '/app/admin/keys') return { module: 'Admin', page: 'Keys' };
-  if (pathname === '/app/admin/data') return { module: 'Admin', page: 'Data Console' };
-  if (pathname === '/app/admin/settings') return { module: 'Admin', page: 'Settings' };
-  if (pathname === '/app/admin/readiness' || pathname === '/app/admin/todo') return { module: 'Admin', page: 'Readiness' };
   return { module: 'NexusOS', page: null };
 }
 
 function routeForNotification(notification) {
   const moduleName = String(notification?.source_module || '').toUpperCase();
-  if (moduleName === 'OPS') return '/app/ops';
-  if (moduleName === 'SCOUT') return '/app/scout';
   if (moduleName === 'INDUSTRY') return '/app/industry';
-  if (moduleName === 'ARMORY') return '/app/armory';
-  if (moduleName === 'ORG') return '/app/roster';
+  if (moduleName === 'MARKET') return '/app/market';
   return null;
 }
 
@@ -165,17 +150,15 @@ export default function NexusTopbar({ onMenuToggle }) {
   const [personalBalance, setPersonalBalance] = useState(null);
   const [refineryCount, setRefineryCount] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
-  const [liveOpsCount, setLiveOpsCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const loadMetrics = useCallback(async () => {
     try {
-      const [cofferLogs, refineryOrders, members, liveOps] = await Promise.all([
+      const [cofferLogs, refineryOrders, members] = await Promise.all([
         base44.entities.CofferLog.list('-logged_at', 500).catch(() => []),
         base44.entities.RefineryOrder.list('-started_at', 200).catch(() => []),
         listMemberDirectory({ sort: '-last_seen_at', limit: 500 }).catch(() => []),
-        base44.entities.Op.filter({ status: 'LIVE' }).catch(() => []),
       ]);
 
       // Coffer balance
@@ -196,9 +179,6 @@ export default function NexusTopbar({ onMenuToggle }) {
       const cutoff = Date.now() - 5 * 60 * 1000;
       const online = (members || []).filter(m => m.last_seen_at && new Date(m.last_seen_at).getTime() > cutoff);
       setOnlineCount(online.length);
-
-      // Live ops
-      setLiveOpsCount(Array.isArray(liveOps) ? liveOps.length : 0);
     } catch {
       // individual catches above prevent full failure
     }
@@ -219,9 +199,11 @@ export default function NexusTopbar({ onMenuToggle }) {
     try {
       const records = await base44.entities.NexusNotification.list('-created_at', 50).catch(() => []);
       const rows = Array.isArray(records) ? records : [];
-      setNotifications(rows.filter((item) =>
-        !item?.target_user_id || String(item.target_user_id) === String(user.id),
-      ));
+      setNotifications(rows.filter((item) => {
+        const isTargeted = !item?.target_user_id || String(item.target_user_id) === String(user.id);
+        const moduleName = String(item?.source_module || '').toUpperCase();
+        return isTargeted && (moduleName === 'INDUSTRY' || moduleName === 'MARKET');
+      }));
     } catch {
       setNotifications([]);
     }
@@ -374,8 +356,7 @@ export default function NexusTopbar({ onMenuToggle }) {
           label={callsignShort}
           value={fmtAuec(personalBalance)}
           valueColor="#C8A84B"
-          onClick={() => navigate('/app/settings')}
-          title="Personal Wallet"
+          title="Pilot wallet display"
         />
 
         {/* Refinery */}
@@ -387,20 +368,6 @@ export default function NexusTopbar({ onMenuToggle }) {
             valueColor="#C8A84B"
             onClick={() => navigate('/app/industry?tab=refinery')}
             title="Active Refinery Orders"
-          />
-        )}
-
-        {/* Live ops */}
-        {liveOpsCount > 0 && (
-          <Chip
-            dot="#C0392B"
-            dotPulse
-            value={`${liveOpsCount} LIVE`}
-            valueColor="#C0392B"
-            bg="rgba(192,57,43,0.1)"
-            borderColor="rgba(192,57,43,0.3)"
-            onClick={() => navigate('/app/ops')}
-            title="Live Operations"
           />
         )}
 
@@ -572,17 +539,13 @@ export default function NexusTopbar({ onMenuToggle }) {
 
         {/* User chip */}
         <div
-          onClick={() => navigate('/app/settings')}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '4px 10px', borderRadius: 2, cursor: 'pointer',
+            padding: '4px 10px', borderRadius: 2, cursor: 'default',
             background: '#141410',
             border: '0.5px solid rgba(200,170,100,0.15)',
-            transition: 'border-color 150ms',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(200,170,100,0.28)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(200,170,100,0.15)'; }}
-          title="Settings"
+          title="Pilot identity"
         >
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 12, color: '#E8E4DC' }}>
             {user?.callsign || 'UNKNOWN'}

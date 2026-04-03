@@ -1,82 +1,20 @@
 /**
  * HelpButton — Floating help button (bottom-right) that opens a quick-help menu.
- * Provides page-specific contextual tips, tour replay, checklist access, and handbook link.
+ * Provides page-specific contextual tips, tour replay, checklist access, and release-surface shortcuts.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BookOpen, HelpCircle, Info, ListChecks, Play, RotateCcw } from 'lucide-react';
+import { Factory, HelpCircle, Info, ListChecks, Play, RotateCcw, TrendingUp } from 'lucide-react';
+import { getFutureFeatureDescriptor } from '@/core/shell/futureFeatures';
 
 const CONTEXT_HELP = {
   '/app/industry': {
     title: 'Industry Hub',
     tips: [
-      'Use the top tab bar to move between the industry dashboard, ledger, blueprints, queue, refinery, and other specialist views.',
+      'Use the section buttons to collapse the Industry nav into PRODUCTION, MARKET, and LOGISTICS workflows before picking a tab.',
       'The Overview tab is the best command summary for active production, refinery timing, and requisition pressure.',
       'Materials is still the raw ledger, but Inventory is now the single command center for custody, org assets, shared gear, and craft readiness.',
       'Guide, Blueprints, Craft Queue, and Refinery remain the main production workflow tabs.',
-    ],
-  },
-  '/app/ops': {
-    title: 'Ops Board',
-    tips: [
-      'Click "Create Op" in the sidebar to plan a new operation with phases and roles',
-      'RSVP to upcoming ops with your preferred role, ship, and cargo capacity',
-      'Switch to Analytics view (top-right) for historical performance data',
-      'Completed ops are auto-archived — find them in the Epic Archive',
-      'During a live op, the command center provides crew tracking and event logging',
-    ],
-  },
-  '/app/ops/timeline': {
-    title: 'Ops Timeline',
-    tips: [
-      'View upcoming operations on a visual multi-day calendar',
-      'Click any op block to open the RSVP panel',
-      'Export your schedule to an external calendar via the ICS download button',
-      'Ship availability tracking shows which org vessels are free per time slot',
-    ],
-  },
-  '/app/ops/planner': {
-    title: 'Mission Planner',
-    tips: [
-      'Build detailed mission plans with objectives and phase breakdowns',
-      'Assign crew roles and define readiness requirements before going live',
-      'Use this for strategic planning before creating the actual op',
-    ],
-  },
-  '/app/ops/new': {
-    title: 'Create Operation',
-    tips: [
-      'The wizard walks you through type selection, crew setup, timeline, and review',
-      'Add phases to break your op into distinct stages (e.g., Assembly → Mining → Hauling)',
-      'Set role slots so crew can RSVP for specific positions',
-      'Review everything before publishing — draft ops are only visible to you',
-    ],
-  },
-  '/app/ops/rescue': {
-    title: 'Rescue Board',
-    tips: [
-      'Issue a MAYDAY to alert org members of a distress situation',
-      'Include your location and situation details for faster response',
-      'Active calls trigger browser notifications for members with alerts enabled',
-    ],
-  },
-  '/app/ops/archive': {
-    title: 'Epic Archive',
-    tips: [
-      'Browse completed operations with AAR (After Action Report) summaries',
-      'View leaderboards for top scouts, fabricators, and op participants',
-      'Search and filter by op type, date range, or keywords',
-    ],
-  },
-  '/app/scout': {
-    title: 'Scout Intel',
-    tips: [
-      'Click "+ Log Deposit" to report a new find with location and quality data',
-      'Use the interactive system map to see all known deposits color-coded by quality',
-      'Switch to the Routes tab for the mining circuit planner — optimize multi-stop runs',
-      'The Live Map tab shows a real-time spatial overview with toggleable layers',
-      'Deposits with 80%+ quality automatically notify org members',
-      'Use the Risk Overlay button to see hazard zones and threat assessments',
     ],
   },
   '/app/market': {
@@ -88,100 +26,6 @@ const CONTEXT_HELP = {
       'Analytics tab shows trend charts, margin heatmaps, and volatility tables',
       'The Marketplace tab shows player listings with org-member detection',
       'Use the sync status panel to see cache history, running jobs, cooldowns, and next automatic window',
-    ],
-  },
-  '/app/armory': {
-    title: 'Armory',
-    tips: [
-      'Armory is now checkout-first: use Checkout for issuing shared gear and Activity for circulation history.',
-      'The Stock tab is read-only and reflects the same shared gear data used by Industry inventory.',
-      'Use Fleet for ship readiness, crew assignment, and loadout support.',
-      'Edit shared gear, ship components, org assets, and custody from Industry → Inventory.',
-    ],
-  },
-  '/app/armory/fleet': {
-    title: 'Fleet Hub',
-    tips: [
-      'View all org ships with model, cargo capacity, and operational status',
-      'Ship readiness scores show combat, mining, hauling, and other capabilities',
-      'Loadout configurations sync from FleetYards when connected',
-      'Crew Assignment tab lets leadership assign pilots and gunners to specific ships',
-    ],
-  },
-  '/app/settings': {
-    title: 'Settings',
-    tips: [
-      'Change your callsign — it updates everywhere instantly across the platform',
-      'Enable browser notifications for live op alerts, deposits, and distress calls',
-      'Set your UEX API token and handle for marketplace features',
-      'Export your personal data as a JSON file anytime from the Data section',
-      'Alt-Tab mode works best for single monitor; 2nd Monitor for dual-display setups',
-      'Replay the guided tour or reset your Getting Started checklist from here',
-    ],
-  },
-  '/app/roster': {
-    title: 'Org Roster',
-    tips: [
-      'Search and filter members by rank, specialization, or intel access level',
-      'Click any member card to view their detailed profile',
-      'Member Management (leadership only) allows rank adjustments and role assignments',
-      'Debt Tracker shows outstanding aUEC balances between members',
-    ],
-  },
-  '/app/roster/manage': {
-    title: 'Member Management',
-    tips: [
-      'Adjust member ranks, specializations, and intel access levels',
-      'View blueprint contribution summaries per member',
-      'Filter the directory by rank, role, or access level for bulk review',
-    ],
-  },
-  '/app/roster/debts': {
-    title: 'Debt Tracker',
-    tips: [
-      'Track outstanding aUEC balances between org members',
-      'Issue debt records with clear purpose descriptions',
-      'Members can upload payment proof for OCR verification',
-    ],
-  },
-  '/app/handbook': {
-    title: 'Org Handbook',
-    tips: [
-      'Read the Redscar Nomads\' organizational rules and procedures',
-      'Reference the rank structure and promotion criteria',
-      'Review operational protocols and communication standards',
-    ],
-  },
-  '/app/training': {
-    title: 'Training Hub',
-    tips: [
-      'Access skill development resources and training materials',
-      'Review role-specific guides for mining, salvage, combat, and more',
-      'Track your progression through training modules',
-    ],
-  },
-  '/app/admin/keys': {
-    title: 'Key Management',
-    tips: [
-      'Generate and manage auth keys for org members',
-      'Revoke compromised keys to immediately block access',
-      'View key issuance history and active key status',
-    ],
-  },
-  '/app/admin/data': {
-    title: 'Data Console',
-    tips: [
-      'View and manage raw entity data for debugging',
-      'Export bulk data for analysis or backup purposes',
-      'Monitor data integrity across entities',
-    ],
-  },
-  '/app/admin/settings': {
-    title: 'Admin Settings',
-    tips: [
-      'Configure platform-wide settings and feature flags',
-      'Manage Discord integration parameters',
-      'Review system health and integration status',
     ],
   },
 };
@@ -226,25 +70,24 @@ function getIndustryInventoryHelp(searchParams) {
 
 function getContextHelp(location) {
   const { pathname, search } = location;
+  const futureFeature = getFutureFeatureDescriptor(pathname);
+
+  if (futureFeature) {
+    return {
+      title: futureFeature.title,
+      tips: [
+        'This surface is intentionally deferred while the current release is narrowed to Industry Hub and Market Hub.',
+        'Use Industry Hub for mining, salvage, material custody, refinery flow, blueprints, and craft logging.',
+        'Use Market Hub for cached prices, routes, analytics, alerts, and marketplace signals.',
+      ],
+    };
+  }
 
   if (pathname === '/app/industry') {
     const searchParams = new URLSearchParams(search);
     if (searchParams.get('tab') === 'inventory') {
       return getIndustryInventoryHelp(searchParams);
     }
-  }
-
-  if (/^\/app\/ops\/[^/]+$/.test(pathname) && pathname !== '/app/ops/new' && pathname !== '/app/ops/rescue' && pathname !== '/app/ops/timeline' && pathname !== '/app/ops/planner' && pathname !== '/app/ops/archive') {
-    return {
-      title: 'Live Op Command',
-      tips: [
-        'Phase Tracker shows current op progress — leadership can advance phases',
-        'Crew & RSVP panel shows who\'s joined and their assigned roles',
-        'Event Log tracks everything that happens in real-time',
-        'Mission Control provides quick-action buttons for common commands',
-        'Switch layout modes via the topbar for Alt-Tab vs. 2nd Monitor views',
-      ],
-    };
   }
 
   if (CONTEXT_HELP[pathname]) return CONTEXT_HELP[pathname];
@@ -372,7 +215,7 @@ export default function HelpButton({ onStartTour, onShowChecklist, tourComplete 
                   margin: 0,
                 }}
               >
-                Navigate to any module to see page-specific tips and guidance here.
+                Industry Hub and Market Hub expose page-specific guidance here during the current release cycle.
               </p>
             </div>
           )}
@@ -381,7 +224,7 @@ export default function HelpButton({ onStartTour, onShowChecklist, tourComplete 
             {
               icon: tourComplete ? RotateCcw : Play,
               label: tourComplete ? 'REPLAY GUIDED TOUR' : 'START GUIDED TOUR',
-              desc: 'Step-by-step walkthrough of all modules',
+              desc: 'Step-by-step walkthrough of the current release surfaces',
               onClick: () => {
                 setMenuOpen(false);
                 onStartTour();
@@ -399,14 +242,24 @@ export default function HelpButton({ onStartTour, onShowChecklist, tourComplete 
               color: '#C8A84B',
             },
             {
-              icon: BookOpen,
-              label: 'OPEN HANDBOOK',
-              desc: 'Org rules, rank structure, and procedures',
+              icon: Factory,
+              label: 'OPEN INDUSTRY HUB',
+              desc: 'Return to the production, inventory, and crafting workspace',
               onClick: () => {
                 setMenuOpen(false);
-                navigate('/app/handbook');
+                navigate('/app/industry');
               },
               color: '#7AAECC',
+            },
+            {
+              icon: TrendingUp,
+              label: 'OPEN MARKET HUB',
+              desc: 'Return to cached price, route, and market intelligence',
+              onClick: () => {
+                setMenuOpen(false);
+                navigate('/app/market');
+              },
+              color: '#4A8C5C',
             },
           ].map((action) => (
             <button

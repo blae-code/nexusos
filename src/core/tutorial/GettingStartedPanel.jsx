@@ -101,7 +101,7 @@ export default function GettingStartedPanel({
   onCompleteItem,
   onStartTour,
   onDismiss,
-  onReset,
+  _onReset,
   dismissed,
   tourComplete,
 }) {
@@ -224,7 +224,7 @@ export default function GettingStartedPanel({
             }}
             onMouseEnter={e => { e.currentTarget.style.background = tourComplete ? 'rgba(200,170,100,0.06)' : 'rgba(192,57,43,0.12)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = tourComplete ? 'rgba(200,170,100,0.04)' : 'linear-gradient(135deg, rgba(192,57,43,0.1) 0%, rgba(192,57,43,0.04) 100%)'; }}
-            title={tourComplete ? 'Replay the guided tour of all modules' : 'Start the interactive guided tour'}
+            title={tourComplete ? 'Replay the guided tour of the current release surfaces' : 'Start the interactive guided tour'}
           >
             {tourComplete ? <RotateCcw size={9} /> : <Play size={9} />}
             {tourComplete ? 'REPLAY TOUR' : 'START GUIDED TOUR'}

@@ -1,32 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSession } from '@/core/data/SessionContext';
+import { FUTURE_FEATURE_TEASERS } from '@/core/shell/futureFeatures';
 import SidebarWidget from './SidebarWidget';
 import {
-  Crosshair, Factory, BookOpen, GraduationCap, Radar,
-  Shield, Ship, Users, TrendingUp, Boxes,
-  Key, ShieldAlert, ClipboardList, Settings, LogOut,
-  Database, AlertTriangle, Archive,
+  Factory, TrendingUp, Boxes,
+  LogOut,
 } from 'lucide-react';
 
 const NAV = [
   {
-    label: 'OPERATIONS',
-    items: [
-      {
-        icon: Crosshair, label: 'OPS BOARD', path: '/app/ops',
-        children: [
-          { label: 'TIMELINE', path: '/app/ops/timeline' },
-          { label: 'MISSION PLANNER', path: '/app/ops/planner' },
-          { label: 'CREATE OP', path: '/app/ops/new' },
-        ],
-      },
-      { icon: AlertTriangle, label: 'RESCUE BOARD', path: '/app/ops/rescue' },
-      { icon: Archive, label: 'EPIC ARCHIVE', path: '/app/ops/archive' },
-    ],
-  },
-  {
-    label: 'INDUSTRY',
+    label: 'ACTIVE SURFACES',
     items: [
       {
         icon: Factory,
@@ -43,49 +27,6 @@ const NAV = [
       { icon: TrendingUp, label: 'MARKET HUB', path: '/app/market' },
     ],
   },
-  {
-    label: 'SCOUT INTEL',
-    items: [
-      { icon: Radar, label: 'SCOUT INTEL', path: '/app/scout' },
-    ],
-  },
-  {
-    label: 'ARMORY',
-    collapsed: true,
-    items: [
-      { icon: Shield, label: 'ARMORY', path: '/app/armory' },
-      { icon: Ship, label: 'FLEET', path: '/app/armory/fleet' },
-    ],
-  },
-  {
-    label: 'ORG',
-    collapsed: true,
-    items: [
-      {
-        icon: Users, label: 'ORG ROSTER', path: '/app/roster',
-        children: [
-          { label: 'MEMBER MGMT', path: '/app/roster/manage' },
-          { label: 'DEBT TRACKER', path: '/app/roster/debts' },
-        ],
-      },
-      { icon: BookOpen, label: 'HANDBOOK', path: '/app/handbook' },
-      { icon: GraduationCap, label: 'TRAINING', path: '/app/training' },
-    ],
-  },
-  {
-    label: 'ADMINISTRATION',
-    adminOnly: true,
-    items: [
-      { icon: Key, label: 'KEY MANAGEMENT', path: '/app/admin/keys' },
-      { icon: Database, label: 'DATA CONSOLE', path: '/app/admin/data' },
-      { icon: ShieldAlert, label: 'ADMIN SETTINGS', path: '/app/admin/settings' },
-      { icon: ClipboardList, label: 'READINESS', path: '/app/admin/readiness' },
-    ],
-  },
-];
-
-const BOTTOM = [
-  { icon: Settings, label: 'SETTINGS', path: '/app/settings' },
 ];
 
 const ICON_PROPS = { size: 14, strokeWidth: 1.5, style: { flexShrink: 0 } };
@@ -151,6 +92,21 @@ const S = {
   verseTag: {
     padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6,
   },
+  futureWrap: {
+    margin: '12px 10px 6px',
+    padding: '10px 12px',
+    background: '#0F0F0D',
+    border: '0.5px solid rgba(200,170,100,0.10)',
+    borderRadius: 3,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  futureItem: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
   bottom: {
     marginTop: 'auto', flexShrink: 0,
     borderTop: '0.5px solid rgba(200,170,100,0.08)',
@@ -206,7 +162,7 @@ function SubItem({ label, path, active }) {
 
 export default function NexusSidebar({ mobileOpen, onClose }) {
   const { pathname, search } = useLocation();
-  const { isAdmin, logout } = useSession();
+  const { logout } = useSession();
   const searchParams = new URLSearchParams(search);
 
   return (
@@ -234,9 +190,8 @@ export default function NexusSidebar({ mobileOpen, onClose }) {
           </span>
         </div>
 
-      <div style={S.scrollArea}>
+        <div style={S.scrollArea}>
         {NAV.map((group) => {
-          if (group.adminOnly && !isAdmin) return null;
           return (
             <div key={group.label}>
               <div style={S.groupLabel}>{group.label}</div>
@@ -261,6 +216,44 @@ export default function NexusSidebar({ mobileOpen, onClose }) {
             </div>
           );
         })}
+
+        <div style={S.groupLabel}>FUTURE FEATURES</div>
+        <div style={S.futureWrap}>
+          {FUTURE_FEATURE_TEASERS.map((feature) => (
+            <div key={feature.key} style={S.futureItem}>
+              <span
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: '50%',
+                  background: feature.accent,
+                  marginTop: 6,
+                  flexShrink: 0,
+                }}
+              />
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 10,
+                  color: '#E8E4DC',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                }}>
+                  {feature.title}
+                </div>
+                <div style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 9,
+                  color: '#5A5850',
+                  lineHeight: 1.35,
+                  marginTop: 1,
+                }}>
+                  {feature.teaser}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Verse tag */}
@@ -272,15 +265,6 @@ export default function NexusSidebar({ mobileOpen, onClose }) {
       <SidebarWidget />
 
       <div style={S.bottom}>
-        {BOTTOM.map((item) => (
-          <NavItem
-            key={item.path}
-            icon={item.icon}
-            label={item.label}
-            path={item.path}
-            active={isExact(pathname, item.path)}
-          />
-        ))}
         <button
           type="button"
           onClick={() => logout('/')}

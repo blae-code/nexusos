@@ -1,19 +1,12 @@
 // NexusOS v1.0 — Production build
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { base44 } from '@/core/data/base44Client';
 import NexusSidebar from './NexusSidebar';
 import NexusTopbar from './NexusTopbar';
-import { withAppBase } from '@/core/data/app-base-path';
-import { notifyBrowser, useNotificationPreferences } from '@/core/data/notification-preferences';
-import { loadRescueCalls, refreshRescueCalls, subscribeToRescueCalls } from '@/core/data/rescue-board-store';
 import { useSession } from '@/core/data/SessionContext';
 import { getStoredLayoutMode, setStoredLayoutMode } from '@/core/data/layout-mode';
-import { useVerseStatus } from '@/core/data/useVerseStatus';
 import { preloadCriticalTokens } from '@/core/data/tokenMap';
-import { qualityPercentFromRecord } from '@/core/data/quality';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
-import { showToast } from '@/components/NexusToast';
 import AmbientBackground from './components/AmbientBackground';
 import { useOperationalState } from './useOperationalState';
 import usePresence from '@/core/hooks/usePresence';
@@ -27,13 +20,8 @@ export default function NexusShell() {
   const { session, user, source, isAuthenticated, isAdmin, loading } = useSession();
   useOperationalState();
   usePresence(isAuthenticated);
-  const { status: verseStatus } = useVerseStatus();
-  const { preferences, permission } = useNotificationPreferences();
   const [layoutMode, setLayoutMode] = useState(() => getStoredLayoutMode());
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const seenLiveOpsRef = useRef(new Set());
-  const seenScoutDepositsRef = useRef(new Set());
-  const seenRescueCallsRef = useRef(new Set());
 
   const tutorial = useTutorial(user);
 
@@ -50,170 +38,6 @@ export default function NexusShell() {
       preloadCriticalTokens(user.rank, 6);
     }
   }, [user?.rank]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const notifyIfBackgrounded = (payload) => {
-      if (permission !== 'granted' || document.visibilityState === 'visible') {
-        return;
-      }
-
-      notifyBrowser(payload);
-    };
-
-    const seedLiveOps = async () => {
-      try {
-        const liveOps = await base44.entities.Op.filter({ status: 'LIVE' });
-        if (!cancelled) {
-          const liveOpItems = Array.isArray(liveOps) ? liveOps : [];
-          seenLiveOpsRef.current = new Set(liveOpItems.map((item) => item.id));
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.warn('[NexusShell] live-op notification seed failed:', error?.message || error);
-        }
-      }
-    };
-
-    const checkLiveOps = async () => {
-      if (!preferences.ops || permission !== 'granted') {
-        return;
-      }
-
-      try {
-        const liveOps = await base44.entities.Op.filter({ status: 'LIVE' });
-        if (cancelled) {
-          return;
-        }
-
-        const nextSeen = new Set();
-        const liveOpItems = Array.isArray(liveOps) ? liveOps : [];
-        liveOpItems.forEach((op) => {
-          nextSeen.add(op.id);
-          if (!seenLiveOpsRef.current.has(op.id)) {
-            notifyIfBackgrounded({
-              title: 'NexusOS · Live Op',
-              body: `${op.name || 'Unnamed op'} is now live${op.location ? ` · ${op.location}` : ''}`,
-              tag: `nexus-op-${op.id}`,
-              onClickUrl: withAppBase('/app/ops'),
-            });
-          }
-        });
-        seenLiveOpsRef.current = nextSeen;
-      } catch (error) {
-        if (!cancelled) {
-          console.warn('[NexusShell] live-op notification check failed:', error?.message || error);
-        }
-      }
-    };
-
-    const seedScoutDeposits = async () => {
-      try {
-        const deposits = await base44.entities.ScoutDeposit.list('-reported_at', 25);
-        if (!cancelled) {
-          const depositItems = Array.isArray(deposits) ? deposits : [];
-          seenScoutDepositsRef.current = new Set(depositItems.map((item) => item.id));
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.warn('[NexusShell] scout notification seed failed:', error?.message || error);
-        }
-      }
-    };
-
-    const checkScoutDeposits = async () => {
-      if (!preferences.scout || permission !== 'granted') {
-        return;
-      }
-
-      try {
-        const deposits = await base44.entities.ScoutDeposit.list('-reported_at', 25);
-        if (cancelled) {
-          return;
-        }
-
-        const nextSeen = new Set();
-        const depositItems = Array.isArray(deposits) ? deposits : [];
-        depositItems.forEach((deposit) => {
-          nextSeen.add(deposit.id);
-          const quality = qualityPercentFromRecord(deposit);
-          if (!seenScoutDepositsRef.current.has(deposit.id) && quality >= 80) {
-            notifyIfBackgrounded({
-              title: 'NexusOS · Scout Intel',
-              body: `${deposit.material_name || 'Deposit'} @ ${quality.toFixed(0)}%${deposit.system_name ? ` · ${deposit.system_name}` : ''}`,
-              tag: `nexus-scout-${deposit.id}`,
-              onClickUrl: withAppBase('/app/scout'),
-            });
-          }
-        });
-        seenScoutDepositsRef.current = nextSeen;
-      } catch (error) {
-        if (!cancelled) {
-          console.warn('[NexusShell] scout notification check failed:', error?.message || error);
-        }
-      }
-    };
-
-    const seedRescueCalls = async () => {
-      const calls = await refreshRescueCalls().catch(() => loadRescueCalls());
-      if (cancelled) {
-        return;
-      }
-
-      seenRescueCallsRef.current = new Set(
-        (Array.isArray(calls) ? calls : [])
-          .filter((call) => call.status === 'OPEN')
-          .map((call) => call.id),
-      );
-    };
-
-    const handleRescueCalls = (calls) => {
-      const nextOpenIds = new Set();
-      const rescueCalls = Array.isArray(calls) ? calls : [];
-
-      rescueCalls
-        .filter((call) => call.status === 'OPEN')
-        .forEach((call) => {
-          nextOpenIds.add(call.id);
-
-          if (preferences.rescue && permission === 'granted' && !seenRescueCallsRef.current.has(call.id)) {
-            notifyIfBackgrounded({
-              title: 'NexusOS · Distress Call',
-              body: `${call.callsign || 'UNKNOWN'} requests help${call.location ? ` · ${call.location}` : ''}`,
-              tag: `nexus-rescue-${call.id}`,
-              onClickUrl: withAppBase('/app/ops/rescue'),
-            });
-          }
-        });
-
-      seenRescueCallsRef.current = nextOpenIds;
-    };
-
-    seedLiveOps();
-    seedScoutDeposits();
-    seedRescueCalls();
-
-    const opUnsubscribe = base44.entities.Op.subscribe(() => {
-      checkLiveOps();
-    });
-    const scoutUnsubscribe = base44.entities.ScoutDeposit.subscribe(() => {
-      checkScoutDeposits();
-    });
-    const rescueUnsubscribe = subscribeToRescueCalls(handleRescueCalls);
-    const intervalId = window.setInterval(() => {
-      checkLiveOps();
-      checkScoutDeposits();
-    }, 60000);
-
-    return () => {
-      cancelled = true;
-      opUnsubscribe?.();
-      scoutUnsubscribe?.();
-      rescueUnsubscribe?.();
-      window.clearInterval(intervalId);
-    };
-  }, [permission, preferences.ops, preferences.rescue, preferences.scout]);
 
   // Close sidebar on route change (mobile).
   useEffect(() => {
@@ -244,10 +68,6 @@ export default function NexusShell() {
 
   if (location.pathname === '/app/keys') {
     return <Navigate to="/app/admin/keys" replace />;
-  }
-
-  if (location.pathname.startsWith('/app/admin') && !isAdmin) {
-    return <Navigate to="/app/industry" replace />;
   }
 
   const outletContext = {
