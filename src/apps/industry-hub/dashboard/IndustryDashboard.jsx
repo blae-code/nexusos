@@ -5,7 +5,6 @@
  *   • Active orders with animated progress bars   • Quick-action buttons
  */
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import RefineryHealthCard from './RefineryHealthCard';
 import ProductionThroughputCard from './ProductionThroughputCard';
 import CofferStatusCard from './CofferStatusCard';
@@ -25,10 +24,10 @@ export default function IndustryDashboard({
   scoutDeposits,
   orgShips,
   onTabChange,
+  onLogHaul,
   callsign,
   onRefresh,
 }) {
-  const navigate = useNavigate();
   const [browserOpen, setBrowserOpen] = useState(false);
 
   return (
@@ -59,7 +58,7 @@ export default function IndustryDashboard({
       }}>
         <StockpileSummaryCard materials={materials} onNavigate={() => onTabChange('materials')} />
         <BlueprintCoverageCard blueprints={blueprints} onNavigate={() => setBrowserOpen(o => !o)} />
-        <QuickActionsCard onTabChange={onTabChange} navigate={navigate} />
+        <QuickActionsCard onTabChange={onTabChange} onLogHaul={onLogHaul} />
       </div>
 
       {/* Blueprint Browser */}

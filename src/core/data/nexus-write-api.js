@@ -58,6 +58,11 @@ export const nexusWriteApi = {
     });
   },
 
+  createCargoLog(payload) {
+    // Direct entity write — no server function wrapper needed
+    return base44.entities.CargoLog.create(payload);
+  },
+
   upsertOpRsvp(payload) {
     return invokeWrite('upsertOpRsvp', payload);
   },

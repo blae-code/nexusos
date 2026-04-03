@@ -32,6 +32,7 @@ import ProfitRouteCalculator from '@/apps/industry-hub/ProfitRouteCalculator';
 import AssetInventoryTab from '@/apps/industry-hub/asset-inventory/AssetInventoryTab';
 import InventoryForecastPanel from '@/apps/industry-hub/forecast/InventoryForecastPanel';
 import IndustryTabBar from '@/components/IndustryTabBar';
+import HaulLogModal from '@/apps/industry-hub/HaulLogModal';
 import { RefineryFlow } from '@/core/design/Illustrations';
 
 const TABS = [
@@ -203,6 +204,7 @@ export default function IndustryHub() {
   const [orgShips, setOrgShips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [showHaulLog, setShowHaulLog] = useState(false);
 
   const load = useCallback(async () => {
     setLoadError(false);
@@ -348,7 +350,40 @@ export default function IndustryHub() {
         position: 'relative', overflow: 'hidden',
       }}>
         <RefineryFlow size={52} opacity={0.08} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-        <IndustryTabBar tabs={TABS} activeTab={tab} onTabChange={setTab} />
+        <div style={{ display: 'flex', alignItems: 'center', paddingRight: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <IndustryTabBar tabs={TABS} activeTab={tab} onTabChange={setTab} />
+          </div>
+          <button
+            onClick={() => setShowHaulLog(true)}
+            style={{
+              flexShrink: 0,
+              padding: '6px 14px',
+              background: 'rgba(192,57,43,0.12)',
+              border: '0.5px solid rgba(192,57,43,0.35)',
+              borderRadius: 2,
+              color: '#E8E4DC',
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 700,
+              fontSize: 10,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 150ms',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(192,57,43,0.22)';
+              e.currentTarget.style.borderColor = '#C0392B';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(192,57,43,0.12)';
+              e.currentTarget.style.borderColor = 'rgba(192,57,43,0.35)';
+            }}
+          >
+            ⛏ LOG HAUL
+          </button>
+        </div>
       </div>
 
       <div className="nexus-fade-in" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
@@ -364,6 +399,7 @@ export default function IndustryHub() {
               scoutDeposits={scoutDeposits}
               orgShips={orgShips}
               onTabChange={setTab}
+              onLogHaul={() => setShowHaulLog(true)}
               callsign={callsign}
               onRefresh={load}
             />
@@ -417,6 +453,14 @@ export default function IndustryHub() {
         ) : null}
         {tab === 'stockforecast' ? <InventoryForecastPanel /> : null}
       </div>
+
+      {showHaulLog && (
+        <HaulLogModal
+          callsign={callsign}
+          onClose={() => setShowHaulLog(false)}
+          onRefresh={load}
+        />
+      )}
     </div>
   );
 }

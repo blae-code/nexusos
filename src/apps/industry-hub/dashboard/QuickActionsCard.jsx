@@ -1,17 +1,17 @@
 import React from 'react';
-import { Plus, Flame, Wrench, Package, FileText, BarChart3, Boxes } from 'lucide-react';
+import { Flame, Wrench, Package, FileText, BarChart3, Boxes, List } from 'lucide-react';
 
-const ACTIONS = [
-  { icon: Plus, label: 'LOG MATERIAL', tab: 'materials', tone: 'primary' },
-  { icon: Boxes, label: 'INVENTORY', tab: 'inventory', tone: 'default' },
-  { icon: Flame, label: 'NEW REFINERY', tab: 'refinery', tone: 'default' },
-  { icon: Wrench, label: 'CRAFT QUEUE', tab: 'craft', tone: 'default' },
-  { icon: Package, label: 'MARKETPLACE', tab: 'marketplace', tone: 'default' },
-  { icon: FileText, label: 'REQUISITIONS', tab: 'requisitions', tone: 'default' },
-  { icon: BarChart3, label: 'ANALYTICS', tab: 'analytics', tone: 'default' },
+const NAV_ACTIONS = [
+  { icon: Boxes,     label: 'INVENTORY',    tab: 'inventory' },
+  { icon: Flame,     label: 'NEW REFINERY', tab: 'refinery' },
+  { icon: Wrench,    label: 'CRAFT QUEUE',  tab: 'craft' },
+  { icon: Package,   label: 'MARKETPLACE',  tab: 'marketplace' },
+  { icon: FileText,  label: 'REQUISITIONS', tab: 'requisitions' },
+  { icon: List,      label: 'MATERIALS',    tab: 'materials' },
+  { icon: BarChart3, label: 'ANALYTICS',    tab: 'analytics' },
 ];
 
-export default function QuickActionsCard({ onTabChange }) {
+export default function QuickActionsCard({ onTabChange, onLogHaul }) {
   return (
     <div style={{
       background: '#0F0F0D',
@@ -27,36 +27,61 @@ export default function QuickActionsCard({ onTabChange }) {
         marginBottom: 14,
       }}>QUICK ACTIONS</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {ACTIONS.map(action => {
+      {/* LOG HAUL — primary CTA spanning full width */}
+      <button
+        onClick={onLogHaul}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          padding: '11px 12px', borderRadius: 2, cursor: 'pointer', marginBottom: 8,
+          background: 'rgba(192,57,43,0.14)',
+          border: '0.5px solid rgba(192,57,43,0.40)',
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+          fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: '#E8E4DC',
+          transition: 'all 150ms',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(192,57,43,0.24)';
+          e.currentTarget.style.borderColor = '#C0392B';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'rgba(192,57,43,0.14)';
+          e.currentTarget.style.borderColor = 'rgba(192,57,43,0.40)';
+        }}
+      >
+        ⛏ LOG HAUL
+      </button>
+
+      {/* Secondary nav grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        {NAV_ACTIONS.map(action => {
           const Icon = action.icon;
-          const isPrimary = action.tone === 'primary';
           return (
             <button
               key={action.label}
               onClick={() => onTabChange(action.tab)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '10px 12px', borderRadius: 2, cursor: 'pointer',
-                background: isPrimary ? 'rgba(192,57,43,0.12)' : 'rgba(200,170,100,0.04)',
-                border: `0.5px solid ${isPrimary ? 'rgba(192,57,43,0.3)' : 'rgba(200,170,100,0.10)'}`,
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '8px 10px', borderRadius: 2, cursor: 'pointer',
+                background: 'rgba(200,170,100,0.04)',
+                border: '0.5px solid rgba(200,170,100,0.10)',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: isPrimary ? '#E8E4DC' : '#9A9488',
+                fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: '#9A9488',
                 transition: 'all 150ms',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = isPrimary ? 'rgba(192,57,43,0.2)' : 'rgba(200,170,100,0.08)';
-                e.currentTarget.style.borderColor = isPrimary ? '#C0392B' : 'rgba(200,170,100,0.25)';
+                e.currentTarget.style.background = 'rgba(200,170,100,0.08)';
+                e.currentTarget.style.borderColor = 'rgba(200,170,100,0.25)';
                 e.currentTarget.style.color = '#E8E4DC';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = isPrimary ? 'rgba(192,57,43,0.12)' : 'rgba(200,170,100,0.04)';
-                e.currentTarget.style.borderColor = isPrimary ? 'rgba(192,57,43,0.3)' : 'rgba(200,170,100,0.10)';
-                e.currentTarget.style.color = isPrimary ? '#E8E4DC' : '#9A9488';
+                e.currentTarget.style.background = 'rgba(200,170,100,0.04)';
+                e.currentTarget.style.borderColor = 'rgba(200,170,100,0.10)';
+                e.currentTarget.style.color = '#9A9488';
               }}
             >
-              <Icon size={12} style={{ flexShrink: 0 }} />
+              <Icon size={11} style={{ flexShrink: 0 }} />
               {action.label}
             </button>
           );
