@@ -234,7 +234,7 @@ export default function AccessGate() {
           marginBottom: '22px',
           textTransform: 'uppercase',
         }}>
-          Use your issued username and access key. Callsign can change later in NexusOS settings.
+          Use your issued username and access key. Your issued username stays fixed; callsign remains a separate display identity inside NexusOS.
         </div>
 
 

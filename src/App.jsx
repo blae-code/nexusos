@@ -4,7 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { queryClientInstance } from '@/core/data/query-client';
 import { getAppBasePath } from '@/core/data/app-base-path';
-import { SessionProvider } from '@/core/data/SessionContext';
+import { SessionProvider, useSession } from '@/core/data/SessionContext';
 import NexusShell from '@/core/shell/NexusShell';
 import AccessGate from '@/pages/AccessGate';
 import Onboarding from '@/pages/Onboarding';
@@ -14,9 +14,25 @@ import Setup from '@/pages/Setup';
 import MarketHub from '@/apps/market-hub/MarketHub';
 import RouteErrorBoundary from '@/components/RouteErrorBoundary';
 import FutureFeaturePage from '@/pages/FutureFeaturePage';
+import KeyManagement from '@/pages/KeyManagement';
+import NexusSettings from '@/pages/NexusSettings';
 
 function withRouteBoundary(element, compact = false) {
   return <RouteErrorBoundary compact={compact}>{element}</RouteErrorBoundary>;
+}
+
+function AdminOnly({ children }) {
+  const { loading, isAdmin } = useSession();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/app/industry" replace />;
+  }
+
+  return children;
 }
 
 function App() {
@@ -65,9 +81,17 @@ function App() {
               <Route path="roster/*" element={withRouteBoundary(<FutureFeaturePage />, true)} />
               <Route path="handbook" element={withRouteBoundary(<FutureFeaturePage />, true)} />
               <Route path="training" element={withRouteBoundary(<FutureFeaturePage />, true)} />
-              <Route path="settings" element={withRouteBoundary(<FutureFeaturePage />, true)} />
-              <Route path="profile" element={withRouteBoundary(<FutureFeaturePage />, true)} />
+              <Route path="settings" element={withRouteBoundary(<NexusSettings />, true)} />
+              <Route path="profile" element={<Navigate to="/app/settings" replace />} />
               <Route path="keys" element={<Navigate to="/app/admin/keys" replace />} />
+              <Route
+                path="admin/keys"
+                element={
+                  <AdminOnly>
+                    {withRouteBoundary(<KeyManagement />, true)}
+                  </AdminOnly>
+                }
+              />
               <Route path="admin/*" element={withRouteBoundary(<FutureFeaturePage />, true)} />
             </Route>
 

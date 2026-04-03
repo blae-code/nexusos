@@ -85,13 +85,20 @@ function getBreadcrumb(pathname, search) {
     };
     return { module: 'Market', page: marketLabels[tab] || 'Prices' };
   }
+  if (pathname === '/app/settings' || pathname === '/app/profile') {
+    return { module: 'Settings', page: null };
+  }
   return { module: 'NexusOS', page: null };
 }
 
 function routeForNotification(notification) {
   const moduleName = String(notification?.source_module || '').toUpperCase();
+  if (moduleName === 'OPS') return '/app/ops';
+  if (moduleName === 'SCOUT') return '/app/scout';
   if (moduleName === 'INDUSTRY') return '/app/industry';
   if (moduleName === 'MARKET') return '/app/market';
+  if (moduleName === 'ARMORY') return '/app/armory';
+  if (moduleName === 'ORG') return '/app/roster';
   return null;
 }
 
@@ -150,15 +157,17 @@ export default function NexusTopbar({ onMenuToggle }) {
   const [personalBalance, setPersonalBalance] = useState(null);
   const [refineryCount, setRefineryCount] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
+  const [liveOpsCount, setLiveOpsCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const loadMetrics = useCallback(async () => {
     try {
-      const [cofferLogs, refineryOrders, members] = await Promise.all([
+      const [cofferLogs, refineryOrders, members, liveOps] = await Promise.all([
         base44.entities.CofferLog.list('-logged_at', 500).catch(() => []),
         base44.entities.RefineryOrder.list('-started_at', 200).catch(() => []),
         listMemberDirectory({ sort: '-last_seen_at', limit: 500 }).catch(() => []),
+        base44.entities.Op.filter({ status: 'LIVE' }).catch(() => []),
       ]);
 
       // Coffer balance
@@ -179,6 +188,8 @@ export default function NexusTopbar({ onMenuToggle }) {
       const cutoff = Date.now() - 5 * 60 * 1000;
       const online = (members || []).filter(m => m.last_seen_at && new Date(m.last_seen_at).getTime() > cutoff);
       setOnlineCount(online.length);
+
+      setLiveOpsCount(Array.isArray(liveOps) ? liveOps.length : 0);
     } catch {
       // individual catches above prevent full failure
     }
@@ -199,11 +210,7 @@ export default function NexusTopbar({ onMenuToggle }) {
     try {
       const records = await base44.entities.NexusNotification.list('-created_at', 50).catch(() => []);
       const rows = Array.isArray(records) ? records : [];
-      setNotifications(rows.filter((item) => {
-        const isTargeted = !item?.target_user_id || String(item.target_user_id) === String(user.id);
-        const moduleName = String(item?.source_module || '').toUpperCase();
-        return isTargeted && (moduleName === 'INDUSTRY' || moduleName === 'MARKET');
-      }));
+      setNotifications(rows.filter((item) => !item?.target_user_id || String(item.target_user_id) === String(user.id)));
     } catch {
       setNotifications([]);
     }
@@ -356,7 +363,8 @@ export default function NexusTopbar({ onMenuToggle }) {
           label={callsignShort}
           value={fmtAuec(personalBalance)}
           valueColor="#C8A84B"
-          title="Pilot wallet display"
+          onClick={() => navigate('/app/settings')}
+          title="Personal Wallet"
         />
 
         {/* Refinery */}
@@ -368,6 +376,19 @@ export default function NexusTopbar({ onMenuToggle }) {
             valueColor="#C8A84B"
             onClick={() => navigate('/app/industry?tab=refinery')}
             title="Active Refinery Orders"
+          />
+        )}
+
+        {liveOpsCount > 0 && (
+          <Chip
+            dot="#C0392B"
+            dotPulse
+            value={`${liveOpsCount} LIVE`}
+            valueColor="#C0392B"
+            bg="rgba(192,57,43,0.1)"
+            borderColor="rgba(192,57,43,0.3)"
+            onClick={() => navigate('/app/ops')}
+            title="Live Operations"
           />
         )}
 
@@ -539,13 +560,17 @@ export default function NexusTopbar({ onMenuToggle }) {
 
         {/* User chip */}
         <div
+          onClick={() => navigate('/app/settings')}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '4px 10px', borderRadius: 2, cursor: 'default',
+            padding: '4px 10px', borderRadius: 2, cursor: 'pointer',
             background: '#141410',
             border: '0.5px solid rgba(200,170,100,0.15)',
+            transition: 'border-color 150ms',
           }}
-          title="Pilot identity"
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(200,170,100,0.28)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(200,170,100,0.15)'; }}
+          title="Settings"
         >
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 12, color: '#E8E4DC' }}>
             {user?.callsign || 'UNKNOWN'}

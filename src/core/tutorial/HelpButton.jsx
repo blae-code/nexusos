@@ -28,6 +28,14 @@ const CONTEXT_HELP = {
       'Use the sync status panel to see cache history, running jobs, cooldowns, and next automatic window',
     ],
   },
+  '/app/settings': {
+    title: 'Settings',
+    tips: [
+      'Settings remains live so you can manage callsign display, wallet values, layout mode, notifications, and UEX integration details.',
+      'Topbar wallet and identity chips both link here for quick access.',
+      'This page also exposes tutorial replay, checklist reset, and personal configuration that still supports the current Industry and Market release.',
+    ],
+  },
 };
 
 function getIndustryInventoryHelp(searchParams) {
@@ -215,7 +223,7 @@ export default function HelpButton({ onStartTour, onShowChecklist, tourComplete 
                   margin: 0,
                 }}
               >
-                Industry Hub and Market Hub expose page-specific guidance here during the current release cycle.
+                Industry Hub, Market Hub, and Settings expose page-specific guidance here during the current release cycle.
               </p>
             </div>
           )}

@@ -34,14 +34,6 @@ const FUTURE_FEATURES = [
     description: 'Org management, handbook, debt tracking, and training surfaces are hidden until the industrial release is stable.',
   },
   {
-    key: 'pilot',
-    title: 'Pilot Settings',
-    accent: '#9A9488',
-    paths: ['/app/settings', '/app/profile'],
-    teaser: 'Profile, wallet, and personal configuration',
-    description: 'Pilot profile and settings screens are deferred while the current release concentrates on materials, crafting, and market workflows.',
-  },
-  {
     key: 'admin',
     title: 'Admin Console',
     accent: '#8E44AD',
