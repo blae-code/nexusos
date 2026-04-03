@@ -15,6 +15,7 @@ export default function Armory() {
   const [items, setItems] = useState([]);
   const [checkouts, setCheckouts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [activeTab, setActiveTab] = useState('checkout');
 
   const load = useCallback(async () => {
@@ -26,7 +27,7 @@ export default function Armory() {
       setItems(itemsData || []);
       setCheckouts(checkoutData || []);
     } catch {
-      // load failed
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -55,6 +56,15 @@ export default function Armory() {
           <span />
           <span />
         </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 10 }}>
+        <span style={{ fontSize: 11, color: 'var(--danger)' }}>Failed to load armory — check your connection.</span>
+        <button onClick={load} className="nexus-btn" style={{ padding: '6px 16px', fontSize: 10 }}>RETRY</button>
       </div>
     );
   }

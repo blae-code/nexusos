@@ -35,12 +35,21 @@ function Panel({ title, children, style = {} }) {
 }
 
 export default function OpsDashboard() {
-  const { loading, data, refresh } = useOpsAnalytics();
+  const { loading, data, error, refresh } = useOpsAnalytics();
 
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 60 }}>
         <div className="nexus-loading-dots" style={{ color: '#9A9488' }}><span /><span /><span /></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 10 }}>
+        <span style={{ fontSize: 11, color: 'var(--danger)' }}>Failed to load analytics — check your connection.</span>
+        <button onClick={refresh} className="nexus-btn" style={{ padding: '6px 16px', fontSize: 10 }}>RETRY</button>
       </div>
     );
   }

@@ -29,20 +29,28 @@ export default function OpsCommandTab() {
   const [ships, setShips] = useState([]);
   const [ops, setOps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [statusFilter, setStatusFilter] = useState('pending');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [priorityFilter, setPriorityFilter] = useState('ALL');
 
   const load = useCallback(async () => {
-    const [r, s, o] = await Promise.all([
-      base44.entities.Requisition.list('-requested_at', 200).catch(() => []),
-      base44.entities.OrgShip.list('name', 200).catch(() => []),
-      base44.entities.Op.list('-scheduled_at', 100).catch(() => []),
-    ]);
-    setReqs(r || []);
-    setShips((s || []).filter(sh => sh.status === 'AVAILABLE' || sh.status === 'ASSIGNED'));
-    setOps((o || []).filter(op => ['DRAFT', 'PUBLISHED', 'LIVE'].includes(op.status)));
-    setLoading(false);
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const [r, s, o] = await Promise.all([
+        base44.entities.Requisition.list('-requested_at', 200),
+        base44.entities.OrgShip.list('name', 200),
+        base44.entities.Op.list('-scheduled_at', 100),
+      ]);
+      setReqs(r || []);
+      setShips((s || []).filter(sh => sh.status === 'AVAILABLE' || sh.status === 'ASSIGNED'));
+      setOps((o || []).filter(op => ['DRAFT', 'PUBLISHED', 'LIVE'].includes(op.status)));
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
   const { refreshNow, scheduleRefresh } = useCoalescedRefresh(load);
 
@@ -123,6 +131,15 @@ export default function OpsCommandTab() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
         <div className="nexus-loading-dots" style={{ color: '#C8A84B' }}><span /><span /><span /></div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 60, gap: 10 }}>
+        <span style={{ fontSize: 11, color: 'var(--danger)' }}>Failed to load command data — check your connection.</span>
+        <button onClick={load} className="nexus-btn" style={{ padding: '6px 16px', fontSize: 10 }}>RETRY</button>
       </div>
     );
   }

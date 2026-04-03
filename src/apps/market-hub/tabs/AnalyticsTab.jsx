@@ -49,11 +49,13 @@ export default function AnalyticsTab() {
   const [snapshots, setSnapshots] = useState([]);
   const [commodities, setCommodities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [subTab, setSubTab] = useState('overview');
   const [selectedCommodity, setSelectedCommodity] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const [cl, cfl, tr, ps, cm] = await Promise.all([
         base44.entities.CargoLog.list('-logged_at', 200).catch(() => []),
@@ -68,7 +70,7 @@ export default function AnalyticsTab() {
       setSnapshots(ps || []);
       setCommodities(cm || []);
     } catch {
-      // load failed — empty state shown
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -77,6 +79,12 @@ export default function AnalyticsTab() {
   useEffect(() => { load(); }, [load]);
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div className="nexus-loading-dots" style={{ color: '#C8A84B' }}><span /><span /><span /></div></div>;
+  if (loadError) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 60, gap: 10 }}>
+      <span style={{ fontSize: 11, color: 'var(--danger)' }}>Failed to load market analytics — check your connection.</span>
+      <button onClick={load} className="nexus-btn" style={{ padding: '6px 16px', fontSize: 10 }}>RETRY</button>
+    </div>
+  );
 
   const totalVolume = logs.reduce((s, l) => s + (l.total_revenue || l.amount_aUEC || 0), 0);
   const bestMargin = logs.reduce((best, l) => Math.max(best, l.margin_pct || 0), 0);

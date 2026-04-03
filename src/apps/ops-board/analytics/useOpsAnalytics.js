@@ -13,15 +13,24 @@ function durationMinutes(startedAt, endedAt) {
 export default function useOpsAnalytics() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+  const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [allOps, allRsvps, allEvents, allCoffer] = await Promise.all([
-      base44.entities.Op.list('-scheduled_at', 500).catch(() => []),
-      base44.entities.OpRsvp.filter({ status: 'CONFIRMED' }).catch(() => []),
-      base44.entities.OpEvent.list('-logged_at', 2000).catch(() => []),
-      base44.entities.CofferLog.list('-logged_at', 500).catch(() => []),
-    ]);
+    setError(false);
+    let allOps, allRsvps, allEvents, allCoffer;
+    try {
+      [allOps, allRsvps, allEvents, allCoffer] = await Promise.all([
+        base44.entities.Op.list('-scheduled_at', 500),
+        base44.entities.OpRsvp.filter({ status: 'CONFIRMED' }),
+        base44.entities.OpEvent.list('-logged_at', 2000),
+        base44.entities.CofferLog.list('-logged_at', 500),
+      ]);
+    } catch {
+      setError(true);
+      setLoading(false);
+      return;
+    }
 
     const ops = (allOps || []).filter(o => o.status === 'COMPLETE' || o.status === 'ARCHIVED');
     const rsvps = allRsvps || [];
@@ -133,5 +142,5 @@ export default function useOpsAnalytics() {
 
   useEffect(() => { load(); }, [load]);
 
-  return { loading, data, refresh: load };
+  return { loading, data, error, refresh: load };
 }
